@@ -1,0 +1,28 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "arcmenu@kde.org",
+                "Name": "Arc Menu Contributors"
+            }
+        ],
+        "Category": "Application Launchers",
+        "Description": "A feature-rich application menu with 14 switchable layouts for KDE Plasma",
+        "Description[zh_CN]": "功能丰富、支持十四种可切换布局的 KDE Plasma 应用菜单",
+        "EnabledByDefault": true,
+        "Icon": "start-here-kde",
+        "Id": "org.kde.plasma.arcmenu",
+        "License": "GPL-2.0+",
+        "Name": "Arc Menu",
+        "Name[zh_CN]": "Arc Menu",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "1.0.0",
+        "Website": "https://github.com/arcmenu/plasma-arcmenu"
+    },
+    "X-Plasma-API-Minimum-Version": "6.0",
+    "X-Plasma-Provides": [
+        "org.kde.plasma.launchermenu"
+    ]
+}

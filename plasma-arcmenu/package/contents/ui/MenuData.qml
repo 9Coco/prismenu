@@ -1,0 +1,205 @@
+import QtQuick
+import org.kde.plasma.plasma5support as P5Support
+import "../code/AppsModel.js" as AppsModel
+import "../code/Favorites.js" as Favorites
+import "../code/Distro.js" as Distro
+import "../code/LayoutRegistry.js" as LayoutRegistry
+import "../code/Theme.js" as ThemeHelper
+
+QtObject {
+    id: root
+
+    // ---- Config bindings (set from main.qml) ----
+    property var plasmoidConfig: null
+
+    // ---- Runtime state ----
+    property string searchQuery: ""
+    property string currentCategoryId: "all"
+    property int kickoffTab: 0 // 0 favorites, 1 recent, 2 apps, 3 places, 4 leave
+    property bool categoriesCollapsed: false
+    property var focusedApp: null
+
+    // ---- Derived config accessors ----
+    readonly property string currentLayoutId: plasmoidConfig ? plasmoidConfig.currentLayout : "arcmenu"
+    readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
+    readonly property bool flipHorizontal: plasmoidConfig ? plasmoidConfig.flipHorizontal : false
+    readonly property string searchbarLocation: plasmoidConfig ? plasmoidConfig.searchbarLocation : "top"
+    readonly property int menuWidth: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuWidth : 600, 400, 900, 600)
+    readonly property int menuHeight: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuHeight : 550, 400, 800, 550)
+    readonly property int appIconSize: plasmoidConfig ? plasmoidConfig.appIconSize : 24
+    readonly property int categoryIconSize: plasmoidConfig ? plasmoidConfig.categoryIconSize : 24
+    readonly property int pinnedCols: plasmoidConfig ? plasmoidConfig.pinnedCols : 6
+    readonly property bool recentEnabled: plasmoidConfig ? plasmoidConfig.enabled : true
+    readonly property int recentMax: plasmoidConfig ? plasmoidConfig.maxItems : 5
+    readonly property bool showSearchDescription: plasmoidConfig ? plasmoidConfig.showDescription : true
+    readonly property int maxSearchResults: plasmoidConfig ? plasmoidConfig.maxResults : 20
+    readonly property var searchProviders: plasmoidConfig ? plasmoidConfig.providers : ["applications"]
+    readonly property string searchPlaceholder: plasmoidConfig ? plasmoidConfig.placeholder : i18n("Search applications…")
+    readonly property var powerOptions: plasmoidConfig ? plasmoidConfig.options : ["shutdown", "restart", "logout", "lock", "suspend"]
+    readonly property bool powerConfirm: plasmoidConfig ? plasmoidConfig.confirm : true
+    readonly property string softwareCenterCmd: plasmoidConfig ? plasmoidConfig.softwareCenterCmd : "auto-detect"
+    readonly property bool syncFavorites: plasmoidConfig ? plasmoidConfig.syncWithPlasma : true
+    readonly property bool showEmptyCategories: plasmoidConfig ? plasmoidConfig.showEmpty : false
+
+    // ---- Application catalog (populated by runner / demo fallback) ----
+    property var allApps: []
+    property var rawCategories: []
+    property string userName: ""
+    property string userIcon: "user-identity"
+    property string osReleaseId: "kubuntu"
+    property string osPrettyName: "Kubuntu"
+
+    readonly property var categories: {
+        var base = rawCategories.length ? rawCategories : AppsModel.defaultCategories();
+        // attach counts
+        var withCounts = [];
+        for (var i = 0; i < base.length; ++i) {
+            var c = Object.assign({}, base[i]);
+            c.apps = AppsModel.appsInCategory(allApps, c.id);
+            c.appCount = c.apps.length;
+            withCounts.push(c);
+        }
+        // prepend All
+        var all = {
+            id: "all",
+            name: i18n("All Applications"),
+            icon: "applications-all",
+            apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps)),
+            appCount: allApps.length
+        };
+        var customized = AppsModel.applyCategoryCustomization(
+            withCounts,
+            plasmoidConfig ? plasmoidConfig.order : [],
+            plasmoidConfig ? plasmoidConfig.hidden : [],
+            plasmoidConfig ? plasmoidConfig.customNames : "{}",
+            plasmoidConfig ? plasmoidConfig.customIcons : "{}",
+            showEmptyCategories
+        );
+        return [all].concat(customized);
+    }
+
+    readonly property var categoryApps: AppsModel.appsInCategory(allApps, currentCategoryId)
+
+    readonly property var pinnedApps: {
+        var ids = plasmoidConfig ? plasmoidConfig.pinnedApps : [];
+        return AppsModel.resolveAppsByIds(allApps, ids);
+    }
+
+    readonly property var recentApps: {
+        if (!recentEnabled) {
+            return [];
+        }
+        var ids = plasmoidConfig ? plasmoidConfig.recentApps : [];
+        return AppsModel.resolveAppsByIds(allApps, ids);
+    }
+
+    readonly property bool isSearching: searchQuery.trim().length > 0
+
+    readonly property var searchResults: {
+        if (!isSearching) {
+            return [];
+        }
+        var apps = AppsModel.searchApps(allApps, searchQuery.trim(), maxSearchResults);
+        // Optionally include placeholder non-app runners when providers allow
+        var includeOthers = false;
+        var providers = searchProviders || [];
+        for (var i = 0; i < providers.length; ++i) {
+            if (providers[i] !== "applications") {
+                includeOthers = true;
+                break;
+            }
+        }
+        if (includeOthers && apps.length < maxSearchResults) {
+            // Soft secondary matches from genericName already covered;
+            // keep structure ready for Plasma Search runners.
+        }
+        return apps;
+    }
+
+    readonly property string buttonIcon: Distro.resolveButtonIcon(
+        plasmoidConfig ? plasmoidConfig.buttonIcon : "auto-distro",
+        plasmoidConfig ? plasmoidConfig.customButtonIcon : "",
+        osReleaseId,
+        osPrettyName
+    )
+
+    signal launchApp(var app)
+    signal requestClose()
+    signal requestPowerAction(string actionId)
+    signal requestConfigure()
+
+    function resetView() {
+        searchQuery = "";
+        currentCategoryId = "all";
+        kickoffTab = 0;
+        categoriesCollapsed = false;
+        focusedApp = null;
+    }
+
+    function selectCategory(id) {
+        currentCategoryId = id;
+        searchQuery = "";
+    }
+
+    function setSearch(text) {
+        searchQuery = text;
+    }
+
+    function isFavorite(appId) {
+        var pinned = plasmoidConfig ? plasmoidConfig.pinnedApps : [];
+        return Favorites.isFavorite(pinned, appId);
+    }
+
+    function toggleFavorite(app) {
+        if (!app || !plasmoidConfig) {
+            return;
+        }
+        plasmoidConfig.pinnedApps = Favorites.toggleFavorite(plasmoidConfig.pinnedApps, app.id);
+    }
+
+    function reorderPinned(from, to) {
+        if (!plasmoidConfig) {
+            return;
+        }
+        plasmoidConfig.pinnedApps = Favorites.moveItem(plasmoidConfig.pinnedApps, from, to);
+    }
+
+    function recordLaunch(app) {
+        if (!app || !plasmoidConfig) {
+            return;
+        }
+        if (recentEnabled) {
+            plasmoidConfig.recentApps = Favorites.pushRecent(plasmoidConfig.recentApps, app.id, recentMax);
+        }
+    }
+
+    function clearRecent() {
+        if (plasmoidConfig) {
+            plasmoidConfig.recentApps = Favorites.clearRecent();
+        }
+    }
+
+    function seedDemoApps() {
+        // Used when KService runner is unavailable (dev / packaging checks).
+        if (allApps.length > 0) {
+            return;
+        }
+        allApps = [
+            { id: "org.kde.dolphin.desktop", name: "Dolphin", icon: "system-file-manager", exec: "dolphin", categories: ["System", "Utility"], keywords: ["files", "folder"], genericName: "File Manager", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.dolphin.desktop" },
+            { id: "org.kde.konsole.desktop", name: "Konsole", icon: "utilities-terminal", exec: "konsole", categories: ["System", "Utility"], keywords: ["terminal", "shell"], genericName: "Terminal", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.konsole.desktop" },
+            { id: "org.kde.kate.desktop", name: "Kate", icon: "accessories-text-editor", exec: "kate", categories: ["Utility", "Development"], keywords: ["editor", "text"], genericName: "Advanced Text Editor", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.kate.desktop" },
+            { id: "firefox.desktop", name: "Firefox", icon: "firefox", exec: "firefox", categories: ["Network"], keywords: ["browser", "web"], genericName: "Web Browser", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/firefox.desktop" },
+            { id: "org.kde.discover.desktop", name: "Discover", icon: "plasmadiscover", exec: "plasma-discover", categories: ["System"], keywords: ["software", "store"], genericName: "Software Center", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.discover.desktop" },
+            { id: "systemsettings.desktop", name: "System Settings", icon: "preferences-system", exec: "systemsettings", categories: ["Settings"], keywords: ["configure"], genericName: "System Settings", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/systemsettings.desktop" },
+            { id: "org.kde.gwenview.desktop", name: "Gwenview", icon: "gwenview", exec: "gwenview", categories: ["Graphics"], keywords: ["image", "viewer"], genericName: "Image Viewer", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.gwenview.desktop" },
+            { id: "org.kde.okular.desktop", name: "Okular", icon: "okular", exec: "okular", categories: ["Office"], keywords: ["pdf", "document"], genericName: "Document Viewer", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.okular.desktop" },
+            { id: "org.kde.kcalc.desktop", name: "KCalc", icon: "accessories-calculator", exec: "kcalc", categories: ["Utility", "Accessories"], keywords: ["calculator"], genericName: "Calculator", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.kcalc.desktop" },
+            { id: "org.kde.kmines.desktop", name: "KMines", icon: "kmines", exec: "kmines", categories: ["Game"], keywords: ["minesweeper"], genericName: "Minesweeper-like Game", isFavorite: false, noDisplay: false, entryPath: "/usr/share/applications/org.kde.kmines.desktop" }
+        ];
+        userName = "kubuntu";
+        osReleaseId = "kubuntu";
+        osPrettyName = "Kubuntu";
+    }
+
+    Component.onCompleted: seedDemoApps()
+}
