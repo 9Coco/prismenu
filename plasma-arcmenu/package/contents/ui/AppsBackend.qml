@@ -2,7 +2,7 @@ import QtQuick
 import org.kde.plasma.plasma5support as P5Support
 import "../code/AppsModel.js" as AppsModel
 
-QtObject {
+Item {
     id: root
 
     property var menuData: null
