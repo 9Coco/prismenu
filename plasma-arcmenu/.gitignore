@@ -1,0 +1,9 @@
+build/
+cmake-build-*/
+*.qmlc
+*.jsc
+.DS_Store
+*~
+*.mo
+.vscode/
+.idea/

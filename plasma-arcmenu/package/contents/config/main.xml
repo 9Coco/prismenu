@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+
+    <group name="General">
+        <entry name="ButtonIcon" type="String">
+            <default>auto-distro</default>
+        </entry>
+        <entry name="CustomButtonIcon" type="String">
+            <default></default>
+        </entry>
+        <entry name="ButtonLabelVisible" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ButtonLabelText" type="String">
+            <default>Applications</default>
+        </entry>
+        <entry name="MenuHotkey" type="String">
+            <default>Meta</default>
+        </entry>
+        <entry name="PopupAnimation" type="String">
+            <default>expand</default>
+        </entry>
+        <entry name="ShareConfigAcrossInstances" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="FilterByActivity" type="Bool">
+            <default>false</default>
+        </entry>
+    </group>
+
+    <group name="Layout">
+        <entry name="CurrentLayout" type="String">
+            <default>arcmenu</default>
+        </entry>
+        <entry name="FlipHorizontal" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="SearchbarLocation" type="String">
+            <default>top</default>
+        </entry>
+        <entry name="MenuWidth" type="Int">
+            <default>600</default>
+        </entry>
+        <entry name="MenuHeight" type="Int">
+            <default>550</default>
+        </entry>
+    </group>
+
+    <group name="Theme">
+        <entry name="ThemeMode" type="String">
+            <default>system</default>
+        </entry>
+        <entry name="BgColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="FgColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="BorderColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="BorderWidth" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="CornerRadius" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="Font" type="String">
+            <default></default>
+        </entry>
+        <entry name="FontSize" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="SelectedBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="SelectedFg" type="String">
+            <default></default>
+        </entry>
+        <entry name="CategoryIconSize" type="Int">
+            <default>24</default>
+        </entry>
+        <entry name="AppIconSize" type="Int">
+            <default>24</default>
+        </entry>
+        <entry name="FollowColorScheme" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Favorites">
+        <entry name="PinnedApps" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="PinnedCols" type="Int">
+            <default>6</default>
+        </entry>
+        <entry name="SyncWithPlasma" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Recent">
+        <entry name="Enabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="MaxItems" type="Int">
+            <default>5</default>
+        </entry>
+        <entry name="RecentApps" type="StringList">
+            <default></default>
+        </entry>
+    </group>
+
+    <group name="Categories">
+        <entry name="Order" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="Hidden" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="CustomNames" type="String">
+            <default>{}</default>
+        </entry>
+        <entry name="CustomIcons" type="String">
+            <default>{}</default>
+        </entry>
+        <entry name="ShowEmpty" type="Bool">
+            <default>false</default>
+        </entry>
+    </group>
+
+    <group name="Search">
+        <entry name="Providers" type="StringList">
+            <default>applications</default>
+        </entry>
+        <entry name="Placeholder" type="String">
+            <default>Search applications…</default>
+        </entry>
+        <entry name="ShowDescription" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="MaxResults" type="Int">
+            <default>20</default>
+        </entry>
+    </group>
+
+    <group name="Power">
+        <entry name="Options" type="StringList">
+            <default>shutdown,restart,logout,lock,suspend,hibernate,settings,discover,switchuser</default>
+        </entry>
+        <entry name="Confirm" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SoftwareCenterCmd" type="String">
+            <default>auto-detect</default>
+        </entry>
+    </group>
+</kcfg>

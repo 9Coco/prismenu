@@ -1,0 +1,221 @@
+.pragma library
+
+/**
+ * Application and category data helpers.
+ * Prefer KService / AppStream via QML models when available;
+ * these helpers provide filtering, sorting, and fallback matching.
+ */
+
+function parseJsonMap(raw) {
+    if (!raw || raw === "") {
+        return {};
+    }
+    try {
+        return JSON.parse(raw);
+    } catch (e) {
+        console.warn("ArcMenu: failed to parse JSON map:", e);
+        return {};
+    }
+}
+
+function stringifyJsonMap(obj) {
+    try {
+        return JSON.stringify(obj || {});
+    } catch (e) {
+        return "{}";
+    }
+}
+
+function localizedCompare(a, b) {
+    return String(a || "").localeCompare(String(b || ""), undefined, { sensitivity: "base" });
+}
+
+function filterVisibleApps(apps) {
+    var result = [];
+    for (var i = 0; i < apps.length; ++i) {
+        var app = apps[i];
+        if (!app) {
+            continue;
+        }
+        if (app.noDisplay === true) {
+            continue;
+        }
+        result.push(app);
+    }
+    return result;
+}
+
+function sortAppsByName(apps) {
+    var copy = apps.slice();
+    copy.sort(function (a, b) {
+        return localizedCompare(a.name, b.name);
+    });
+    return copy;
+}
+
+function appsInCategory(apps, categoryId) {
+    if (!categoryId || categoryId === "all") {
+        return sortAppsByName(filterVisibleApps(apps));
+    }
+    var result = [];
+    for (var i = 0; i < apps.length; ++i) {
+        var app = apps[i];
+        if (!app || app.noDisplay) {
+            continue;
+        }
+        var cats = app.categories || [];
+        for (var j = 0; j < cats.length; ++j) {
+            if (cats[j] === categoryId) {
+                result.push(app);
+                break;
+            }
+        }
+    }
+    return sortAppsByName(result);
+}
+
+function applyCategoryCustomization(categories, order, hidden, customNames, customIcons, showEmpty) {
+    var hiddenSet = {};
+    for (var h = 0; h < (hidden || []).length; ++h) {
+        hiddenSet[hidden[h]] = true;
+    }
+    var names = typeof customNames === "string" ? parseJsonMap(customNames) : (customNames || {});
+    var icons = typeof customIcons === "string" ? parseJsonMap(customIcons) : (customIcons || {});
+
+    var byId = {};
+    for (var i = 0; i < categories.length; ++i) {
+        byId[categories[i].id] = categories[i];
+    }
+
+    var ordered = [];
+    var used = {};
+    var orderList = order || [];
+    for (var o = 0; o < orderList.length; ++o) {
+        var id = orderList[o];
+        if (byId[id] && !hiddenSet[id]) {
+            var c = Object.assign({}, byId[id]);
+            if (names[id]) {
+                c.name = names[id];
+            }
+            if (icons[id]) {
+                c.icon = icons[id];
+            }
+            if (showEmpty || (c.appCount && c.appCount > 0) || (c.apps && c.apps.length > 0)) {
+                ordered.push(c);
+            }
+            used[id] = true;
+        }
+    }
+
+    for (var k = 0; k < categories.length; ++k) {
+        var cat = categories[k];
+        if (used[cat.id] || hiddenSet[cat.id]) {
+            continue;
+        }
+        var c2 = Object.assign({}, cat);
+        if (names[cat.id]) {
+            c2.name = names[cat.id];
+        }
+        if (icons[cat.id]) {
+            c2.icon = icons[cat.id];
+        }
+        if (showEmpty || (c2.appCount && c2.appCount > 0) || (c2.apps && c2.apps.length > 0)) {
+            ordered.push(c2);
+        }
+    }
+    return ordered;
+}
+
+function matchApp(app, query) {
+    if (!query) {
+        return 0;
+    }
+    var q = query.toLowerCase();
+    var name = (app.name || "").toLowerCase();
+    var generic = (app.genericName || "").toLowerCase();
+    var id = (app.id || "").toLowerCase();
+    var keywords = app.keywords || [];
+
+    if (name.indexOf(q) === 0) {
+        return 100;
+    }
+    if (name.indexOf(q) >= 0) {
+        return 80;
+    }
+    if (generic.indexOf(q) >= 0) {
+        return 60;
+    }
+    for (var i = 0; i < keywords.length; ++i) {
+        if (String(keywords[i]).toLowerCase().indexOf(q) >= 0) {
+            return 40;
+        }
+    }
+    if (id.indexOf(q) >= 0) {
+        return 20;
+    }
+    return 0;
+}
+
+function searchApps(apps, query, maxResults) {
+    var scored = [];
+    for (var i = 0; i < apps.length; ++i) {
+        var app = apps[i];
+        if (!app || app.noDisplay) {
+            continue;
+        }
+        var score = matchApp(app, query);
+        if (score > 0) {
+            scored.push({ app: app, score: score });
+        }
+    }
+    scored.sort(function (a, b) {
+        if (b.score !== a.score) {
+            return b.score - a.score;
+        }
+        return localizedCompare(a.app.name, b.app.name);
+    });
+    var limit = maxResults > 0 ? maxResults : scored.length;
+    var result = [];
+    for (var j = 0; j < Math.min(limit, scored.length); ++j) {
+        result.push(scored[j].app);
+    }
+    return result;
+}
+
+function findAppById(apps, id) {
+    for (var i = 0; i < apps.length; ++i) {
+        if (apps[i] && apps[i].id === id) {
+            return apps[i];
+        }
+    }
+    return null;
+}
+
+function resolveAppsByIds(apps, ids) {
+    var result = [];
+    for (var i = 0; i < (ids || []).length; ++i) {
+        var app = findAppById(apps, ids[i]);
+        if (app) {
+            result.push(app);
+        }
+    }
+    return result;
+}
+
+var DEFAULT_CATEGORIES = [
+    { id: "Development", name: "Development", icon: "applications-development" },
+    { id: "Education", name: "Education", icon: "applications-education" },
+    { id: "Game", name: "Games", icon: "applications-games" },
+    { id: "Graphics", name: "Graphics", icon: "applications-graphics" },
+    { id: "Network", name: "Internet", icon: "applications-internet" },
+    { id: "AudioVideo", name: "Multimedia", icon: "applications-multimedia" },
+    { id: "Office", name: "Office", icon: "applications-office" },
+    { id: "Settings", name: "Settings", icon: "preferences-system" },
+    { id: "System", name: "System", icon: "applications-system" },
+    { id: "Utility", name: "Utilities", icon: "applications-utilities" },
+    { id: "Accessories", name: "Accessories", icon: "applications-accessories" }
+];
+
+function defaultCategories() {
+    return DEFAULT_CATEGORIES.slice();
+}
