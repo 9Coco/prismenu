@@ -158,15 +158,15 @@ var LAYOUTS = [
     {
         id: "redmond",
         name: "Redmond",
-        description: "Windows 7 style",
-        hasCategories: true,
+        description: "Windows-style (app grid + places sidebar)",
+        hasCategories: false,
         hasPinned: true,
         hasSearch: true,
         hasUser: true,
         hasPower: true,
         supportsFlip: true,
         supportsSearchbarLocation: false,
-        defaultWidth: 620,
+        defaultWidth: 720,
         defaultHeight: 560,
         source: "layouts/LayoutRedmond.qml"
     },

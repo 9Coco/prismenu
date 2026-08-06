@@ -290,6 +290,9 @@ msgstr "使用 Plasma 布局"
 msgid "Use Pop layout"
 msgstr "使用 Pop 布局"
 
+msgid "Use Redmond layout"
+msgstr "使用 Redmond 布局"
+
 msgid "Library Home"
 msgstr "程序库主页"
 
