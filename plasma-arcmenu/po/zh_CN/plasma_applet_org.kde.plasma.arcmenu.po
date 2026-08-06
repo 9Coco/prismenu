@@ -272,6 +272,12 @@ msgstr "使用 Mint 布局"
 msgid "Use Whisker layout"
 msgstr "使用 Whisker 布局"
 
+msgid "Use Eleven layout"
+msgstr "使用 Eleven 布局"
+
+msgid "Terminal"
+msgstr "终端"
+
 msgid "User account"
 msgstr "用户帐户"
 

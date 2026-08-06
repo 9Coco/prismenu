@@ -66,6 +66,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutMint.qml").exists(), "mint layout entry")
     check((PKG / "contents/ui/layouts/whisker/README.md").exists(), "whisker folder")
     check((PKG / "contents/ui/layouts/LayoutWhisker.qml").exists(), "whisker layout entry")
+    check((PKG / "contents/ui/layouts/eleven/README.md").exists(), "eleven folder")
+    check((PKG / "contents/ui/layouts/LayoutEleven.qml").exists(), "eleven layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

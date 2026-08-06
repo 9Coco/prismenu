@@ -12,6 +12,7 @@ docs/reference-screenshots/
 ├── gnome/       # GNOME 布局 — 目标效果
 ├── mint/        # Mint 布局 — 目标效果
 ├── whisker/     # Whisker 布局 — 目标效果
+├── eleven/      # Eleven (Win11) 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -28,6 +29,7 @@ docs/reference-screenshots/
 | GNOME | `gnome/01-target.png` | GNOME 效果（固定/分类 + 底栏活动概况） |
 | Mint | `mint/01-target.png` | Mint 效果（左侧图标栏 + 分类 + 固定应用） |
 | Whisker | `whisker/01-target.png` | Whisker 效果（搜索 + 用户栏 + 分类/内容） |
+| Eleven | `eleven/01-target.png` | Eleven / Win11 效果（已固定网格 + 常用 + 底栏） |
 
 ## 过程截图（progress）
 
