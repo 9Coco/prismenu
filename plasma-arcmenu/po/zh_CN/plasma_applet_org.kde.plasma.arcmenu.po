@@ -287,6 +287,18 @@ msgstr "使用 Insider 布局"
 msgid "Use Plasma layout"
 msgstr "使用 Plasma 布局"
 
+msgid "Use Pop layout"
+msgstr "使用 Pop 布局"
+
+msgid "Library Home"
+msgstr "程序库主页"
+
+msgid "System"
+msgstr "系统"
+
+msgid "Utility Tools"
+msgstr "实用工具"
+
 msgid "Computer"
 msgstr "电脑"
 

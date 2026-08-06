@@ -126,6 +126,21 @@ var LAYOUTS = [
         source: "layouts/LayoutPlasma.qml"
     },
     {
+        id: "pop",
+        name: "Pop",
+        description: "Pop!_OS (search + grid + category tabs)",
+        hasCategories: true,
+        hasPinned: false,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: false,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 720,
+        defaultHeight: 560,
+        source: "layouts/LayoutPop.qml"
+    },
+    {
         id: "unity-dash",
         name: "Unity Dash",
         description: "Ubuntu Unity style",

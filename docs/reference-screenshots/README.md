@@ -17,6 +17,7 @@ docs/reference-screenshots/
 ├── enterprise/  # Enterprise 企业布局 — 目标效果
 ├── insider/     # Insider 布局 — 目标效果
 ├── plasma/      # Plasma 样式 — 目标效果
+├── pop/         # Pop 菜单 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -38,6 +39,7 @@ docs/reference-screenshots/
 | Enterprise | `enterprise/01-target.png` | 企业布局（用户+搜索顶栏，左侧分类/电源，右侧网格） |
 | Insider | `insider/01-target.png` | Insider 效果（居中头像 + 五列应用网格 + 左侧工具栏） |
 | Plasma | `plasma/01-target.png` | Plasma 样式（顶栏用户/搜索 + 列表 + 底栏四页签） |
+| Pop | `pop/01-target.png` | Pop 菜单（搜索 + 六列网格 + 底部分类页签） |
 
 ## 过程截图（progress）
 
