@@ -53,6 +53,43 @@ function sortAppsByName(apps) {
     return copy;
 }
 
+/**
+ * First letter key for A–Z sections. Latin → uppercase; digits/symbols → "#";
+ * other scripts keep the first character.
+ */
+function firstLetterKey(name) {
+    var ch = String(name || "").trim().charAt(0);
+    if (!ch) {
+        return "#";
+    }
+    if (/[0-9]/.test(ch)) {
+        return "#";
+    }
+    if (/[a-zA-Z]/.test(ch)) {
+        return ch.toUpperCase();
+    }
+    return ch;
+}
+
+/**
+ * Group visible apps into A–Z sections: [{ letter, apps: [...] }, ...]
+ */
+function appsAzSections(apps) {
+    var sorted = sortAppsByName(filterVisibleApps(apps || []));
+    var sections = [];
+    var current = null;
+    for (var i = 0; i < sorted.length; ++i) {
+        var app = sorted[i];
+        var key = firstLetterKey(app.name);
+        if (!current || current.letter !== key) {
+            current = { letter: key, apps: [] };
+            sections.push(current);
+        }
+        current.apps.push(app);
+    }
+    return sections;
+}
+
 function appsInCategory(apps, categoryId) {
     if (!categoryId || categoryId === "all") {
         return sortAppsByName(filterVisibleApps(apps));
