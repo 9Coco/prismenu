@@ -143,8 +143,8 @@ var LAYOUTS = [
     {
         id: "eleven",
         name: "Eleven",
-        description: "Windows 11 style",
-        hasCategories: true,
+        description: "Windows 11 (pinned grid + recommended + footer)",
+        hasCategories: false,
         hasPinned: true,
         hasSearch: true,
         hasUser: true,
