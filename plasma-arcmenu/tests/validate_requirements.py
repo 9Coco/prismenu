@@ -62,6 +62,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
     check((PKG / "contents/ui/layouts/gnome/README.md").exists(), "gnome folder")
     check((PKG / "contents/ui/layouts/LayoutGnome.qml").exists(), "gnome layout entry")
+    check((PKG / "contents/ui/layouts/mint/README.md").exists(), "mint folder")
+    check((PKG / "contents/ui/layouts/LayoutMint.qml").exists(), "mint layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

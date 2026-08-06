@@ -324,6 +324,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "gnome"
         },
         PlasmaCore.Action {
+            text: i18n("Use Mint layout")
+            icon.name: "folder-green"
+            onTriggered: plasmoid.configuration.menuLayoutId = "mint"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
