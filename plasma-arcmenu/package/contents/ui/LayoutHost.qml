@@ -1,6 +1,6 @@
 import QtQuick
-import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import "../code/LayoutRegistry.js" as LayoutRegistry
 
 Item {
@@ -14,84 +14,137 @@ Item {
     signal powerAction(string actionId)
     signal userMenu()
 
-    readonly property string layoutId: menuData ? menuData.currentLayoutId : "arcmenu"
+    // Read layout id from configuration DIRECTLY so Apply always triggers reload.
+    // Fallback to menuData for tests / if config is empty.
+    readonly property string layoutId: {
+        var fromConfig = "";
+        try {
+            fromConfig = String(plasmoid.configuration.menuLayoutId || "");
+        } catch (e) {
+            fromConfig = "";
+        }
+        if (fromConfig.length)
+            return fromConfig;
+        if (menuData && menuData.currentLayoutId)
+            return menuData.currentLayoutId;
+        return "arcmenu";
+    }
+
     readonly property var layoutMeta: LayoutRegistry.getLayout(layoutId)
 
     width: menuData ? menuData.menuWidth : 600
     height: menuData ? menuData.menuHeight : 550
 
+    function layoutUrl() {
+        if (layoutMeta && layoutMeta.source) {
+            return Qt.resolvedUrl(layoutMeta.source);
+        }
+        return Qt.resolvedUrl("layouts/LayoutArcMenu.qml");
+    }
+
+    function reloadLayout() {
+        var src = layoutUrl();
+        console.log("ArcMenu LayoutHost reload:", root.layoutId, src);
+        layoutLoader.source = "";
+        layoutLoader.source = src;
+    }
+
+    function wireItem() {
+        var item = layoutLoader.item;
+        if (!item) {
+            return;
+        }
+        item.menuData = root.menuData;
+        item.themeStyle = root.themeStyle;
+        if (item.appActivated) {
+            try { item.appActivated.disconnect(root.appActivated); } catch (e) {}
+            item.appActivated.connect(root.appActivated);
+        }
+        if (item.appContextMenu) {
+            try { item.appContextMenu.disconnect(root.appContextMenu); } catch (e2) {}
+            item.appContextMenu.connect(root.appContextMenu);
+        }
+        if (item.powerAction) {
+            try { item.powerAction.disconnect(root.powerAction); } catch (e3) {}
+            item.powerAction.connect(root.powerAction);
+        }
+        if (item.userMenu) {
+            try { item.userMenu.disconnect(root.userMenu); } catch (e4) {}
+            item.userMenu.connect(root.userMenu);
+        }
+    }
+
     Loader {
         id: layoutLoader
         anchors.fill: parent
         asynchronous: false
-        source: layoutMeta ? Qt.resolvedUrl(layoutMeta.source) : Qt.resolvedUrl("layouts/LayoutArcMenu.qml")
 
         onStatusChanged: {
             if (status === Loader.Error) {
-                console.error("ArcMenu LayoutHost failed to load layout:", source, layoutId);
+                console.error("ArcMenu LayoutHost failed:", source, "layoutId=", root.layoutId);
             }
         }
-
-        onLoaded: {
-            if (!item) {
-                return;
-            }
-            item.menuData = root.menuData;
-            item.themeStyle = root.themeStyle;
-            if (item.appActivated) {
-                item.appActivated.connect(root.appActivated);
-            }
-            if (item.appContextMenu) {
-                item.appContextMenu.connect(root.appContextMenu);
-            }
-            if (item.powerAction) {
-                item.powerAction.connect(root.powerAction);
-            }
-            if (item.userMenu) {
-                item.userMenu.connect(root.userMenu);
-            }
-        }
+        onLoaded: root.wireItem()
     }
 
-    // Visible fallback when a layout fails to compile/load (avoids empty black box)
     Rectangle {
         anchors.fill: parent
-        visible: layoutLoader.status === Loader.Error || (layoutLoader.status === Loader.Ready && !layoutLoader.item)
+        visible: layoutLoader.status === Loader.Error
         color: Kirigami.Theme.backgroundColor
         border.color: Kirigami.Theme.disabledTextColor
         border.width: 1
+        z: 10
 
         Column {
             anchors.centerIn: parent
             spacing: Kirigami.Units.smallSpacing
-            width: parent.width * 0.8
+            width: parent.width * 0.85
 
             Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: Text.WordWrap
                 color: Kirigami.Theme.textColor
-                text: i18n("Failed to load menu layout.\nReinstall Arc Menu or check journalctl for QML errors.")
+                text: i18n("Failed to load layout: %1", root.layoutId)
             }
         }
     }
 
-    onLayoutIdChanged: {
-        // Force reload so layout switch re-creates the tree
-        var src = layoutMeta ? Qt.resolvedUrl(layoutMeta.source) : Qt.resolvedUrl("layouts/LayoutArcMenu.qml");
-        layoutLoader.source = "";
-        layoutLoader.source = src;
+    // Tiny debug badge so you can see which layout is actually loaded
+    Rectangle {
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 4
+        z: 20
+        radius: 3
+        color: "#80000000"
+        width: dbg.implicitWidth + 10
+        height: dbg.implicitHeight + 4
+        Text {
+            id: dbg
+            anchors.centerIn: parent
+            color: "white"
+            font.pixelSize: 10
+            text: root.layoutId + (layoutLoader.status === Loader.Error ? " ERR" : "")
+        }
     }
 
+    onLayoutIdChanged: reloadLayout()
     onMenuDataChanged: {
         if (layoutLoader.item) {
-            layoutLoader.item.menuData = menuData;
+            wireItem();
+        } else if (layoutLoader.status !== Loader.Loading) {
+            reloadLayout();
+        }
+    }
+    onThemeStyleChanged: wireItem()
+
+    Connections {
+        target: plasmoid.configuration
+        function onMenuLayoutIdChanged() {
+            root.reloadLayout();
         }
     }
 
-    onThemeStyleChanged: {
-        if (layoutLoader.item) {
-            layoutLoader.item.themeStyle = themeStyle;
-        }
-    }
+    Component.onCompleted: reloadLayout()
 }

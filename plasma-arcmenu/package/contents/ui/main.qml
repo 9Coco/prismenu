@@ -23,11 +23,12 @@ PlasmoidItem {
     switchHeight: Kirigami.Units.gridUnit * 12
 
     property bool menuOpen: false
-    property string lastLayoutId: plasmoid.configuration.currentLayout
+    property string lastLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
 
     MenuData {
         id: menuData
         plasmoidConfig: plasmoid.configuration
+        currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
     }
 
     AppsBackend {
@@ -278,18 +279,20 @@ PlasmoidItem {
     // Global Meta hotkey coordination via plasmoid global shortcut activation
     Plasmoid.onActivated: root.toggleMenu()
 
-    // Layout change while open: close and reopen
+    // Layout change: LayoutHost follows menuLayoutId; reopen if menu is open
     Connections {
         target: plasmoid.configuration
-        function onCurrentLayoutChanged() {
-            if (root.expanded && lastLayoutId !== plasmoid.configuration.currentLayout) {
+        function onMenuLayoutIdChanged() {
+            console.log("ArcMenu: layout ->", plasmoid.configuration.menuLayoutId);
+            menuData.currentLayoutId = plasmoid.configuration.menuLayoutId || "arcmenu";
+            if (root.expanded && lastLayoutId !== plasmoid.configuration.menuLayoutId) {
                 root.expanded = false;
                 Qt.callLater(() => {
                     menuData.resetView();
                     root.expanded = true;
                 });
             }
-            lastLayoutId = plasmoid.configuration.currentLayout;
+            lastLayoutId = plasmoid.configuration.menuLayoutId || "arcmenu";
         }
     }
 
@@ -299,6 +302,16 @@ PlasmoidItem {
             text: i18n("Configure Arc Menu…")
             icon.name: "configure"
             onTriggered: plasmoid.internalAction("configure").trigger()
+        },
+        PlasmaCore.Action {
+            text: i18n("Use Arc Menu layout")
+            icon.name: "view-list-details"
+            onTriggered: plasmoid.configuration.menuLayoutId = "arcmenu"
+        },
+        PlasmaCore.Action {
+            text: i18n("Use Brisk layout")
+            icon.name: "view-grid"
+            onTriggered: plasmoid.configuration.menuLayoutId = "brisk"
         },
         PlasmaCore.Action {
             text: i18n("Clear Recent Applications")

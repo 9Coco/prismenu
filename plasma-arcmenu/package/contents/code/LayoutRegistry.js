@@ -23,16 +23,16 @@ var LAYOUTS = [
     {
         id: "brisk",
         name: "Brisk",
-        description: "Solus Brisk Menu",
+        description: "Solus Brisk Menu (sidebar + apps)",
         hasCategories: true,
-        hasPinned: false,
+        hasPinned: true,
         hasSearch: true,
         hasUser: false,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
-        defaultWidth: 550,
-        defaultHeight: 500,
+        supportsSearchbarLocation: false,
+        defaultWidth: 580,
+        defaultHeight: 560,
         source: "layouts/LayoutBrisk.qml"
     },
     {

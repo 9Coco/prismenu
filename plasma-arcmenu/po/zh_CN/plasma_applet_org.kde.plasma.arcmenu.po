@@ -248,8 +248,56 @@ msgstr "许可证：GPL-2.0-or-later"
 msgid "Credits"
 msgstr "致谢"
 
-msgid "Files"
-msgstr "文件"
+msgid "Selected layout: %1 — click Apply to use it."
+msgstr "已选择布局：%1 — 请点击“应用”后生效。"
+
+msgid "Pick a layout, then click Apply. Current: %1"
+msgstr "选择布局后点击“应用”。当前：%1"
+
+msgid "Layout switches immediately when you click a style. Current: %1"
+msgstr "点击样式即可立即切换。当前：%1"
+
+msgid "Use Arc Menu layout"
+msgstr "使用 Arc Menu 布局"
+
+msgid "Use Brisk layout"
+msgstr "使用 Brisk 布局"
+
+msgid "Failed to load layout: %1"
+msgstr "无法加载布局：%1"
+
+msgid "Pinned Applications"
+msgstr "固定应用程序"
+
+msgid "Office"
+msgstr "办公"
+
+msgid "Development"
+msgstr "编程"
+
+msgid "Accessories"
+msgstr "附件"
+
+msgid "Utilities"
+msgstr "工具"
+
+msgid "Internet"
+msgstr "互联网"
+
+msgid "Graphics"
+msgstr "图形"
+
+msgid "System Tools"
+msgstr "系统工具"
+
+msgid "Games"
+msgstr "游戏"
+
+msgid "Education"
+msgstr "教育"
+
+msgid "Multimedia"
+msgstr "多媒体"
 
 msgid "File Manager"
 msgstr "文件管理器"
