@@ -186,6 +186,21 @@ var LAYOUTS = [
         source: "layouts/LayoutEnterprise.qml"
     },
     {
+        id: "insider",
+        name: "Insider",
+        description: "Insider (avatar + app grid + utility rail)",
+        hasCategories: false,
+        hasPinned: false,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 560,
+        defaultHeight: 640,
+        source: "layouts/LayoutInsider.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",
