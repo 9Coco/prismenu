@@ -3,10 +3,11 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
+import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Brisk Menu — self-contained (no sub-Loaders) so layout switch always works.
- * Extra pieces for later integration still live under layouts/brisk/.
+ * Brisk Menu — matches ArcMenu Brisk reference:
+ *   Search top | Sidebar (pinned / all / categories / software / settings) | Content | Session bottom
  */
 LayoutBase {
     id: root
@@ -23,44 +24,57 @@ LayoutBase {
         return opts;
     }
 
-    readonly property var categories: {
-        var out = [];
-        if (!menuData || !menuData.categories) return out;
-        var cats = menuData.categories;
-        for (var i = 0; i < cats.length; ++i) {
-            if (cats[i].id !== "all") out.push(cats[i]);
-        }
-        return out;
-    }
+    // Always show the standard category set (do not hide empty ones)
+    readonly property var categories: [
+        { id: "Office", name: i18n("Office"), icon: "applications-office" },
+        { id: "Development", name: i18n("Development"), icon: "applications-development" },
+        { id: "Accessories", name: i18n("Accessories"), icon: "applications-accessories" },
+        { id: "Utility", name: i18n("Utilities"), icon: "applications-utilities" },
+        { id: "Network", name: i18n("Internet"), icon: "applications-internet" },
+        { id: "Graphics", name: i18n("Graphics"), icon: "applications-graphics" },
+        { id: "System", name: i18n("System Tools"), icon: "applications-system" }
+    ]
 
     readonly property var extras: [
         { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
         { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" }
     ]
 
-    readonly property var contentItems: {
-        if (!menuData) return [];
-        if (root.searching) return menuData.searchResults || [];
-        if (briskSelectedId === "pinned") return menuData.pinnedApps || [];
-        return menuData.categoryApps || [];
-    }
-
-    function categoryLabel(cat) {
-        if (!cat) return "";
-        switch (cat.id) {
-        case "Office": return i18n("Office");
-        case "Development": return i18n("Development");
-        case "Accessories": return i18n("Accessories");
-        case "Utility": return i18n("Utilities");
-        case "Network": return i18n("Internet");
-        case "Graphics": return i18n("Graphics");
-        case "System": return i18n("System Tools");
-        case "Game": return i18n("Games");
-        case "Education": return i18n("Education");
-        case "AudioVideo": return i18n("Multimedia");
-        case "Settings": return i18n("Settings");
-        default: return cat.name || "";
+    readonly property var defaultPinned: [
+        {
+            id: "org.kde.dolphin.desktop",
+            name: i18n("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin",
+            noDisplay: false
+        },
+        {
+            id: "arcmenu-settings",
+            name: i18n("ArcMenu Settings"),
+            icon: "preferences-system-windows",
+            exec: "",
+            action: "configure",
+            noDisplay: false
         }
+    ]
+
+    readonly property var contentItems: {
+        if (root.searching) {
+            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
+        }
+        if (briskSelectedId === "pinned") {
+            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
+            return pinned.length ? pinned : root.defaultPinned;
+        }
+        if (briskSelectedId === "all") {
+            if (menuData && menuData.allApps && menuData.allApps.length)
+                return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
+            return [];
+        }
+        // Category
+        if (menuData && menuData.allApps)
+            return AppsModel.appsInCategory(menuData.allApps, briskSelectedId);
+        return [];
     }
 
     function activateItem(item) {
@@ -82,10 +96,10 @@ LayoutBase {
         menuData.setSearch("");
         if (id === "pinned") return;
         if (id === "all") {
-            menuData.selectCategory("all");
+            menuData.currentCategoryId = "all";
             return;
         }
-        menuData.selectCategory(id);
+        menuData.currentCategoryId = id;
     }
 
     ColumnLayout {
@@ -157,8 +171,8 @@ LayoutBase {
                         Components.ShortcutRow {
                             required property int index
                             width: sideCol.width
-                            iconName: root.categories[index].icon || "applications-other"
-                            label: root.categoryLabel(root.categories[index])
+                            iconName: root.categories[index].icon
+                            label: root.categories[index].name
                             iconSize: root.categoryIconSize
                             selected: !root.searching && root.briskSelectedId === root.categories[index].id
                             selectedBg: root.selectedBg
@@ -220,7 +234,7 @@ LayoutBase {
                                 width: contentCol.width
                                 app: root.contentItems[index]
                                 iconSize: Math.max(root.appIconSize, 28)
-                                showDescription: root.searching && menuData ? menuData.showSearchDescription : false
+                                showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
                                 fg: root.fg
