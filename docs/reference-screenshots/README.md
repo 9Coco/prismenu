@@ -13,6 +13,7 @@ docs/reference-screenshots/
 ├── mint/        # Mint 布局 — 目标效果
 ├── whisker/     # Whisker 布局 — 目标效果
 ├── eleven/      # Eleven (Win11) 布局 — 目标效果
+├── az/          # A-Z 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -30,6 +31,7 @@ docs/reference-screenshots/
 | Mint | `mint/01-target.png` | Mint 效果（左侧图标栏 + 分类 + 固定应用） |
 | Whisker | `whisker/01-target.png` | Whisker 效果（搜索 + 用户栏 + 分类/内容） |
 | Eleven | `eleven/01-target.png` | Eleven / Win11 效果（已固定网格 + 常用 + 底栏） |
+| A-Z | `az/01-target.png` | A-Z 效果（紧凑已固定，无常用；全部应用按字母） |
 
 ## 过程截图（progress）
 

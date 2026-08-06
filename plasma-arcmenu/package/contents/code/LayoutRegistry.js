@@ -156,6 +156,21 @@ var LAYOUTS = [
         source: "layouts/LayoutEleven.qml"
     },
     {
+        id: "az",
+        name: "A-Z",
+        description: "Compact pinned + alphabetical A–Z app list",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 520,
+        defaultHeight: 560,
+        source: "layouts/LayoutAz.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",
