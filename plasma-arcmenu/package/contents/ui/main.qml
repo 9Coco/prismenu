@@ -359,6 +359,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "plasma"
         },
         PlasmaCore.Action {
+            text: i18n("Use Pop layout")
+            icon.name: "start-here"
+            onTriggered: plasmoid.configuration.menuLayoutId = "pop"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
