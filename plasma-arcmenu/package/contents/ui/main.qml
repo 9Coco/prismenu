@@ -319,6 +319,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "budgie"
         },
         PlasmaCore.Action {
+            text: i18n("Use GNOME layout")
+            icon.name: "start-here"
+            onTriggered: plasmoid.configuration.menuLayoutId = "gnome"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()

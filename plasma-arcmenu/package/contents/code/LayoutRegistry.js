@@ -83,16 +83,16 @@ var LAYOUTS = [
     {
         id: "gnome",
         name: "GNOME",
-        description: "Classic GNOME 2 style",
+        description: "GNOME style (pinned + categories + overview)",
         hasCategories: true,
-        hasPinned: false,
+        hasPinned: true,
         hasSearch: true,
         hasUser: false,
-        hasPower: true,
+        hasPower: false,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
-        defaultWidth: 520,
-        defaultHeight: 480,
+        supportsSearchbarLocation: false,
+        defaultWidth: 560,
+        defaultHeight: 540,
         source: "layouts/LayoutGnome.qml"
     },
     {
