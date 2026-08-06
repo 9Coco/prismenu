@@ -12,6 +12,9 @@ QtObject {
 
     // ---- Config bindings (set from main.qml) ----
     property var plasmoidConfig: null
+    // Bound directly from main.qml → plasmoid.configuration.currentLayout
+    // (do NOT read via plasmoidConfig.var — QML won't notify on nested changes)
+    property string currentLayoutId: "arcmenu"
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -23,7 +26,6 @@ QtObject {
     property var focusedApp: null
 
     // ---- Derived config accessors ----
-    readonly property string currentLayoutId: plasmoidConfig ? plasmoidConfig.currentLayout : "arcmenu"
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: plasmoidConfig ? plasmoidConfig.flipHorizontal : false
     readonly property string searchbarLocation: plasmoidConfig ? plasmoidConfig.searchbarLocation : "top"

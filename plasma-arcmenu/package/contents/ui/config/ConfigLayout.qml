@@ -2,117 +2,145 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import "../../code/LayoutRegistry.js" as LayoutRegistry
 
 Item {
     id: root
 
-    property string cfg_CurrentLayout
-    property alias cfg_FlipHorizontal: flipBox.checked
+    // KConfig form keys (Apply / OK still saves these)
+    property string cfg_MenuLayoutId
+    property bool cfg_FlipHorizontal
     property string cfg_SearchbarLocation
-    property alias cfg_MenuWidth: widthSpin.value
-    property alias cfg_MenuHeight: heightSpin.value
+    property int cfg_MenuWidth
+    property int cfg_MenuHeight
 
     property var layouts: LayoutRegistry.allLayouts()
 
-    ColumnLayout {
-        spacing: Kirigami.Units.largeSpacing
+    /**
+     * Same path as the panel right-click actions that already work:
+     * write plasmoid.configuration.menuLayoutId immediately.
+     */
+    function selectLayout(id) {
+        if (!id) {
+            return;
+        }
+        cfg_MenuLayoutId = id;
 
+        var meta = LayoutRegistry.getLayout(id);
+        if (meta) {
+            cfg_MenuWidth = meta.defaultWidth;
+            cfg_MenuHeight = meta.defaultHeight;
+            widthSpin.value = meta.defaultWidth;
+            heightSpin.value = meta.defaultHeight;
+        }
+
+        // Instant apply (proven working via contextual actions)
+        try {
+            plasmoid.configuration.menuLayoutId = id;
+            if (meta) {
+                plasmoid.configuration.menuWidth = meta.defaultWidth;
+                plasmoid.configuration.menuHeight = meta.defaultHeight;
+            }
+        } catch (e) {
+            console.warn("ArcMenu ConfigLayout: direct write failed", e);
+        }
+    }
+
+    function layoutIndex() {
+        var id = cfg_MenuLayoutId || "arcmenu";
+        try {
+            if (plasmoid.configuration.menuLayoutId) {
+                id = plasmoid.configuration.menuLayoutId;
+            }
+        } catch (e) {}
+        for (var i = 0; i < layouts.length; ++i) {
+            if (layouts[i].id === id) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    function layoutLabels() {
+        var labels = [];
+        for (var i = 0; i < layouts.length; ++i) {
+            labels.push(layouts[i].name + " — " + layouts[i].description);
+        }
+        return labels;
+    }
+
+    ColumnLayout {
         anchors.fill: parent
+        spacing: Kirigami.Units.largeSpacing
 
         Kirigami.Heading {
             text: i18n("Menu Layout")
             level: 2
         }
 
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            type: Kirigami.MessageType.Positive
+            text: i18n("Layout switches immediately when you click a style. Current: %1", cfg_MenuLayoutId || "arcmenu")
+        }
+
+        QQC2.ComboBox {
+            id: layoutCombo
+            Layout.fillWidth: true
+            model: root.layoutLabels()
+            Component.onCompleted: currentIndex = root.layoutIndex()
+            onActivated: root.selectLayout(root.layouts[currentIndex].id)
+        }
+
         GridView {
             id: layoutGrid
             Layout.fillWidth: true
-            Layout.preferredHeight: cellHeight * 3.2
+            Layout.preferredHeight: cellHeight * 2.2
             cellWidth: Kirigami.Units.gridUnit * 12
-            cellHeight: Kirigami.Units.gridUnit * 9
-            model: root.layouts
+            cellHeight: Kirigami.Units.gridUnit * 8
+            model: root.layouts.length
             clip: true
 
             delegate: Item {
                 width: layoutGrid.cellWidth
                 height: layoutGrid.cellHeight
-                required property var modelData
+                required property int index
+                readonly property var layoutInfo: root.layouts[index] || {}
 
                 Rectangle {
                     anchors.fill: parent
                     anchors.margins: Kirigami.Units.smallSpacing
                     radius: Kirigami.Units.smallSpacing
-                    color: cfg_CurrentLayout === modelData.id ? Kirigami.Theme.highlightColor : Kirigami.Theme.backgroundColor
+                    color: cfg_MenuLayoutId === layoutInfo.id ? Kirigami.Theme.highlightColor : Kirigami.Theme.backgroundColor
                     border.width: 1
-                    border.color: cfg_CurrentLayout === modelData.id ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
-                    opacity: cfg_CurrentLayout === modelData.id ? 0.25 : 1
+                    border.color: cfg_MenuLayoutId === layoutInfo.id ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
+                    opacity: cfg_MenuLayoutId === layoutInfo.id ? 0.35 : 1
 
                     ColumnLayout {
                         anchors.fill: parent
                         anchors.margins: Kirigami.Units.smallSpacing
-                        spacing: Kirigami.Units.smallSpacing
-
-                        // Mini wireframe preview
-                        Rectangle {
-                            Layout.fillWidth: true
-                            Layout.fillHeight: true
-                            radius: 3
-                            color: Kirigami.Theme.alternateBackgroundColor
-
-                            Column {
-                                anchors.fill: parent
-                                anchors.margins: 4
-                                spacing: 3
-                                Rectangle { width: parent.width * 0.9; height: 6; radius: 2; color: Kirigami.Theme.disabledTextColor; opacity: 0.5 }
-                                Row {
-                                    spacing: 3
-                                    width: parent.width
-                                    height: parent.height - 20
-                                    Rectangle {
-                                        visible: modelData.hasCategories
-                                        width: parent.width * 0.32
-                                        height: parent.height
-                                        radius: 2
-                                        color: Kirigami.Theme.disabledTextColor
-                                        opacity: 0.35
-                                    }
-                                    Rectangle {
-                                        width: modelData.hasCategories ? parent.width * 0.62 : parent.width * 0.95
-                                        height: parent.height
-                                        radius: 2
-                                        color: Kirigami.Theme.disabledTextColor
-                                        opacity: 0.2
-                                    }
-                                }
-                            }
-                        }
-
                         QQC2.Label {
-                            text: modelData.name
+                            text: layoutInfo.name || ""
                             font.bold: true
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
-                            color: cfg_CurrentLayout === modelData.id ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
                         }
                         QQC2.Label {
-                            text: modelData.description
+                            text: layoutInfo.description || ""
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
-                            opacity: 0.8
+                            wrapMode: Text.WordWrap
                             Layout.fillWidth: true
                             horizontalAlignment: Text.AlignHCenter
-                            wrapMode: Text.WordWrap
-                            color: cfg_CurrentLayout === modelData.id ? Kirigami.Theme.highlightedTextColor : Kirigami.Theme.textColor
+                            opacity: 0.8
                         }
                     }
 
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            cfg_CurrentLayout = modelData.id;
-                            // Apply layout default size hints when switching
-                            widthSpin.value = modelData.defaultWidth;
-                            heightSpin.value = modelData.defaultHeight;
+                            root.selectLayout(layoutInfo.id);
+                            layoutCombo.currentIndex = index;
                         }
                     }
                 }
@@ -126,23 +154,24 @@ Item {
                 id: flipBox
                 Kirigami.FormData.label: i18n("Horizontal flip:")
                 text: i18n("Swap categories and applications columns")
-                enabled: LayoutRegistry.supportsOption(cfg_CurrentLayout, "flip")
-            }
-
-            Kirigami.InlineMessage {
-                Layout.fillWidth: true
-                visible: !LayoutRegistry.supportsOption(cfg_CurrentLayout, "flip")
-                type: Kirigami.MessageType.Information
-                text: i18n("Current layout does not support this option.")
+                checked: cfg_FlipHorizontal
+                onToggled: {
+                    cfg_FlipHorizontal = checked;
+                    try { plasmoid.configuration.flipHorizontal = checked; } catch (e) {}
+                }
+                enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "flip")
             }
 
             QQC2.ComboBox {
                 id: searchLoc
                 Kirigami.FormData.label: i18n("Search bar location:")
-                enabled: LayoutRegistry.supportsOption(cfg_CurrentLayout, "searchbarLocation")
+                enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "searchbarLocation")
                 model: [i18n("Top"), i18n("Bottom")]
                 Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
-                onActivated: cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top"
+                onActivated: {
+                    cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
+                    try { plasmoid.configuration.searchbarLocation = cfg_SearchbarLocation; } catch (e) {}
+                }
             }
 
             QQC2.SpinBox {
@@ -151,6 +180,11 @@ Item {
                 from: 400
                 to: 900
                 stepSize: 10
+                Component.onCompleted: value = cfg_MenuWidth
+                onValueModified: {
+                    cfg_MenuWidth = value;
+                    try { plasmoid.configuration.menuWidth = value; } catch (e) {}
+                }
                 textFromValue: (v) => v + " px"
             }
 
@@ -160,9 +194,36 @@ Item {
                 from: 400
                 to: 800
                 stepSize: 10
+                Component.onCompleted: value = cfg_MenuHeight
+                onValueModified: {
+                    cfg_MenuHeight = value;
+                    try { plasmoid.configuration.menuHeight = value; } catch (e) {}
+                }
                 textFromValue: (v) => v + " px"
             }
         }
     }
 
+    // Keep UI in sync if layout was changed from panel right-click
+    Connections {
+        target: plasmoid.configuration
+        function onMenuLayoutIdChanged() {
+            cfg_MenuLayoutId = plasmoid.configuration.menuLayoutId || cfg_MenuLayoutId;
+            layoutCombo.currentIndex = root.layoutIndex();
+        }
+    }
+
+    Component.onCompleted: {
+        try {
+            if (plasmoid.configuration.menuLayoutId) {
+                cfg_MenuLayoutId = plasmoid.configuration.menuLayoutId;
+            }
+        } catch (e) {}
+        if (!cfg_MenuLayoutId) {
+            cfg_MenuLayoutId = "arcmenu";
+        }
+        layoutCombo.currentIndex = layoutIndex();
+        widthSpin.value = cfg_MenuWidth || 620;
+        heightSpin.value = cfg_MenuHeight || 540;
+    }
 }

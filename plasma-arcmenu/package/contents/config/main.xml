@@ -33,7 +33,7 @@
     </group>
 
     <group name="Layout">
-        <entry name="CurrentLayout" type="String">
+        <entry name="MenuLayoutId" type="String">
             <default>arcmenu</default>
         </entry>
         <entry name="FlipHorizontal" type="Bool">
