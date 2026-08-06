@@ -16,6 +16,7 @@ docs/reference-screenshots/
 ├── az/          # A-Z 布局 — 目标效果
 ├── enterprise/  # Enterprise 企业布局 — 目标效果
 ├── insider/     # Insider 布局 — 目标效果
+├── plasma/      # Plasma 样式 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -36,6 +37,7 @@ docs/reference-screenshots/
 | A-Z | `az/01-target.png` | A-Z 效果（紧凑已固定，无常用；全部应用按字母） |
 | Enterprise | `enterprise/01-target.png` | 企业布局（用户+搜索顶栏，左侧分类/电源，右侧网格） |
 | Insider | `insider/01-target.png` | Insider 效果（居中头像 + 五列应用网格 + 左侧工具栏） |
+| Plasma | `plasma/01-target.png` | Plasma 样式（顶栏用户/搜索 + 列表 + 底栏四页签） |
 
 ## 过程截图（progress）
 
