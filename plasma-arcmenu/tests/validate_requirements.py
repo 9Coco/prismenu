@@ -29,7 +29,7 @@ def main() -> int:
 
     layouts_expected = [
         "arcmenu", "brisk", "mint", "whisker", "elementary", "gnome",
-        "plasma-dash", "unity-dash", "redmond", "eleven", "az", "enterprise", "budgie",
+        "plasma-dash", "unity-dash", "redmond", "eleven", "az", "enterprise", "insider", "budgie",
         "kickoff", "kicker", "simple",
     ]
     registry = (PKG / "contents/code/LayoutRegistry.js").read_text()
@@ -46,6 +46,7 @@ def main() -> int:
         "eleven": "LayoutEleven.qml",
         "az": "LayoutAz.qml",
         "enterprise": "LayoutEnterprise.qml",
+        "insider": "LayoutInsider.qml",
         "budgie": "LayoutBudgie.qml",
         "kickoff": "LayoutKickoff.qml",
         "kicker": "LayoutKicker.qml",
@@ -74,6 +75,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutAz.qml").exists(), "az layout entry")
     check((PKG / "contents/ui/layouts/enterprise/README.md").exists(), "enterprise folder")
     check((PKG / "contents/ui/layouts/LayoutEnterprise.qml").exists(), "enterprise layout entry")
+    check((PKG / "contents/ui/layouts/insider/README.md").exists(), "insider folder")
+    check((PKG / "contents/ui/layouts/LayoutInsider.qml").exists(), "insider layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [
