@@ -334,6 +334,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "whisker"
         },
         PlasmaCore.Action {
+            text: i18n("Use Eleven layout")
+            icon.name: "start-here-kde"
+            onTriggered: plasmoid.configuration.menuLayoutId = "eleven"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
