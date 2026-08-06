@@ -111,6 +111,21 @@ var LAYOUTS = [
         source: "layouts/LayoutPlasmaDash.qml"
     },
     {
+        id: "plasma",
+        name: "Plasma",
+        description: "Plasma (header + list + bottom tabs)",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 420,
+        defaultHeight: 560,
+        source: "layouts/LayoutPlasma.qml"
+    },
+    {
         id: "unity-dash",
         name: "Unity Dash",
         description: "Ubuntu Unity style",
