@@ -38,14 +38,14 @@ var LAYOUTS = [
     {
         id: "mint",
         name: "Mint",
-        description: "Linux Mint Menu",
+        description: "Linux Mint Menu (icon rail + categories)",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
-        hasUser: true,
+        hasUser: false,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
+        supportsSearchbarLocation: false,
         defaultWidth: 640,
         defaultHeight: 540,
         source: "layouts/LayoutMint.qml"
