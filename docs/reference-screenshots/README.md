@@ -14,6 +14,7 @@ docs/reference-screenshots/
 ├── whisker/     # Whisker 布局 — 目标效果
 ├── eleven/      # Eleven (Win11) 布局 — 目标效果
 ├── az/          # A-Z 布局 — 目标效果
+├── enterprise/  # Enterprise 企业布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -32,6 +33,7 @@ docs/reference-screenshots/
 | Whisker | `whisker/01-target.png` | Whisker 效果（搜索 + 用户栏 + 分类/内容） |
 | Eleven | `eleven/01-target.png` | Eleven / Win11 效果（已固定网格 + 常用 + 底栏） |
 | A-Z | `az/01-target.png` | A-Z 效果（紧凑已固定，无常用；全部应用按字母） |
+| Enterprise | `enterprise/01-target.png` | 企业布局（用户+搜索顶栏，左侧分类/电源，右侧网格） |
 
 ## 过程截图（progress）
 
