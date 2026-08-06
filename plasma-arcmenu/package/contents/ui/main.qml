@@ -364,6 +364,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "pop"
         },
         PlasmaCore.Action {
+            text: i18n("Use Redmond layout")
+            icon.name: "start-here-windows"
+            onTriggered: plasmoid.configuration.menuLayoutId = "redmond"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
