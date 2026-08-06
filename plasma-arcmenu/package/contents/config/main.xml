@@ -43,10 +43,10 @@
             <default>top</default>
         </entry>
         <entry name="MenuWidth" type="Int">
-            <default>600</default>
+            <default>620</default>
         </entry>
         <entry name="MenuHeight" type="Int">
-            <default>550</default>
+            <default>540</default>
         </entry>
     </group>
 
@@ -94,7 +94,7 @@
 
     <group name="Favorites">
         <entry name="PinnedApps" type="StringList">
-            <default></default>
+            <default>org.kde.dolphin.desktop,arcmenu-settings</default>
         </entry>
         <entry name="PinnedCols" type="Int">
             <default>6</default>
@@ -139,7 +139,7 @@
             <default>applications</default>
         </entry>
         <entry name="Placeholder" type="String">
-            <default>Search applications…</default>
+            <default>Search…</default>
         </entry>
         <entry name="ShowDescription" type="Bool">
             <default>true</default>

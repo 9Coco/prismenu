@@ -85,9 +85,20 @@ def main() -> int:
         "SearchField.qml", "AppListItem.qml", "CategoryList.qml", "PinnedAppsGrid.qml",
         "AppGrid.qml", "SystemActionsBar.qml", "AppContextMenu.qml", "ConfirmDialog.qml",
         "AppDetailsDialog.qml",
+        "ShortcutRow.qml", "PlacesSidebar.qml", "SessionButtons.qml", "AllAppsButton.qml",
+        "PinnedAppsList.qml",
     ]
     for c in components:
         check((PKG / "contents/ui/components" / c).exists(), f"component: {c}")
+
+    pages = [
+        "PageHost.qml", "ArcHomePage.qml", "ArcAppsPage.qml", "ArcSearchPage.qml",
+    ]
+    for p in pages:
+        check((PKG / "contents/ui/pages" / p).exists(), f"page: {p}")
+
+    check((PKG / "contents/code/PageRegistry.js").exists(), "PageRegistry.js")
+    check((PKG / "contents/code/IdList.js").exists(), "IdList.js")
 
     for core in ["main.qml", "MenuData.qml", "LayoutHost.qml", "AppsBackend.qml"]:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")
