@@ -158,16 +158,16 @@ var LAYOUTS = [
     {
         id: "budgie",
         name: "Budgie",
-        description: "Budgie desktop style",
+        description: "Budgie desktop style (pinned + categories)",
         hasCategories: true,
-        hasPinned: false,
+        hasPinned: true,
         hasSearch: true,
         hasUser: false,
-        hasPower: true,
+        hasPower: false,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
-        defaultWidth: 540,
-        defaultHeight: 500,
+        supportsSearchbarLocation: false,
+        defaultWidth: 560,
+        defaultHeight: 520,
         source: "layouts/LayoutBudgie.qml"
     },
     {
