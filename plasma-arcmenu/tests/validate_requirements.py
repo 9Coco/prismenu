@@ -58,6 +58,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/brisk/BriskSidebar.qml").exists(), "brisk sidebar")
     check((PKG / "contents/ui/layouts/brisk/BriskContent.qml").exists(), "brisk content")
     check((PKG / "contents/ui/layouts/brisk/BriskNavRow.qml").exists(), "brisk nav row")
+    check((PKG / "contents/ui/layouts/budgie/README.md").exists(), "budgie folder")
+    check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [
