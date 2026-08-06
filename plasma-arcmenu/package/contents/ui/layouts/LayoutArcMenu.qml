@@ -3,117 +3,195 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import ".." as Ui
 
+/**
+ * Official ArcMenu shell.
+ *
+ * Left  = page display (home pins / apps / search)
+ * Right = functional PlacesSidebar
+ * Bottom = search + session buttons
+ */
 LayoutBase {
     id: root
 
-    ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: Kirigami.Units.smallSpacing
-        spacing: Kirigami.Units.smallSpacing
+    readonly property string activePageId: {
+        if (!menuData) return "home";
+        if (menuData.isSearching) return "search";
+        if (menuData.currentPage === "apps" || menuData.showAllApps) return "apps";
+        return "home";
+    }
 
-        // Top: pinned + search
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.smallSpacing
-            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
-
-            Components.PinnedAppsGrid {
-                Layout.fillWidth: true
-                Layout.preferredHeight: root.appIconSize + Kirigami.Units.gridUnit * 1.8
-                columns: menuData ? menuData.pinnedCols : 6
-                iconSize: Math.max(24, root.appIconSize)
-                model: pinnedModel
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                onAppActivated: (app) => root.appActivated(app)
-                onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
-            }
-
-            Components.SearchField {
-                Layout.preferredWidth: parent.width * 0.42
-                Layout.minimumWidth: Kirigami.Units.gridUnit * 10
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
-            }
+    readonly property var powerOptions: {
+        if (!menuData) {
+            return ["logout", "lock", "restart", "shutdown"];
         }
-
-        // Middle: categories + apps
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            spacing: Kirigami.Units.smallSpacing
-            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
-
-            Components.CategoryList {
-                Layout.preferredWidth: parent.width * 0.32
-                Layout.fillHeight: true
-                model: categoryModel
-                iconSize: root.categoryIconSize
-                currentCategoryId: menuData ? menuData.currentCategoryId : "all"
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                fg: root.fg
-                onCategorySelected: (id) => { if (menuData) menuData.selectCategory(id); }
-            }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                ListView {
-                    id: appList
-                    anchors.fill: parent
-                    clip: true
-                    model: appModel
-                    boundsBehavior: Flickable.StopAtBounds
-                    keyNavigationWraps: true
-                    Accessible.name: i18n("Applications")
-
-                    delegate: Components.AppListItem {
-                        width: appList.width
-                        app: model
-                        iconSize: root.appIconSize
-                        showDescription: menuData ? menuData.showSearchDescription : true
-                        selected: appList.currentIndex === index
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        fg: root.fg
-                        onActivated: root.appActivated(model)
-                        onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
-                    }
-
-                    Keys.onReturnPressed: {
-                        if (currentIndex >= 0) {
-                            root.appActivated(appModel.get(currentIndex));
-                        }
-                    }
-                }
-
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: appModel.count === 0
-                    text: root.searching ? i18n("No matching applications found") : i18n("No applications")
-                    opacity: 0.6
-                }
-            }
+        var opts = menuData.powerOptions;
+        if (!opts || (opts.length !== undefined && opts.length === 0)) {
+            return ["logout", "lock", "restart", "shutdown"];
         }
+        return opts;
+    }
 
-        Components.SystemActionsBar {
-            Layout.fillWidth: true
-            enabledOptions: menuData ? menuData.powerOptions : []
-            confirmDestructive: menuData ? menuData.powerConfirm : true
-            softwareCenterCmd: menuData ? menuData.softwareCenterCmd : "auto-detect"
-            userName: menuData ? menuData.userName : ""
-            userIcon: menuData ? menuData.userIcon : "user-identity"
-            onActionRequested: (id) => root.powerAction(id)
-            onUserMenuRequested: root.userMenu()
+    function activateShortcut(item) {
+        if (!item) return;
+        if (item.action === "configure") {
+            if (menuData) menuData.requestConfigure();
+            return;
+        }
+        if (item.action) {
+            root.powerAction(item.action);
+            return;
+        }
+        root.appActivated(item);
+    }
+
+    function wireLoader(loader) {
+        var item = loader.item;
+        if (!item) return;
+        item.menuData = root.menuData;
+        item.themeStyle = root.themeStyle;
+        if (item.appActivated) {
+            try { item.appActivated.disconnect(root.activateShortcut); } catch (e) {}
+            item.appActivated.connect(root.activateShortcut);
+        }
+        if (item.appContextMenu) {
+            try { item.appContextMenu.disconnect(root._ctx); } catch (e2) {}
+            item.appContextMenu.connect(root._ctx);
         }
     }
 
-    Ui.ListModelBridge { id: pinnedModel; source: menuData ? menuData.pinnedApps : [] }
-    Ui.ListModelBridge { id: categoryModel; source: menuData ? menuData.categories : [] }
-    Ui.ListModelBridge { id: appModel; source: root.appsModel() }
+    function _ctx(app, x, y) {
+        if (app && !app.action) {
+            root.appContextMenu(app, x, y);
+        }
+    }
+
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.smallSpacing
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: Kirigami.Units.largeSpacing
+            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+
+            // ---- LEFT: page display ----
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumWidth: Kirigami.Units.gridUnit * 14
+                spacing: Kirigami.Units.smallSpacing
+
+                // Home page (pinned) — direct component, always reliable
+                Components.PinnedAppsList {
+                    visible: root.activePageId === "home"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    menuData: root.menuData
+                    apps: menuData ? menuData.pinnedApps : []
+                    iconSize: Math.max(root.appIconSize, 28)
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    fg: root.fg
+                    onAppActivated: (app) => root.activateShortcut(app)
+                    onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                }
+
+                // Apps page
+                Loader {
+                    id: appsLoader
+                    visible: root.activePageId === "apps"
+                    active: root.activePageId === "apps" || status === Loader.Ready
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    asynchronous: false
+                    source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
+                    onLoaded: root.wireLoader(appsLoader)
+                }
+
+                // Search page
+                Loader {
+                    id: searchLoader
+                    visible: root.activePageId === "search"
+                    active: root.activePageId === "search" || status === Loader.Ready
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    asynchronous: false
+                    source: Qt.resolvedUrl("../pages/ArcSearchPage.qml")
+                    onLoaded: root.wireLoader(searchLoader)
+                }
+
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    opacity: 0.35
+                }
+
+                Components.AllAppsButton {
+                    iconSize: Math.max(root.appIconSize, 24)
+                    showBack: root.activePageId === "apps"
+                    highlighted: root.activePageId === "apps"
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    fg: root.fg
+                    onClicked: {
+                        if (!menuData) return;
+                        if (root.activePageId === "search") {
+                            menuData.setSearch("");
+                            menuData.navigateTo("home");
+                        } else if (root.activePageId === "apps") {
+                            menuData.navigateTo("home");
+                        } else {
+                            menuData.navigateTo("apps");
+                        }
+                    }
+                }
+            }
+
+            // ---- RIGHT: functional sidebar ----
+            Components.PlacesSidebar {
+                Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.36)
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                Layout.fillHeight: true
+                Layout.fillWidth: false
+                menuData: root.menuData
+                iconSize: root.categoryIconSize
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                fg: root.fg
+                onUserClicked: root.userMenu()
+                onItemActivated: (item) => root.activateShortcut(item)
+            }
+        }
+
+        // ---- BOTTOM ----
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Kirigami.Units.largeSpacing
+            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+
+            Components.SearchField {
+                Layout.fillWidth: true
+                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+
+            Components.SessionButtons {
+                enabledOptions: root.powerOptions
+                onActionRequested: (id) => root.powerAction(id)
+            }
+        }
+    }
+
+    onMenuDataChanged: {
+        wireLoader(appsLoader);
+        wireLoader(searchLoader);
+    }
+
+    onThemeStyleChanged: {
+        wireLoader(appsLoader);
+        wireLoader(searchLoader);
+    }
 }

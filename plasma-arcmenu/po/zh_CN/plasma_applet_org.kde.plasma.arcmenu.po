@@ -14,6 +14,9 @@ msgstr "Arc Menu"
 msgid "Application menu with switchable layouts"
 msgstr "支持多种可切换布局的应用菜单"
 
+msgid "Search…"
+msgstr "搜索…"
+
 msgid "Search applications…"
 msgstr "搜索应用…"
 
@@ -27,7 +30,7 @@ msgid "Pinned applications"
 msgstr "固定应用"
 
 msgid "All Applications"
-msgstr "全部应用"
+msgstr "所有应用程序"
 
 msgid "No matching applications found"
 msgstr "未找到匹配的应用"
@@ -147,7 +150,7 @@ msgid "User"
 msgstr "用户"
 
 msgid "Home"
-msgstr "主目录"
+msgstr "首页"
 
 msgid "Documents"
 msgstr "文档"
@@ -157,6 +160,39 @@ msgstr "下载"
 
 msgid "Root"
 msgstr "根目录"
+
+msgid "Music"
+msgstr "音乐"
+
+msgid "Pictures"
+msgstr "图片"
+
+msgid "Videos"
+msgstr "视频"
+
+msgid "Software"
+msgstr "软件"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "Tweaks"
+msgstr "优化"
+
+msgid "Activities Overview"
+msgstr "活动概况"
+
+msgid "Overview"
+msgstr "概览"
+
+msgid "Appearance"
+msgstr "外观"
+
+msgid "Pin applications from the context menu"
+msgstr "从右键菜单固定应用"
+
+msgid "Home folder"
+msgstr "主文件夹"
 
 msgid "Type to search applications"
 msgstr "输入以搜索应用"
@@ -212,5 +248,14 @@ msgstr "许可证：GPL-2.0-or-later"
 msgid "Credits"
 msgstr "致谢"
 
-msgid "Links"
-msgstr "链接"
+msgid "Files"
+msgstr "文件"
+
+msgid "File Manager"
+msgstr "文件管理器"
+
+msgid "ArcMenu Settings"
+msgstr "ArcMenu 设置"
+
+msgid "Search results"
+msgstr "搜索结果"

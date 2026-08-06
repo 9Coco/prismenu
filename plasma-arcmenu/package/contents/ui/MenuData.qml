@@ -5,6 +5,7 @@ import "../code/Favorites.js" as Favorites
 import "../code/Distro.js" as Distro
 import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
+import "../code/IdList.js" as IdList
 
 QtObject {
     id: root
@@ -17,6 +18,8 @@ QtObject {
     property string currentCategoryId: "all"
     property int kickoffTab: 0 // 0 favorites, 1 recent, 2 apps, 3 places, 4 leave
     property bool categoriesCollapsed: false
+    property bool showAllApps: false // legacy toggle; prefer currentPage
+    property string currentPage: "home" // home | apps | search
     property var focusedApp: null
 
     // ---- Derived config accessors ----
@@ -34,8 +37,24 @@ QtObject {
     readonly property bool showSearchDescription: plasmoidConfig ? plasmoidConfig.showDescription : true
     readonly property int maxSearchResults: plasmoidConfig ? plasmoidConfig.maxResults : 20
     readonly property var searchProviders: plasmoidConfig ? plasmoidConfig.providers : ["applications"]
-    readonly property string searchPlaceholder: plasmoidConfig ? plasmoidConfig.placeholder : i18n("Search applications…")
-    readonly property var powerOptions: plasmoidConfig ? plasmoidConfig.options : ["shutdown", "restart", "logout", "lock", "suspend"]
+    readonly property string searchPlaceholder: plasmoidConfig ? plasmoidConfig.placeholder : i18n("Search…")
+    readonly property var powerOptions: {
+        var fallback = ["shutdown", "restart", "logout", "lock"];
+        if (!plasmoidConfig) {
+            return fallback;
+        }
+        var opts = plasmoidConfig.options;
+        if (opts === undefined || opts === null) {
+            return fallback;
+        }
+        if (typeof opts === "string") {
+            return opts.length ? opts.split(",") : fallback;
+        }
+        if (opts.length === 0) {
+            return fallback;
+        }
+        return opts;
+    }
     readonly property bool powerConfirm: plasmoidConfig ? plasmoidConfig.confirm : true
     readonly property string softwareCenterCmd: plasmoidConfig ? plasmoidConfig.softwareCenterCmd : "auto-detect"
     readonly property bool syncFavorites: plasmoidConfig ? plasmoidConfig.syncWithPlasma : true
@@ -81,8 +100,64 @@ QtObject {
     readonly property var categoryApps: AppsModel.appsInCategory(allApps, currentCategoryId)
 
     readonly property var pinnedApps: {
-        var ids = plasmoidConfig ? plasmoidConfig.pinnedApps : [];
-        return AppsModel.resolveAppsByIds(allApps, ids);
+        var ids = IdList.normalizeIdList(plasmoidConfig ? plasmoidConfig.pinnedApps : []);
+        if (ids.length === 0) {
+            ids = IdList.defaultPinnedIds();
+        }
+        var result = [];
+        for (var i = 0; i < ids.length; ++i) {
+            var id = ids[i];
+            if (id === "arcmenu-settings") {
+                result.push({
+                    id: "arcmenu-settings",
+                    name: i18n("ArcMenu Settings"),
+                    icon: "preferences-system-windows",
+                    exec: "",
+                    action: "configure",
+                    categories: ["Settings"],
+                    keywords: ["arcmenu", "settings"],
+                    genericName: i18n("Configure Arc Menu"),
+                    noDisplay: false
+                });
+                continue;
+            }
+            var app = AppsModel.findAppById(allApps, id);
+            if (app) {
+                result.push(app);
+            } else if (id.indexOf("dolphin") >= 0 || id === "org.kde.dolphin.desktop") {
+                // App catalog not ready yet — still show Files entry
+                result.push({
+                    id: "org.kde.dolphin.desktop",
+                    name: i18n("Files"),
+                    icon: "system-file-manager",
+                    exec: "dolphin",
+                    categories: ["System", "Utility"],
+                    keywords: ["files", "folder"],
+                    genericName: i18n("File Manager"),
+                    noDisplay: false
+                });
+            }
+        }
+        if (result.length === 0) {
+            result = [
+                {
+                    id: "org.kde.dolphin.desktop",
+                    name: i18n("Files"),
+                    icon: "system-file-manager",
+                    exec: "dolphin",
+                    noDisplay: false
+                },
+                {
+                    id: "arcmenu-settings",
+                    name: i18n("ArcMenu Settings"),
+                    icon: "preferences-system-windows",
+                    exec: "",
+                    action: "configure",
+                    noDisplay: false
+                }
+            ];
+        }
+        return result;
     }
 
     readonly property var recentApps: {
@@ -133,17 +208,68 @@ QtObject {
         currentCategoryId = "all";
         kickoffTab = 0;
         categoriesCollapsed = false;
+        showAllApps = false;
+        currentPage = "home";
         focusedApp = null;
+    }
+
+    function navigateTo(pageId) {
+        searchQuery = "";
+        if (pageId === "apps") {
+            currentPage = "apps";
+            showAllApps = true;
+            return;
+        }
+        currentPage = "home";
+        showAllApps = false;
+        currentCategoryId = "all";
     }
 
     function selectCategory(id) {
         currentCategoryId = id;
         searchQuery = "";
+        currentPage = "apps";
+        showAllApps = true;
     }
 
     function setSearch(text) {
         searchQuery = text;
+        if (text && text.trim().length > 0) {
+            currentPage = "search";
+            showAllApps = true;
+        } else if (showAllApps) {
+            currentPage = "apps";
+        } else {
+            currentPage = "home";
+        }
     }
+
+    function toggleAllApps() {
+        if (currentPage === "apps" || showAllApps) {
+            navigateTo("home");
+        } else {
+            navigateTo("apps");
+        }
+    }
+
+    /**
+     * XDG user dirs + Plasma equivalents of ArcMenu Places / Extra Shortcuts.
+     */
+    readonly property var places: [
+        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: i18n("Home folder"), noDisplay: false },
+        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: i18n("Documents"), noDisplay: false },
+        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: i18n("Downloads"), noDisplay: false },
+        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music", categories: ["Places"], keywords: [], genericName: i18n("Music"), noDisplay: false },
+        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures", categories: ["Places"], keywords: [], genericName: i18n("Pictures"), noDisplay: false },
+        { id: "place-videos", name: i18n("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos", categories: ["Places"], keywords: [], genericName: i18n("Videos"), noDisplay: false }
+    ]
+
+    readonly property var systemShortcuts: [
+        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", exec: "", categories: ["System"], keywords: [], genericName: i18n("Software Center"), noDisplay: false, action: "discover" },
+        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", exec: "", categories: ["System"], keywords: [], genericName: i18n("System Settings"), noDisplay: false, action: "settings" },
+        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: i18n("Appearance"), noDisplay: false },
+        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "overview", exec: "", categories: ["System"], keywords: [], genericName: i18n("Overview"), noDisplay: false, action: "overview" }
+    ]
 
     function isFavorite(appId) {
         var pinned = plasmoidConfig ? plasmoidConfig.pinnedApps : [];
