@@ -171,6 +171,21 @@ var LAYOUTS = [
         source: "layouts/LayoutAz.qml"
     },
     {
+        id: "enterprise",
+        name: "Enterprise",
+        description: "Enterprise (user+search header, sidebar, grid)",
+        hasCategories: true,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 720,
+        defaultHeight: 560,
+        source: "layouts/LayoutEnterprise.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",

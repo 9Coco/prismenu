@@ -278,6 +278,9 @@ msgstr "使用 Eleven 布局"
 msgid "Use A-Z layout"
 msgstr "使用 A-Z 布局"
 
+msgid "Use Enterprise layout"
+msgstr "使用企业布局"
+
 msgid "Terminal"
 msgstr "终端"
 
