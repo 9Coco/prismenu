@@ -83,6 +83,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutPlasma.qml").exists(), "plasma layout entry")
     check((PKG / "contents/ui/layouts/pop/README.md").exists(), "pop folder")
     check((PKG / "contents/ui/layouts/LayoutPop.qml").exists(), "pop layout entry")
+    check((PKG / "contents/ui/layouts/redmond/README.md").exists(), "redmond folder")
+    check((PKG / "contents/ui/layouts/LayoutRedmond.qml").exists(), "redmond layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

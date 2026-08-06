@@ -75,7 +75,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `insider` | Insider (centered avatar + 5-col grid + utility rail) — sources in `layouts/insider/` |
 | `plasma` | Plasma (user+search header, list, bottom tabs) — sources in `layouts/plasma/` |
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
-| `redmond` | Windows 7-like |
+| `redmond` | Windows-style (4-col grid + places sidebar) — sources in `layouts/redmond/` |
 | `kickoff` / `kicker` | Plasma native styles |
 | `whisker` / `mint` / `brisk` / `budgie` / `gnome` / `elementary` | Traditional Linux menus |
 | `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |

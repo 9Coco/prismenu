@@ -18,6 +18,7 @@ docs/reference-screenshots/
 ├── insider/     # Insider 布局 — 目标效果
 ├── plasma/      # Plasma 样式 — 目标效果
 ├── pop/         # Pop 菜单 — 目标效果
+├── redmond/     # Redmond 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -40,6 +41,7 @@ docs/reference-screenshots/
 | Insider | `insider/01-target.png` | Insider 效果（居中头像 + 五列应用网格 + 左侧工具栏） |
 | Plasma | `plasma/01-target.png` | Plasma 样式（顶栏用户/搜索 + 列表 + 底栏四页签） |
 | Pop | `pop/01-target.png` | Pop 菜单（搜索 + 六列网格 + 底部分类页签） |
+| Redmond | `redmond/01-target.png` | Redmond 效果（左应用网格 + 右位置/快捷方式栏） |
 
 ## 过程截图（progress）
 
