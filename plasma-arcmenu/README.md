@@ -68,6 +68,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `budgie` | Budgie style (search top, pinned/all/categories left, apps right) — sources in `layouts/budgie/` |
 | `gnome` | GNOME style (like Budgie + bottom Activities Overview) — sources in `layouts/gnome/` |
 | `mint` | Linux Mint (left icon rail + categories + pinned) — sources in `layouts/mint/` |
+| `whisker` | XFCE Whisker (user bar + categories + pinned) — sources in `layouts/whisker/` |
 | `redmond` | Windows 7-like |
 | `eleven` | Windows 11-like |
 | `kickoff` / `kicker` | Plasma native styles |

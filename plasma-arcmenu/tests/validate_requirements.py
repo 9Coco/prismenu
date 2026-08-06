@@ -64,6 +64,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutGnome.qml").exists(), "gnome layout entry")
     check((PKG / "contents/ui/layouts/mint/README.md").exists(), "mint folder")
     check((PKG / "contents/ui/layouts/LayoutMint.qml").exists(), "mint layout entry")
+    check((PKG / "contents/ui/layouts/whisker/README.md").exists(), "whisker folder")
+    check((PKG / "contents/ui/layouts/LayoutWhisker.qml").exists(), "whisker layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

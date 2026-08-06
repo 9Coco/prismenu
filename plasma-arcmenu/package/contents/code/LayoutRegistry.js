@@ -53,14 +53,14 @@ var LAYOUTS = [
     {
         id: "whisker",
         name: "Whisker",
-        description: "XFCE Whisker Menu",
+        description: "XFCE Whisker (user bar + categories)",
         hasCategories: true,
-        hasPinned: false,
+        hasPinned: true,
         hasSearch: true,
-        hasUser: false,
+        hasUser: true,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
+        supportsSearchbarLocation: false,
         defaultWidth: 560,
         defaultHeight: 520,
         source: "layouts/LayoutWhisker.qml"
