@@ -314,6 +314,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "brisk"
         },
         PlasmaCore.Action {
+            text: i18n("Use Budgie layout")
+            icon.name: "dashboard-show"
+            onTriggered: plasmoid.configuration.menuLayoutId = "budgie"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()

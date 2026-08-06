@@ -65,6 +65,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 |--------|-------|
 | `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) — sources in `layouts/arcmenu/` |
 | `brisk` | Solus Brisk (search top, category sidebar left, apps right, session bottom) — sources in `layouts/brisk/` |
+| `budgie` | Budgie style (search top, pinned/all/categories left, apps right) — sources in `layouts/budgie/` |
 | `redmond` | Windows 7-like |
 | `eleven` | Windows 11-like |
 | `kickoff` / `kicker` | Plasma native styles |
