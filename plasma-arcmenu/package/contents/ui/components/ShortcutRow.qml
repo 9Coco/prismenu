@@ -1,0 +1,60 @@
+import QtQuick
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import org.kde.plasma.components as PlasmaComponents
+
+/**
+ * Functional module: single icon+label row used by Places / system shortcuts.
+ */
+Item {
+    id: root
+
+    property string iconName: "application-x-executable"
+    property string label: ""
+    property int iconSize: 22
+    property bool selected: false
+    property color selectedBg: Kirigami.Theme.highlightColor
+    property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color fg: Kirigami.Theme.textColor
+
+    signal activated()
+
+    height: Math.max(iconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 1.85)
+    Accessible.name: label
+    Accessible.role: Accessible.Button
+    Accessible.onPressAction: root.activated()
+
+    Rectangle {
+        anchors.fill: parent
+        radius: Kirigami.Units.smallSpacing
+        color: root.selected || mouse.containsMouse ? root.selectedBg : "transparent"
+        opacity: root.selected || mouse.containsMouse ? 1 : 0
+    }
+
+    RowLayout {
+        anchors.fill: parent
+        anchors.leftMargin: Kirigami.Units.smallSpacing
+        anchors.rightMargin: Kirigami.Units.smallSpacing
+        spacing: Kirigami.Units.smallSpacing
+
+        Kirigami.Icon {
+            source: root.iconName
+            Layout.preferredWidth: root.iconSize
+            Layout.preferredHeight: root.iconSize
+        }
+
+        PlasmaComponents.Label {
+            Layout.fillWidth: true
+            text: root.label
+            elide: Text.ElideRight
+            color: root.selected || mouse.containsMouse ? root.selectedFg : root.fg
+        }
+    }
+
+    MouseArea {
+        id: mouse
+        anchors.fill: parent
+        hoverEnabled: true
+        onClicked: root.activated()
+    }
+}

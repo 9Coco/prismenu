@@ -26,6 +26,12 @@ Item {
         asynchronous: false
         source: layoutMeta ? Qt.resolvedUrl(layoutMeta.source) : Qt.resolvedUrl("layouts/LayoutArcMenu.qml")
 
+        onStatusChanged: {
+            if (status === Loader.Error) {
+                console.error("ArcMenu LayoutHost failed to load layout:", source, layoutId);
+            }
+        }
+
         onLoaded: {
             if (!item) {
                 return;
@@ -43,6 +49,29 @@ Item {
             }
             if (item.userMenu) {
                 item.userMenu.connect(root.userMenu);
+            }
+        }
+    }
+
+    // Visible fallback when a layout fails to compile/load (avoids empty black box)
+    Rectangle {
+        anchors.fill: parent
+        visible: layoutLoader.status === Loader.Error || (layoutLoader.status === Loader.Ready && !layoutLoader.item)
+        color: Kirigami.Theme.backgroundColor
+        border.color: Kirigami.Theme.disabledTextColor
+        border.width: 1
+
+        Column {
+            anchors.centerIn: parent
+            spacing: Kirigami.Units.smallSpacing
+            width: parent.width * 0.8
+
+            Text {
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
+                wrapMode: Text.WordWrap
+                color: Kirigami.Theme.textColor
+                text: i18n("Failed to load menu layout.\nReinstall Arc Menu or check journalctl for QML errors.")
             }
         }
     }

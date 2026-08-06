@@ -132,7 +132,9 @@ Item {
 
     function launch(app) {
         if (!app || !app.exec) return;
-        exec.connectSource("__LAUNCH__; " + app.exec);
+        // Double-quoted bash -lc so $HOME / ~ in Places shortcuts expand.
+        var cmd = String(app.exec).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+        exec.connectSource("__LAUNCH__; /bin/bash -lc \"" + cmd + "\"");
     }
 
     function runPower(actionId, softwareCenterCmd) {
@@ -149,7 +151,8 @@ Item {
             "settings": "systemsettings",
             "discover": discover,
             "switchuser": "qdbus org.kde.ksmserver /KSMServer openSwitchUserDialog || dm-tool switch-to-greeter",
-            "accountsettings": "systemsettings kcm_users"
+            "accountsettings": "systemsettings kcm_users",
+            "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview"
         };
         var cmd = map[actionId];
         if (cmd) {

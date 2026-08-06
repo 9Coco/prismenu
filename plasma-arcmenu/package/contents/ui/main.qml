@@ -96,7 +96,7 @@ PlasmoidItem {
             return;
         }
         backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
-        if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings") {
+        if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings" || actionId === "overview") {
             closeMenu();
         }
     }
@@ -306,4 +306,12 @@ PlasmoidItem {
             onTriggered: menuData.clearRecent()
         }
     ]
+
+    Connections {
+        target: menuData
+        function onRequestConfigure() {
+            root.closeMenu();
+            Qt.callLater(() => plasmoid.internalAction("configure").trigger());
+        }
+    }
 }

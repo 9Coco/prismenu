@@ -63,7 +63,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 
 | Layout | Style |
 |--------|-------|
-| `arcmenu` | Zorin-like default (categories left, pinned+search top, actions bottom) |
+| `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
 | `redmond` | Windows 7-like |
 | `eleven` | Windows 11-like |
 | `kickoff` / `kicker` | Plasma native styles |
@@ -80,8 +80,12 @@ plasma-arcmenu/
 │   ├── metadata.json
 │   └── contents/
 │       ├── config/          # KConfig schema + ConfigModel
-│       ├── code/            # JS helpers (layouts, favorites, theme, distro)
-│       └── ui/              # QML (main, layouts, components, config pages)
+│       ├── code/            # JS helpers (layouts, pages, favorites, theme, distro)
+│       └── ui/
+│           ├── layouts/     # Layout shells (compose chrome + pages)
+│           ├── pages/       # Page display modules (home / apps / search / …)
+│           ├── components/  # Shared widgets + functional chrome modules
+│           └── config/      # Settings pages
 ├── kcm/                     # System Settings registration stub
 ├── po/                      # Translations
 ├── icons/                   # SVG assets
@@ -91,6 +95,7 @@ plasma-arcmenu/
 └── COPYING                  # GPL-2.0-or-later
 ```
 
+**Architecture note:** ArcMenu separates **page display** (`ui/pages` + `PageRegistry.js`) from **functional chrome** (sidebar / session / nav in `ui/components`). Layouts only compose the shell; new views are added as pages without rewriting chrome.
 ## Development checks
 
 ```bash

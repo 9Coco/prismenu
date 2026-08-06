@@ -8,16 +8,16 @@ var LAYOUTS = [
     {
         id: "arcmenu",
         name: "Arc Menu",
-        description: "Zorin OS style (default)",
+        description: "Official ArcMenu layout (pinned + places)",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
         hasUser: true,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: true,
-        defaultWidth: 650,
-        defaultHeight: 550,
+        supportsSearchbarLocation: false,
+        defaultWidth: 620,
+        defaultHeight: 540,
         source: "layouts/LayoutArcMenu.qml"
     },
     {
