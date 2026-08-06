@@ -329,6 +329,11 @@ PlasmoidItem {
             onTriggered: plasmoid.configuration.menuLayoutId = "mint"
         },
         PlasmaCore.Action {
+            text: i18n("Use Whisker layout")
+            icon.name: "user-identity"
+            onTriggered: plasmoid.configuration.menuLayoutId = "whisker"
+        },
+        PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
