@@ -4,7 +4,7 @@ Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu
 
 ## Features
 
-- **14 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma Dash, Unity Dash, Redmond (Win7), Eleven (Win11), Budgie, Kickoff, Kicker, Simple
+- **15 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma Dash, Unity Dash, Redmond (Win7), Eleven (Win11), A-Z, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications from `.desktop` entries
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -70,8 +70,8 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `mint` | Linux Mint (left icon rail + categories + pinned) — sources in `layouts/mint/` |
 | `whisker` | XFCE Whisker (user bar + categories + pinned) — sources in `layouts/whisker/` |
 | `eleven` | Windows 11 (pinned grid + recommended + footer) — sources in `layouts/eleven/` |
+| `az` | A-Z compact (pinned + alphabetical all apps) — sources in `layouts/az/` |
 | `redmond` | Windows 7-like |
-| `eleven` | Windows 11-like |
 | `kickoff` / `kicker` | Plasma native styles |
 | `whisker` / `mint` / `brisk` / `budgie` / `gnome` / `elementary` | Traditional Linux menus |
 | `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |
