@@ -266,6 +266,9 @@ msgstr "使用 Budgie 布局"
 msgid "Use GNOME layout"
 msgstr "使用 GNOME 布局"
 
+msgid "Use Mint layout"
+msgstr "使用 Mint 布局"
+
 msgid "Failed to load layout: %1"
 msgstr "无法加载布局：%1"
 
