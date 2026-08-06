@@ -284,6 +284,12 @@ msgstr "使用企业布局"
 msgid "Use Insider layout"
 msgstr "使用 Insider 布局"
 
+msgid "Use Plasma layout"
+msgstr "使用 Plasma 布局"
+
+msgid "Computer"
+msgstr "电脑"
+
 msgid "Terminal"
 msgstr "终端"
 
