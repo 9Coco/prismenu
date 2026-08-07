@@ -291,6 +291,21 @@ var LAYOUTS = [
         source: "layouts/LayoutWindows.qml"
     },
     {
+        id: "zest",
+        name: "Zest",
+        description: "Zest (places | categories → apps | search)",
+        hasCategories: true,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 720,
+        defaultHeight: 560,
+        source: "layouts/LayoutZest.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",
