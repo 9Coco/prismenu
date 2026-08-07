@@ -171,6 +171,21 @@ var LAYOUTS = [
         source: "layouts/LayoutRedmond.qml"
     },
     {
+        id: "sleek",
+        name: "Sleek",
+        description: "Sleek (pinned grid + avatar sidebar + power)",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 640,
+        defaultHeight: 560,
+        source: "layouts/LayoutSleek.qml"
+    },
+    {
         id: "eleven",
         name: "Eleven",
         description: "Windows 11 (pinned grid + recommended + footer)",
