@@ -37,7 +37,8 @@ Item {
             : 0
 
     width: (menuData ? menuData.menuWidth : 600) + sidePanelWidth
-    height: menuData ? menuData.menuHeight : 550
+    // Prefer parent height when fullRepresentation sizes us (e.g. Raven fill)
+    height: (parent && parent.height >= 400) ? parent.height : (menuData ? menuData.menuHeight : 550)
 
     function layoutUrl() {
         if (layoutMeta && layoutMeta.source) {
