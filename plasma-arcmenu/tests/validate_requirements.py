@@ -29,7 +29,7 @@ def main() -> int:
 
     layouts_expected = [
         "arcmenu", "brisk", "mint", "whisker", "elementary", "gnome",
-        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "chromebook", "budgie",
+        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "chromebook", "raven", "budgie",
         "kickoff", "kicker", "simple",
     ]
     registry = (PKG / "contents/code/LayoutRegistry.js").read_text()
@@ -55,6 +55,7 @@ def main() -> int:
         "windows": "LayoutWindows.qml",
         "zest": "LayoutZest.qml",
         "chromebook": "LayoutChromebook.qml",
+        "raven": "LayoutRaven.qml",
         "budgie": "LayoutBudgie.qml",
         "kickoff": "LayoutKickoff.qml",
         "kicker": "LayoutKicker.qml",
@@ -105,6 +106,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutChromebook.qml").exists(), "chromebook layout entry")
     check((PKG / "contents/ui/layouts/elementary/README.md").exists(), "elementary folder")
     check((PKG / "contents/ui/layouts/LayoutElementary.qml").exists(), "elementary layout entry")
+    check((PKG / "contents/ui/layouts/raven/README.md").exists(), "raven folder")
+    check((PKG / "contents/ui/layouts/LayoutRaven.qml").exists(), "raven layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

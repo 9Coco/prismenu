@@ -192,7 +192,7 @@ Item {
                 id: heightSpin
                 Kirigami.FormData.label: i18n("Menu height:")
                 from: 400
-                to: 800
+                to: 1400
                 stepSize: 10
                 Component.onCompleted: value = cfg_MenuHeight
                 onValueModified: {

@@ -26,6 +26,7 @@ docs/reference-screenshots/
 ├── zest/        # Zest 布局 — 目标效果
 ├── chromebook/  # Chromebook 布局 — 目标效果
 ├── elementary/  # Elementary 布局 — 目标效果
+├── raven/       # Raven 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -57,6 +58,7 @@ docs/reference-screenshots/
 | Zest | `zest/01-target.png` | Zest 三栏（左地点 / 中分类控制 / 右应用列表） |
 | Chromebook | `chromebook/01-target.png` | Chromebook 竖长窗口（顶部搜索 + 四列应用网格） |
 | Elementary | `elementary/01-target.png` | Elementary 效果（顶部搜索 + 六列应用网格） |
+| Raven | `raven/01-target.png` | Raven 全高侧栏（左图标轨 + 固定/快捷方式 + 世界时钟） |
 | Unity | `unity/02-category-popup.png` | Unity 汉堡菜单分类侧栏（首页/全部应用/分类） |
 
 ## 过程截图（progress）
