@@ -126,7 +126,7 @@ def main() -> int:
         check(f'name="{key}"' in cfg, f"config key: {key}")
 
     config_pages = [
-        "ConfigGeneral.qml", "ConfigLayout.qml", "ConfigTheme.qml",
+        "ConfigGeneral.qml", "ConfigLayout.qml", "LayoutPreview.qml", "ConfigTheme.qml",
         "ConfigContent.qml", "ConfigSearch.qml", "ConfigPower.qml", "ConfigAbout.qml",
     ]
     for page in config_pages:
