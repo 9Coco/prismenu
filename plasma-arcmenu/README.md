@@ -1,10 +1,10 @@
 # Arc Menu for KDE Plasma
 
-Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **25 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
+Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **26 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
 
 ## Features
 
-- **25 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Budgie, Kickoff, Kicker, Simple
+- **26 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Raven, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications from `.desktop` entries
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -76,6 +76,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `windows` | Windows (rail + frequent/A–Z list + pinned grid) — sources in `layouts/windows/` |
 | `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） — sources in `layouts/zest/` |
 | `chromebook` | Chromebook（竖长：顶部搜索 + 四列网格） — sources in `layouts/chromebook/` |
+| `raven` | Raven（全高左侧栏 + 固定/快捷方式侧板） — sources in `layouts/raven/` |
 | `elementary` | Elementary（顶部搜索 + 六列应用网格） — sources in `layouts/elementary/` |
 | `plasma` | Plasma (user+search header, list, bottom tabs) — sources in `layouts/plasma/` |
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
