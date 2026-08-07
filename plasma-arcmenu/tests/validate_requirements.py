@@ -29,7 +29,7 @@ def main() -> int:
 
     layouts_expected = [
         "arcmenu", "brisk", "mint", "whisker", "elementary", "gnome",
-        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "budgie",
+        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "chromebook", "budgie",
         "kickoff", "kicker", "simple",
     ]
     registry = (PKG / "contents/code/LayoutRegistry.js").read_text()
@@ -54,6 +54,7 @@ def main() -> int:
         "insider": "LayoutInsider.qml",
         "windows": "LayoutWindows.qml",
         "zest": "LayoutZest.qml",
+        "chromebook": "LayoutChromebook.qml",
         "budgie": "LayoutBudgie.qml",
         "kickoff": "LayoutKickoff.qml",
         "kicker": "LayoutKicker.qml",
@@ -100,6 +101,10 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutWindows.qml").exists(), "windows layout entry")
     check((PKG / "contents/ui/layouts/zest/README.md").exists(), "zest folder")
     check((PKG / "contents/ui/layouts/LayoutZest.qml").exists(), "zest layout entry")
+    check((PKG / "contents/ui/layouts/chromebook/README.md").exists(), "chromebook folder")
+    check((PKG / "contents/ui/layouts/LayoutChromebook.qml").exists(), "chromebook layout entry")
+    check((PKG / "contents/ui/layouts/elementary/README.md").exists(), "elementary folder")
+    check((PKG / "contents/ui/layouts/LayoutElementary.qml").exists(), "elementary layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [

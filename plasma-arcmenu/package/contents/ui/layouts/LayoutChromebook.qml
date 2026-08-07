@@ -6,15 +6,15 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Elementary layout (ArcMenu Elementary / elementary OS Slingshot style).
+ * Chromebook layout (ArcMenu Chromebook / ChromeOS app drawer).
  *
- * Search on top, 6-column scrollable app icon grid below.
+ * Search on top, 4-column scrollable app icon grid below.
  */
 LayoutBase {
     id: root
 
     readonly property bool searching: menuData ? menuData.isSearching : false
-    readonly property int gridColumns: 6
+    readonly property int gridColumns: 4
     readonly property int gridIconSize: Math.max(48, root.appIconSize + 20)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2.2
 
