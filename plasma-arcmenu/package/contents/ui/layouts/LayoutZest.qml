@@ -1,0 +1,424 @@
+import QtQuick
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import org.kde.plasma.components as PlasmaComponents
+import "../components" as Components
+import "../../code/AppsModel.js" as AppsModel
+
+/**
+ * Zest layout (ArcMenu Zest) — three columns.
+ *
+ * Left:   avatar + places/software/settings + session
+ * Middle: pinned / all / categories  (controls right)
+ * Right:  apps for the middle selection (A–Z when “all”)
+ * Search spans middle + right at the bottom
+ */
+LayoutBase {
+    id: root
+
+    // Middle column selection — drives right column content
+    property string selectedId: "all"
+
+    readonly property bool searching: menuData ? menuData.isSearching : false
+    readonly property int avatarSize: Kirigami.Units.gridUnit * 4
+
+    readonly property var sideItems: [
+        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" }
+    ]
+
+    readonly property var categories: [
+        { id: "Office", name: i18n("Office"), icon: "applications-office" },
+        { id: "Development", name: i18n("Programming"), icon: "applications-development" },
+        { id: "Accessories", name: i18n("Accessories"), icon: "applications-accessories" },
+        { id: "Utility", name: i18n("Tools"), icon: "applications-utilities" },
+        { id: "Network", name: i18n("Internet"), icon: "applications-internet" },
+        { id: "Graphics", name: i18n("Graphics"), icon: "applications-graphics" },
+        { id: "System", name: i18n("System Tools"), icon: "applications-system" }
+    ]
+
+    readonly property var defaultPinned: [
+        {
+            id: "org.kde.dolphin.desktop",
+            name: i18n("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin",
+            noDisplay: false
+        },
+        {
+            id: "arcmenu-settings",
+            name: i18n("ArcMenu Settings"),
+            icon: "preferences-system-windows",
+            exec: "",
+            action: "configure",
+            noDisplay: false
+        }
+    ]
+
+    readonly property var pinnedItems: {
+        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
+            return menuData.pinnedApps;
+        return root.defaultPinned;
+    }
+
+    readonly property var flatItems: {
+        if (root.searching) {
+            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
+        }
+        if (selectedId === "pinned")
+            return root.pinnedItems;
+        if (selectedId === "all")
+            return []; // use azSections instead
+        if (menuData && menuData.allApps)
+            return AppsModel.appsInCategory(menuData.allApps, selectedId);
+        return [];
+    }
+
+    readonly property var azSections: {
+        if (root.searching || selectedId !== "all")
+            return [];
+        if (!menuData || !menuData.allApps)
+            return [];
+        return AppsModel.appsAzSections(menuData.allApps);
+    }
+
+    readonly property bool rightEmpty: {
+        if (root.searching)
+            return flatItems.length === 0;
+        if (selectedId === "all")
+            return azSections.length === 0;
+        return flatItems.length === 0;
+    }
+
+    function activateItem(item) {
+        if (!item) return;
+        if (item.action === "configure") {
+            if (menuData) menuData.requestConfigure();
+            return;
+        }
+        if (item.action) {
+            root.powerAction(item.action);
+            return;
+        }
+        root.appActivated(item);
+    }
+
+    function selectNav(id) {
+        selectedId = id;
+        if (!menuData) return;
+        menuData.setSearch("");
+        if (id === "pinned") return;
+        if (id === "all") {
+            menuData.currentCategoryId = "all";
+            return;
+        }
+        menuData.currentCategoryId = id;
+    }
+
+    RowLayout {
+        anchors.fill: parent
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.largeSpacing
+        layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+
+        // ---- 1. Left: avatar / places / session ----
+        ColumnLayout {
+            Layout.fillHeight: true
+            Layout.fillWidth: false
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 11
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 13
+            spacing: Kirigami.Units.smallSpacing
+
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                spacing: Kirigami.Units.smallSpacing
+
+                Item {
+                    Layout.alignment: Qt.AlignHCenter
+                    Layout.preferredWidth: root.avatarSize
+                    Layout.preferredHeight: root.avatarSize
+
+                    Rectangle {
+                        anchors.fill: parent
+                        radius: width / 2
+                        color: "transparent"
+                        border.color: root.fg
+                        border.width: 1
+                        opacity: 0.55
+                    }
+
+                    PlasmaComponents.ToolButton {
+                        anchors.centerIn: parent
+                        flat: true
+                        width: root.avatarSize - Kirigami.Units.smallSpacing * 2
+                        height: width
+                        icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                        icon.width: Kirigami.Units.iconSizes.large
+                        icon.height: Kirigami.Units.iconSizes.large
+                        Accessible.name: i18n("User")
+                        onClicked: root.userMenu()
+                    }
+                }
+
+                PlasmaComponents.Label {
+                    Layout.alignment: Qt.AlignHCenter
+                    text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                    color: root.fg
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: root.userMenu()
+                    }
+                }
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                opacity: 0.4
+            }
+
+            Flickable {
+                id: sideFlick
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                contentWidth: width
+                contentHeight: sideCol.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: sideCol
+                    width: sideFlick.width
+                    spacing: Kirigami.Units.smallSpacing / 2
+
+                    Repeater {
+                        model: root.sideItems.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.sideItems[index].icon
+                            label: root.sideItems[index].name
+                            iconSize: root.categoryIconSize
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            fg: root.fg
+                            onActivated: root.activateItem(root.sideItems[index])
+                        }
+                    }
+                }
+            }
+
+            Components.SessionButtons {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
+                enabledOptions: ["logout", "lock", "restart", "shutdown"]
+                onActionRequested: (id) => root.powerAction(id)
+            }
+        }
+
+        // ---- Middle + right + shared search ----
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: Kirigami.Units.smallSpacing
+
+            RowLayout {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                spacing: Kirigami.Units.largeSpacing
+
+                // ---- 2. Middle: controls right content ----
+                Flickable {
+                    id: midFlick
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+                    Layout.maximumWidth: Kirigami.Units.gridUnit * 14
+                    Layout.fillHeight: true
+                    Layout.fillWidth: false
+                    contentWidth: width
+                    contentHeight: midCol.height
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    Column {
+                        id: midCol
+                        width: midFlick.width
+                        spacing: Kirigami.Units.smallSpacing / 2
+
+                        Components.ShortcutRow {
+                            width: midCol.width
+                            iconName: "pin"
+                            label: i18n("Pinned Applications")
+                            iconSize: root.categoryIconSize
+                            selected: !root.searching && root.selectedId === "pinned"
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            fg: root.fg
+                            onActivated: root.selectNav("pinned")
+                        }
+
+                        Components.ShortcutRow {
+                            width: midCol.width
+                            iconName: "view-app-grid-symbolic"
+                            label: i18n("All Applications")
+                            iconSize: root.categoryIconSize
+                            selected: !root.searching && root.selectedId === "all"
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            fg: root.fg
+                            onActivated: root.selectNav("all")
+                        }
+
+                        Kirigami.Separator {
+                            width: midCol.width
+                            opacity: 0.4
+                        }
+
+                        Repeater {
+                            model: root.categories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: midCol.width
+                                iconName: root.categories[index].icon
+                                label: root.categories[index].name
+                                iconSize: root.categoryIconSize
+                                selected: !root.searching && root.selectedId === root.categories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                fg: root.fg
+                                onActivated: root.selectNav(root.categories[index].id)
+                            }
+                        }
+                    }
+                }
+
+                // ---- 3. Right: content for middle selection ----
+                Item {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+
+                    Flickable {
+                        id: rightFlick
+                        anchors.fill: parent
+                        contentWidth: width
+                        contentHeight: rightCol.height
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+
+                        Column {
+                            id: rightCol
+                            width: rightFlick.width
+                            spacing: Kirigami.Units.smallSpacing / 2
+
+                            // Search results or pinned / category flat list
+                            Repeater {
+                                model: (root.searching || root.selectedId !== "all")
+                                       ? root.flatItems.length : 0
+                                Components.AppListItem {
+                                    required property int index
+                                    width: rightCol.width
+                                    app: root.flatItems[index]
+                                    iconSize: Math.max(root.appIconSize, 28)
+                                    showDescription: false
+                                    selectedBg: root.selectedBg
+                                    selectedFg: root.selectedFg
+                                    fg: root.fg
+                                    onActivated: root.activateItem(root.flatItems[index])
+                                    onContextMenuRequested: (x, y) => {
+                                        var a = root.flatItems[index];
+                                        if (a && !a.action) root.appContextMenu(a, x, y);
+                                    }
+                                }
+                            }
+
+                            // All apps — A–Z sections
+                            Repeater {
+                                model: (!root.searching && root.selectedId === "all")
+                                       ? root.azSections.length : 0
+
+                                Column {
+                                    required property int index
+                                    readonly property var section: root.azSections[index]
+                                    width: rightCol.width
+                                    spacing: Kirigami.Units.smallSpacing / 2
+
+                                    RowLayout {
+                                        width: parent.width
+                                        spacing: Kirigami.Units.smallSpacing
+
+                                        PlasmaComponents.Label {
+                                            text: section.letter
+                                            font.bold: true
+                                            color: root.fg
+                                            opacity: 0.75
+                                        }
+
+                                        Rectangle {
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: 1
+                                            color: root.borderColor
+                                            opacity: 0.35
+                                        }
+                                    }
+
+                                    Repeater {
+                                        model: section.apps.length
+                                        Components.AppListItem {
+                                            required property int index
+                                            width: rightCol.width
+                                            app: section.apps[index]
+                                            iconSize: Math.max(root.appIconSize, 28)
+                                            showDescription: false
+                                            selectedBg: root.selectedBg
+                                            selectedFg: root.selectedFg
+                                            fg: root.fg
+                                            onActivated: root.activateItem(section.apps[index])
+                                            onContextMenuRequested: (x, y) => {
+                                                var a = section.apps[index];
+                                                if (a && !a.action) root.appContextMenu(a, x, y);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    PlasmaComponents.Label {
+                        anchors.centerIn: parent
+                        visible: root.rightEmpty
+                        text: root.searching
+                              ? i18n("No matching applications found")
+                              : (root.selectedId === "pinned"
+                                 ? i18n("Pin applications from the context menu")
+                                 : i18n("No applications"))
+                        opacity: 0.45
+                        color: root.fg
+                        width: parent.width * 0.8
+                        wrapMode: Text.WordWrap
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                opacity: 0.35
+            }
+
+            // Search under middle + right only
+            Components.SearchField {
+                Layout.fillWidth: true
+                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+        }
+    }
+}
