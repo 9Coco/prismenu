@@ -20,6 +20,7 @@ docs/reference-screenshots/
 ├── pop/         # Pop 菜单 — 目标效果
 ├── redmond/     # Redmond 布局 — 目标效果
 ├── sleek/       # Sleek 布局 — 目标效果
+├── tognee/      # Tognee 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -44,6 +45,7 @@ docs/reference-screenshots/
 | Pop | `pop/01-target.png` | Pop 菜单（搜索 + 六列网格 + 底部分类页签） |
 | Redmond | `redmond/01-target.png` | Redmond 效果（左应用网格 + 右位置/快捷方式栏） |
 | Sleek | `sleek/01-target.png` | Sleek 效果（左固定网格 + 右大头像侧栏 + 单电源） |
+| Tognee | `tognee/01-target.png` | Tognee 效果（左图标栏 + 右分类列表 + 底搜索） |
 
 ## 过程截图（progress）
 
