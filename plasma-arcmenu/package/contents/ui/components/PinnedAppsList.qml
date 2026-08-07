@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../code/Locale.js" as Locale
 
 /**
  * Page-display piece: pinned / favorite applications list (home page).
- * Uses Repeater (not ListModelBridge) so JS arrays always show.
  */
 Item {
     id: root
@@ -20,31 +20,55 @@ Item {
     signal appActivated(var app)
     signal appContextMenu(var app, real x, real y)
 
+    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+
+    function localizeApp(app) {
+        if (!app)
+            return app;
+        var copy = Object.assign({}, app);
+        var id = copy.id || "";
+        if (id === "arcmenu-settings") {
+            copy.name = Locale.tr("ArcMenu Settings", root.uiLang);
+        } else if (id.indexOf("dolphin") >= 0 || copy.name === "Files") {
+            copy.name = Locale.tr("Files", root.uiLang);
+        } else if (copy.name) {
+            // Translate if this English UI label exists in our pack; else keep desktop name
+            copy.name = Locale.tr(copy.name, root.uiLang);
+        }
+        return copy;
+    }
+
     readonly property var items: {
+        var _ = root.uiLang;
+        var raw = [];
         if (apps && apps.length) {
-            return apps;
+            raw = apps;
+        } else if (menuData && menuData.pinnedApps && menuData.pinnedApps.length) {
+            raw = menuData.pinnedApps;
+        } else {
+            raw = [
+                {
+                    id: "org.kde.dolphin.desktop",
+                    name: "Files",
+                    icon: "system-file-manager",
+                    exec: "dolphin",
+                    noDisplay: false
+                },
+                {
+                    id: "arcmenu-settings",
+                    name: "ArcMenu Settings",
+                    icon: "preferences-system-windows",
+                    exec: "",
+                    action: "configure",
+                    noDisplay: false
+                }
+            ];
         }
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length) {
-            return menuData.pinnedApps;
+        var out = [];
+        for (var i = 0; i < raw.length; ++i) {
+            out.push(root.localizeApp(raw[i]));
         }
-        // Hard fallback matching official ArcMenu defaults
-        return [
-            {
-                id: "org.kde.dolphin.desktop",
-                name: i18n("Files"),
-                icon: "system-file-manager",
-                exec: "dolphin",
-                noDisplay: false
-            },
-            {
-                id: "arcmenu-settings",
-                name: i18n("ArcMenu Settings"),
-                icon: "preferences-system-windows",
-                exec: "",
-                action: "configure",
-                noDisplay: false
-            }
-        ];
+        return out;
     }
 
     Flickable {
@@ -54,7 +78,7 @@ Item {
         contentHeight: column.height
         clip: true
         boundsBehavior: Flickable.StopAtBounds
-        Accessible.name: i18n("Pinned applications")
+        Accessible.name: Locale.tr("Pinned applications", root.uiLang)
 
         Column {
             id: column
@@ -62,36 +86,32 @@ Item {
             spacing: Kirigami.Units.smallSpacing / 2
 
             Repeater {
-                model: root.items.length
+                model: root.items
                 AppListItem {
-                    required property int index
+                    required property var modelData
                     width: column.width
-                    app: root.items[index]
+                    app: modelData
                     iconSize: root.iconSize
                     showDescription: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
                     fg: root.fg
-                    onActivated: root.appActivated(root.items[index])
+                    onActivated: root.appActivated(modelData)
                     onContextMenuRequested: (x, y) => {
-                        var a = root.items[index];
-                        if (a && !a.action) {
-                            root.appContextMenu(a, x, y);
+                        if (modelData && !modelData.action) {
+                            root.appContextMenu(modelData, x, y);
                         }
                     }
                 }
             }
-        }
-    }
 
-    PlasmaComponents.Label {
-        anchors.centerIn: parent
-        visible: root.items.length === 0
-        text: i18n("Pin applications from the context menu")
-        opacity: 0.45
-        color: root.fg
-        width: parent.width * 0.8
-        wrapMode: Text.WordWrap
-        horizontalAlignment: Text.AlignHCenter
+            PlasmaComponents.Label {
+                visible: root.items.length === 0
+                width: column.width
+                horizontalAlignment: Text.AlignHCenter
+                opacity: 0.55
+                text: Locale.tr("Pin applications from the context menu", root.uiLang)
+            }
+        }
     }
 }

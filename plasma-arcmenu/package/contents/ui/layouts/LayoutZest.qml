@@ -22,43 +22,52 @@ LayoutBase {
     readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
-    readonly property var sideItems: [
-        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" }
-    ]
+    readonly property var sideItems: {
+        var _ = root.uiLang;
+        return [
+            { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+            { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+            { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
+        ];
+    }
 
-    readonly property var categories: [
-        { id: "Office", name: i18n("Office"), icon: "applications-office" },
-        { id: "Development", name: i18n("Programming"), icon: "applications-development" },
-        { id: "Accessories", name: i18n("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: i18n("Tools"), icon: "applications-utilities" },
-        { id: "Network", name: i18n("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: i18n("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: i18n("System Tools"), icon: "applications-system" }
-    ]
+    readonly property var categories: {
+        var _ = root.uiLang;
+        return [
+            { id: "Office", name: root.tr("Office"), icon: "applications-office" },
+            { id: "Development", name: root.tr("Programming"), icon: "applications-development" },
+            { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
+            { id: "Utility", name: root.tr("Tools"), icon: "applications-utilities" },
+            { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
+            { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
+            { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
+        ];
+    }
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
+    readonly property var defaultPinned: {
+        var _ = root.uiLang;
+        return [
+            {
+                id: "org.kde.dolphin.desktop",
+                name: root.tr("Files"),
+                icon: "system-file-manager",
+                exec: "dolphin",
+                noDisplay: false
+            },
+            {
+                id: "arcmenu-settings",
+                name: root.tr("ArcMenu Settings"),
+                icon: "preferences-system-windows",
+                exec: "",
+                action: "configure",
+                noDisplay: false
+            }
+        ];
+    }
 
     readonly property var pinnedItems: {
         if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
@@ -161,14 +170,14 @@ LayoutBase {
                         icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
                         icon.width: Kirigami.Units.iconSizes.large
                         icon.height: Kirigami.Units.iconSizes.large
-                        Accessible.name: i18n("User")
+                        Accessible.name: root.tr("User")
                         onClicked: root.userMenu()
                     }
                 }
 
                 PlasmaComponents.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                    text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
                     color: root.fg
                     MouseArea {
                         anchors.fill: parent
@@ -215,6 +224,7 @@ LayoutBase {
             }
 
             Components.SessionButtons {
+                menuData: root.menuData
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
                 enabledOptions: ["logout", "lock", "restart", "shutdown"]
@@ -253,7 +263,7 @@ LayoutBase {
                         Components.ShortcutRow {
                             width: midCol.width
                             iconName: "pin"
-                            label: i18n("Pinned Applications")
+                            label: root.tr("Pinned Applications")
                             iconSize: root.categoryIconSize
                             selected: !root.searching && root.selectedId === "pinned"
                             selectedBg: root.selectedBg
@@ -265,7 +275,7 @@ LayoutBase {
                         Components.ShortcutRow {
                             width: midCol.width
                             iconName: "view-app-grid-symbolic"
-                            label: i18n("All Applications")
+                            label: root.tr("All Applications")
                             iconSize: root.categoryIconSize
                             selected: !root.searching && root.selectedId === "all"
                             selectedBg: root.selectedBg
@@ -394,10 +404,10 @@ LayoutBase {
                         anchors.centerIn: parent
                         visible: root.rightEmpty
                         text: root.searching
-                              ? i18n("No matching applications found")
+                              ? root.tr("No matching applications found")
                               : (root.selectedId === "pinned"
-                                 ? i18n("Pin applications from the context menu")
-                                 : i18n("No applications"))
+                                 ? root.tr("Pin applications from the context menu")
+                                 : root.tr("No applications"))
                         opacity: 0.45
                         color: root.fg
                         width: parent.width * 0.8
@@ -415,7 +425,7 @@ LayoutBase {
             // Search under middle + right only
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

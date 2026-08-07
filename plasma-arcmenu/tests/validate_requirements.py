@@ -112,6 +112,7 @@ def main() -> int:
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
+        "UiLanguage",
         "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight",
         "ThemeMode", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius",
         "Font", "FontSize", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize",
@@ -154,6 +155,7 @@ def main() -> int:
 
     check((PKG / "contents/code/PageRegistry.js").exists(), "PageRegistry.js")
     check((PKG / "contents/code/IdList.js").exists(), "IdList.js")
+    check((PKG / "contents/code/Locale.js").exists(), "Locale.js")
 
     for core in ["main.qml", "MenuData.qml", "LayoutHost.qml", "AppsBackend.qml"]:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")

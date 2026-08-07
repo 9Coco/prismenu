@@ -22,9 +22,9 @@ LayoutBase {
     readonly property int footerHeight: Kirigami.Units.gridUnit * 3.6
 
     readonly property var tabs: [
-        { id: 0, name: i18n("Library Home"), icon: "user-home" },
-        { id: 1, name: i18n("System"), icon: "applications-system" },
-        { id: 2, name: i18n("Utility Tools"), icon: "applications-utilities" }
+        { id: 0, name: root.tr("Library Home"), icon: "user-home" },
+        { id: 1, name: root.tr("System"), icon: "applications-system" },
+        { id: 2, name: root.tr("Utility Tools"), icon: "applications-utilities" }
     ]
 
     readonly property var gridItems: {
@@ -67,7 +67,7 @@ LayoutBase {
         Components.SearchField {
             Layout.fillWidth: true
             Layout.fillHeight: false
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
@@ -156,8 +156,8 @@ LayoutBase {
                 anchors.centerIn: parent
                 visible: root.gridItems.length === 0
                 text: root.searching
-                      ? i18n("No matching applications found")
-                      : i18n("No applications")
+                      ? root.tr("No matching applications found")
+                      : root.tr("No applications")
                 opacity: 0.45
                 color: root.fg
                 width: parent.width * 0.8

@@ -19,26 +19,26 @@ LayoutBase {
     readonly property bool searching: menuData ? menuData.isSearching : false
 
     readonly property var categories: [
-        { id: "Office", name: i18n("Office"), icon: "applications-office" },
-        { id: "Development", name: i18n("Development"), icon: "applications-development" },
-        { id: "Accessories", name: i18n("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: i18n("Utilities"), icon: "applications-utilities" },
-        { id: "Network", name: i18n("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: i18n("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: i18n("System Tools"), icon: "applications-system" }
+        { id: "Office", name: root.tr("Office"), icon: "applications-office" },
+        { id: "Development", name: root.tr("Development"), icon: "applications-development" },
+        { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
+        { id: "Utility", name: root.tr("Utilities"), icon: "applications-utilities" },
+        { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
+        { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
+        { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
     ]
 
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -96,7 +96,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
@@ -126,7 +126,7 @@ LayoutBase {
                     Components.ShortcutRow {
                         width: sideCol.width
                         iconName: "pin"
-                        label: i18n("Pinned Applications")
+                        label: root.tr("Pinned Applications")
                         iconSize: root.categoryIconSize
                         selected: !root.searching && root.gnomeSelectedId === "pinned"
                         selectedBg: root.selectedBg
@@ -138,7 +138,7 @@ LayoutBase {
                     Components.ShortcutRow {
                         width: sideCol.width
                         iconName: "view-app-grid-symbolic"
-                        label: i18n("All Applications")
+                        label: root.tr("All Applications")
                         iconSize: root.categoryIconSize
                         selected: !root.searching && root.gnomeSelectedId === "all"
                         selectedBg: root.selectedBg
@@ -212,10 +212,10 @@ LayoutBase {
                     anchors.centerIn: parent
                     visible: root.contentItems.length === 0
                     text: root.searching
-                          ? i18n("No matching applications found")
+                          ? root.tr("No matching applications found")
                           : (root.gnomeSelectedId === "pinned"
-                             ? i18n("Pin applications from the context menu")
-                             : i18n("No applications"))
+                             ? root.tr("Pin applications from the context menu")
+                             : root.tr("No applications"))
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8
@@ -230,7 +230,7 @@ LayoutBase {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
             iconName: "overview"
-            label: i18n("Activities Overview")
+            label: root.tr("Activities Overview")
             iconSize: Math.max(root.categoryIconSize, 24)
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg

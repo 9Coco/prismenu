@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/LayoutRegistry.js" as LayoutRegistry
+import "../../code/Locale.js" as Locale
 
 Item {
     id: root
@@ -22,6 +23,15 @@ Item {
     property var expandedCategories: ({})
 
     readonly property var currentLayout: LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu")
+    readonly property string uiLang: Locale.resolveLanguage(
+        (function () {
+            try { return plasmoid.configuration.uiLanguage || "system"; } catch (e) { return "system"; }
+        })(),
+        Qt.locale().name)
+
+    function tr(msgid) {
+        return Locale.tr(msgid, uiLang);
+    }
 
     function selectLayout(id) {
         if (!id) {
@@ -78,15 +88,15 @@ Item {
     function categoryTitle(cat) {
         switch (cat.id) {
         case "traditional":
-            return i18n("Traditional Menu Layouts");
+            return root.tr("Traditional Menu Layouts");
         case "modern":
-            return i18n("Modern Menu Layouts");
+            return root.tr("Modern Menu Layouts");
         case "touch":
-            return i18n("Touch Menu Layouts");
+            return root.tr("Touch Menu Layouts");
         case "launcher":
-            return i18n("Launcher Menu Layouts");
+            return root.tr("Launcher Menu Layouts");
         case "alternative":
-            return i18n("Alternative Menu Layouts");
+            return root.tr("Alternative Menu Layouts");
         default:
             return cat.name || cat.id;
         }
@@ -113,14 +123,14 @@ Item {
             spacing: Kirigami.Units.largeSpacing
 
             Kirigami.Heading {
-                text: i18n("Menu Layout")
+                text: root.tr("Menu Layout")
                 level: 2
                 Layout.fillWidth: true
             }
 
             // ---- Current layout ----
             QQC2.Label {
-                text: i18n("Current Menu Layout")
+                text: root.tr("Current Menu Layout")
                 font.bold: true
                 Layout.fillWidth: true
             }
@@ -159,7 +169,7 @@ Item {
 
             // ---- Choose new layout ----
             QQC2.Label {
-                text: i18n("Select a new menu layout?")
+                text: root.tr("Select a new menu layout?")
                 font.bold: true
                 Layout.fillWidth: true
                 Layout.topMargin: Kirigami.Units.smallSpacing
@@ -337,7 +347,7 @@ Item {
 
                 QQC2.SpinBox {
                     id: widthSpin
-                    Kirigami.FormData.label: i18n("Menu width:")
+                    Kirigami.FormData.label: root.tr("Menu width:")
                     from: 400
                     to: 900
                     stepSize: 10
@@ -351,7 +361,7 @@ Item {
 
                 QQC2.SpinBox {
                     id: heightSpin
-                    Kirigami.FormData.label: i18n("Menu height:")
+                    Kirigami.FormData.label: root.tr("Menu height:")
                     from: 400
                     to: 800
                     stepSize: 10

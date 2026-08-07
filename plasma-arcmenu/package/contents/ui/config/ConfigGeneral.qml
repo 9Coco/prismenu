@@ -3,7 +3,9 @@ import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Dialogs as Dialogs
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import "../../code/Distro.js" as Distro
+import "../../code/Locale.js" as Locale
 
 Item {
     id: root
@@ -16,9 +18,43 @@ Item {
     property string cfg_PopupAnimation
     property alias cfg_ShareConfigAcrossInstances: shareConfig.checked
     property alias cfg_FilterByActivity: filterActivity.checked
+    property string cfg_UiLanguage
+
+    readonly property string uiLang: Locale.resolveLanguage(cfg_UiLanguage || "system", Qt.locale().name)
+
+    function tr(msgid) {
+        return Locale.tr(msgid, uiLang);
+    }
 
     Kirigami.FormLayout {
         anchors.fill: parent
+
+        QQC2.ComboBox {
+            id: langCombo
+            Kirigami.FormData.label: root.tr("Menu language:")
+            textRole: "label"
+            valueRole: "id"
+            model: [
+                { id: "zh_CN", label: root.tr("Chinese (Simplified)") },
+                { id: "en", label: root.tr("English") },
+                { id: "system", label: root.tr("Follow system") }
+            ]
+            Component.onCompleted: {
+                var ids = ["zh_CN", "en", "system"];
+                var cur = cfg_UiLanguage || "zh_CN";
+                currentIndex = Math.max(0, ids.indexOf(cur));
+            }
+            onActivated: {
+                cfg_UiLanguage = currentValue;
+                try { plasmoid.configuration.uiLanguage = currentValue; } catch (e) {}
+            }
+        }
+
+        Kirigami.InlineMessage {
+            Layout.fillWidth: true
+            type: Kirigami.MessageType.Information
+            text: root.tr("UI language applies to menu labels (categories, places, actions).")
+        }
 
         QQC2.ComboBox {
             id: iconCombo

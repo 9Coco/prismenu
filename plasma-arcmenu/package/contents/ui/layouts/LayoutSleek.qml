@@ -26,14 +26,14 @@ LayoutBase {
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -43,13 +43,13 @@ LayoutBase {
 
     // Continuous sidebar list matching Sleek reference (no Videos / Tweaks / Overview)
     readonly property var sideItems: [
-        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" }
+        { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+        { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
     ]
 
     readonly property var gridItems: {
@@ -93,7 +93,7 @@ LayoutBase {
             Components.SearchField {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);
@@ -108,7 +108,7 @@ LayoutBase {
                 visible: !root.searching
 
                 PlasmaComponents.Label {
-                    text: root.showPinned ? i18n("Pinned") : i18n("All Applications")
+                    text: root.showPinned ? root.tr("Pinned") : root.tr("All Applications")
                     font.bold: true
                     color: root.fg
                     Layout.fillWidth: true
@@ -117,8 +117,8 @@ LayoutBase {
                 PlasmaComponents.ToolButton {
                     flat: true
                     text: root.showPinned
-                          ? i18n("All Applications") + " >"
-                          : i18n("Pinned") + " >"
+                          ? root.tr("All Applications") + " >"
+                          : root.tr("Pinned") + " >"
                     onClicked: root.showPinned = !root.showPinned
                 }
             }
@@ -207,10 +207,10 @@ LayoutBase {
                     anchors.centerIn: parent
                     visible: root.gridItems.length === 0
                     text: root.searching
-                          ? i18n("No matching applications found")
+                          ? root.tr("No matching applications found")
                           : (root.showPinned
-                             ? i18n("Pin applications from the context menu")
-                             : i18n("No applications"))
+                             ? root.tr("Pin applications from the context menu")
+                             : root.tr("No applications"))
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8
@@ -264,9 +264,9 @@ LayoutBase {
                         icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
                         icon.width: Kirigami.Units.iconSizes.large
                         icon.height: Kirigami.Units.iconSizes.large
-                        Accessible.name: i18n("User")
+                        Accessible.name: root.tr("User")
                         onClicked: root.userMenu()
-                        PlasmaComponents.ToolTip.text: i18n("User")
+                        PlasmaComponents.ToolTip.text: root.tr("User")
                         PlasmaComponents.ToolTip.visible: hovered
                         PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
                     }
@@ -274,7 +274,7 @@ LayoutBase {
 
                 PlasmaComponents.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                    text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
                     color: root.fg
                     MouseArea {
                         anchors.fill: parent
@@ -324,9 +324,9 @@ LayoutBase {
                 icon.name: "system-shutdown"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Shut Down")
+                Accessible.name: root.tr("Shut Down")
                 onClicked: root.powerAction("shutdown")
-                PlasmaComponents.ToolTip.text: i18n("Shut Down")
+                PlasmaComponents.ToolTip.text: root.tr("Shut Down")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }

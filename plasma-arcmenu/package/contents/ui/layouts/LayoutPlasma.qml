@@ -23,14 +23,14 @@ LayoutBase {
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -39,18 +39,18 @@ LayoutBase {
     ]
 
     readonly property var leaveItems: [
-        { id: "leave-lock", name: i18n("Lock"), icon: "system-lock-screen", action: "lock", noDisplay: false },
-        { id: "leave-logout", name: i18n("Log Out"), icon: "system-log-out", action: "logout", noDisplay: false },
-        { id: "leave-suspend", name: i18n("Suspend"), icon: "system-suspend", action: "suspend", noDisplay: false },
-        { id: "leave-restart", name: i18n("Restart"), icon: "system-reboot", action: "restart", noDisplay: false },
-        { id: "leave-shutdown", name: i18n("Shut Down"), icon: "system-shutdown", action: "shutdown", noDisplay: false }
+        { id: "leave-lock", name: root.tr("Lock"), icon: "system-lock-screen", action: "lock", noDisplay: false },
+        { id: "leave-logout", name: root.tr("Log Out"), icon: "system-log-out", action: "logout", noDisplay: false },
+        { id: "leave-suspend", name: root.tr("Suspend"), icon: "system-suspend", action: "suspend", noDisplay: false },
+        { id: "leave-restart", name: root.tr("Restart"), icon: "system-reboot", action: "restart", noDisplay: false },
+        { id: "leave-shutdown", name: root.tr("Shut Down"), icon: "system-shutdown", action: "shutdown", noDisplay: false }
     ]
 
     readonly property var tabs: [
-        { id: 0, name: i18n("Pinned"), icon: "preferences-system-windows" },
-        { id: 1, name: i18n("Applications"), icon: "view-app-grid-symbolic" },
-        { id: 2, name: i18n("Computer"), icon: "computer" },
-        { id: 3, name: i18n("Leave"), icon: "system-shutdown" }
+        { id: 0, name: root.tr("Pinned"), icon: "preferences-system-windows" },
+        { id: 1, name: root.tr("Applications"), icon: "view-app-grid-symbolic" },
+        { id: 2, name: root.tr("Computer"), icon: "computer" },
+        { id: 3, name: root.tr("Leave"), icon: "system-shutdown" }
     ]
 
     readonly property var contentItems: {
@@ -111,7 +111,7 @@ LayoutBase {
                 icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
                 icon.width: Kirigami.Units.iconSizes.medium
                 icon.height: Kirigami.Units.iconSizes.medium
-                Accessible.name: i18n("User")
+                Accessible.name: root.tr("User")
                 onClicked: root.userMenu()
             }
 
@@ -121,7 +121,7 @@ LayoutBase {
                 spacing: 2
 
                 PlasmaComponents.Label {
-                    text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                    text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
                     elide: Text.ElideRight
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                     color: root.fg
@@ -136,7 +136,7 @@ LayoutBase {
 
                 Components.SearchField {
                     Layout.fillWidth: true
-                    placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                     text: menuData ? menuData.searchQuery : ""
                     onTextChanged: if (menuData) menuData.setSearch(text)
                 }
@@ -189,10 +189,10 @@ LayoutBase {
                 anchors.centerIn: parent
                 visible: root.contentItems.length === 0
                 text: root.searching
-                      ? i18n("No matching applications found")
+                      ? root.tr("No matching applications found")
                       : (root.plasmaTab === 0
-                         ? i18n("Pin applications from the context menu")
-                         : i18n("No applications"))
+                         ? root.tr("Pin applications from the context menu")
+                         : root.tr("No applications"))
                 opacity: 0.45
                 color: root.fg
                 width: parent.width * 0.8

@@ -129,6 +129,7 @@ LayoutBase {
                 }
 
                 Components.AllAppsButton {
+                    menuData: root.menuData
                     iconSize: Math.max(root.appIconSize, 24)
                     showBack: root.activePageId === "apps"
                     highlighted: root.activePageId === "apps"
@@ -179,6 +180,7 @@ LayoutBase {
             }
 
             Components.SessionButtons {
+                menuData: root.menuData
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)
             }

@@ -28,26 +28,26 @@ LayoutBase {
     readonly property int footIcon: Kirigami.Units.iconSizes.smallMedium
 
     readonly property var categories: [
-        { id: "Office", name: i18n("Office"), icon: "applications-office" },
-        { id: "Development", name: i18n("Programming"), icon: "applications-development" },
-        { id: "Accessories", name: i18n("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: i18n("Tools"), icon: "applications-utilities" },
-        { id: "Network", name: i18n("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: i18n("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: i18n("System Tools"), icon: "applications-system" }
+        { id: "Office", name: root.tr("Office"), icon: "applications-office" },
+        { id: "Development", name: root.tr("Programming"), icon: "applications-development" },
+        { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
+        { id: "Utility", name: root.tr("Tools"), icon: "applications-utilities" },
+        { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
+        { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
+        { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
     ]
 
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -56,18 +56,18 @@ LayoutBase {
     ]
 
     readonly property var shortcutItems: [
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "view-fullscreen", action: "overview" }
+        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
+        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "view-fullscreen", action: "overview" }
     ]
 
     readonly property var footPlaces: [
-        { id: "place-home", icon: "user-home", tip: i18n("Home"), exec: "xdg-open $HOME" },
-        { id: "place-docs", icon: "folder-documents", tip: i18n("Documents"), exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", icon: "folder-download", tip: i18n("Downloads"), exec: "xdg-open xdg:Download" },
-        { id: "shortcut-software-foot", icon: "plasmadiscover", tip: i18n("Software"), action: "discover" },
-        { id: "place-files", icon: "system-file-manager", tip: i18n("Files"), exec: "dolphin" }
+        { id: "place-home", icon: "user-home", tip: root.tr("Home"), exec: "xdg-open $HOME" },
+        { id: "place-docs", icon: "folder-documents", tip: root.tr("Documents"), exec: "xdg-open xdg:Documents" },
+        { id: "place-dl", icon: "folder-download", tip: root.tr("Downloads"), exec: "xdg-open xdg:Download" },
+        { id: "shortcut-software-foot", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
+        { id: "place-files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
     ]
 
     readonly property var pinnedItems: {
@@ -78,12 +78,12 @@ LayoutBase {
 
     readonly property string appsTitle: {
         if (selectedId === "all")
-            return i18n("All Applications");
+            return root.tr("All Applications");
         for (var i = 0; i < categories.length; ++i) {
             if (categories[i].id === selectedId)
                 return categories[i].name;
         }
-        return i18n("Applications");
+        return root.tr("Applications");
     }
 
     readonly property var allAppsItems: {
@@ -138,9 +138,9 @@ LayoutBase {
             : 0
 
     readonly property var footSession: [
-        { id: "logout", icon: "system-log-out", tip: i18n("Log Out"), action: "logout" },
-        { id: "lock", icon: "system-lock-screen", tip: i18n("Lock Screen"), action: "lock" },
-        { id: "shutdown", icon: "system-shutdown", tip: i18n("Shut Down"), action: "shutdown" }
+        { id: "logout", icon: "system-log-out", tip: root.tr("Log Out"), action: "logout" },
+        { id: "lock", icon: "system-lock-screen", tip: root.tr("Lock Screen"), action: "lock" },
+        { id: "shutdown", icon: "system-shutdown", tip: root.tr("Shut Down"), action: "shutdown" }
     ]
 
     readonly property int footBtn: Kirigami.Units.gridUnit * 2
@@ -172,7 +172,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);
@@ -187,10 +187,10 @@ LayoutBase {
                 icon.name: "application-menu"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Categories")
+                Accessible.name: root.tr("Categories")
                 checked: root.categoryPanelOpen
                 onClicked: root.toggleCategoryPopup()
-                PlasmaComponents.ToolTip.text: i18n("Categories")
+                PlasmaComponents.ToolTip.text: root.tr("Categories")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -221,7 +221,7 @@ LayoutBase {
                         spacing: Kirigami.Units.smallSpacing
 
                         PlasmaComponents.Label {
-                            text: i18n("Pinned")
+                            text: root.tr("Pinned")
                             color: root.fg
                             opacity: 0.75
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -307,7 +307,7 @@ LayoutBase {
                         spacing: Kirigami.Units.smallSpacing
 
                         PlasmaComponents.Label {
-                            text: i18n("Shortcuts")
+                            text: root.tr("Shortcuts")
                             color: root.fg
                             opacity: 0.75
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -392,7 +392,7 @@ LayoutBase {
                 PlasmaComponents.ToolButton {
                     flat: true
                     icon.name: "go-previous"
-                    Accessible.name: i18n("Home")
+                    Accessible.name: root.tr("Home")
                     onClicked: root.selectNav("home")
                 }
 
@@ -447,8 +447,8 @@ LayoutBase {
                     anchors.centerIn: parent
                     visible: root.allAppsItems.length === 0
                     text: root.searching
-                          ? i18n("No matching applications found")
-                          : i18n("No applications")
+                          ? root.tr("No matching applications found")
+                          : root.tr("No applications")
                     opacity: 0.45
                     color: root.fg
                 }
@@ -570,7 +570,7 @@ LayoutBase {
                     Components.ShortcutRow {
                         width: popCol.width
                         iconName: "user-home"
-                        label: i18n("Home")
+                        label: root.tr("Home")
                         iconSize: root.categoryIconSize
                         selected: root.onHome
                         selectedBg: root.selectedBg
@@ -582,7 +582,7 @@ LayoutBase {
                     Components.ShortcutRow {
                         width: popCol.width
                         iconName: "view-app-grid-symbolic"
-                        label: i18n("All Applications")
+                        label: root.tr("All Applications")
                         iconSize: root.categoryIconSize
                         selected: !root.searching && root.selectedId === "all"
                         selectedBg: root.selectedBg
