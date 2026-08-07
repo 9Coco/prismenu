@@ -29,7 +29,7 @@ def main() -> int:
 
     layouts_expected = [
         "arcmenu", "brisk", "mint", "whisker", "elementary", "gnome",
-        "plasma-dash", "plasma", "pop", "unity-dash", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "budgie",
+        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "budgie",
         "kickoff", "kicker", "simple",
     ]
     registry = (PKG / "contents/code/LayoutRegistry.js").read_text()
@@ -44,6 +44,7 @@ def main() -> int:
         "plasma": "LayoutPlasma.qml",
         "pop": "LayoutPop.qml",
         "unity-dash": "LayoutUnityDash.qml",
+        "unity": "LayoutUnity.qml",
         "redmond": "LayoutRedmond.qml",
         "sleek": "LayoutSleek.qml",
         "tognee": "LayoutTognee.qml",
@@ -91,6 +92,8 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/LayoutSleek.qml").exists(), "sleek layout entry")
     check((PKG / "contents/ui/layouts/tognee/README.md").exists(), "tognee folder")
     check((PKG / "contents/ui/layouts/LayoutTognee.qml").exists(), "tognee layout entry")
+    check((PKG / "contents/ui/layouts/unity/README.md").exists(), "unity folder")
+    check((PKG / "contents/ui/layouts/LayoutUnity.qml").exists(), "unity layout entry")
 
     cfg = (PKG / "contents/config/main.xml").read_text()
     required_keys = [
