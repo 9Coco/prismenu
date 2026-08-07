@@ -32,7 +32,11 @@ Item {
 
     readonly property var layoutMeta: LayoutRegistry.getLayout(layoutId)
 
-    width: menuData ? menuData.menuWidth : 600
+    readonly property int sidePanelWidth: (layoutLoader.item && layoutLoader.item.sidePanelWidth !== undefined)
+            ? layoutLoader.item.sidePanelWidth
+            : 0
+
+    width: (menuData ? menuData.menuWidth : 600) + sidePanelWidth
     height: menuData ? menuData.menuHeight : 550
 
     function layoutUrl() {

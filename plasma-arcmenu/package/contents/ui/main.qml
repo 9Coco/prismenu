@@ -166,9 +166,10 @@ PlasmoidItem {
     // Full: menu popup
     fullRepresentation: Item {
         id: fullRep
-        Layout.minimumWidth: menuData.menuWidth
+        readonly property int hostSideWidth: host.sidePanelWidth || 0
+        Layout.minimumWidth: menuData.menuWidth + hostSideWidth
         Layout.minimumHeight: menuData.menuHeight
-        Layout.preferredWidth: menuData.menuWidth
+        Layout.preferredWidth: menuData.menuWidth + hostSideWidth
         Layout.preferredHeight: menuData.menuHeight
 
         focus: true
