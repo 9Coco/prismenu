@@ -276,6 +276,21 @@ var LAYOUTS = [
         source: "layouts/LayoutInsider.qml"
     },
     {
+        id: "windows",
+        name: "Windows",
+        description: "Windows (rail + frequent/A–Z list + pinned grid)",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 720,
+        defaultHeight: 560,
+        source: "layouts/LayoutWindows.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",

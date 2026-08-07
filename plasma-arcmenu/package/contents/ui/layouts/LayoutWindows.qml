@@ -1,0 +1,651 @@
+import QtQuick
+import QtQuick.Layouts
+import org.kde.kirigami as Kirigami
+import org.kde.plasma.components as PlasmaComponents
+import "../components" as Components
+import "../../code/AppsModel.js" as AppsModel
+
+/**
+ * Windows layout (ArcMenu Windows / Win10 Start style).
+ *
+ * Home: left rail + frequent/A–Z list + pinned grid
+ * Hamburger: back + shortcuts/places/devices sidebar + pinned grid
+ */
+LayoutBase {
+    id: root
+
+    property bool showSideMenu: false
+
+    readonly property bool searching: menuData ? menuData.isSearching : false
+    readonly property bool onHome: !showSideMenu
+    readonly property int railWidth: Kirigami.Units.gridUnit * 2.8
+    readonly property int pinIconSize: Math.max(40, root.appIconSize + 12)
+    readonly property int pinCellWidth: Kirigami.Units.gridUnit * 5.5
+    readonly property int pinCellHeight: pinIconSize + Kirigami.Units.gridUnit * 1.8
+    readonly property int frequentMax: 6
+    readonly property int sideWidth: Math.max(Kirigami.Units.gridUnit * 12, parent.width * 0.38)
+
+    readonly property var defaultPinned: [
+        {
+            id: "org.kde.dolphin.desktop",
+            name: i18n("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin",
+            noDisplay: false
+        },
+        {
+            id: "arcmenu-settings",
+            name: i18n("ArcMenu Settings"),
+            icon: "preferences-system-windows",
+            exec: "",
+            action: "configure",
+            noDisplay: false
+        }
+    ]
+
+    readonly property var defaultFrequent: [
+        {
+            id: "org.kde.konsole.desktop",
+            name: i18n("Terminal"),
+            icon: "utilities-terminal",
+            exec: "konsole",
+            noDisplay: false
+        },
+        {
+            id: "shortcut-settings",
+            name: i18n("Settings"),
+            icon: "preferences-system",
+            exec: "",
+            action: "settings",
+            noDisplay: false
+        },
+        {
+            id: "org.kde.dolphin.desktop",
+            name: i18n("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin",
+            noDisplay: false
+        }
+    ]
+
+    readonly property var appShortcuts: [
+        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" },
+        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
+        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "view-fullscreen", action: "overview" }
+    ]
+
+    readonly property var placeItems: [
+        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+        { id: "place-videos", name: i18n("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
+    ]
+
+    readonly property string deviceLabel: {
+        if (menuData && menuData.osPrettyName)
+            return menuData.osPrettyName;
+        return i18n("Computer");
+    }
+
+    readonly property var pinnedItems: {
+        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
+            return menuData.pinnedApps;
+        return root.defaultPinned;
+    }
+
+    readonly property var frequentItems: {
+        if (menuData && menuData.recentApps && menuData.recentApps.length)
+            return menuData.recentApps.slice(0, root.frequentMax);
+        if (menuData && menuData.allApps && menuData.allApps.length) {
+            var vis = AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
+            if (vis.length)
+                return vis.slice(0, Math.min(root.frequentMax, vis.length));
+        }
+        return root.defaultFrequent;
+    }
+
+    readonly property var azSections: {
+        if (!menuData || !menuData.allApps)
+            return [];
+        return AppsModel.appsAzSections(menuData.allApps);
+    }
+
+    readonly property var searchItems: {
+        if (menuData && menuData.searchResults)
+            return menuData.searchResults;
+        return [];
+    }
+
+    function activateItem(item) {
+        if (!item) return;
+        if (item.action === "configure") {
+            if (menuData) menuData.requestConfigure();
+            return;
+        }
+        if (item.action) {
+            root.powerAction(item.action);
+            return;
+        }
+        root.appActivated(item);
+    }
+
+    function openFiles() {
+        root.activateItem({
+            id: "org.kde.dolphin.desktop",
+            name: i18n("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin"
+        });
+    }
+
+    function openComputer() {
+        root.activateItem({
+            id: "place-computer",
+            name: root.deviceLabel,
+            icon: "drive-harddisk",
+            exec: "dolphin computer:/"
+        });
+    }
+
+    function openSideMenu() {
+        if (menuData) menuData.setSearch("");
+        showSideMenu = true;
+    }
+
+    function goHome() {
+        showSideMenu = false;
+    }
+
+    // Shared pinned grid content
+    component PinnedPanel: ColumnLayout {
+        spacing: Kirigami.Units.smallSpacing
+
+        PlasmaComponents.Label {
+            text: i18n("Pinned")
+            font.bold: true
+            color: root.fg
+            Layout.fillWidth: true
+        }
+
+        Item {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+
+            Flickable {
+                anchors.fill: parent
+                contentWidth: width
+                contentHeight: pinFlow.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Flow {
+                    id: pinFlow
+                    width: parent.width
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Repeater {
+                        model: root.pinnedItems.length
+                        Item {
+                            required property int index
+                            readonly property var app: root.pinnedItems[index]
+                            width: root.pinCellWidth
+                            height: root.pinCellHeight
+
+                            Rectangle {
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                radius: Kirigami.Units.smallSpacing
+                                color: pinMouse.containsMouse ? root.selectedBg : "transparent"
+                            }
+
+                            ColumnLayout {
+                                anchors.centerIn: parent
+                                width: parent.width - Kirigami.Units.smallSpacing * 2
+                                spacing: Kirigami.Units.smallSpacing / 2
+
+                                Kirigami.Icon {
+                                    source: app.icon || "application-x-executable"
+                                    Layout.alignment: Qt.AlignHCenter
+                                    Layout.preferredWidth: root.pinIconSize
+                                    Layout.preferredHeight: root.pinIconSize
+                                }
+
+                                PlasmaComponents.Label {
+                                    text: app.name || ""
+                                    elide: Text.ElideRight
+                                    horizontalAlignment: Text.AlignHCenter
+                                    Layout.fillWidth: true
+                                    maximumLineCount: 2
+                                    wrapMode: Text.WordWrap
+                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
+                                    color: pinMouse.containsMouse ? root.selectedFg : root.fg
+                                }
+                            }
+
+                            MouseArea {
+                                id: pinMouse
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                                onClicked: (mouse) => {
+                                    if (mouse.button === Qt.RightButton) {
+                                        if (app && !app.action)
+                                            root.appContextMenu(app, mouse.x, mouse.y);
+                                    } else {
+                                        root.activateItem(app);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ===================== Side menu (hamburger) =====================
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.smallSpacing
+        visible: root.showSideMenu
+
+        PlasmaComponents.ToolButton {
+            flat: true
+            Layout.alignment: Qt.AlignLeft
+            icon.name: "go-previous"
+            text: i18n("Back")
+            onClicked: root.goHome()
+        }
+
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            opacity: 0.4
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            spacing: Kirigami.Units.largeSpacing
+            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+
+            Flickable {
+                id: sideFlick
+                Layout.preferredWidth: root.sideWidth
+                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                Layout.fillHeight: true
+                Layout.fillWidth: false
+                contentWidth: width
+                contentHeight: sideCol.height
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+
+                Column {
+                    id: sideCol
+                    width: sideFlick.width
+                    spacing: Kirigami.Units.smallSpacing / 2
+
+                    Repeater {
+                        model: root.appShortcuts.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.appShortcuts[index].icon
+                            label: root.appShortcuts[index].name
+                            iconSize: root.categoryIconSize
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            fg: root.fg
+                            onActivated: root.activateItem(root.appShortcuts[index])
+                        }
+                    }
+
+                    PlasmaComponents.Label {
+                        width: sideCol.width
+                        text: i18n("Places")
+                        color: root.fg
+                        opacity: 0.65
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        topPadding: Kirigami.Units.smallSpacing
+                        leftPadding: Kirigami.Units.smallSpacing
+                    }
+
+                    Repeater {
+                        model: root.placeItems.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.placeItems[index].icon
+                            label: root.placeItems[index].name
+                            iconSize: root.categoryIconSize
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            fg: root.fg
+                            onActivated: root.activateItem(root.placeItems[index])
+                        }
+                    }
+
+                    PlasmaComponents.Label {
+                        width: sideCol.width
+                        text: i18n("Devices")
+                        color: root.fg
+                        opacity: 0.65
+                        font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        topPadding: Kirigami.Units.smallSpacing
+                        leftPadding: Kirigami.Units.smallSpacing
+                    }
+
+                    Item {
+                        width: sideCol.width
+                        height: Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2,
+                                         Kirigami.Units.gridUnit * 1.85)
+
+                        Rectangle {
+                            anchors.fill: parent
+                            radius: Kirigami.Units.smallSpacing
+                            color: deviceMouse.containsMouse ? root.selectedBg : "transparent"
+                            opacity: deviceMouse.containsMouse ? 1 : 0
+                        }
+
+                        RowLayout {
+                            anchors.fill: parent
+                            anchors.leftMargin: Kirigami.Units.smallSpacing
+                            anchors.rightMargin: Kirigami.Units.smallSpacing
+                            spacing: Kirigami.Units.smallSpacing
+
+                            Kirigami.Icon {
+                                source: "media-optical"
+                                Layout.preferredWidth: root.categoryIconSize
+                                Layout.preferredHeight: root.categoryIconSize
+                            }
+
+                            PlasmaComponents.Label {
+                                Layout.fillWidth: true
+                                text: root.deviceLabel
+                                elide: Text.ElideRight
+                                color: deviceMouse.containsMouse ? root.selectedFg : root.fg
+                            }
+
+                            PlasmaComponents.ToolButton {
+                                flat: true
+                                icon.name: "media-eject"
+                                icon.width: Kirigami.Units.iconSizes.small
+                                icon.height: Kirigami.Units.iconSizes.small
+                                Layout.preferredWidth: Kirigami.Units.gridUnit * 1.6
+                                Layout.preferredHeight: Kirigami.Units.gridUnit * 1.6
+                                Accessible.name: i18n("Eject")
+                                onClicked: root.openComputer()
+                                PlasmaComponents.ToolTip.text: i18n("Eject")
+                                PlasmaComponents.ToolTip.visible: hovered
+                                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                            }
+                        }
+
+                        MouseArea {
+                            id: deviceMouse
+                            anchors.fill: parent
+                            anchors.rightMargin: Kirigami.Units.gridUnit * 2
+                            hoverEnabled: true
+                            onClicked: root.openComputer()
+                        }
+                    }
+                }
+            }
+
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 1
+                color: root.borderColor
+                opacity: 0.35
+            }
+
+            PinnedPanel {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+            }
+        }
+    }
+
+    // ===================== Home =====================
+    RowLayout {
+        anchors.fill: parent
+        anchors.margins: Kirigami.Units.largeSpacing
+        spacing: Kirigami.Units.smallSpacing
+        visible: root.onHome
+        layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+
+        // ---- Left rail ----
+        ColumnLayout {
+            Layout.fillHeight: true
+            Layout.preferredWidth: root.railWidth
+            Layout.maximumWidth: root.railWidth
+            Layout.fillWidth: false
+            spacing: Kirigami.Units.smallSpacing
+
+            PlasmaComponents.ToolButton {
+                Layout.alignment: Qt.AlignHCenter
+                flat: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                icon.name: "application-menu"
+                icon.width: Kirigami.Units.iconSizes.smallMedium
+                icon.height: Kirigami.Units.iconSizes.smallMedium
+                Accessible.name: i18n("Menu")
+                onClicked: root.openSideMenu()
+                PlasmaComponents.ToolTip.text: i18n("Menu")
+                PlasmaComponents.ToolTip.visible: hovered
+                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+
+            Item { Layout.fillHeight: true }
+
+            PlasmaComponents.ToolButton {
+                Layout.alignment: Qt.AlignHCenter
+                flat: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                icon.name: "system-file-manager"
+                icon.width: Kirigami.Units.iconSizes.smallMedium
+                icon.height: Kirigami.Units.iconSizes.smallMedium
+                Accessible.name: i18n("Files")
+                onClicked: root.openFiles()
+                PlasmaComponents.ToolTip.text: i18n("Files")
+                PlasmaComponents.ToolTip.visible: hovered
+                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+
+            PlasmaComponents.ToolButton {
+                Layout.alignment: Qt.AlignHCenter
+                flat: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                icon.name: "preferences-system"
+                icon.width: Kirigami.Units.iconSizes.smallMedium
+                icon.height: Kirigami.Units.iconSizes.smallMedium
+                Accessible.name: i18n("Settings")
+                onClicked: root.powerAction("settings")
+                PlasmaComponents.ToolTip.text: i18n("Settings")
+                PlasmaComponents.ToolTip.visible: hovered
+                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+
+            PlasmaComponents.ToolButton {
+                Layout.alignment: Qt.AlignHCenter
+                flat: true
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                icon.name: "system-shutdown"
+                icon.width: Kirigami.Units.iconSizes.smallMedium
+                icon.height: Kirigami.Units.iconSizes.smallMedium
+                Accessible.name: i18n("Shut Down")
+                onClicked: root.powerAction("shutdown")
+                PlasmaComponents.ToolTip.text: i18n("Shut Down")
+                PlasmaComponents.ToolTip.visible: hovered
+                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+            }
+        }
+
+        // ---- Center: frequent + A–Z + search ----
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+            spacing: Kirigami.Units.smallSpacing
+
+            PlasmaComponents.Label {
+                visible: !root.searching
+                text: i18n("Frequent Applications")
+                font.bold: true
+                color: root.fg
+                Layout.fillWidth: true
+            }
+
+            Item {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+
+                Flickable {
+                    id: listFlick
+                    anchors.fill: parent
+                    contentWidth: width
+                    contentHeight: listCol.height
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    Column {
+                        id: listCol
+                        width: listFlick.width
+                        spacing: Kirigami.Units.smallSpacing / 2
+
+                        Repeater {
+                            model: root.searching ? root.searchItems.length : 0
+                            Components.AppListItem {
+                                required property int index
+                                width: listCol.width
+                                app: root.searchItems[index]
+                                iconSize: Math.max(root.appIconSize, 24)
+                                showDescription: false
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                fg: root.fg
+                                onActivated: root.activateItem(root.searchItems[index])
+                                onContextMenuRequested: (x, y) => {
+                                    var a = root.searchItems[index];
+                                    if (a && !a.action) root.appContextMenu(a, x, y);
+                                }
+                            }
+                        }
+
+                        Repeater {
+                            model: root.searching ? 0 : root.frequentItems.length
+                            Components.AppListItem {
+                                required property int index
+                                width: listCol.width
+                                app: root.frequentItems[index]
+                                iconSize: Math.max(root.appIconSize, 24)
+                                showDescription: false
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                fg: root.fg
+                                onActivated: root.activateItem(root.frequentItems[index])
+                                onContextMenuRequested: (x, y) => {
+                                    var a = root.frequentItems[index];
+                                    if (a && !a.action) root.appContextMenu(a, x, y);
+                                }
+                            }
+                        }
+
+                        Repeater {
+                            model: root.searching ? 0 : root.azSections.length
+
+                            Column {
+                                required property int index
+                                readonly property var section: root.azSections[index]
+                                width: listCol.width
+                                spacing: Kirigami.Units.smallSpacing / 2
+
+                                RowLayout {
+                                    width: parent.width
+                                    spacing: Kirigami.Units.smallSpacing
+
+                                    PlasmaComponents.Label {
+                                        text: section.letter
+                                        font.bold: true
+                                        color: root.fg
+                                        opacity: 0.75
+                                    }
+
+                                    Rectangle {
+                                        Layout.fillWidth: true
+                                        Layout.preferredHeight: 1
+                                        color: root.borderColor
+                                        opacity: 0.35
+                                    }
+                                }
+
+                                Repeater {
+                                    model: section.apps.length
+                                    Components.AppListItem {
+                                        required property int index
+                                        width: listCol.width
+                                        app: section.apps[index]
+                                        iconSize: Math.max(root.appIconSize, 24)
+                                        showDescription: false
+                                        selectedBg: root.selectedBg
+                                        selectedFg: root.selectedFg
+                                        fg: root.fg
+                                        onActivated: root.activateItem(section.apps[index])
+                                        onContextMenuRequested: (x, y) => {
+                                            var a = section.apps[index];
+                                            if (a && !a.action) root.appContextMenu(a, x, y);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                PlasmaComponents.Label {
+                    anchors.centerIn: parent
+                    visible: root.searching
+                             ? root.searchItems.length === 0
+                             : (root.frequentItems.length === 0 && root.azSections.length === 0)
+                    text: root.searching
+                          ? i18n("No matching applications found")
+                          : i18n("No applications")
+                    opacity: 0.45
+                    color: root.fg
+                    width: parent.width * 0.8
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                }
+            }
+
+            Components.SearchField {
+                Layout.fillWidth: true
+                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+        }
+
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: root.borderColor
+            opacity: 0.35
+        }
+
+        PinnedPanel {
+            Layout.fillHeight: true
+            Layout.fillWidth: false
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 10
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 14
+        }
+    }
+}
