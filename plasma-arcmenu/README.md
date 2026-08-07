@@ -1,10 +1,10 @@
 # Arc Menu for KDE Plasma
 
-Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **20 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
+Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **21 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
 
 ## Features
 
-- **20 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Redmond (Win7), Sleek, Eleven (Win11), A-Z, Enterprise, Insider, Budgie, Kickoff, Kicker, Simple
+- **21 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications from `.desktop` entries
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -77,6 +77,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
 | `redmond` | Windows-style (4-col grid + places sidebar) — sources in `layouts/redmond/` |
 | `sleek` | Sleek (pinned grid + avatar sidebar + single power) — sources in `layouts/sleek/` |
+| `tognee` | Tognee (icon rail + categories + bottom search) — sources in `layouts/tognee/` |
 | `kickoff` / `kicker` | Plasma native styles |
 | `whisker` / `mint` / `brisk` / `budgie` / `gnome` / `elementary` | Traditional Linux menus |
 | `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |

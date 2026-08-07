@@ -186,6 +186,21 @@ var LAYOUTS = [
         source: "layouts/LayoutSleek.qml"
     },
     {
+        id: "tognee",
+        name: "Tognee",
+        description: "Tognee (icon rail + categories + bottom search)",
+        hasCategories: true,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        defaultWidth: 420,
+        defaultHeight: 560,
+        source: "layouts/LayoutTognee.qml"
+    },
+    {
         id: "eleven",
         name: "Eleven",
         description: "Windows 11 (pinned grid + recommended + footer)",
