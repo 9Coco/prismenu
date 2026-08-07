@@ -9,3 +9,5 @@ cd plasma-arcmenu
 ./install.sh
 python3 tests/validate_requirements.py
 ```
+一键命令:
+./install.sh &&  plasmashell --replace &
