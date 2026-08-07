@@ -19,6 +19,7 @@ docs/reference-screenshots/
 ├── plasma/      # Plasma 样式 — 目标效果
 ├── pop/         # Pop 菜单 — 目标效果
 ├── redmond/     # Redmond 布局 — 目标效果
+├── sleek/       # Sleek 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -42,6 +43,7 @@ docs/reference-screenshots/
 | Plasma | `plasma/01-target.png` | Plasma 样式（顶栏用户/搜索 + 列表 + 底栏四页签） |
 | Pop | `pop/01-target.png` | Pop 菜单（搜索 + 六列网格 + 底部分类页签） |
 | Redmond | `redmond/01-target.png` | Redmond 效果（左应用网格 + 右位置/快捷方式栏） |
+| Sleek | `sleek/01-target.png` | Sleek 效果（左固定网格 + 右大头像侧栏 + 单电源） |
 
 ## 过程截图（progress）
 
