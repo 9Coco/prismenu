@@ -321,6 +321,21 @@ var LAYOUTS = [
         source: "layouts/LayoutChromebook.qml"
     },
     {
+        id: "raven",
+        name: "Raven",
+        description: "Raven (full-height rail + pinned/shortcuts panel)",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: true,
+        hasPower: false,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 460,
+        defaultHeight: 900,
+        source: "layouts/LayoutRaven.qml"
+    },
+    {
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",
