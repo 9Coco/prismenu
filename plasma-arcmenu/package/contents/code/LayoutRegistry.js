@@ -68,16 +68,16 @@ var LAYOUTS = [
     {
         id: "elementary",
         name: "Elementary",
-        description: "elementary OS style",
-        hasCategories: true,
+        description: "Elementary (search + 6-column app grid)",
+        hasCategories: false,
         hasPinned: false,
         hasSearch: true,
         hasUser: false,
         hasPower: false,
         supportsFlip: false,
         supportsSearchbarLocation: false,
-        defaultWidth: 700,
-        defaultHeight: 500,
+        defaultWidth: 720,
+        defaultHeight: 560,
         source: "layouts/LayoutElementary.qml"
     },
     {
@@ -304,6 +304,21 @@ var LAYOUTS = [
         defaultWidth: 720,
         defaultHeight: 560,
         source: "layouts/LayoutZest.qml"
+    },
+    {
+        id: "chromebook",
+        name: "Chromebook",
+        description: "Chromebook (search + 4-column app grid)",
+        hasCategories: false,
+        hasPinned: false,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: false,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 480,
+        defaultHeight: 560,
+        source: "layouts/LayoutChromebook.qml"
     },
     {
         id: "budgie",

@@ -1,10 +1,10 @@
 # Arc Menu for KDE Plasma
 
-Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **24 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
+Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **25 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
 
 ## Features
 
-- **24 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Budgie, Kickoff, Kicker, Simple
+- **25 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications from `.desktop` entries
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -75,14 +75,16 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `insider` | Insider (centered avatar + 5-col grid + utility rail) — sources in `layouts/insider/` |
 | `windows` | Windows (rail + frequent/A–Z list + pinned grid) — sources in `layouts/windows/` |
 | `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） — sources in `layouts/zest/` |
+| `chromebook` | Chromebook（顶部搜索 + 四列应用网格） — sources in `layouts/chromebook/` |
+| `elementary` | Elementary（顶部搜索 + 六列应用网格） — sources in `layouts/elementary/` |
 | `plasma` | Plasma (user+search header, list, bottom tabs) — sources in `layouts/plasma/` |
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
 | `redmond` | Windows-style (4-col grid + places sidebar) — sources in `layouts/redmond/` |
 | `sleek` | Sleek (pinned grid + avatar sidebar + single power) — sources in `layouts/sleek/` |
 | `tognee` | Tognee (icon rail + categories + bottom search) — sources in `layouts/tognee/` |
 | `kickoff` / `kicker` | Plasma native styles |
-| `whisker` / `mint` / `brisk` / `budgie` / `gnome` / `elementary` | Traditional Linux menus |
-| `unity-dash` / `plasma-dash` / `simple` | Grid / minimal |
+| `whisker` / `mint` / `brisk` / `budgie` / `gnome` | Traditional Linux menus |
+| `chromebook` / `elementary` / `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |
 | `unity` | Unity compact (pinned + shortcuts + bottom places/session) — sources in `layouts/unity/` |
 
 Unsupported options for a layout are disabled in settings with an explanatory note.
