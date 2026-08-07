@@ -245,6 +245,8 @@ QtObject {
         if (pageId === "apps") {
             currentPage = "apps";
             showAllApps = true;
+            // Category browser first (ArcMenu apps page), not an app list
+            currentCategoryId = "all";
             return;
         }
         currentPage = "home";
@@ -253,7 +255,15 @@ QtObject {
     }
 
     function selectCategory(id) {
-        currentCategoryId = id;
+        currentCategoryId = id || "all";
+        searchQuery = "";
+        currentPage = "apps";
+        showAllApps = true;
+    }
+
+    /** ArcMenu back from app list → category list (without leaving apps page) */
+    function backToAppCategories() {
+        currentCategoryId = "all";
         searchQuery = "";
         currentPage = "apps";
         showAllApps = true;

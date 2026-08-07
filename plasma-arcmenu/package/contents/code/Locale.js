@@ -61,7 +61,7 @@ var ZH_CN = {
     "Graphics": "图形",
     "Hibernate": "休眠",
     "Hide categories": "隐藏分类",
-    "Home": "主目录",
+    "Home": "首页",
     "Home folder": "主文件夹",
     "Internet": "互联网",
     "Launch": "启动",

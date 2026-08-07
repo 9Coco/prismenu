@@ -7,17 +7,22 @@ import "../components" as Components
 /**
  * Official ArcMenu shell.
  *
- * Left  = page display (home pins / apps / search)
- * Right = functional PlacesSidebar
- * Bottom = search + session buttons
+ * Home:  pinned left + places right + "所有应用程序"
+ * Apps:  categories left + places right + "返回"
+ * Bottom: search + session
  */
 LayoutBase {
     id: root
 
+    /** Local UI mode — avoids flaky QtObject currentPage bindings */
+    property bool showingApps: false
+
+    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property string activePageId: {
-        if (!menuData) return "home";
-        if (menuData.isSearching) return "search";
-        if (menuData.currentPage === "apps" || menuData.showAllApps) return "apps";
+        if (root.searching)
+            return "search";
+        if (root.showingApps)
+            return "apps";
         return "home";
     }
 
@@ -45,9 +50,10 @@ LayoutBase {
         root.appActivated(item);
     }
 
-    function wireLoader(loader) {
+    function wirePage(loader) {
         var item = loader.item;
-        if (!item) return;
+        if (!item)
+            return;
         item.menuData = root.menuData;
         item.themeStyle = root.themeStyle;
         if (item.appActivated) {
@@ -66,6 +72,34 @@ LayoutBase {
         }
     }
 
+    function openAppsPage() {
+        root.showingApps = true;
+        if (appsLoader.item && appsLoader.item.resetToCategories)
+            appsLoader.item.resetToCategories();
+        if (menuData)
+            menuData.navigateTo("apps");
+    }
+
+    function handleBack() {
+        if (root.searching) {
+            if (menuData) {
+                menuData.setSearch("");
+            }
+            return;
+        }
+        if (root.showingApps) {
+            if (appsLoader.item && appsLoader.item.canGoBackToCategories) {
+                appsLoader.item.goBackToCategories();
+                if (menuData)
+                    menuData.backToAppCategories();
+            } else {
+                root.showingApps = false;
+                if (menuData)
+                    menuData.navigateTo("home");
+            }
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
@@ -77,50 +111,60 @@ LayoutBase {
             spacing: Kirigami.Units.largeSpacing
             layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
-            // ---- LEFT: page display ----
+            // ---- LEFT ----
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 Layout.minimumWidth: Kirigami.Units.gridUnit * 14
                 spacing: Kirigami.Units.smallSpacing
 
-                // Home page (pinned) — direct component, always reliable
-                Components.PinnedAppsList {
-                    visible: root.activePageId === "home"
+                Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    menuData: root.menuData
-                    apps: menuData ? menuData.pinnedApps : []
-                    iconSize: Math.max(root.appIconSize, 28)
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    fg: root.fg
-                    onAppActivated: (app) => root.activateShortcut(app)
-                    onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
-                }
 
-                // Apps page
-                Loader {
-                    id: appsLoader
-                    visible: root.activePageId === "apps"
-                    active: root.activePageId === "apps" || status === Loader.Ready
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    asynchronous: false
-                    source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
-                    onLoaded: root.wireLoader(appsLoader)
-                }
+                    Components.PinnedAppsList {
+                        anchors.fill: parent
+                        visible: root.activePageId === "home"
+                        enabled: visible
+                        z: visible ? 2 : 0
+                        menuData: root.menuData
+                        apps: menuData ? menuData.pinnedApps : []
+                        iconSize: Math.max(root.appIconSize, 28)
+                        selectedBg: root.selectedBg
+                        selectedFg: root.selectedFg
+                        fg: root.fg
+                        onAppActivated: (app) => root.activateShortcut(app)
+                        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                    }
 
-                // Search page
-                Loader {
-                    id: searchLoader
-                    visible: root.activePageId === "search"
-                    active: root.activePageId === "search" || status === Loader.Ready
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    asynchronous: false
-                    source: Qt.resolvedUrl("../pages/ArcSearchPage.qml")
-                    onLoaded: root.wireLoader(searchLoader)
+                    // Always loaded so first click is instant / no import issues
+                    Loader {
+                        id: appsLoader
+                        anchors.fill: parent
+                        visible: root.activePageId === "apps"
+                        enabled: visible
+                        z: visible ? 2 : 0
+                        active: true
+                        asynchronous: false
+                        source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
+                        onLoaded: root.wirePage(appsLoader)
+                        onStatusChanged: {
+                            if (status === Loader.Error)
+                                console.error("ArcMenu: failed to load ArcAppsPage", source);
+                        }
+                    }
+
+                    Loader {
+                        id: searchLoader
+                        anchors.fill: parent
+                        visible: root.activePageId === "search"
+                        enabled: visible
+                        z: visible ? 2 : 0
+                        active: true
+                        asynchronous: false
+                        source: Qt.resolvedUrl("../pages/ArcSearchPage.qml")
+                        onLoaded: root.wirePage(searchLoader)
+                    }
                 }
 
                 Kirigami.Separator {
@@ -129,28 +173,29 @@ LayoutBase {
                 }
 
                 Components.AllAppsButton {
+                    id: allAppsBtn
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
+                    z: 2
                     menuData: root.menuData
                     iconSize: Math.max(root.appIconSize, 24)
-                    showBack: root.activePageId === "apps"
-                    highlighted: root.activePageId === "apps"
+                    showBack: root.activePageId === "apps" || root.activePageId === "search"
+                    highlighted: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
                     fg: root.fg
                     onClicked: {
-                        if (!menuData) return;
-                        if (root.activePageId === "search") {
-                            menuData.setSearch("");
-                            menuData.navigateTo("home");
-                        } else if (root.activePageId === "apps") {
-                            menuData.navigateTo("home");
+                        console.log("ArcMenu AllAppsButton click, page=", root.activePageId, "showingApps=", root.showingApps);
+                        if (root.activePageId === "home") {
+                            root.openAppsPage();
                         } else {
-                            menuData.navigateTo("apps");
+                            root.handleBack();
                         }
                     }
                 }
             }
 
-            // ---- RIGHT: functional sidebar ----
+            // ---- RIGHT ----
             Components.PlacesSidebar {
                 Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.36)
                 Layout.maximumWidth: Kirigami.Units.gridUnit * 16
@@ -166,7 +211,6 @@ LayoutBase {
             }
         }
 
-        // ---- BOTTOM ----
         RowLayout {
             Layout.fillWidth: true
             spacing: Kirigami.Units.largeSpacing
@@ -188,12 +232,13 @@ LayoutBase {
     }
 
     onMenuDataChanged: {
-        wireLoader(appsLoader);
-        wireLoader(searchLoader);
+        root.showingApps = false;
+        root.wirePage(appsLoader);
+        root.wirePage(searchLoader);
     }
 
-    onThemeStyleChanged: {
-        wireLoader(appsLoader);
-        wireLoader(searchLoader);
+    Component.onCompleted: {
+        root.wirePage(appsLoader);
+        root.wirePage(searchLoader);
     }
 }
