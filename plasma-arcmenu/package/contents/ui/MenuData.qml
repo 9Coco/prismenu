@@ -30,7 +30,8 @@ QtObject {
     readonly property bool flipHorizontal: plasmoidConfig ? plasmoidConfig.flipHorizontal : false
     readonly property string searchbarLocation: plasmoidConfig ? plasmoidConfig.searchbarLocation : "top"
     readonly property int menuWidth: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuWidth : 600, 400, 900, 600)
-    readonly property int menuHeight: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuHeight : 550, 400, 1400, 550)
+    // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
+    readonly property int menuHeight: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuHeight : 550, 400, 800, 550)
     readonly property int appIconSize: plasmoidConfig ? plasmoidConfig.appIconSize : 24
     readonly property int categoryIconSize: plasmoidConfig ? plasmoidConfig.categoryIconSize : 24
     readonly property int pinnedCols: plasmoidConfig ? plasmoidConfig.pinnedCols : 6
