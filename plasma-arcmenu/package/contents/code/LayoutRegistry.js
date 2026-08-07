@@ -156,6 +156,21 @@ var LAYOUTS = [
         source: "layouts/LayoutUnityDash.qml"
     },
     {
+        id: "unity",
+        name: "Unity",
+        description: "Unity (pinned + shortcuts + bottom places/session)",
+        hasCategories: false,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: true,
+        supportsFlip: false,
+        supportsSearchbarLocation: false,
+        defaultWidth: 420,
+        defaultHeight: 560,
+        source: "layouts/LayoutUnity.qml"
+    },
+    {
         id: "redmond",
         name: "Redmond",
         description: "Windows-style (app grid + places sidebar)",
