@@ -308,7 +308,7 @@ var LAYOUTS = [
     {
         id: "chromebook",
         name: "Chromebook",
-        description: "Chromebook (search + 4-column app grid)",
+        description: "Chromebook (portrait: search + 4-column grid)",
         hasCategories: false,
         hasPinned: false,
         hasSearch: true,
@@ -316,8 +316,8 @@ var LAYOUTS = [
         hasPower: false,
         supportsFlip: false,
         supportsSearchbarLocation: false,
-        defaultWidth: 480,
-        defaultHeight: 560,
+        defaultWidth: 420,
+        defaultHeight: 620,
         source: "layouts/LayoutChromebook.qml"
     },
     {
