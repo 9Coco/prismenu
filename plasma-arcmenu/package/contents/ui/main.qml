@@ -308,77 +308,12 @@ PlasmoidItem {
         }
     }
 
-    // Contextual actions
+    // Contextual actions (layout switching is only in Configure → Menu Layout)
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
             text: i18n("Configure Arc Menu…")
             icon.name: "configure"
             onTriggered: plasmoid.internalAction("configure").trigger()
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Arc Menu layout")
-            icon.name: "view-list-details"
-            onTriggered: plasmoid.configuration.menuLayoutId = "arcmenu"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Brisk layout")
-            icon.name: "view-grid"
-            onTriggered: plasmoid.configuration.menuLayoutId = "brisk"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Budgie layout")
-            icon.name: "dashboard-show"
-            onTriggered: plasmoid.configuration.menuLayoutId = "budgie"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use GNOME layout")
-            icon.name: "start-here"
-            onTriggered: plasmoid.configuration.menuLayoutId = "gnome"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Mint layout")
-            icon.name: "folder-green"
-            onTriggered: plasmoid.configuration.menuLayoutId = "mint"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Whisker layout")
-            icon.name: "user-identity"
-            onTriggered: plasmoid.configuration.menuLayoutId = "whisker"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Eleven layout")
-            icon.name: "start-here-kde"
-            onTriggered: plasmoid.configuration.menuLayoutId = "eleven"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use A-Z layout")
-            icon.name: "view-sort-ascending-name"
-            onTriggered: plasmoid.configuration.menuLayoutId = "az"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Enterprise layout")
-            icon.name: "application-enterprise"
-            onTriggered: plasmoid.configuration.menuLayoutId = "enterprise"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Insider layout")
-            icon.name: "user-identity"
-            onTriggered: plasmoid.configuration.menuLayoutId = "insider"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Plasma layout")
-            icon.name: "plasma"
-            onTriggered: plasmoid.configuration.menuLayoutId = "plasma"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Pop layout")
-            icon.name: "start-here"
-            onTriggered: plasmoid.configuration.menuLayoutId = "pop"
-        },
-        PlasmaCore.Action {
-            text: i18n("Use Redmond layout")
-            icon.name: "start-here-windows"
-            onTriggered: plasmoid.configuration.menuLayoutId = "redmond"
         },
         PlasmaCore.Action {
             text: i18n("Clear Recent Applications")
