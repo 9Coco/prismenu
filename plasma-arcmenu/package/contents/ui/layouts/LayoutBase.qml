@@ -4,6 +4,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
 import ".." as Ui
+import "../../code/Locale.js" as Locale
 
 Item {
     id: root
@@ -15,6 +16,13 @@ Item {
     signal appContextMenu(var app, real x, real y)
     signal powerAction(string actionId)
     signal userMenu()
+
+    // Explicit language — layout string lists must depend on this to rebind
+    readonly property string uiLang: {
+        if (menuData && menuData.uiLang)
+            return menuData.uiLang;
+        return Locale.resolveLanguage("system", Qt.locale().name, Qt.locale().uiLanguages);
+    }
 
     readonly property color bg: themeStyle.bg || Kirigami.Theme.backgroundColor
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
@@ -28,6 +36,10 @@ Item {
     readonly property bool flip: menuData ? menuData.flipHorizontal : false
     readonly property bool searchOnTop: !menuData || menuData.searchbarLocation !== "bottom"
     readonly property bool searching: menuData ? menuData.isSearching : false
+
+    function tr(msgid) {
+        return Locale.tr(msgid, root.uiLang);
+    }
 
     function appsModel() {
         if (!menuData) {

@@ -18,17 +18,17 @@ LayoutBase {
         case 1: return menuData.recentApps;
         case 2: return menuData.categoryApps;
         case 3: return [
-            { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: i18n("Home folder"), noDisplay: false },
-            { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: i18n("Documents"), noDisplay: false },
-            { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: i18n("Downloads"), noDisplay: false },
-            { id: "place-root", name: i18n("Root"), icon: "folder-root", exec: "xdg-open /", categories: ["Places"], keywords: [], genericName: i18n("File system"), noDisplay: false }
+            { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
+            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
+            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
+            { id: "place-root", name: root.tr("Root"), icon: "folder-root", exec: "xdg-open /", categories: ["Places"], keywords: [], genericName: root.tr("File system"), noDisplay: false }
         ];
         case 4: return [
-            { id: "leave-lock", name: i18n("Lock"), icon: "system-lock-screen", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "lock" },
-            { id: "leave-logout", name: i18n("Log Out"), icon: "system-log-out", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "logout" },
-            { id: "leave-suspend", name: i18n("Suspend"), icon: "system-suspend", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "suspend" },
-            { id: "leave-restart", name: i18n("Restart"), icon: "system-reboot", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "restart" },
-            { id: "leave-shutdown", name: i18n("Shut Down"), icon: "system-shutdown", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "shutdown" }
+            { id: "leave-lock", name: root.tr("Lock"), icon: "system-lock-screen", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "lock" },
+            { id: "leave-logout", name: root.tr("Log Out"), icon: "system-log-out", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "logout" },
+            { id: "leave-suspend", name: root.tr("Suspend"), icon: "system-suspend", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "suspend" },
+            { id: "leave-restart", name: root.tr("Restart"), icon: "system-reboot", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "restart" },
+            { id: "leave-shutdown", name: root.tr("Shut Down"), icon: "system-shutdown", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "shutdown" }
         ];
         }
         return menuData.categoryApps;
@@ -41,7 +41,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
@@ -58,11 +58,11 @@ LayoutBase {
 
                 Repeater {
                     model: [
-                        { id: 0, name: i18n("Favorites"), icon: "bookmarks" },
-                        { id: 1, name: i18n("Recent"), icon: "view-history" },
-                        { id: 2, name: i18n("Applications"), icon: "applications-all" },
-                        { id: 3, name: i18n("Places"), icon: "folder" },
-                        { id: 4, name: i18n("Leave"), icon: "system-shutdown" }
+                        { id: 0, name: root.tr("Favorites"), icon: "bookmarks" },
+                        { id: 1, name: root.tr("Recent"), icon: "view-history" },
+                        { id: 2, name: root.tr("Applications"), icon: "applications-all" },
+                        { id: 3, name: root.tr("Places"), icon: "folder" },
+                        { id: 4, name: root.tr("Leave"), icon: "system-shutdown" }
                     ]
                     PlasmaComponents.ToolButton {
                         required property var model

@@ -2,10 +2,10 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../../code/Locale.js" as Locale
 
 /**
- * Functional chrome: right sidebar with user, places, and system shortcuts.
- * Lists are defined here (not via MenuData) so they always render.
+ * Mirror of components/PlacesSidebar.qml for the arcmenu/ folder tree.
  */
 ColumnLayout {
     id: root
@@ -19,29 +19,40 @@ ColumnLayout {
     signal userClicked()
     signal itemActivated(var item)
 
+    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+
     spacing: Kirigami.Units.smallSpacing / 2
 
-    // Built locally — avoids QtObject/i18n array binding failures in MenuData
-    readonly property var placeItems: [
-        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-        { id: "place-videos", name: i18n("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
-    ]
+    function t(msgid) {
+        return Locale.tr(msgid, root.uiLang);
+    }
 
-    readonly property var shortcutItems: [
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "overview", action: "overview" }
-    ]
+    readonly property var placeItems: {
+        var _ = root.uiLang;
+        return [
+            { id: "place-home", name: root.t("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+            { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+            { id: "place-dl", name: root.t("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+            { id: "place-music", name: root.t("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+            { id: "place-pics", name: root.t("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+            { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
+        ];
+    }
+
+    readonly property var shortcutItems: {
+        var _ = root.uiLang;
+        return [
+            { id: "shortcut-software", name: root.t("Software"), icon: "plasmadiscover", action: "discover" },
+            { id: "shortcut-settings", name: root.t("Settings"), icon: "preferences-system", action: "settings" },
+            { id: "shortcut-tweaks", name: root.t("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
+            { id: "shortcut-overview", name: root.t("Activities Overview"), icon: "overview", action: "overview" }
+        ];
+    }
 
     ShortcutRow {
         Layout.fillWidth: true
         iconName: menuData ? menuData.userIcon : "user-identity"
-        label: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+        label: (menuData && menuData.userName) ? menuData.userName : root.t("User")
         iconSize: Math.max(root.iconSize, Kirigami.Units.iconSizes.medium)
         selectedBg: root.selectedBg
         selectedFg: root.selectedFg
@@ -57,17 +68,17 @@ ColumnLayout {
     }
 
     Repeater {
-        model: root.placeItems.length
+        model: root.placeItems
         ShortcutRow {
-            required property int index
+            required property var modelData
             Layout.fillWidth: true
-            iconName: root.placeItems[index].icon
-            label: root.placeItems[index].name
+            iconName: modelData.icon
+            label: modelData.name
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             fg: root.fg
-            onActivated: root.itemActivated(root.placeItems[index])
+            onActivated: root.itemActivated(modelData)
         }
     }
 
@@ -79,17 +90,17 @@ ColumnLayout {
     }
 
     Repeater {
-        model: root.shortcutItems.length
+        model: root.shortcutItems
         ShortcutRow {
-            required property int index
+            required property var modelData
             Layout.fillWidth: true
-            iconName: root.shortcutItems[index].icon
-            label: root.shortcutItems[index].name
+            iconName: modelData.icon
+            label: modelData.name
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             fg: root.fg
-            onActivated: root.itemActivated(root.shortcutItems[index])
+            onActivated: root.itemActivated(modelData)
         }
     }
 

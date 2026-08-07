@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
+import "../../code/Locale.js" as Locale
 
 QQC2.Menu {
     id: root
@@ -9,6 +10,7 @@ QQC2.Menu {
     property bool isFavorite: false
     property bool canUninstall: false
     property bool canEditDesktop: true
+    property var menuData: null
 
     signal launchRequested(var app)
     signal toggleFavoriteRequested(var app)
@@ -19,47 +21,53 @@ QQC2.Menu {
     signal uninstallRequested(var app)
     signal runInTerminalRequested(var app)
 
+    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+
+    function t(msgid) {
+        return Locale.tr(msgid, root.uiLang);
+    }
+
     QQC2.MenuItem {
-        text: i18n("Launch")
+        text: root.t("Launch")
         icon.name: "media-playback-start"
         onTriggered: root.launchRequested(root.app)
     }
     QQC2.MenuItem {
-        text: root.isFavorite ? i18n("Remove from Favorites") : i18n("Add to Favorites")
+        text: root.isFavorite ? root.t("Remove from Favorites") : root.t("Add to Favorites")
         icon.name: root.isFavorite ? "bookmark-remove" : "bookmark-new"
         onTriggered: root.toggleFavoriteRequested(root.app)
     }
     QQC2.MenuSeparator {}
     QQC2.MenuItem {
-        text: i18n("Add to Desktop")
+        text: root.t("Add to Desktop")
         icon.name: "user-desktop"
         onTriggered: root.addToDesktopRequested(root.app)
     }
     QQC2.MenuItem {
-        text: i18n("Add to Panel")
+        text: root.t("Add to Panel")
         icon.name: "plasma"
         onTriggered: root.addToPanelRequested(root.app)
     }
     QQC2.MenuSeparator {}
     QQC2.MenuItem {
         visible: root.canEditDesktop
-        text: i18n("Edit Application…")
+        text: root.t("Edit Application…")
         icon.name: "document-edit"
         onTriggered: root.editRequested(root.app)
     }
     QQC2.MenuItem {
-        text: i18n("Show Details")
+        text: root.t("Show Details")
         icon.name: "dialog-information"
         onTriggered: root.detailsRequested(root.app)
     }
     QQC2.MenuItem {
-        text: i18n("Run in Terminal")
+        text: root.t("Run in Terminal")
         icon.name: "utilities-terminal"
         onTriggered: root.runInTerminalRequested(root.app)
     }
     QQC2.MenuItem {
         visible: root.canUninstall
-        text: i18n("Uninstall…")
+        text: root.t("Uninstall…")
         icon.name: "edit-delete"
         onTriggered: root.uninstallRequested(root.app)
     }

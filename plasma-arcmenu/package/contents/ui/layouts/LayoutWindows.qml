@@ -28,14 +28,14 @@ LayoutBase {
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -46,14 +46,14 @@ LayoutBase {
     readonly property var defaultFrequent: [
         {
             id: "org.kde.konsole.desktop",
-            name: i18n("Terminal"),
+            name: root.tr("Terminal"),
             icon: "utilities-terminal",
             exec: "konsole",
             noDisplay: false
         },
         {
             id: "shortcut-settings",
-            name: i18n("Settings"),
+            name: root.tr("Settings"),
             icon: "preferences-system",
             exec: "",
             action: "settings",
@@ -61,7 +61,7 @@ LayoutBase {
         },
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
@@ -69,25 +69,25 @@ LayoutBase {
     ]
 
     readonly property var appShortcuts: [
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "view-fullscreen", action: "overview" }
+        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
+        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "view-fullscreen", action: "overview" }
     ]
 
     readonly property var placeItems: [
-        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-        { id: "place-videos", name: i18n("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
+        { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME" },
+        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
+        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
+        { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
+        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
     ]
 
     readonly property string deviceLabel: {
         if (menuData && menuData.osPrettyName)
             return menuData.osPrettyName;
-        return i18n("Computer");
+        return root.tr("Computer");
     }
 
     readonly property var pinnedItems: {
@@ -135,7 +135,7 @@ LayoutBase {
     function openFiles() {
         root.activateItem({
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin"
         });
@@ -164,7 +164,7 @@ LayoutBase {
         spacing: Kirigami.Units.smallSpacing
 
         PlasmaComponents.Label {
-            text: i18n("Pinned")
+            text: root.tr("Pinned")
             font.bold: true
             color: root.fg
             Layout.fillWidth: true
@@ -257,7 +257,7 @@ LayoutBase {
             flat: true
             Layout.alignment: Qt.AlignLeft
             icon.name: "go-previous"
-            text: i18n("Back")
+            text: root.tr("Back")
             onClicked: root.goHome()
         }
 
@@ -305,7 +305,7 @@ LayoutBase {
 
                     PlasmaComponents.Label {
                         width: sideCol.width
-                        text: i18n("Places")
+                        text: root.tr("Places")
                         color: root.fg
                         opacity: 0.65
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -330,7 +330,7 @@ LayoutBase {
 
                     PlasmaComponents.Label {
                         width: sideCol.width
-                        text: i18n("Devices")
+                        text: root.tr("Devices")
                         color: root.fg
                         opacity: 0.65
                         font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -376,9 +376,9 @@ LayoutBase {
                                 icon.height: Kirigami.Units.iconSizes.small
                                 Layout.preferredWidth: Kirigami.Units.gridUnit * 1.6
                                 Layout.preferredHeight: Kirigami.Units.gridUnit * 1.6
-                                Accessible.name: i18n("Eject")
+                                Accessible.name: root.tr("Eject")
                                 onClicked: root.openComputer()
-                                PlasmaComponents.ToolTip.text: i18n("Eject")
+                                PlasmaComponents.ToolTip.text: root.tr("Eject")
                                 PlasmaComponents.ToolTip.visible: hovered
                                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
                             }
@@ -433,9 +433,9 @@ LayoutBase {
                 icon.name: "application-menu"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Menu")
+                Accessible.name: root.tr("Menu")
                 onClicked: root.openSideMenu()
-                PlasmaComponents.ToolTip.text: i18n("Menu")
+                PlasmaComponents.ToolTip.text: root.tr("Menu")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -450,9 +450,9 @@ LayoutBase {
                 icon.name: "system-file-manager"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Files")
+                Accessible.name: root.tr("Files")
                 onClicked: root.openFiles()
-                PlasmaComponents.ToolTip.text: i18n("Files")
+                PlasmaComponents.ToolTip.text: root.tr("Files")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -465,9 +465,9 @@ LayoutBase {
                 icon.name: "preferences-system"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Settings")
+                Accessible.name: root.tr("Settings")
                 onClicked: root.powerAction("settings")
-                PlasmaComponents.ToolTip.text: i18n("Settings")
+                PlasmaComponents.ToolTip.text: root.tr("Settings")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -480,9 +480,9 @@ LayoutBase {
                 icon.name: "system-shutdown"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Shut Down")
+                Accessible.name: root.tr("Shut Down")
                 onClicked: root.powerAction("shutdown")
-                PlasmaComponents.ToolTip.text: i18n("Shut Down")
+                PlasmaComponents.ToolTip.text: root.tr("Shut Down")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -497,7 +497,7 @@ LayoutBase {
 
             PlasmaComponents.Label {
                 visible: !root.searching
-                text: i18n("Frequent Applications")
+                text: root.tr("Frequent Applications")
                 font.bold: true
                 color: root.fg
                 Layout.fillWidth: true
@@ -615,8 +615,8 @@ LayoutBase {
                              ? root.searchItems.length === 0
                              : (root.frequentItems.length === 0 && root.azSections.length === 0)
                     text: root.searching
-                          ? i18n("No matching applications found")
-                          : i18n("No applications")
+                          ? root.tr("No matching applications found")
+                          : root.tr("No applications")
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8
@@ -627,7 +627,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

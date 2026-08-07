@@ -17,7 +17,7 @@ LayoutBase {
             id: search
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
             Component.onCompleted: forceActiveFocus()
@@ -46,7 +46,7 @@ LayoutBase {
             PlasmaComponents.Label {
                 anchors.centerIn: parent
                 visible: appModel.count === 0
-                text: root.searching ? i18n("No matching applications found") : i18n("Type to search applications")
+                text: root.searching ? root.tr("No matching applications found") : root.tr("Type to search applications")
                 opacity: 0.6
             }
         }

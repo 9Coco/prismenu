@@ -129,6 +129,7 @@ LayoutBase {
                 }
 
                 Components.AllAppsButton {
+                    menuData: root.menuData
                     iconSize: Math.max(root.appIconSize, 24)
                     showBack: root.activePageId === "apps"
                     highlighted: root.activePageId === "apps"
@@ -173,12 +174,13 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }
 
             Components.SessionButtons {
+                menuData: root.menuData
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)
             }

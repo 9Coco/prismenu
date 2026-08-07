@@ -15,7 +15,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
@@ -48,7 +48,7 @@ LayoutBase {
         PlasmaComponents.Label {
             Layout.alignment: Qt.AlignHCenter
             visible: appModel.count === 0
-            text: i18n("No matching applications found")
+            text: root.tr("No matching applications found")
             opacity: 0.6
         }
     }

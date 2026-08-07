@@ -150,7 +150,7 @@ msgid "User"
 msgstr "用户"
 
 msgid "Home"
-msgstr "首页"
+msgstr "主目录"
 
 msgid "Documents"
 msgstr "文档"
@@ -355,3 +355,43 @@ msgstr "ArcMenu 设置"
 
 msgid "Search results"
 msgstr "搜索结果"
+
+msgid "Files"
+msgstr "文件"
+
+msgid "Menu language:"
+msgstr "菜单语言："
+
+msgid "Follow system"
+msgstr "跟随系统"
+
+msgid "English"
+msgstr "English"
+
+msgid "Chinese (Simplified)"
+msgstr "简体中文"
+
+msgid "UI language applies to menu labels (categories, places, actions)."
+msgstr "界面语言作用于菜单文案（分类、位置、操作等）。"
+
+msgid "Current Menu Layout"
+msgstr "当前菜单布局"
+
+msgid "Select a new menu layout?"
+msgstr "选择新的菜单布局？"
+
+msgid "Traditional Menu Layouts"
+msgstr "传统菜单布局"
+
+msgid "Modern Menu Layouts"
+msgstr "现代菜单布局"
+
+msgid "Touch Menu Layouts"
+msgstr "触摸菜单布局"
+
+msgid "Launcher Menu Layouts"
+msgstr "启动器菜单布局"
+
+msgid "Alternative Menu Layouts"
+msgstr "选择菜单布局"
+
