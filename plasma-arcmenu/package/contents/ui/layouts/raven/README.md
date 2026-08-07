@@ -13,9 +13,10 @@ ArcMenu Raven / Budgie Raven style — **full-height left icon rail**.
 └───┴────────────────────────────┘
 ```
 
-- Left rail spans the **full menu height** (tall side-panel defaults ~460×900)
+- Left rail spans the **full menu height** (auto-fills `Screen.desktopAvailableHeight` when Raven is active)
 - Right: search, pinned, shortcuts, world-clock button
 - Rail “apps” icon switches to all-applications list
+- Manual override: Configure Arc Menu → Menu Layout → Menu height (up to 1400px)
 
 Entry: `../LayoutRaven.qml`  
 Reference: `docs/reference-screenshots/raven/01-target.png`
