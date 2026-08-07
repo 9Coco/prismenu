@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
+import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/LayoutRegistry.js" as LayoutRegistry
@@ -30,9 +31,22 @@ Item {
         var meta = LayoutRegistry.getLayout(id);
         if (meta) {
             cfg_MenuWidth = meta.defaultWidth;
-            cfg_MenuHeight = meta.defaultHeight;
+            // Raven: prefer full desktop height when selecting the layout
+            var h = meta.defaultHeight;
+            if (id === "raven") {
+                try {
+                    h = Screen.desktopAvailableHeight || Screen.height || meta.defaultHeight;
+                } catch (e2) {
+                    h = meta.defaultHeight;
+                }
+                if (h < 400)
+                    h = meta.defaultHeight;
+                if (h > 1400)
+                    h = 1400;
+            }
+            cfg_MenuHeight = h;
             widthSpin.value = meta.defaultWidth;
-            heightSpin.value = meta.defaultHeight;
+            heightSpin.value = h;
         }
 
         // Instant apply (proven working via contextual actions)
@@ -40,7 +54,7 @@ Item {
             plasmoid.configuration.menuLayoutId = id;
             if (meta) {
                 plasmoid.configuration.menuWidth = meta.defaultWidth;
-                plasmoid.configuration.menuHeight = meta.defaultHeight;
+                plasmoid.configuration.menuHeight = cfg_MenuHeight;
             }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);

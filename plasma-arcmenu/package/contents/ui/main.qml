@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls as QQC2
+import QtQuick.Window
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
@@ -24,6 +25,16 @@ PlasmoidItem {
 
     property bool menuOpen: false
     property string lastLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+
+    readonly property bool isRavenLayout: (plasmoid.configuration.menuLayoutId || "") === "raven"
+    // Raven: fill vertical desktop space (panel-reserved area excluded when available)
+    readonly property int ravenFillHeight: {
+        var h = Screen.desktopAvailableHeight;
+        if (!h || h < 400)
+            h = Screen.height;
+        return LayoutRegistry.clampSize(h, 400, 1400, 900);
+    }
+    readonly property int effectiveMenuHeight: root.isRavenLayout ? root.ravenFillHeight : menuData.menuHeight
 
     MenuData {
         id: menuData
@@ -168,9 +179,9 @@ PlasmoidItem {
         id: fullRep
         readonly property int hostSideWidth: host.sidePanelWidth || 0
         Layout.minimumWidth: menuData.menuWidth + hostSideWidth
-        Layout.minimumHeight: menuData.menuHeight
+        Layout.minimumHeight: root.effectiveMenuHeight
         Layout.preferredWidth: menuData.menuWidth + hostSideWidth
-        Layout.preferredHeight: menuData.menuHeight
+        Layout.preferredHeight: root.effectiveMenuHeight
 
         focus: true
 
