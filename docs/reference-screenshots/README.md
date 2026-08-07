@@ -24,6 +24,8 @@ docs/reference-screenshots/
 ├── unity/       # Unity 紧凑菜单 — 目标效果
 ├── windows/     # Windows 布局 — 目标效果
 ├── zest/        # Zest 布局 — 目标效果
+├── chromebook/  # Chromebook 布局 — 目标效果
+├── elementary/  # Elementary 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -53,6 +55,8 @@ docs/reference-screenshots/
 | Windows | `windows/01-target.png` | Windows 效果（左栏 + 常用/A–Z 列表 + 右固定网格） |
 | Windows | `windows/02-hamburger-menu.png` | Windows 汉堡菜单（快捷方式/地点/设备 + 已固定） |
 | Zest | `zest/01-target.png` | Zest 三栏（左地点 / 中分类控制 / 右应用列表） |
+| Chromebook | `chromebook/01-target.png` | Chromebook 效果（顶部搜索 + 四列应用网格） |
+| Elementary | `elementary/01-target.png` | Elementary 效果（顶部搜索 + 六列应用网格） |
 | Unity | `unity/02-category-popup.png` | Unity 汉堡菜单分类侧栏（首页/全部应用/分类） |
 
 ## 过程截图（progress）
