@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
-import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/LayoutRegistry.js" as LayoutRegistry
@@ -30,23 +29,16 @@ Item {
 
         var meta = LayoutRegistry.getLayout(id);
         if (meta) {
-            cfg_MenuWidth = meta.defaultWidth;
-            // Raven: prefer full desktop height when selecting the layout
+            // Always restore this layout's defaults — do not keep Raven's tall height
+            // in the shared MenuHeight (Raven fills at runtime in main.qml).
             var h = meta.defaultHeight;
-            if (id === "raven") {
-                try {
-                    h = Screen.desktopAvailableHeight || Screen.height || meta.defaultHeight;
-                } catch (e2) {
-                    h = meta.defaultHeight;
-                }
-                if (h < 400)
-                    h = meta.defaultHeight;
-                if (h > 1400)
-                    h = 1400;
-            }
+            if (h > 800)
+                h = 800;
+            cfg_MenuWidth = meta.defaultWidth;
             cfg_MenuHeight = h;
             widthSpin.value = meta.defaultWidth;
             heightSpin.value = h;
+            heightSpin.to = 800;
         }
 
         // Instant apply (proven working via contextual actions)
@@ -206,9 +198,9 @@ Item {
                 id: heightSpin
                 Kirigami.FormData.label: i18n("Menu height:")
                 from: 400
-                to: 1400
+                to: 800
                 stepSize: 10
-                Component.onCompleted: value = cfg_MenuHeight
+                Component.onCompleted: value = Math.min(cfg_MenuHeight || 540, 800)
                 onValueModified: {
                     cfg_MenuHeight = value;
                     try { plasmoid.configuration.menuHeight = value; } catch (e) {}
@@ -238,6 +230,13 @@ Item {
         }
         layoutCombo.currentIndex = layoutIndex();
         widthSpin.value = cfg_MenuWidth || 620;
-        heightSpin.value = cfg_MenuHeight || 540;
+        // Clamp leftover Raven full-height values out of shared MenuHeight
+        var h = cfg_MenuHeight || 540;
+        if (h > 800) {
+            h = 800;
+            cfg_MenuHeight = h;
+            try { plasmoid.configuration.menuHeight = h; } catch (e) {}
+        }
+        heightSpin.value = h;
     }
 }
