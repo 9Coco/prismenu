@@ -22,6 +22,7 @@ docs/reference-screenshots/
 ├── sleek/       # Sleek 布局 — 目标效果
 ├── tognee/      # Tognee 布局 — 目标效果
 ├── unity/       # Unity 紧凑菜单 — 目标效果
+├── windows/     # Windows 布局 — 目标效果
 └── progress/    # 开发过程中的「当前实现」截图（非目标）
 ```
 
@@ -48,6 +49,8 @@ docs/reference-screenshots/
 | Sleek | `sleek/01-target.png` | Sleek 效果（左固定网格 + 右大头像侧栏 + 单电源） |
 | Tognee | `tognee/01-target.png` | Tognee 效果（左图标栏 + 右分类列表 + 底搜索） |
 | Unity | `unity/01-target.png` | Unity 紧凑菜单（已固定 + 快捷方式 + 底栏位置/会话） |
+| Windows | `windows/01-target.png` | Windows 效果（左栏 + 常用/A–Z 列表 + 右固定网格） |
+| Windows | `windows/02-hamburger-menu.png` | Windows 汉堡菜单（快捷方式/地点/设备 + 已固定） |
 | Unity | `unity/02-category-popup.png` | Unity 汉堡菜单分类侧栏（首页/全部应用/分类） |
 
 ## 过程截图（progress）
