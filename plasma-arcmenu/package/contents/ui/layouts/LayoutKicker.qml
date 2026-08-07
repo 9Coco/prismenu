@@ -18,7 +18,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }

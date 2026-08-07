@@ -2,7 +2,9 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import "../../code/AppsModel.js" as AppsModel
+import "../../code/Locale.js" as Locale
 
 Item {
     id: root
@@ -22,6 +24,12 @@ Item {
     property var categories: AppsModel.defaultCategories()
     property var customNamesMap: AppsModel.parseJsonMap(cfg_CustomNames)
     property var customIconsMap: AppsModel.parseJsonMap(cfg_CustomIcons)
+
+    readonly property string uiLang: Locale.resolveLanguage(
+        (function () {
+            try { return plasmoid.configuration.uiLanguage || "system"; } catch (e) { return "system"; }
+        })(),
+        Qt.locale().name)
 
     function isHidden(id) {
         return (cfg_Hidden || []).indexOf(id) >= 0;
@@ -44,7 +52,9 @@ Item {
     }
 
     function displayName(cat) {
-        return customNamesMap[cat.id] || cat.name;
+        if (customNamesMap[cat.id])
+            return customNamesMap[cat.id];
+        return Locale.tr(cat.name, uiLang);
     }
 
     ColumnLayout {

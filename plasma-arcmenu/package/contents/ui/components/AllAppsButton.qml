@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../code/Locale.js" as Locale
 
 /**
  * Functional module: "All Applications" / Back navigation control.
@@ -15,12 +16,16 @@ Item {
     property color selectedFg: Kirigami.Theme.highlightedTextColor
     property color fg: Kirigami.Theme.textColor
     property bool highlighted: false
+    property var menuData: null
 
     signal clicked()
 
+    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+    readonly property string labelText: Locale.tr(showBack ? "Back" : "All Applications", uiLang)
+
     Layout.fillWidth: true
     Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-    Accessible.name: showBack ? i18n("Back") : i18n("All Applications")
+    Accessible.name: root.labelText
     Accessible.role: Accessible.Button
     Accessible.onPressAction: root.clicked()
 
@@ -45,7 +50,7 @@ Item {
 
         PlasmaComponents.Label {
             Layout.fillWidth: true
-            text: root.showBack ? i18n("Back") : i18n("All Applications")
+            text: root.labelText
             elide: Text.ElideRight
             font.weight: Font.Medium
             color: root.highlighted || mouse.containsMouse ? root.selectedFg : root.fg

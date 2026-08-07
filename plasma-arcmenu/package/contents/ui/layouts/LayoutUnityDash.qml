@@ -16,14 +16,14 @@ LayoutBase {
         Components.SearchField {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
 
         PlasmaComponents.Label {
             visible: !root.searching && pinnedModel.count > 0
-            text: i18n("Frequent")
+            text: root.tr("Frequent")
             font.bold: true
             color: root.fg
         }
@@ -42,7 +42,7 @@ LayoutBase {
         }
 
         PlasmaComponents.Label {
-            text: root.searching ? i18n("Results") : i18n("Applications")
+            text: root.searching ? root.tr("Results") : root.tr("Applications")
             font.bold: true
             color: root.fg
         }

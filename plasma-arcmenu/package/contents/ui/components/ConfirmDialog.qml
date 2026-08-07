@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import QtQuick.Controls as QQC2
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../code/Locale.js" as Locale
 
 QQC2.Dialog {
     id: root
@@ -11,8 +12,15 @@ QQC2.Dialog {
     property string actionTitle: ""
     property string actionIcon: "dialog-warning"
     property string actionMessage: ""
+    property var menuData: null
 
     signal confirmed(string actionId)
+
+    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+
+    function t(msgid) {
+        return Locale.tr(msgid, root.uiLang);
+    }
 
     modal: true
     standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
@@ -41,24 +49,24 @@ QQC2.Dialog {
         actionId = id;
         switch (id) {
         case "shutdown":
-            actionTitle = i18n("Shut Down");
+            actionTitle = root.t("Shut Down");
             actionIcon = "system-shutdown";
-            actionMessage = i18n("Are you sure you want to shut down the computer?");
+            actionMessage = root.t("Are you sure you want to shut down the computer?");
             break;
         case "restart":
-            actionTitle = i18n("Restart");
+            actionTitle = root.t("Restart");
             actionIcon = "system-reboot";
-            actionMessage = i18n("Are you sure you want to restart the computer?");
+            actionMessage = root.t("Are you sure you want to restart the computer?");
             break;
         case "logout":
-            actionTitle = i18n("Log Out");
+            actionTitle = root.t("Log Out");
             actionIcon = "system-log-out";
-            actionMessage = i18n("Are you sure you want to log out?");
+            actionMessage = root.t("Are you sure you want to log out?");
             break;
         default:
-            actionTitle = i18n("Confirm");
+            actionTitle = root.t("Confirm");
             actionIcon = "dialog-warning";
-            actionMessage = i18n("Do you want to continue?");
+            actionMessage = root.t("Do you want to continue?");
         }
         open();
     }

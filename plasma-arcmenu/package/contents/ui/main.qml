@@ -240,6 +240,7 @@ PlasmoidItem {
 
         Components.AppContextMenu {
             id: contextMenu
+            menuData: menuData
             onLaunchRequested: (app) => root.launchApp(app)
             onToggleFavoriteRequested: (app) => menuData.toggleFavorite(app)
             onAddToDesktopRequested: (app) => backend.addDesktopShortcut(app)
@@ -260,6 +261,7 @@ PlasmoidItem {
         Components.ConfirmDialog {
             id: confirmDialog
             anchors.centerIn: parent
+            menuData: menuData
             onConfirmed: (actionId) => {
                 backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
             }
@@ -311,12 +313,12 @@ PlasmoidItem {
     // Contextual actions (layout switching is only in Configure → Menu Layout)
     Plasmoid.contextualActions: [
         PlasmaCore.Action {
-            text: i18n("Configure Arc Menu…")
+            text: menuData.tr("Configure Arc Menu…")
             icon.name: "configure"
             onTriggered: plasmoid.internalAction("configure").trigger()
         },
         PlasmaCore.Action {
-            text: i18n("Clear Recent Applications")
+            text: menuData.tr("Clear Recent Applications")
             icon.name: "edit-clear-history"
             onTriggered: menuData.clearRecent()
         }

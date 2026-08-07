@@ -6,6 +6,7 @@ import "../code/Distro.js" as Distro
 import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
 import "../code/IdList.js" as IdList
+import "../code/Locale.js" as Locale
 
 QtObject {
     id: root
@@ -25,6 +26,18 @@ QtObject {
     property string currentPage: "home" // home | apps | search
     property var focusedApp: null
 
+    // ---- UI language (General → Menu language) ----
+    readonly property string uiLanguagePref: plasmoidConfig ? (plasmoidConfig.uiLanguage || "zh_CN") : "zh_CN"
+    readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
+
+    function tr(msgid) {
+        return Locale.tr(msgid, uiLang);
+    }
+
+    function trf(msgid, arg1) {
+        return Locale.trf(msgid, uiLang, arg1);
+    }
+
     // ---- Derived config accessors ----
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: plasmoidConfig ? plasmoidConfig.flipHorizontal : false
@@ -40,7 +53,12 @@ QtObject {
     readonly property bool showSearchDescription: plasmoidConfig ? plasmoidConfig.showDescription : true
     readonly property int maxSearchResults: plasmoidConfig ? plasmoidConfig.maxResults : 20
     readonly property var searchProviders: plasmoidConfig ? plasmoidConfig.providers : ["applications"]
-    readonly property string searchPlaceholder: plasmoidConfig ? plasmoidConfig.placeholder : i18n("Search…")
+    readonly property string searchPlaceholder: {
+        var p = plasmoidConfig ? plasmoidConfig.placeholder : "";
+        if (!p || p === "Search…")
+            return root.tr("Search…");
+        return root.tr(p);
+    }
     readonly property var powerOptions: {
         var fallback = ["shutdown", "restart", "logout", "lock"];
         if (!plasmoidConfig) {
@@ -73,10 +91,11 @@ QtObject {
 
     readonly property var categories: {
         var base = rawCategories.length ? rawCategories : AppsModel.defaultCategories();
-        // attach counts
+        // attach counts + translate default English names
         var withCounts = [];
         for (var i = 0; i < base.length; ++i) {
             var c = Object.assign({}, base[i]);
+            c.name = root.tr(c.name);
             c.apps = AppsModel.appsInCategory(allApps, c.id);
             c.appCount = c.apps.length;
             withCounts.push(c);
@@ -84,7 +103,7 @@ QtObject {
         // prepend All
         var all = {
             id: "all",
-            name: i18n("All Applications"),
+            name: root.tr("All Applications"),
             icon: "applications-all",
             apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps)),
             appCount: allApps.length
@@ -103,6 +122,7 @@ QtObject {
     readonly property var categoryApps: AppsModel.appsInCategory(allApps, currentCategoryId)
 
     readonly property var pinnedApps: {
+        var lang = root.uiLang; // binding dependency
         var ids = IdList.normalizeIdList(plasmoidConfig ? plasmoidConfig.pinnedApps : []);
         if (ids.length === 0) {
             ids = IdList.defaultPinnedIds();
@@ -113,30 +133,34 @@ QtObject {
             if (id === "arcmenu-settings") {
                 result.push({
                     id: "arcmenu-settings",
-                    name: i18n("ArcMenu Settings"),
+                    name: Locale.tr("ArcMenu Settings", lang),
                     icon: "preferences-system-windows",
                     exec: "",
                     action: "configure",
                     categories: ["Settings"],
                     keywords: ["arcmenu", "settings"],
-                    genericName: i18n("Configure Arc Menu"),
+                    genericName: Locale.tr("Configure Arc Menu", lang),
                     noDisplay: false
                 });
                 continue;
             }
             var app = AppsModel.findAppById(allApps, id);
             if (app) {
-                result.push(app);
+                var copy = Object.assign({}, app);
+                if (id.indexOf("dolphin") >= 0 || id === "org.kde.dolphin.desktop") {
+                    copy.name = Locale.tr("Files", lang);
+                    copy.genericName = Locale.tr("File Manager", lang);
+                }
+                result.push(copy);
             } else if (id.indexOf("dolphin") >= 0 || id === "org.kde.dolphin.desktop") {
-                // App catalog not ready yet — still show Files entry
                 result.push({
                     id: "org.kde.dolphin.desktop",
-                    name: i18n("Files"),
+                    name: Locale.tr("Files", lang),
                     icon: "system-file-manager",
                     exec: "dolphin",
                     categories: ["System", "Utility"],
                     keywords: ["files", "folder"],
-                    genericName: i18n("File Manager"),
+                    genericName: Locale.tr("File Manager", lang),
                     noDisplay: false
                 });
             }
@@ -145,14 +169,14 @@ QtObject {
             result = [
                 {
                     id: "org.kde.dolphin.desktop",
-                    name: i18n("Files"),
+                    name: Locale.tr("Files", lang),
                     icon: "system-file-manager",
                     exec: "dolphin",
                     noDisplay: false
                 },
                 {
                     id: "arcmenu-settings",
-                    name: i18n("ArcMenu Settings"),
+                    name: Locale.tr("ArcMenu Settings", lang),
                     icon: "preferences-system-windows",
                     exec: "",
                     action: "configure",
@@ -259,19 +283,19 @@ QtObject {
      * XDG user dirs + Plasma equivalents of ArcMenu Places / Extra Shortcuts.
      */
     readonly property var places: [
-        { id: "place-home", name: i18n("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: i18n("Home folder"), noDisplay: false },
-        { id: "place-docs", name: i18n("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: i18n("Documents"), noDisplay: false },
-        { id: "place-dl", name: i18n("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: i18n("Downloads"), noDisplay: false },
-        { id: "place-music", name: i18n("Music"), icon: "folder-music", exec: "xdg-open xdg:Music", categories: ["Places"], keywords: [], genericName: i18n("Music"), noDisplay: false },
-        { id: "place-pics", name: i18n("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures", categories: ["Places"], keywords: [], genericName: i18n("Pictures"), noDisplay: false },
-        { id: "place-videos", name: i18n("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos", categories: ["Places"], keywords: [], genericName: i18n("Videos"), noDisplay: false }
+        { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
+        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
+        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
+        { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music", categories: ["Places"], keywords: [], genericName: root.tr("Music"), noDisplay: false },
+        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures", categories: ["Places"], keywords: [], genericName: root.tr("Pictures"), noDisplay: false },
+        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos", categories: ["Places"], keywords: [], genericName: root.tr("Videos"), noDisplay: false }
     ]
 
     readonly property var systemShortcuts: [
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", exec: "", categories: ["System"], keywords: [], genericName: i18n("Software Center"), noDisplay: false, action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", exec: "", categories: ["System"], keywords: [], genericName: i18n("System Settings"), noDisplay: false, action: "settings" },
-        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: i18n("Appearance"), noDisplay: false },
-        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "overview", exec: "", categories: ["System"], keywords: [], genericName: i18n("Overview"), noDisplay: false, action: "overview" }
+        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Software Center"), noDisplay: false, action: "discover" },
+        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", exec: "", categories: ["System"], keywords: [], genericName: root.tr("System Settings"), noDisplay: false, action: "settings" },
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: root.tr("Appearance"), noDisplay: false },
+        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "overview", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Overview"), noDisplay: false, action: "overview" }
     ]
 
     function isFavorite(appId) {

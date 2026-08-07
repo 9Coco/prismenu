@@ -45,7 +45,7 @@ LayoutBase {
     function openFiles() {
         root.appActivated({
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin"
         });
@@ -78,9 +78,9 @@ LayoutBase {
                 icon.name: "application-menu"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("ArcMenu Settings")
+                Accessible.name: root.tr("ArcMenu Settings")
                 onClicked: root.openMenu()
-                PlasmaComponents.ToolTip.text: i18n("ArcMenu Settings")
+                PlasmaComponents.ToolTip.text: root.tr("ArcMenu Settings")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -95,9 +95,9 @@ LayoutBase {
                 icon.name: "system-file-manager"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Files")
+                Accessible.name: root.tr("Files")
                 onClicked: root.openFiles()
-                PlasmaComponents.ToolTip.text: i18n("Files")
+                PlasmaComponents.ToolTip.text: root.tr("Files")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -110,9 +110,9 @@ LayoutBase {
                 icon.name: "preferences-system"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Settings")
+                Accessible.name: root.tr("Settings")
                 onClicked: root.powerAction("settings")
-                PlasmaComponents.ToolTip.text: i18n("Settings")
+                PlasmaComponents.ToolTip.text: root.tr("Settings")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -125,9 +125,9 @@ LayoutBase {
                 icon.name: "system-shutdown"
                 icon.width: Kirigami.Units.iconSizes.smallMedium
                 icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: i18n("Shut Down")
+                Accessible.name: root.tr("Shut Down")
                 onClicked: root.powerAction("shutdown")
-                PlasmaComponents.ToolTip.text: i18n("Shut Down")
+                PlasmaComponents.ToolTip.text: root.tr("Shut Down")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -152,13 +152,13 @@ LayoutBase {
                     icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
                     icon.width: Kirigami.Units.iconSizes.huge
                     icon.height: Kirigami.Units.iconSizes.huge
-                    Accessible.name: i18n("User")
+                    Accessible.name: root.tr("User")
                     onClicked: root.userMenu()
                 }
 
                 PlasmaComponents.Label {
                     Layout.alignment: Qt.AlignHCenter
-                    text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                    text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
                     font.bold: true
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize + 1
                     color: root.fg
@@ -172,7 +172,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }
@@ -260,8 +260,8 @@ LayoutBase {
                     anchors.centerIn: parent
                     visible: root.gridItems.length === 0
                     text: root.searching
-                          ? i18n("No matching applications found")
-                          : i18n("No applications")
+                          ? root.tr("No matching applications found")
+                          : root.tr("No applications")
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8

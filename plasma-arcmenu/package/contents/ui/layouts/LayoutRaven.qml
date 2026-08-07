@@ -25,27 +25,27 @@ LayoutBase {
 
     // Top rail icons (settings sits at bottom separately)
     readonly property var railTop: [
-        { id: "desktop", icon: "video-display", tip: i18n("Desktop") },
-        { id: "all", icon: "view-app-grid-symbolic", tip: i18n("All Applications") },
-        { id: "windows", icon: "window-duplicate", tip: i18n("Windows") },
-        { id: "tweaks", icon: "preferences-desktop-theme", tip: i18n("Tweaks"), exec: "systemsettings kcm_lookandfeel" },
-        { id: "contacts", icon: "x-office-contact", tip: i18n("Contacts"), exec: "xdg-open xdg:Documents" },
-        { id: "user", icon: "user-identity", tip: i18n("User") },
-        { id: "network", icon: "applications-internet", tip: i18n("Internet"), exec: "xdg-open https://" },
-        { id: "pictures", icon: "folder-pictures", tip: i18n("Pictures"), exec: "xdg-open xdg:Pictures" }
+        { id: "desktop", icon: "video-display", tip: root.tr("Desktop") },
+        { id: "all", icon: "view-app-grid-symbolic", tip: root.tr("All Applications") },
+        { id: "windows", icon: "window-duplicate", tip: root.tr("Windows") },
+        { id: "tweaks", icon: "preferences-desktop-theme", tip: root.tr("Tweaks"), exec: "systemsettings kcm_lookandfeel" },
+        { id: "contacts", icon: "x-office-contact", tip: root.tr("Contacts"), exec: "xdg-open xdg:Documents" },
+        { id: "user", icon: "user-identity", tip: root.tr("User") },
+        { id: "network", icon: "applications-internet", tip: root.tr("Internet"), exec: "xdg-open https://" },
+        { id: "pictures", icon: "folder-pictures", tip: root.tr("Pictures"), exec: "xdg-open xdg:Pictures" }
     ]
 
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -54,10 +54,10 @@ LayoutBase {
     ]
 
     readonly property var shortcutItems: [
-        { id: "shortcut-software", name: i18n("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: i18n("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: i18n("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-        { id: "shortcut-overview", name: i18n("Activities Overview"), icon: "view-fullscreen", action: "overview" }
+        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
+        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "view-fullscreen", action: "overview" }
     ]
 
     readonly property var pinnedItems: {
@@ -114,7 +114,7 @@ LayoutBase {
     function openWorldClock() {
         root.activateItem({
             id: "world-clock",
-            name: i18n("World Clock"),
+            name: root.tr("World Clock"),
             icon: "preferences-system-time",
             exec: "plasmawindowed org.kde.plasma.worldclock"
         });
@@ -169,9 +169,9 @@ LayoutBase {
                     icon.name: "preferences-system"
                     icon.width: Kirigami.Units.iconSizes.smallMedium
                     icon.height: Kirigami.Units.iconSizes.smallMedium
-                    Accessible.name: i18n("Settings")
+                    Accessible.name: root.tr("Settings")
                     onClicked: root.powerAction("settings")
-                    PlasmaComponents.ToolTip.text: i18n("Settings")
+                    PlasmaComponents.ToolTip.text: root.tr("Settings")
                     PlasmaComponents.ToolTip.visible: hovered
                     PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
                 }
@@ -187,7 +187,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);
@@ -218,7 +218,7 @@ LayoutBase {
                         RowLayout {
                             Layout.fillWidth: true
                             PlasmaComponents.Label {
-                                text: i18n("Pinned")
+                                text: root.tr("Pinned")
                                 color: root.fg
                                 opacity: 0.75
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -300,7 +300,7 @@ LayoutBase {
                         RowLayout {
                             Layout.fillWidth: true
                             PlasmaComponents.Label {
-                                text: i18n("Shortcuts")
+                                text: root.tr("Shortcuts")
                                 color: root.fg
                                 opacity: 0.75
                                 font.pointSize: Kirigami.Theme.smallFont.pointSize
@@ -413,8 +413,8 @@ LayoutBase {
                     anchors.centerIn: parent
                     visible: root.allAppsItems.length === 0
                     text: root.searching
-                          ? i18n("No matching applications found")
-                          : i18n("No applications")
+                          ? root.tr("No matching applications found")
+                          : root.tr("No applications")
                     opacity: 0.45
                     color: root.fg
                 }
@@ -422,7 +422,7 @@ LayoutBase {
 
             PlasmaComponents.Button {
                 Layout.fillWidth: true
-                text: i18n("Add world clock…")
+                text: root.tr("Add world clock…")
                 icon.name: "preferences-system-time"
                 onClicked: root.openWorldClock()
             }

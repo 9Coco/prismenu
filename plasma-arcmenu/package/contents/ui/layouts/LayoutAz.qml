@@ -24,14 +24,14 @@ LayoutBase {
     readonly property var defaultPinned: [
         {
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
         },
         {
             id: "arcmenu-settings",
-            name: i18n("ArcMenu Settings"),
+            name: root.tr("ArcMenu Settings"),
             icon: "preferences-system-windows",
             exec: "",
             action: "configure",
@@ -75,7 +75,7 @@ LayoutBase {
     function openFiles() {
         root.appActivated({
             id: "org.kde.dolphin.desktop",
-            name: i18n("Files"),
+            name: root.tr("Files"),
             icon: "system-file-manager",
             exec: "dolphin"
         });
@@ -88,7 +88,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : i18n("Search…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: {
                 if (menuData) menuData.setSearch(text);
@@ -112,14 +112,14 @@ LayoutBase {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents.Label {
-                    text: i18n("Pinned")
+                    text: root.tr("Pinned")
                     font.bold: true
                     color: root.fg
                     Layout.fillWidth: true
                 }
                 PlasmaComponents.ToolButton {
                     flat: true
-                    text: i18n("All Applications") + " >"
+                    text: root.tr("All Applications") + " >"
                     onClicked: root.showAllApps = true
                 }
             }
@@ -206,11 +206,11 @@ LayoutBase {
                 PlasmaComponents.ToolButton {
                     flat: true
                     icon.name: "go-previous"
-                    text: i18n("Back")
+                    text: root.tr("Back")
                     onClicked: root.showAllApps = false
                 }
                 PlasmaComponents.Label {
-                    text: i18n("All Applications")
+                    text: root.tr("All Applications")
                     font.bold: true
                     color: root.fg
                     Layout.fillWidth: true
@@ -300,8 +300,8 @@ LayoutBase {
                          ? root.searchItems.length === 0
                          : root.azSections.length === 0
                 text: root.searching
-                      ? i18n("No matching applications found")
-                      : i18n("No applications")
+                      ? root.tr("No matching applications found")
+                      : root.tr("No applications")
                 opacity: 0.45
                 color: root.fg
                 horizontalAlignment: Text.AlignHCenter
@@ -326,12 +326,12 @@ LayoutBase {
                 icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
                 icon.width: Kirigami.Units.iconSizes.medium
                 icon.height: Kirigami.Units.iconSizes.medium
-                Accessible.name: i18n("User")
+                Accessible.name: root.tr("User")
                 onClicked: root.userMenu()
             }
 
             PlasmaComponents.Label {
-                text: (menuData && menuData.userName) ? menuData.userName : i18n("User")
+                text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
                 elide: Text.ElideRight
                 color: root.fg
                 Layout.fillWidth: true
@@ -349,9 +349,9 @@ LayoutBase {
                 icon.height: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
-                Accessible.name: i18n("Files")
+                Accessible.name: root.tr("Files")
                 onClicked: root.openFiles()
-                PlasmaComponents.ToolTip.text: i18n("Files")
+                PlasmaComponents.ToolTip.text: root.tr("Files")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -363,9 +363,9 @@ LayoutBase {
                 icon.height: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
-                Accessible.name: i18n("Settings")
+                Accessible.name: root.tr("Settings")
                 onClicked: root.powerAction("settings")
-                PlasmaComponents.ToolTip.text: i18n("Settings")
+                PlasmaComponents.ToolTip.text: root.tr("Settings")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
@@ -377,9 +377,9 @@ LayoutBase {
                 icon.height: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2
-                Accessible.name: i18n("Shut Down")
+                Accessible.name: root.tr("Shut Down")
                 onClicked: root.powerAction("shutdown")
-                PlasmaComponents.ToolTip.text: i18n("Shut Down")
+                PlasmaComponents.ToolTip.text: root.tr("Shut Down")
                 PlasmaComponents.ToolTip.visible: hovered
                 PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
             }
