@@ -60,7 +60,10 @@ Item {
     MouseArea {
         id: mouse
         anchors.fill: parent
+        z: 10
         hoverEnabled: true
+        preventStealing: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: root.clicked()
     }
 }
