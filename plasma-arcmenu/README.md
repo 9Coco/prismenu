@@ -75,7 +75,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `insider` | Insider (centered avatar + 5-col grid + utility rail) — sources in `layouts/insider/` |
 | `windows` | Windows (rail + frequent/A–Z list + pinned grid) — sources in `layouts/windows/` |
 | `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） — sources in `layouts/zest/` |
-| `chromebook` | Chromebook（顶部搜索 + 四列应用网格） — sources in `layouts/chromebook/` |
+| `chromebook` | Chromebook（竖长：顶部搜索 + 四列网格） — sources in `layouts/chromebook/` |
 | `elementary` | Elementary（顶部搜索 + 六列应用网格） — sources in `layouts/elementary/` |
 | `plasma` | Plasma (user+search header, list, bottom tabs) — sources in `layouts/plasma/` |
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
