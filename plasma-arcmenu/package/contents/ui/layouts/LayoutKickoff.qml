@@ -18,9 +18,9 @@ LayoutBase {
         case 1: return menuData.recentApps;
         case 2: return menuData.categoryApps;
         case 3: return [
-            { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
-            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
-            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
+            { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
+            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
+            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
             { id: "place-root", name: root.tr("Root"), icon: "folder-root", exec: "xdg-open /", categories: ["Places"], keywords: [], genericName: root.tr("File system"), noDisplay: false }
         ];
         case 4: return [

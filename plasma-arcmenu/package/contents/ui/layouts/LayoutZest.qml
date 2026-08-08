@@ -25,11 +25,11 @@ LayoutBase {
     readonly property var sideItems: {
         var _ = root.uiLang;
         return [
-            { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-            { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-            { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
+            { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
+            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
+            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
+            { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
+            { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
             { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
             { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
         ];
