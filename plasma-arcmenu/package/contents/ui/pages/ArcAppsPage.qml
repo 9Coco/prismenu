@@ -345,6 +345,7 @@ Item {
                             Components.ResolvedIcon {
                                 iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
                                 tintColor: catMouse.containsMouse ? root.hoverFg : root.fg
+                                preferSymbolic: !(root.dataHost) || root.dataHost.categoryIconsSymbolic !== false
                                 Layout.preferredWidth: root.categoryIconSize
                                 Layout.preferredHeight: root.categoryIconSize
                             }
@@ -393,7 +394,9 @@ Item {
                         width: appColumn.width
                         app: root.drilledApps[index]
                         iconSize: root.appIconSize
-                        showDescription: false
+                        showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
+                        showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                        multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
                         hoverBg: root.hoverBg

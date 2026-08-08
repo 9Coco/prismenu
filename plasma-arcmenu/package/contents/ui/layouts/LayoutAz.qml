@@ -239,7 +239,7 @@ LayoutBase {
                             width: listCol.width
                             app: root.searchItems[index]
                             iconSize: Math.max(root.appIconSize, 24)
-                            showDescription: false
+                            showDescription: root.showAppDescriptions
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
                             hoverBg: root.hoverBg
@@ -280,7 +280,7 @@ LayoutBase {
                                     width: listCol.width
                                     app: section.apps[index]
                                     iconSize: Math.max(root.appIconSize, 24)
-                                    showDescription: false
+                                    showDescription: root.showAppDescriptions
                                     selectedBg: root.selectedBg
                                     selectedFg: root.selectedFg
                                     hoverBg: root.hoverBg

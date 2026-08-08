@@ -59,6 +59,7 @@ RowLayout {
             onClicked: root.actionRequested(modelData.id)
             PlasmaComponents.ToolTip.text: modelData.tip
             PlasmaComponents.ToolTip.visible: hovered
+                && (!root.menuData || root.menuData.showTooltips !== false)
             PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
         }
     }

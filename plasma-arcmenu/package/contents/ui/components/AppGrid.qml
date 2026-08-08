@@ -9,6 +9,8 @@ GridView {
     property int iconSize: 48
     property int columns: 6
     property bool showDescription: false
+    property bool multiLineLabels: true
+    property bool showGenericNames: false
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
 
@@ -49,12 +51,16 @@ GridView {
             }
 
             PlasmaComponents.Label {
-                text: model.name || ""
-                elide: Text.ElideRight
+                text: {
+                    if (root.showGenericNames && model.genericName)
+                        return model.genericName;
+                    return model.name || "";
+                }
+                elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                maximumLineCount: 2
+                wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
+                maximumLineCount: root.multiLineLabels ? 2 : 1
                 color: mouse.containsMouse || root.currentIndex === del.index ? root.selectedFg : Kirigami.Theme.textColor
             }
         }

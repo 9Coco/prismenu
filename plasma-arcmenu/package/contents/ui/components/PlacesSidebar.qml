@@ -18,6 +18,8 @@ ColumnLayout {
     property color hoverFg: selectedFg
     property color separatorColor: Kirigami.Theme.disabledTextColor
     property color fg: Kirigami.Theme.textColor
+    property bool preferSymbolic: true
+    property bool showTooltips: true
 
     signal userClicked()
     signal itemActivated(var item)
@@ -173,6 +175,8 @@ ColumnLayout {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             fg: root.fg
+            preferSymbolic: root.preferSymbolic
+            showTooltips: root.showTooltips
             onActivated: root.itemActivated(modelData)
         }
     }
@@ -198,6 +202,8 @@ ColumnLayout {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             fg: root.fg
+            preferSymbolic: root.preferSymbolic
+            showTooltips: root.showTooltips
             onActivated: root.itemActivated(modelData)
             onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)
         }

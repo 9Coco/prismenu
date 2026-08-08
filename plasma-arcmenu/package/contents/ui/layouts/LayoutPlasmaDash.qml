@@ -43,6 +43,8 @@ LayoutBase {
             columns: 7
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            multiLineLabels: root.multiLineLabels
+            showGenericNames: root.showGenericNames
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             onAppActivated: (app) => root.activateItem(app)

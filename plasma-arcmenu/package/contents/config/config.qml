@@ -43,6 +43,11 @@ ConfigModel {
         source: "config/ConfigTheme.qml"
     }
     ConfigCategory {
+        name: configModel.tr("Fine-tuning")
+        icon: "preferences-other"
+        source: "config/ConfigFineTune.qml"
+    }
+    ConfigCategory {
         name: configModel.tr("Menu Content")
         icon: "view-list-details"
         source: "config/ConfigContent.qml"
