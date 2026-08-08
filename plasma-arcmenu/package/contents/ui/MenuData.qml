@@ -116,7 +116,7 @@ QtObject {
                 continue;
             var name = id;
             var icon = "application-x-executable";
-            if (id === "favorites") { name = root.tr("Favorites"); icon = "bookmarks"; }
+            if (id === "favorites") { name = root.tr("Favorites"); icon = "emblem-favorite"; }
             else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
@@ -320,6 +320,8 @@ QtObject {
     property var allApps: []
     /** Bumped when allApps is replaced — forces UI bindings to refresh */
     property int catalogEpoch: 0
+    /** Bumped when menu-structure config changes (extra categories, etc.) */
+    property int structureEpoch: 0
     property var rawCategories: []
     property string userName: ""
     property string userIcon: "user-identity"
@@ -599,11 +601,16 @@ QtObject {
     readonly property var applicationShortcutIds: {
         return ShortcutsConfig.normalizeList(cfg("applicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
     }
+    // Read config keys directly so QML tracks *Changed notifications
     readonly property var extraCategoriesOrder: {
-        return ShortcutsConfig.normalizeList(cfg("extraCategoriesOrder", ShortcutsConfig.DEFAULT_EXTRA_ORDER), ShortcutsConfig.DEFAULT_EXTRA_ORDER);
+        var _ = root.structureEpoch;
+        var raw = plasmoidConfig ? plasmoidConfig.extraCategoriesOrder : undefined;
+        return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
     }
     readonly property var extraCategoriesEnabled: {
-        return ShortcutsConfig.normalizeList(cfg("extraCategoriesEnabled", ShortcutsConfig.DEFAULT_EXTRA_ON), ShortcutsConfig.DEFAULT_EXTRA_ON);
+        var _ = root.structureEpoch;
+        var raw = plasmoidConfig ? plasmoidConfig.extraCategoriesEnabled : undefined;
+        return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ON);
     }
     readonly property var contextMenuItems: {
         return ShortcutsConfig.normalizeList(cfg("contextMenuItems", ShortcutsConfig.DEFAULT_CTX), ShortcutsConfig.DEFAULT_CTX);
@@ -614,15 +621,17 @@ QtObject {
     }
 
     readonly property var enabledExtraCategories: {
+        var _ = root.structureEpoch;
         var order = extraCategoriesOrder;
+        var enabled = extraCategoriesEnabled;
         var out = [];
         for (var i = 0; i < order.length; ++i) {
             var id = order[i];
-            if (!root.isExtraCategoryEnabled(id))
+            if (!id || enabled.indexOf(id) < 0)
                 continue;
             var name = id;
             var icon = "application-x-executable";
-            if (id === "favorites") { name = root.tr("Favorites"); icon = "bookmarks"; }
+            if (id === "favorites") { name = root.tr("Favorites"); icon = "emblem-favorite"; }
             else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
@@ -630,6 +639,19 @@ QtObject {
             out.push({ id: id, name: name, icon: icon, extra: true });
         }
         return out;
+    }
+
+    // QtObject has no default property — keep Connections as a named property
+    property Connections structureConfigWatch: Connections {
+        target: root.plasmoidConfig
+        ignoreUnknownSignals: true
+        // KConfigPropertyMap notifies via valueChanged(key, value)
+        function onValueChanged(key, value) {
+            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder")
+                root.structureEpoch++;
+        }
+        function onExtraCategoriesEnabledChanged() { root.structureEpoch++; }
+        function onExtraCategoriesOrderChanged() { root.structureEpoch++; }
     }
 
     /**
