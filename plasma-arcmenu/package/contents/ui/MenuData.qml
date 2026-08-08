@@ -252,13 +252,61 @@ QtObject {
     readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))
     readonly property bool recentEnabled: cfgBool("enabled", true)
     readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))
-    readonly property bool showSearchDescription: cfgBool("showDescription", false)
-    readonly property bool hideSearchBar: cfgBool("hideSearchBar", false)
-    readonly property bool highlightSearchTerms: cfgBool("highlightSearchTerms", false)
-    readonly property bool searchBoxRadiusEnabled: cfgBool("searchBoxRadiusEnabled", true)
-    readonly property int searchBoxRadius: Math.max(0, cfgInt("searchBoxRadius", 25))
-    readonly property bool searchWindows: cfgBool("searchWindows", false)
-    readonly property bool searchRecentFiles: cfgBool("searchRecentFiles", false)
+    // Bound from main.qml for live Apply from Search Options
+    property var showDescriptionRaw
+    property var hideSearchBarRaw
+    property var highlightSearchTermsRaw
+    property var searchBoxRadiusEnabledRaw
+    property var searchBoxRadiusRaw
+    property var searchWindowsRaw
+    property var searchRecentFilesRaw
+    property var maxResultsRaw
+    property int searchConfigEpoch: 0
+
+    function bumpSearchConfig() { searchConfigEpoch++; }
+
+    readonly property bool showSearchDescription: {
+        var _ = searchConfigEpoch;
+        if (showDescriptionRaw !== undefined && showDescriptionRaw !== null)
+            return showDescriptionRaw === true || showDescriptionRaw === 1;
+        return cfgBool("showDescription", true);
+    }
+    readonly property bool hideSearchBar: {
+        var _ = searchConfigEpoch;
+        if (hideSearchBarRaw !== undefined && hideSearchBarRaw !== null)
+            return hideSearchBarRaw === true || hideSearchBarRaw === 1;
+        return cfgBool("hideSearchBar", false);
+    }
+    readonly property bool highlightSearchTerms: {
+        var _ = searchConfigEpoch;
+        if (highlightSearchTermsRaw !== undefined && highlightSearchTermsRaw !== null)
+            return highlightSearchTermsRaw === true || highlightSearchTermsRaw === 1;
+        return cfgBool("highlightSearchTerms", true);
+    }
+    readonly property bool searchBoxRadiusEnabled: {
+        var _ = searchConfigEpoch;
+        if (searchBoxRadiusEnabledRaw !== undefined && searchBoxRadiusEnabledRaw !== null)
+            return searchBoxRadiusEnabledRaw === true || searchBoxRadiusEnabledRaw === 1;
+        return cfgBool("searchBoxRadiusEnabled", true);
+    }
+    readonly property int searchBoxRadius: {
+        var _ = searchConfigEpoch;
+        var n = (searchBoxRadiusRaw !== undefined && searchBoxRadiusRaw !== null)
+            ? parseInt(searchBoxRadiusRaw, 10) : cfgInt("searchBoxRadius", 25);
+        return Math.max(0, isNaN(n) ? 25 : n);
+    }
+    readonly property bool searchWindows: {
+        var _ = searchConfigEpoch;
+        if (searchWindowsRaw !== undefined && searchWindowsRaw !== null)
+            return searchWindowsRaw === true || searchWindowsRaw === 1;
+        return cfgBool("searchWindows", false);
+    }
+    readonly property bool searchRecentFiles: {
+        var _ = searchConfigEpoch;
+        if (searchRecentFilesRaw !== undefined && searchRecentFilesRaw !== null)
+            return searchRecentFilesRaw === true || searchRecentFilesRaw === 1;
+        return cfgBool("searchRecentFiles", false);
+    }
 
     // ---- Fine-tuning ----
     readonly property bool showCategorySubmenus: cfgBool("showCategorySubmenus", false)
@@ -278,7 +326,14 @@ QtObject {
     readonly property string shortcutIconType: cfgStr("shortcutIconType", "symbolic")
     readonly property bool categoryIconsSymbolic: categoryIconType !== "fullcolor"
     readonly property bool shortcutIconsSymbolic: shortcutIconType !== "fullcolor"
-    readonly property int maxSearchResults: Math.max(1, cfgInt("maxResults", 5))
+    readonly property int maxSearchResults: {
+        var _ = searchConfigEpoch;
+        var n = (maxResultsRaw !== undefined && maxResultsRaw !== null)
+            ? parseInt(maxResultsRaw, 10) : cfgInt("maxResults", 5);
+        if (isNaN(n) || n < 1)
+            n = 5;
+        return n;
+    }
     readonly property var searchProviders: {
         var p = cfg("providers", ["applications"]);
         if (typeof p === "string")
@@ -533,8 +588,12 @@ QtObject {
         if (!isSearching) {
             return [];
         }
+        var _cfg = searchConfigEpoch;
+        var _rf = recentFilesEpoch;
         var q = searchQuery.trim();
-        var apps = AppsModel.searchApps(allApps, q, maxSearchResults);
+        // Fetch more apps than max so extras still have room after merge
+        var appCap = Math.max(maxSearchResults * 2, maxSearchResults + 8);
+        var apps = AppsModel.searchApps(allApps, q, appCap);
         var extras = [];
         if (searchRecentFiles) {
             extras = extras.concat(SearchExtras.filterByQuery(recentFileResults || [], q));

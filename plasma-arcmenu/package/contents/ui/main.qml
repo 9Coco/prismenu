@@ -111,10 +111,18 @@ PlasmoidItem {
         id: menuData
         plasmoidConfig: plasmoid.configuration
         currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
-        // Direct bindings — required for live Extra Categories toggles
+        // Direct bindings — required for live Extra Categories / Search Options toggles
         extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
         extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
         extraCategoriesUserSetRaw: !!plasmoid.configuration.extraCategoriesUserSet
+        showDescriptionRaw: plasmoid.configuration.showDescription
+        hideSearchBarRaw: plasmoid.configuration.hideSearchBar
+        highlightSearchTermsRaw: plasmoid.configuration.highlightSearchTerms
+        searchBoxRadiusEnabledRaw: plasmoid.configuration.searchBoxRadiusEnabled
+        searchBoxRadiusRaw: plasmoid.configuration.searchBoxRadius
+        searchWindowsRaw: plasmoid.configuration.searchWindows
+        searchRecentFilesRaw: plasmoid.configuration.searchRecentFiles
+        maxResultsRaw: plasmoid.configuration.maxResults
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
             menuData.ensureArcMenuSettingsPinned();
@@ -131,10 +139,37 @@ PlasmoidItem {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
+            if (key === "showDescription" || key === "hideSearchBar" || key === "highlightSearchTerms"
+                || key === "searchBoxRadiusEnabled" || key === "searchBoxRadius"
+                || key === "searchWindows" || key === "searchRecentFiles" || key === "maxResults") {
+                menuData.bumpSearchConfig();
+                if (key === "searchWindows" || key === "searchRecentFiles") {
+                    if (plasmoid.configuration.searchRecentFiles)
+                        backend.refreshRecentFiles();
+                    if (plasmoid.configuration.searchWindows)
+                        backend.refreshOpenWindows();
+                }
+            }
         }
         function onExtraCategoriesEnabledChanged() { menuData.bumpStructure(); }
         function onExtraCategoriesOrderChanged() { menuData.bumpStructure(); }
         function onExtraCategoriesUserSetChanged() { menuData.bumpStructure(); }
+        function onShowDescriptionChanged() { menuData.bumpSearchConfig(); }
+        function onHideSearchBarChanged() { menuData.bumpSearchConfig(); }
+        function onHighlightSearchTermsChanged() { menuData.bumpSearchConfig(); }
+        function onSearchBoxRadiusEnabledChanged() { menuData.bumpSearchConfig(); }
+        function onSearchBoxRadiusChanged() { menuData.bumpSearchConfig(); }
+        function onSearchWindowsChanged() {
+            menuData.bumpSearchConfig();
+            if (plasmoid.configuration.searchWindows)
+                backend.refreshOpenWindows();
+        }
+        function onSearchRecentFilesChanged() {
+            menuData.bumpSearchConfig();
+            if (plasmoid.configuration.searchRecentFiles)
+                backend.refreshRecentFiles();
+        }
+        function onMaxResultsChanged() { menuData.bumpSearchConfig(); }
     }
 
     AppsBackend {

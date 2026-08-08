@@ -83,19 +83,43 @@ function filterByQuery(items, query, nameKey) {
     return out;
 }
 
+/**
+ * Merge app hits with secondary providers (windows / recent files).
+ * Reserve a share of the maxResults budget for extras so they are not
+ * crowded out when many apps match (ArcMenu-style multi-provider search).
+ */
 function mergeSearchResults(apps, extras, maxResults) {
-    var out = (apps || []).slice();
+    var limit = maxResults > 0 ? maxResults : 50;
+    apps = apps || [];
+    extras = extras || [];
+    var extrasBudget = 0;
+    if (extras.length)
+        extrasBudget = Math.min(extras.length, Math.max(2, Math.floor(limit / 3)));
+    var appBudget = Math.max(1, limit - extrasBudget);
+
+    var out = [];
     var seen = {};
-    for (var i = 0; i < out.length; ++i)
-        seen[String(out[i].id || "")] = true;
-    for (var j = 0; j < (extras || []).length; ++j) {
-        if (out.length >= maxResults)
-            break;
-        var e = extras[j];
-        if (!e || seen[String(e.id || "")])
+    for (var i = 0; i < apps.length && out.length < appBudget; ++i) {
+        var a = apps[i];
+        if (!a)
             continue;
-        seen[String(e.id || "")] = true;
+        var aid = String(a.id || "");
+        if (aid && seen[aid])
+            continue;
+        if (aid)
+            seen[aid] = true;
+        out.push(a);
+    }
+    for (var j = 0; j < extras.length && out.length < limit; ++j) {
+        var e = extras[j];
+        if (!e)
+            continue;
+        var eid = String(e.id || "");
+        if (eid && seen[eid])
+            continue;
+        if (eid)
+            seen[eid] = true;
         out.push(e);
     }
-    return out.slice(0, maxResults > 0 ? maxResults : out.length);
+    return out;
 }
