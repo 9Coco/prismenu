@@ -48,6 +48,25 @@ Item {
         return searching ? menuData.searchResults : menuData.categoryApps;
     }
 
+    /**
+     * Shared launcher for pinned / places / shortcuts across all layouts.
+     * Handles configure, power actions, place: keys, and normal apps.
+     */
+    function activateItem(item) {
+        if (!item)
+            return;
+        if (item.action === "configure") {
+            if (menuData)
+                menuData.requestConfigure();
+            return;
+        }
+        if (item.action) {
+            powerAction(item.action);
+            return;
+        }
+        appActivated(item);
+    }
+
     Rectangle {
         anchors.fill: parent
         color: root.bg

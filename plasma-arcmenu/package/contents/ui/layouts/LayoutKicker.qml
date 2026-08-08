@@ -32,7 +32,7 @@ LayoutBase {
             model: pinnedModel
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
-            onAppActivated: (app) => root.appActivated(app)
+            onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
 
@@ -93,7 +93,7 @@ LayoutBase {
                             if (mouse.button === Qt.RightButton) {
                                 root.appContextMenu(model, mouse.x, mouse.y);
                             } else {
-                                root.appActivated(model);
+                                root.activateItem(model);
                             }
                         } else {
                             root.cascadeCategoryId = model.id;
@@ -145,7 +145,7 @@ LayoutBase {
                 selectedFg: root.selectedFg
                 fg: root.fg
                 onActivated: {
-                    root.appActivated(model);
+                    root.activateItem(model);
                     cascadePopup.close();
                 }
                 onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)

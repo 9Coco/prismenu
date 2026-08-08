@@ -162,16 +162,21 @@ LayoutBase {
                         opacity: 0.55
                     }
 
-                    PlasmaComponents.ToolButton {
+                    Item {
                         anchors.centerIn: parent
-                        flat: true
                         width: root.avatarSize - Kirigami.Units.smallSpacing * 2
                         height: width
-                        icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                        icon.width: Kirigami.Units.iconSizes.large
-                        icon.height: Kirigami.Units.iconSizes.large
-                        Accessible.name: root.tr("User")
-                        onClicked: root.userMenu()
+                        Components.UserFace {
+                            anchors.fill: parent
+                            userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                            fallbackColor: root.fg
+                        }
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            Accessible.name: root.tr("User")
+                            onClicked: root.userMenu()
+                        }
                     }
                 }
 

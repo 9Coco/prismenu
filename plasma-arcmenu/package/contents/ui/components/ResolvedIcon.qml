@@ -19,6 +19,9 @@ Kirigami.Icon {
             return "application-x-executable";
         if (bundled)
             return Qt.resolvedUrl("../../icons/categories/" + iconName + ".svg");
+        // Face / custom paths (Kickoff-style user icons)
+        if (iconName.indexOf("/") === 0)
+            return "file://" + iconName;
         return iconName;
     }
 
