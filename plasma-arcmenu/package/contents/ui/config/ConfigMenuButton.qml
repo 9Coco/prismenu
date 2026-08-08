@@ -16,6 +16,7 @@ Item {
     property string cfg_ButtonIcon
     property string cfg_CustomButtonIcon
     property int cfg_PanelButtonIconSize
+    property int cfg_PanelButtonPadding
     property string cfg_LeftClickAction
     property string cfg_RightClickAction
     property string cfg_MiddleClickAction
@@ -245,6 +246,19 @@ Item {
                             }
                         }
                     }
+                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    RowLayout {
+                        Layout.fillWidth: true
+                        QQC2.Label { text: root.tr("Button padding"); Layout.fillWidth: true }
+                        QQC2.SpinBox {
+                            from: 0; to: 32
+                            value: cfg_PanelButtonPadding >= 0 ? cfg_PanelButtonPadding : 0
+                            onValueModified: {
+                                cfg_PanelButtonPadding = value;
+                                writeLive("panelButtonPadding", value);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -451,6 +465,8 @@ Item {
 
     Component.onCompleted: {
         if (!cfg_PanelButtonIconSize) cfg_PanelButtonIconSize = 20;
+        if (cfg_PanelButtonPadding === undefined || cfg_PanelButtonPadding === null)
+            cfg_PanelButtonPadding = 0;
         if (!cfg_LeftClickAction) cfg_LeftClickAction = "arcmenu";
         if (!cfg_RightClickAction) cfg_RightClickAction = "context";
         if (!cfg_MiddleClickAction) cfg_MiddleClickAction = "arcmenu";

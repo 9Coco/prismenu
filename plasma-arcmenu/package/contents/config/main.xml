@@ -37,6 +37,9 @@
         <entry name="PanelButtonIconSize" type="Int">
             <default>20</default>
         </entry>
+        <entry name="PanelButtonPadding" type="Int">
+            <default>0</default>
+        </entry>
         <!-- arcmenu | context | overview | configure | show-desktop | nothing -->
         <entry name="LeftClickAction" type="String">
             <default>arcmenu</default>

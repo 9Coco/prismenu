@@ -441,7 +441,7 @@ Item {
             }
         }
 
-        // Apps in selected category
+        // Apps in selected category (optional A–Z sections like ArcMenu group-apps-alphabetically-list-layouts)
         Flickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -450,14 +450,25 @@ Item {
             contentHeight: appColumn.height
             visible: !root.showingCategories
             boundsBehavior: Flickable.StopAtBounds
+            // Note: QQC2.ScrollBar.vertical is not attachable to plain Flickable on Plasma 6
+
+            readonly property bool useAz: {
+                var host = root.dataHost;
+                return !!(host && host.groupAppsAlphabeticallyList
+                    && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
+            }
+            readonly property var azSections: useAz
+                ? AppsModel.appsAzSections(root.drilledApps)
+                : []
 
             Column {
                 id: appColumn
                 width: parent.width
                 spacing: Kirigami.Units.smallSpacing / 2
 
+                // Flat list
                 Repeater {
-                    model: root.drilledApps.length
+                    model: appColumn.parent.useAz ? 0 : root.drilledApps.length
 
                     Components.AppListItem {
                         required property int index
@@ -474,6 +485,47 @@ Item {
                         fg: root.fg
                         onActivated: root.appActivated(root.drilledApps[index])
                         onContextMenuRequested: (x, y) => root.appContextMenu(root.drilledApps[index], x, y)
+                    }
+                }
+
+                // A–Z grouped
+                Repeater {
+                    model: appColumn.parent.azSections
+                    Column {
+                        required property var modelData
+                        width: appColumn.width
+                        spacing: 0
+
+                        PlasmaComponents.Label {
+                            width: parent.width
+                            text: modelData.letter
+                            font.bold: true
+                            opacity: 0.65
+                            color: root.fg
+                            leftPadding: Kirigami.Units.smallSpacing
+                            topPadding: Kirigami.Units.smallSpacing
+                            bottomPadding: Kirigami.Units.smallSpacing / 2
+                        }
+
+                        Repeater {
+                            model: modelData.apps
+                            Components.AppListItem {
+                                required property var modelData
+                                width: appColumn.width
+                                app: modelData
+                                iconSize: root.appIconSize
+                                showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
+                                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.appActivated(modelData)
+                                onContextMenuRequested: (x, y) => root.appContextMenu(modelData, x, y)
+                            }
+                        }
                     }
                 }
 

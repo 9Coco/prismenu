@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../code/SearchExtras.js" as SearchExtras
 
 Item {
     id: root
@@ -11,6 +12,9 @@ Item {
     property bool showDescription: true
     property bool showGenericNames: false
     property bool multiLineLabels: false
+    /** When set with highlightTerms, primary label uses RichText bold matches (ArcMenu) */
+    property string highlightQuery: ""
+    property bool highlightTerms: false
     property bool selected: false
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
@@ -72,7 +76,10 @@ Item {
             spacing: 0
 
             PlasmaComponents.Label {
-                text: root.primaryText
+                text: (root.highlightTerms && root.highlightQuery.length)
+                    ? SearchExtras.highlightMarkup(root.primaryText, root.highlightQuery)
+                    : root.primaryText
+                textFormat: (root.highlightTerms && root.highlightQuery.length) ? Text.RichText : Text.PlainText
                 elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
                 wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
@@ -83,7 +90,10 @@ Item {
 
             PlasmaComponents.Label {
                 visible: root.secondaryText.length > 0
-                text: root.secondaryText
+                text: (root.highlightTerms && root.highlightQuery.length)
+                    ? SearchExtras.highlightMarkup(root.secondaryText, root.highlightQuery)
+                    : root.secondaryText
+                textFormat: (root.highlightTerms && root.highlightQuery.length) ? Text.RichText : Text.PlainText
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 opacity: 0.7
