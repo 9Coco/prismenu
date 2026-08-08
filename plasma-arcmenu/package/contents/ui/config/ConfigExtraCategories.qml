@@ -11,6 +11,7 @@ Item {
 
     property var cfg_ExtraCategoriesOrder: []
     property var cfg_ExtraCategoriesEnabled: []
+    property bool cfg_ExtraCategoriesUserSet: false
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -21,15 +22,23 @@ Item {
 
     function writeLive(key, value) {
         try {
-            // Assign a fresh copy — Plasma StringList often ignores same-array mutations
             var payload = (value && value.slice) ? value.slice() : value;
             plasmoid.configuration[key] = payload;
             try { plasmoid.configuration.writeConfig(); } catch (e2) {}
-            console.log("ArcMenu ExtraCategories writeLive", key, JSON.stringify(payload),
-                        "readback=", JSON.stringify(plasmoid.configuration[key]));
+            console.log("ArcMenu ExtraCategories writeLive", key, JSON.stringify(payload));
         } catch (e) {
             console.warn("ArcMenu ExtraCategories writeLive failed", key, e);
         }
+    }
+
+    function userSet() {
+        if (cfg_ExtraCategoriesUserSet === true || cfg_ExtraCategoriesUserSet === 1)
+            return true;
+        try { return !!plasmoid.configuration.extraCategoriesUserSet; } catch (e) { return false; }
+    }
+
+    function enabledIds() {
+        return SC.effectiveExtraEnabled(cfg_ExtraCategoriesEnabled, userSet());
     }
 
     function rebuildModel() {
@@ -65,19 +74,15 @@ Item {
         }
     }
 
-    function enabledIds() {
-        if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null)
-            return SC.DEFAULT_EXTRA_ON.slice();
-        return SC.normalizeList(cfg_ExtraCategoriesEnabled, SC.DEFAULT_EXTRA_ON);
-    }
-
     function persistEnabledFromModel() {
         var list = [];
         for (var i = 0; i < listModel.count; ++i) {
             if (listModel.get(i).catOn)
                 list.push(listModel.get(i).catId);
         }
+        cfg_ExtraCategoriesUserSet = true;
         cfg_ExtraCategoriesEnabled = list.slice();
+        writeLive("extraCategoriesUserSet", true);
         writeLive("extraCategoriesEnabled", list.slice());
     }
 
@@ -85,7 +90,9 @@ Item {
         var order = [];
         for (var i = 0; i < listModel.count; ++i)
             order.push(listModel.get(i).catId);
+        cfg_ExtraCategoriesUserSet = true;
         cfg_ExtraCategoriesOrder = order.slice();
+        writeLive("extraCategoriesUserSet", true);
         writeLive("extraCategoriesOrder", order.slice());
     }
 
@@ -106,8 +113,10 @@ Item {
     function resetDefaults() {
         cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
         cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+        cfg_ExtraCategoriesUserSet = true;
         writeLive("extraCategoriesOrder", cfg_ExtraCategoriesOrder.slice());
         writeLive("extraCategoriesEnabled", cfg_ExtraCategoriesEnabled.slice());
+        writeLive("extraCategoriesUserSet", true);
         rebuildModel();
     }
 
@@ -173,7 +182,6 @@ Item {
                                 Layout.fillWidth: true
                             }
                             QQC2.Switch {
-                                // Drive from ListModel role — not a shared JS array lookup
                                 checked: row.catOn
                                 onToggled: root.setRowOn(row.index, checked)
                             }
@@ -202,13 +210,20 @@ Item {
     Component.onCompleted: {
         if (!cfg_ExtraCategoriesOrder || !cfg_ExtraCategoriesOrder.length)
             cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
-        if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null)
+        // Before the user has customized: show & keep defaults (do not treat [] as all-off)
+        if (!userSet()) {
             cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+            // Align stored config with what the menu already shows, without marking user-set
+            writeLive("extraCategoriesEnabled", SC.DEFAULT_EXTRA_ON.slice());
+            writeLive("extraCategoriesOrder",
+                SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER));
+        } else if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null) {
+            cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+        }
         rebuildModel();
     }
 
     onCfg_ExtraCategoriesOrderChanged: {
-        // Rebuild when parent ConfigMenu syncs values into this page
         if (listModel.count === 0)
             rebuildModel();
     }
@@ -216,7 +231,6 @@ Item {
         if (listModel.count === 0)
             rebuildModel();
         else {
-            // Keep ListModel switches in sync if cfg was updated externally
             var enabled = enabledIds();
             for (var i = 0; i < listModel.count; ++i) {
                 var on = enabled.indexOf(listModel.get(i).catId) >= 0;
@@ -225,4 +239,5 @@ Item {
             }
         }
     }
+    onCfg_ExtraCategoriesUserSetChanged: rebuildModel()
 }

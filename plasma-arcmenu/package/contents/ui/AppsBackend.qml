@@ -22,6 +22,8 @@ Item {
     property int _rebuildToken: 0
     /** Recent files from ~/.local/share/recently-used.xbel (ArcMenu search-provider-recent-files) */
     property var recentFiles: []
+    /** GTK bookmarks (~/.config/gtk-3.0/bookmarks) — ArcMenu Places bookmarks */
+    property var bookmarks: []
     /** Open windows from wmctrl (ArcMenu search-provider-open-windows) */
     property var openWindows: []
 
@@ -29,6 +31,7 @@ Item {
     signal metaUpdated(string userName, string userIcon, string osId, string osPretty)
     signal scanFailed(string message)
     signal recentFilesUpdated(var files)
+    signal bookmarksUpdated(var bookmarks)
     signal openWindowsUpdated(var windows)
 
     readonly property var nameToId: ({
@@ -81,6 +84,8 @@ Item {
                 }
                 if (out.indexOf("ARCMENU_RECENT|") >= 0)
                     root._parseRecentFiles(out);
+                if (out.indexOf("ARCMENU_BOOKMARK|") >= 0)
+                    root._parseBookmarks(out);
                 if (out.indexOf("ARCMENU_WIN|") >= 0)
                     root._parseOpenWindows(out);
             } catch (e) {
@@ -740,6 +745,79 @@ Item {
         exec.connectSource("/bin/bash -lc " + shellQuote(script));
     }
 
+    function refreshBookmarks() {
+        // GTK bookmarks file (same source GNOME ArcMenu PlaceDisplay uses)
+        var script = [
+            "python3 - <<'PY'",
+            "import os, urllib.parse",
+            "paths=[",
+            "  os.path.expanduser('~/.config/gtk-3.0/bookmarks'),",
+            "  os.path.expanduser('~/.config/gtk-4.0/bookmarks'),",
+            "]",
+            "seen=set()",
+            "count=0",
+            "for path in paths:",
+            "  if not os.path.isfile(path):",
+            "    continue",
+            "  with open(path, 'r', encoding='utf-8', errors='replace') as f:",
+            "    for line in f:",
+            "      line=line.strip()",
+            "      if not line or line.startswith('#'):",
+            "        continue",
+            "      parts=line.split(' ', 1)",
+            "      uri=parts[0].strip()",
+            "      if uri in seen:",
+            "        continue",
+            "      seen.add(uri)",
+            "      name=parts[1].strip() if len(parts)>1 else ''",
+            "      if not name:",
+            "        if uri.startswith('file:'):",
+            "          name=urllib.parse.unquote(uri.rsplit('/',1)[-1]) or uri",
+            "        else:",
+            "          name=uri",
+            "      print('ARCMENU_BOOKMARK|%s|%s' % (uri.replace('|','%7C'), name.replace('|','-')))",
+            "      count+=1",
+            "      if count>=40: break",
+            "  if count>=40: break",
+            "PY"
+        ].join("\n");
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+    }
+
+    function _parseBookmarks(out) {
+        var lines = String(out).split("\n");
+        var items = [];
+        for (var i = 0; i < lines.length; ++i) {
+            if (lines[i].indexOf("ARCMENU_BOOKMARK|") !== 0)
+                continue;
+            var p = lines[i].split("|");
+            var uri = (p[1] || "").trim();
+            var name = (p[2] || "").trim();
+            if (!uri)
+                continue;
+            if (!name)
+                name = uri;
+            var path = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : uri;
+            var openCmd = uri.indexOf("file:") === 0 || uri.indexOf("http") === 0
+                ? ("kioclient exec " + shellQuote(uri) + " || xdg-open " + shellQuote(uri.indexOf("file:") === 0 ? path : uri))
+                : ("xdg-open " + shellQuote(uri));
+            items.push({
+                id: "bookmark:" + uri,
+                name: name,
+                icon: "folder",
+                exec: openCmd,
+                genericName: path,
+                description: path,
+                provider: "bookmarks",
+                noDisplay: false
+            });
+        }
+        root.bookmarks = items;
+        bookmarksUpdated(items);
+        if (menuData)
+            menuData.bookmarkResults = items;
+    }
+
     function _parseRecentFiles(out) {
         var lines = String(out).split("\n");
         var files = [];
@@ -760,6 +838,10 @@ Item {
             if (hideHidden && name.charAt(0) === ".")
                 continue;
             var path = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : uri;
+            // Prefer kioclient with file:// URI — avoids recent:/ and handles spaces
+            var openCmd = uri.indexOf("file:") === 0
+                ? ("kioclient exec " + shellQuote(uri) + " || xdg-open " + shellQuote(path))
+                : ("xdg-open " + shellQuote(path));
             files.push({
                 id: "recent-file:" + uri,
                 name: name,
@@ -767,7 +849,7 @@ Item {
                     : (mime.indexOf("audio/") === 0 ? "audio-x-generic"
                     : (mime.indexOf("video/") === 0 ? "video-x-generic"
                     : (mime.indexOf("text/") === 0 ? "text-x-generic" : "document-open-recent"))),
-                exec: "xdg-open " + path,
+                exec: openCmd,
                 genericName: path,
                 description: path,
                 provider: "recent-files",

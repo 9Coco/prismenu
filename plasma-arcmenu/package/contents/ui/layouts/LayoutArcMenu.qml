@@ -46,16 +46,31 @@ LayoutBase {
             root.handleQuickLink(String(item.action).substring(10));
             return;
         }
+        // Bookmarks → in-menu list from GTK bookmarks (not bookmarks:/ KIO)
+        if (item && (item.special === "bookmarks" || item.id === "place-bookmarks")) {
+            root.showingApps = true;
+            if (menuData) {
+                menuData.navigateTo("apps");
+                if (menuData.requestBookmarksRefresh)
+                    menuData.requestBookmarksRefresh();
+            }
+            Qt.callLater(function () {
+                if (appsLoader.item)
+                    appsLoader.item.openCategory("bookmarks");
+            });
+            return;
+        }
         root.activateItem(item);
     }
 
     function handleQuickLink(id) {
         if (id === "recent-files") {
-            root.activateItem({
-                id: "quick-recent-files",
-                name: root.tr("Recent Files"),
-                icon: "document-open-recent",
-                exec: "kioclient exec recent:/ || xdg-open recent:/"
+            root.showingApps = true;
+            if (menuData)
+                menuData.navigateTo("apps");
+            Qt.callLater(function () {
+                if (appsLoader.item)
+                    appsLoader.item.openCategory("recent-files");
             });
             return;
         }

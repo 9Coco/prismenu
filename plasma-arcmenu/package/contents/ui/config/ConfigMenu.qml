@@ -4,6 +4,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
+import "../../code/ShortcutsConfig.js" as SC
 
 /**
  * Menu settings hub — mirrors GNOME ArcMenu’s nested “Menu” page:
@@ -88,8 +89,9 @@ Item {
     property var cfg_PinnedApps: []
     property var cfg_DirectoryShortcuts: []
     property var cfg_ApplicationShortcuts: []
-    property var cfg_ExtraCategoriesOrder: []
-    property var cfg_ExtraCategoriesEnabled: []
+    property var cfg_ExtraCategoriesOrder
+    property var cfg_ExtraCategoriesEnabled
+    property bool cfg_ExtraCategoriesUserSet: false
     property var cfg_ContextMenuItems: []
 
     property var cfg_Providers: ["applications"]
@@ -137,7 +139,7 @@ Item {
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
         "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
         "PinnedApps", "DirectoryShortcuts", "ApplicationShortcuts",
-        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ContextMenuItems",
+        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "ContextMenuItems",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
         "SearchWindows", "SearchRecentFiles",
@@ -508,4 +510,16 @@ Item {
     Component { id: pageExtra; ConfigExtraCategories {} }
     Component { id: pageContent; ConfigContent {} }
     Component { id: pageContext; ConfigContextMenu {} }
+
+    Component.onCompleted: {
+        // Never leave Extra Categories as [] before Plasma injects — that made
+        // Apply / subpage sync wipe pinned+all-apps while the menu still showed defaults.
+        if (!cfg_ExtraCategoriesOrder || !cfg_ExtraCategoriesOrder.length)
+            cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
+        if (!cfg_ExtraCategoriesUserSet) {
+            cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+        } else if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null) {
+            cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+        }
+    }
 }

@@ -289,6 +289,10 @@
         <entry name="ExtraCategoriesEnabled" type="StringList">
             <default>pinned,all-apps</default>
         </entry>
+        <!-- false until the user changes Extra Categories; avoids empty cfg wiping defaults -->
+        <entry name="ExtraCategoriesUserSet" type="Bool">
+            <default>false</default>
+        </entry>
         <!-- Button context menu items: configure|panel-settings|separator|power|overview|show-desktop|desktop:…|custom:… -->
         <entry name="ContextMenuItems" type="StringList">
             <default>configure,separator,power,overview,show-desktop</default>
