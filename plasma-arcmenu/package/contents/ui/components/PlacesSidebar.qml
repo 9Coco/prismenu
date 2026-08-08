@@ -90,7 +90,8 @@ ColumnLayout {
                 width: root.showAvatar ? avSize : 0
                 height: avSize
                 visible: root.showAvatar
-                clip: true
+                // Do NOT clip here — Kirigami Addons Avatar uses layer + ShadowedTexture
+                // for the circle; a clipped ancestor paints a black disc (Kickoff avoids this).
 
                 UserFace {
                     anchors.fill: parent
