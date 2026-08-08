@@ -8,6 +8,7 @@ import "../code/Theme.js" as ThemeHelper
 import "../code/IdList.js" as IdList
 import "../code/Locale.js" as Locale
 import "../code/CategoryIcons.js" as CategoryIcons
+import "../code/IconSizes.js" as IconSizes
 
 QtObject {
     id: root
@@ -75,13 +76,22 @@ QtObject {
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: cfgBool("flipHorizontal", false)
     readonly property string searchbarLocation: cfgStr("searchbarLocation", "top")
-    readonly property int menuWidth: LayoutRegistry.clampSize(cfgInt("menuWidth", 620), 400, 900, 620)
+    readonly property int leftPanelWidth: LayoutRegistry.clampSize(cfgInt("leftPanelWidth", 380), 180, 600, 380)
+    readonly property int rightPanelWidth: LayoutRegistry.clampSize(cfgInt("rightPanelWidth", 220), 160, 360, 220)
+    readonly property int widthOffset: LayoutRegistry.clampSize(cfgInt("widthOffset", 0), -200, 400, 0)
+    /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
+    readonly property int menuWidth: LayoutRegistry.clampSize(
+        leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, 900, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
     readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 540), 400, 800, 540)
-    /** Places / categories side column width; default ~36% of 620 */
-    readonly property int sidebarWidth: LayoutRegistry.clampSize(cfgInt("sidebarWidth", 220), 160, 360, 220)
+    /** Places / categories side column — synced with right panel for ArcMenu-style shells */
+    readonly property int sidebarWidth: LayoutRegistry.clampSize(
+        cfgInt("sidebarWidth", cfgInt("rightPanelWidth", 220)), 160, 360, 220)
     /** Zest middle categories column */
     readonly property int categoryColumnWidth: LayoutRegistry.clampSize(cfgInt("categoryColumnWidth", 220), 160, 360, 220)
+    readonly property string overrideMenuPosition: cfgStr("overrideMenuPosition", "off")
+    readonly property bool overrideMenuRise: cfgBool("overrideMenuRise", false)
+    readonly property int menuRiseDistance: LayoutRegistry.clampSize(cfgInt("menuRiseDistance", 6), 0, 64, 6)
     readonly property int defaultMenuWidth: {
         var meta = layoutInfo;
         return meta && meta.defaultWidth ? meta.defaultWidth : 620;
@@ -97,7 +107,11 @@ QtObject {
     function setMenuWidth(w) {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(w, 400, 900, 620);
+        var c = LayoutRegistry.clampSize(w, 400, 900, 620);
+        plasmoidConfig.menuWidth = c;
+        // Keep right panel; adjust left so panels stay consistent with drag-resize
+        var left = c - rightPanelWidth - 24 - widthOffset;
+        plasmoidConfig.leftPanelWidth = LayoutRegistry.clampSize(left, 180, 600, 380);
     }
 
     function setMenuHeight(h) {
@@ -109,13 +123,34 @@ QtObject {
     function setSidebarWidth(w) {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.sidebarWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
+        var c = LayoutRegistry.clampSize(w, 160, 360, 220);
+        plasmoidConfig.sidebarWidth = c;
+        plasmoidConfig.rightPanelWidth = c;
     }
 
     function setCategoryColumnWidth(w) {
         if (!plasmoidConfig)
             return;
         plasmoidConfig.categoryColumnWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
+    }
+
+    function setLeftPanelWidth(w) {
+        if (!plasmoidConfig)
+            return;
+        var c = LayoutRegistry.clampSize(w, 180, 600, 290);
+        plasmoidConfig.leftPanelWidth = c;
+        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
+            c + rightPanelWidth + 24, 400, 900, 620);
+    }
+
+    function setRightPanelWidth(w) {
+        if (!plasmoidConfig)
+            return;
+        var c = LayoutRegistry.clampSize(w, 160, 360, 205);
+        plasmoidConfig.rightPanelWidth = c;
+        plasmoidConfig.sidebarWidth = c;
+        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
+            leftPanelWidth + c + 24, 400, 900, 620);
     }
 
     function resetLayoutSizesToDefaults() {
@@ -125,9 +160,25 @@ QtObject {
         plasmoidConfig.menuHeight = defaultMenuHeight;
         plasmoidConfig.sidebarWidth = defaultSidebarWidth;
         plasmoidConfig.categoryColumnWidth = defaultCategoryColumnWidth;
+        plasmoidConfig.leftPanelWidth = 380;
+        plasmoidConfig.rightPanelWidth = 220;
+        plasmoidConfig.widthOffset = 0;
     }
-    readonly property int appIconSize: Math.max(16, cfgInt("appIconSize", 24))
-    readonly property int categoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))
+
+    readonly property int baseAppIconSize: Math.max(16, cfgInt("appIconSize", 24))
+    readonly property int baseCategoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))
+    readonly property bool gridIconOverride: cfgInt("iconSizeGrid", -1) >= 0
+    readonly property bool appsIconOverride: cfgInt("iconSizeApps", -1) >= 0
+    readonly property bool shortcutsIconOverride: cfgInt("iconSizeShortcuts", -1) >= 0
+    readonly property bool categoriesIconOverride: cfgInt("iconSizeCategories", -1) >= 0
+    readonly property bool buttonsIconOverride: cfgInt("iconSizeButtons", -1) >= 0
+    readonly property bool otherIconOverride: cfgInt("iconSizeOther", -1) >= 0
+    readonly property int appIconSize: IconSizes.resolve(cfgInt("iconSizeApps", -1), baseAppIconSize)
+    readonly property int categoryIconSize: IconSizes.resolve(cfgInt("iconSizeCategories", -1), baseCategoryIconSize)
+    readonly property int gridIconSize: IconSizes.resolve(cfgInt("iconSizeGrid", -1), Math.max(baseAppIconSize + 12, 36))
+    readonly property int shortcutIconSize: IconSizes.resolve(cfgInt("iconSizeShortcuts", -1), categoryIconSize)
+    readonly property int buttonIconSize: IconSizes.resolve(cfgInt("iconSizeButtons", -1), 22)
+    readonly property int otherIconSize: IconSizes.resolve(cfgInt("iconSizeOther", -1), 22)
     readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))
     readonly property bool recentEnabled: cfgBool("enabled", true)
     readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))

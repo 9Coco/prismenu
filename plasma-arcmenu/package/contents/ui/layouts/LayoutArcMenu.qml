@@ -243,7 +243,7 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 menuData: root.menuData
-                iconSize: root.categoryIconSize
+                iconSize: root.shortcutIconSize
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
                 hoverBg: root.hoverBg
@@ -259,6 +259,7 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
                 menuData: root.menuData
+                iconSize: root.buttonIconSize
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)
             }
