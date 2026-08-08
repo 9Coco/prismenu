@@ -9,7 +9,7 @@ import org.kde.plasma.private.kicker as Kicker
  *
  * Categories (办公 / 影音 / 系统…) and apps are read from RootModel with the same
  * QML model roles Kickoff uses (display, hasChildren, url, favoriteId, …).
- * No Python / GMenu scan.
+ * Session / favorites / runners / places: see PlasmaNative.qml
  */
 Item {
     id: root
@@ -95,7 +95,7 @@ Item {
                             ? iconPath
                             : ("file://" + iconPath);
                     }
-                    console.log("ArcMenu user meta:", u, iconSrc);
+                    root._osMetaLoaded = true;
                     metaUpdated(u, iconSrc, osId, osPretty);
                 }
                 if (out.indexOf("ARCMENU_BOOKMARK|") >= 0)
@@ -103,6 +103,7 @@ Item {
             } catch (e) {
                 console.warn("ArcMenu exec parse failed:", e);
             }
+            root._osMetaPending = false;
             disconnectSource(sourceName);
         }
     }
@@ -134,6 +135,12 @@ Item {
 
         onCountChanged: root.scheduleRebuild()
         onRefreshed: root.scheduleRebuild()
+    }
+
+    PlasmaNative {
+        id: plasmaNative
+        menuData: root.menuData
+        rootModel: rootModel
     }
 
     // Nested Instantiators materialize the same roles Kickoff ListViews see.
@@ -273,7 +280,7 @@ Item {
         return display ? String(display).replace(/\s+/g, "_") + ".desktop" : "";
     }
 
-    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp, genericName) {
+    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp, genericName, catRow, appRow) {
         display = String(display || "").trim();
         if (!display)
             return;
@@ -285,6 +292,10 @@ Item {
                 seenApp[id].categories.push(catId);
             if (genericName && !seenApp[id].genericName)
                 seenApp[id].genericName = String(genericName);
+            if (seenApp[id].kickerCatRow === undefined && catRow !== undefined) {
+                seenApp[id].kickerCatRow = catRow;
+                seenApp[id].kickerAppRow = appRow;
+            }
             return;
         }
         var app = {
@@ -299,13 +310,15 @@ Item {
             isFavorite: false,
             entryPath: String(url || ""),
             favoriteId: favoriteId ? String(favoriteId) : id,
-            kickerUrl: url ? String(url) : ""
+            kickerUrl: url ? String(url) : "",
+            kickerCatRow: catRow,
+            kickerAppRow: appRow
         };
         seenApp[id] = app;
         apps.push(app);
     }
 
-    function collectFromAppInst(appInst, catId, apps, seenApp) {
+    function collectFromAppInst(appInst, catId, apps, seenApp, catRow) {
         if (!appInst)
             return;
         for (var i = 0; i < appInst.count; ++i) {
@@ -319,12 +332,12 @@ Item {
                         continue;
                     var ng = "";
                     try { ng = nested.genericName || nested.description || ""; } catch (e1) {}
-                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp, ng);
+                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp, ng, catRow, i);
                 }
             } else if (!row.hasChildren) {
                 var g = "";
                 try { g = row.genericName || row.description || ""; } catch (e2) {}
-                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp, g);
+                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp, g, catRow, i);
             }
         }
     }
@@ -358,7 +371,7 @@ Item {
                 // Kickoff "All Applications" synthetic model
                 if (desc.indexOf("KICKER_ALL_MODEL") >= 0 || root.skipNames[name]) {
                     if (desc.indexOf("KICKER_ALL_MODEL") >= 0)
-                        collectFromAppInst(cat.appInst, "all", apps, seenApp);
+                        collectFromAppInst(cat.appInst, "all", apps, seenApp, cat.row);
                     continue;
                 }
 
@@ -374,7 +387,7 @@ Item {
                     name: name,
                     icon: iconNameFromDecoration(cat.decoration)
                 });
-                collectFromAppInst(cat.appInst, catId, apps, seenApp);
+                collectFromAppInst(cat.appInst, catId, apps, seenApp, cat.row);
             }
         } catch (err) {
             lastScanError = String(err);
@@ -428,140 +441,31 @@ Item {
             scanFailed(lastScanError);
             scheduleRebuild();
         }
-        refreshUserMeta();
+        // os-release is static — only probe once (see refreshUserMeta)
+        if (!_osMetaLoaded)
+            refreshUserMeta();
     }
 
+    property bool _osMetaLoaded: false
+    property bool _osMetaPending: false
+
     /**
-     * Resolve login name + face image like Plasma Kickoff / System Settings → Users.
-     * Re-encode via Qt QImage into ~/.cache/plasma-arcmenu/face-*.png so QML Image
-     * can load AccountsService icons (often extensionless / “unsupported format”).
+     * OS id for distro icon — user face/name come from KUser (Kickoff).
+     * Debounced / one-shot to avoid spam during plasmashell restart.
      */
-    function refreshUserMeta() {
-        var py = [
-            "import os, pathlib, shutil, sys, subprocess",
-            "u = os.environ.get('USER') or os.environ.get('LOGNAME') or ''",
-            "try:",
-            "    import pwd",
-            "    u = u or pwd.getpwuid(os.getuid()).pw_name",
-            "except Exception:",
-            "    pass",
-            "home = pathlib.Path.home()",
-            "cands = []",
-            "# Prefer AccountsService IconFile (same source as System Settings → Users)",
-            "try:",
-            "    uid = os.getuid()",
-            "    out = subprocess.check_output(",
-            "        ['busctl', 'get-property', 'org.freedesktop.Accounts',",
-            "         '/org/freedesktop/Accounts/User%d' % uid,",
-            "         'org.freedesktop.Accounts.User', 'IconFile'],",
-            "        stderr=subprocess.DEVNULL, text=True, timeout=2)",
-            "    # s \"/path\" ",
-            "    if out.startswith('s '):",
-            "        p = pathlib.Path(out[2:].strip().strip('\"'))",
-            "        if p.is_file() and p.stat().st_size > 0:",
-            "            cands.append(p)",
-            "except Exception:",
-            "    pass",
-            "uf = pathlib.Path('/var/lib/AccountsService/users') / u",
-            "if uf.is_file():",
-            "    try:",
-            "        for line in uf.read_text(errors='ignore').splitlines():",
-            "            if line.startswith('Icon='):",
-            "                p = pathlib.Path(line.split('=', 1)[1].strip())",
-            "                if p.is_file() and p.stat().st_size > 0 and p not in cands:",
-            "                    cands.append(p)",
-            "                break",
-            "    except Exception:",
-            "        pass",
-            "for p in [home / '.face.icon', home / '.face',",
-            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.png'),",
-            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.jpg'),",
-            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.jpeg'),",
-            "          pathlib.Path('/var/lib/AccountsService/icons') / u,",
-            "          home / '.local/share/faces' / (u + '.png'),",
-            "          home / '.face.png']:",
-            "    if p.is_file() and p.stat().st_size > 0 and p not in cands:",
-            "        cands.append(p)",
-            "def is_png(path):",
-            "    try:",
-            "        return path.is_file() and path.read_bytes()[:8] == b'\\x89PNG\\r\\n\\x1a\\n'",
-            "    except Exception:",
-            "        return False",
-            "def encode_png(src, dst):",
-            "    raw = pathlib.Path(src).read_bytes()",
-            "    # Already a real PNG — copy with .png name (fixes extensionless AccountsService files)",
-            "    if raw[:8] == b'\\x89PNG\\r\\n\\x1a\\n':",
-            "        shutil.copyfile(src, dst)",
-            "        return is_png(dst)",
-            "    for mod in ('PySide6.QtGui', 'PyQt6.QtGui', 'PySide2.QtGui', 'PyQt5.QtGui'):",
-            "        try:",
-            "            Gui = __import__(mod, fromlist=['QImage'])",
-            "            img = Gui.QImage.fromData(raw)",
-            "            if img.isNull():",
-            "                img = Gui.QImage(str(src))",
-            "            if not img.isNull() and img.save(str(dst), 'PNG'):",
-            "                return is_png(dst)",
-            "        except Exception:",
-            "            pass",
-            "    try:",
-            "        import gi",
-            "        gi.require_version('GdkPixbuf', '2.0')",
-            "        from gi.repository import GdkPixbuf",
-            "        pb = GdkPixbuf.Pixbuf.new_from_file(str(src))",
-            "        pb.savev(str(dst), 'png', [], [])",
-            "        return is_png(dst)",
-            "    except Exception:",
-            "        pass",
-            "    try:",
-            "        from PIL import Image",
-            "        import io",
-            "        Image.open(io.BytesIO(raw)).convert('RGBA').save(dst, 'PNG')",
-            "        return is_png(dst)",
-            "    except Exception:",
-            "        pass",
-            "    for cmd in (['convert', str(src), 'png:' + str(dst)],",
-            "                ['magick', str(src), 'png:' + str(dst)]):",
-            "        try:",
-            "            subprocess.run(cmd, check=True, capture_output=True, timeout=5)",
-            "            if is_png(dst):",
-            "                return True",
-            "        except Exception:",
-            "            pass",
-            "    return False",
-            "icon = ''",
-            "src = next(iter(cands), None)",
-            "if src is not None:",
-            "    cache = pathlib.Path(os.environ.get('XDG_CACHE_HOME', str(home / '.cache'))) / 'plasma-arcmenu'",
-            "    cache.mkdir(parents=True, exist_ok=True)",
-            "    mtime = int(src.stat().st_mtime)",
-            "    staged = cache / ('face-%s-%d.png' % (u, mtime))",
-            "    try:",
-            "        if not is_png(staged):",
-            "            for old in list(cache.glob('face-%s-*' % u)):",
-            "                try: old.unlink()",
-            "                except Exception: pass",
-            "            if encode_png(src, staged):",
-            "                icon = str(staged)",
-            "            else:",
-            "                sys.stderr.write('ArcMenu face encode failed for %s\\n' % src)",
-            "                icon = ''",
-            "        else:",
-            "            icon = str(staged)",
-            "    except Exception as e:",
-            "        sys.stderr.write('ArcMenu face stage error: %s\\n' % e)",
-            "        icon = ''",
-            "osid = ''; osp = ''",
-            "try:",
-            "    text = pathlib.Path('/etc/os-release').read_text(errors='ignore')",
-            "    data = dict(line.split('=', 1) for line in text.splitlines() if '=' in line and not line.startswith('#'))",
-            "    osid = data.get('ID', '').strip().strip('\"')",
-            "    osp = data.get('PRETTY_NAME', '').strip().strip('\"')",
-            "except Exception:",
-            "    pass",
-            "sys.stdout.write('ARCMENU_META|%s|%s|%s|%s\\n' % (u, icon, osid, osp))",
-        ].join("\n");
-        console.log("ArcMenu refreshUserMeta");
-        exec.connectSource("/bin/bash -lc " + shellQuote("python3 -c " + shellQuote(py)));
+    function refreshUserMeta(force) {
+        if (!force && root._osMetaLoaded)
+            return;
+        if (root._osMetaPending)
+            return;
+        root._osMetaPending = true;
+        var script = [
+            "u=\"${USER:-}\"; [ -n \"$u\" ] || u=\"$(id -un 2>/dev/null)\";",
+            "osid=\"\"; osp=\"\";",
+            "if [ -r /etc/os-release ]; then . /etc/os-release; osid=\"${ID:-}\"; osp=\"${PRETTY_NAME:-}\"; fi",
+            "printf 'ARCMENU_META|%s||%s|%s\\n' \"$u\" \"$osid\" \"$osp\""
+        ].join(" ");
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
     }
 
     /**
@@ -618,16 +522,41 @@ Item {
             return;
         }
 
+        // KFilePlaces / file URL
+        if (app.provider === "kfileplaces" && app.kickerUrl) {
+            if (plasmaNative.openPlaceUrl(app.kickerUrl))
+                return;
+        }
+
         // Open window via TaskManager (native)
         if (app.provider === "windows" && typeof app.taskIndex === "number") {
             if (nativeSearch.activateWindowAt(app.taskIndex))
                 return;
         }
 
+        // Plasma Search / KRunner hit — same as Kickoff model.trigger
+        if (app.provider === "runner" && typeof app.runnerIndex === "number") {
+            if (plasmaNative.triggerRunnerAt(app.runnerIndex))
+                return;
+        }
+
+        // Kickoff-style: AppsModel.trigger(row, "", null)
+        if (typeof app.kickerCatRow === "number" && typeof app.kickerAppRow === "number") {
+            if (plasmaNative.triggerRootApp(app.kickerCatRow, app.kickerAppRow))
+                return;
+        }
+
         var url = app.kickerUrl || app.entryPath || "";
         if (url) {
+            // Prefer Qt / KIO open (no shell) for applications: and file:
+            try {
+                if (String(url).indexOf("applications:") === 0 || String(url).indexOf("file:") === 0
+                    || String(url).indexOf("preferred:") === 0) {
+                    Qt.openUrlExternally(url);
+                    return;
+                }
+            } catch (e) {}
             var id = String(app.id || "").replace(/\.desktop$/, "");
-            // activateExisting: prefer kstart5/kstart --activate when available
             if (opts.activateExisting) {
                 exec.connectSource("kstart --activate " + shellQuote(url)
                     + " 2>/dev/null || kstart5 --activate " + shellQuote(url)
@@ -644,7 +573,6 @@ Item {
 
         if (app.exec) {
             var e = String(app.exec);
-            // Legacy broken URLs: "xdg-open xdg:Download" → resolve via xdg-user-dir
             var m = e.match(/xdg:\s*([A-Za-z]+)/);
             if (m) {
                 openXdgUserDir(m[1]);
@@ -654,7 +582,6 @@ Item {
                 openXdgUserDir("HOME");
                 return;
             }
-            // Shell features ($HOME, args) need bash
             if (e.indexOf("$") >= 0 || e.indexOf(" ") >= 0)
                 exec.connectSource("/bin/bash -lc " + shellQuote(e));
             else
@@ -663,12 +590,26 @@ Item {
     }
 
     function runShell(cmd) {
-        // Executable data engine needs a single program; args / || / $VAR need bash
         console.log("ArcMenu: shell", cmd);
         exec.connectSource("/bin/bash -lc " + shellQuote(cmd));
     }
 
-    function runPower(actionId, softwareCenterCmd) {
+    /**
+     * Power / session — SessionManagement like Kickoff Leave.
+     * confirmationMode: "default" | "force" | "skip"
+     * Non-session actions (settings / discover / …) keep desktop helpers.
+     */
+    function runPower(actionId, softwareCenterCmd, confirmationMode) {
+        var sessionIds = {
+            "lock": 1, "logout": 1, "suspend": 1, "hibernate": 1,
+            "hybridsleep": 1, "restart": 1, "reboot": 1, "shutdown": 1, "switchuser": 1
+        };
+        if (sessionIds[actionId]) {
+            if (plasmaNative.runSessionAction(actionId, confirmationMode || "default"))
+                return;
+            console.warn("ArcMenu: SessionManagement unavailable, shell fallback for", actionId);
+        }
+
         var discover = (softwareCenterCmd && softwareCenterCmd !== "auto-detect")
             ? softwareCenterCmd
             : "plasma-discover";
@@ -683,7 +624,6 @@ Item {
             "settings": "systemsettings",
             "discover": discover,
             "switchuser": "qdbus org.kde.ksmserver /KSMServer openSwitchUserDialog || dm-tool switch-to-greeter",
-            // ArcMenu User button → System Settings → Users
             "accountsettings": "systemsettings kcm_users || kcmshell6 kcm_users || plasma-open-settings kcm_users || systemsettings",
             "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview",
             "show-desktop": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop' || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Show Desktop' || xdotool key Super+D"
@@ -694,6 +634,14 @@ Item {
             return;
         }
         runShell(cmd);
+    }
+
+    function togglePlasmaFavorite(favoriteId) {
+        return plasmaNative.togglePlasmaFavorite(favoriteId);
+    }
+
+    function isPlasmaFavorite(favoriteId) {
+        return plasmaNative.isPlasmaFavorite(favoriteId);
     }
 
     function desktopFileId(app) {
