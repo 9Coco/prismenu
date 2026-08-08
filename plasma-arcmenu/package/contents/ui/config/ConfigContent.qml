@@ -31,6 +31,25 @@ Item {
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
+    readonly property var orderedCategories: {
+        var order = (cfg_Order && cfg_Order.length)
+            ? cfg_Order
+            : categories.map(function (c) { return c.id; });
+        var byId = {};
+        for (var i = 0; i < categories.length; ++i)
+            byId[categories[i].id] = categories[i];
+        var out = [];
+        for (var o = 0; o < order.length; ++o) {
+            if (byId[order[o]])
+                out.push(byId[order[o]]);
+        }
+        for (var k = 0; k < categories.length; ++k) {
+            if (order.indexOf(categories[k].id) < 0)
+                out.push(categories[k]);
+        }
+        return out;
+    }
+
     function tr(msgid) {
         return Locale.tr(msgid, uiLang);
     }
@@ -46,14 +65,19 @@ Item {
     function toggleHidden(id, hide) {
         var list = (cfg_Hidden || []).slice();
         var idx = list.indexOf(id);
-        if (hide && idx < 0) list.push(id);
-        if (!hide && idx >= 0) list.splice(idx, 1);
+        if (hide && idx < 0)
+            list.push(id);
+        if (!hide && idx >= 0)
+            list.splice(idx, 1);
         cfg_Hidden = list;
     }
 
     function moveCategory(from, to) {
-        var order = (cfg_Order && cfg_Order.length) ? cfg_Order.slice() : categories.map(function (c) { return c.id; });
-        if (from < 0 || to < 0 || from >= order.length || to >= order.length) return;
+        var order = (cfg_Order && cfg_Order.length)
+            ? cfg_Order.slice()
+            : categories.map(function (c) { return c.id; });
+        if (from < 0 || to < 0 || from >= order.length || to >= order.length)
+            return;
         var item = order.splice(from, 1)[0];
         order.splice(to, 0, item);
         cfg_Order = order;
@@ -65,121 +89,146 @@ Item {
         return Locale.tr(cat.name, uiLang);
     }
 
-    ColumnLayout {
-        spacing: Kirigami.Units.largeSpacing
+    QQC2.ScrollView {
+        id: scroll
+        anchors.fill: parent
+        contentWidth: availableWidth
+        clip: true
 
-        Kirigami.Heading { text: root.tr("Categories"); level: 2 }
+        ColumnLayout {
+            width: scroll.availableWidth
+            spacing: Kirigami.Units.largeSpacing
 
-        QQC2.CheckBox {
-            id: showEmpty
-            text: root.tr("Show empty categories")
-        }
-
-        ListView {
-            id: catList
-            Layout.fillWidth: true
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 16
-            clip: true
-            model: {
-                var order = (cfg_Order && cfg_Order.length) ? cfg_Order : categories.map(function (c) { return c.id; });
-                var byId = {};
-                for (var i = 0; i < categories.length; ++i) byId[categories[i].id] = categories[i];
-                var out = [];
-                for (var o = 0; o < order.length; ++o) if (byId[order[o]]) out.push(byId[order[o]]);
-                for (var k = 0; k < categories.length; ++k) {
-                    if (order.indexOf(categories[k].id) < 0) out.push(categories[k]);
-                }
-                return out;
-            }
-
-            delegate: RowLayout {
-                width: catList.width
-                required property var modelData
-                required property int index
-                spacing: Kirigami.Units.smallSpacing
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
 
                 QQC2.CheckBox {
-                    checked: !root.isHidden(modelData.id)
-                    onToggled: root.toggleHidden(modelData.id, !checked)
-                }
-                Components.ResolvedIcon {
-                    iconName: root.customIconsMap[modelData.id] || modelData.icon
-                    Layout.preferredWidth: 20
-                    Layout.preferredHeight: 20
-                }
-                QQC2.TextField {
-                    Layout.fillWidth: true
-                    text: root.displayName(modelData)
-                    onEditingFinished: {
-                        var map = Object.assign({}, root.customNamesMap);
-                        map[modelData.id] = text;
-                        root.customNamesMap = map;
-                        cfg_CustomNames = AppsModel.stringifyJsonMap(map);
-                    }
-                }
-                QQC2.TextField {
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-                    placeholderText: root.tr("Icon name")
-                    text: root.customIconsMap[modelData.id] || ""
-                    onEditingFinished: {
-                        var map = Object.assign({}, root.customIconsMap);
-                        if (text) map[modelData.id] = text; else delete map[modelData.id];
-                        root.customIconsMap = map;
-                        cfg_CustomIcons = AppsModel.stringifyJsonMap(map);
-                    }
-                }
-                QQC2.Button {
-                    icon.name: "go-up"
-                    enabled: index > 0
-                    onClicked: root.moveCategory(index, index - 1)
-                }
-                QQC2.Button {
-                    icon.name: "go-down"
-                    enabled: index < catList.count - 1
-                    onClicked: root.moveCategory(index, index + 1)
+                    id: showEmpty
+                    Kirigami.FormData.label: root.tr("Categories")
+                    text: root.tr("Show empty categories")
                 }
             }
-        }
 
-        Kirigami.Heading { text: root.tr("Favorites"); level: 2 }
+            // Category editor — Column of rows (ListView+RowLayout was collapsing to 0 height)
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing
 
-        QQC2.SpinBox {
-            id: pinnedColsSpin
-            from: 4
-            to: 8
-            Kirigami.FormData.label: root.tr("Pinned columns:")
-        }
-        QQC2.Label { text: root.trf("Pinned columns: %1", pinnedColsSpin.value) }
+                Repeater {
+                    model: root.orderedCategories
 
-        QQC2.CheckBox {
-            id: syncPlasma
-            text: root.tr("Sync favorites with Plasma global favorites")
-        }
+                    delegate: RowLayout {
+                        id: catRow
+                        required property var modelData
+                        required property int index
 
-        QQC2.Label {
-            text: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
-            opacity: 0.8
-        }
+                        Layout.fillWidth: true
+                        Layout.preferredHeight: Math.max(Kirigami.Units.gridUnit * 2,
+                                                         nameField.implicitHeight + Kirigami.Units.smallSpacing)
+                        spacing: Kirigami.Units.smallSpacing
 
-        Kirigami.Heading { text: root.tr("Recent applications"); level: 2 }
+                        QQC2.CheckBox {
+                            checked: !root.isHidden(modelData.id)
+                            onToggled: root.toggleHidden(modelData.id, !checked)
+                            QQC2.ToolTip.text: root.tr("Show category")
+                            QQC2.ToolTip.visible: hovered
+                            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
 
-        QQC2.CheckBox {
-            id: recentEnabled
-            text: root.tr("Enable recent applications section")
-        }
+                        Components.ResolvedIcon {
+                            iconName: root.customIconsMap[modelData.id] || modelData.icon
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                        }
 
-        QQC2.SpinBox {
-            id: recentMaxSpin
-            from: 1
-            to: 20
-            enabled: recentEnabled.checked
-        }
-        QQC2.Label { text: root.trf("Maximum recent items: %1", recentMaxSpin.value); enabled: recentEnabled.checked }
+                        QQC2.TextField {
+                            id: nameField
+                            Layout.fillWidth: true
+                            Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                            text: root.displayName(modelData)
+                            onEditingFinished: {
+                                var map = Object.assign({}, root.customNamesMap);
+                                map[modelData.id] = text;
+                                root.customNamesMap = map;
+                                cfg_CustomNames = AppsModel.stringifyJsonMap(map);
+                            }
+                        }
 
-        QQC2.Button {
-            text: root.tr("Clear recent applications")
-            icon.name: "edit-clear-history"
-            onClicked: cfg_RecentApps = []
+                        QQC2.TextField {
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                            placeholderText: root.tr("Icon name")
+                            text: root.customIconsMap[modelData.id] || ""
+                            onEditingFinished: {
+                                var map = Object.assign({}, root.customIconsMap);
+                                if (text)
+                                    map[modelData.id] = text;
+                                else
+                                    delete map[modelData.id];
+                                root.customIconsMap = map;
+                                cfg_CustomIcons = AppsModel.stringifyJsonMap(map);
+                            }
+                        }
+
+                        QQC2.Button {
+                            icon.name: "go-up"
+                            enabled: index > 0
+                            onClicked: root.moveCategory(index, index - 1)
+                            Accessible.name: root.tr("Move up")
+                        }
+
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            enabled: index < root.orderedCategories.length - 1
+                            onClicked: root.moveCategory(index, index + 1)
+                            Accessible.name: root.tr("Move down")
+                        }
+                    }
+                }
+            }
+
+            Kirigami.Separator { Layout.fillWidth: true }
+
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
+
+                QQC2.SpinBox {
+                    id: pinnedColsSpin
+                    from: 4
+                    to: 8
+                    Kirigami.FormData.label: root.tr("Pinned columns:")
+                }
+
+                QQC2.CheckBox {
+                    id: syncPlasma
+                    Kirigami.FormData.label: root.tr("Favorites")
+                    text: root.tr("Sync favorites with Plasma global favorites")
+                }
+
+                QQC2.Label {
+                    text: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
+                    opacity: 0.8
+                }
+
+                QQC2.CheckBox {
+                    id: recentEnabled
+                    Kirigami.FormData.label: root.tr("Recent applications")
+                    text: root.tr("Enable recent applications section")
+                }
+
+                QQC2.SpinBox {
+                    id: recentMaxSpin
+                    from: 1
+                    to: 20
+                    enabled: recentEnabled.checked
+                    Kirigami.FormData.label: root.tr("Maximum recent items:")
+                }
+
+                QQC2.Button {
+                    text: root.tr("Clear recent applications")
+                    icon.name: "edit-clear-history"
+                    onClicked: cfg_RecentApps = []
+                }
+            }
         }
     }
 }
