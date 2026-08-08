@@ -1,26 +1,39 @@
 import QtQuick
-import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 
 /**
  * Edge / corner drag handles to resize the menu popup.
- * Writes menuWidth / menuHeight through the catalog (MenuData),
- * and applies the same delta to the AppletPopup Dialog window when safe.
+ *
+ * While dragging, only liveWidth / liveHeight change (one cheap property
+ * write per mouse move — no config writes, no direct window manipulation).
+ * The host (main.qml) binds the popup's Layout.minimumWidth/maximumWidth
+ * (and height) to these values; libplasma's AppletPopup always applies
+ * min/max size changes to the window, in BOTH directions, even when it
+ * ignores Layout.preferredWidth (which happens as soon as a popup size has
+ * been remembered in the applet config). This is what makes shrinking work.
+ *
+ * The final size is persisted once, through the catalog (MenuData), when
+ * the drag ends.
  */
 Item {
     id: root
 
     property var menuData: null
-    /** Optional: host passes fullRep.Window.window */
-    property var window: null
+    /** Extra popup width outside menuWidth (layout side panel). */
+    property int sideWidth: 0
     property int minWidth: 400
     property int maxWidth: 900
     property int minHeight: 400
     property int maxHeight: 800
     property int handleThickness: 6
     property bool resizeHeight: true
+
+    /** Live drag size (content, excluding sideWidth); -1 while idle. */
+    property int liveWidth: -1
+    property int liveHeight: -1
+    readonly property bool dragging: liveWidth > 0 || liveHeight > 0
 
     readonly property int loc: {
         try { return plasmoid.location; } catch (e) { return PlasmaCore.Types.BottomEdge; }
@@ -49,23 +62,16 @@ Item {
         return Math.max(root.minHeight, Math.min(root.maxHeight, Math.round(h)));
     }
 
-    function applySize(w, h) {
-        if (!root.menuData)
-            return;
-        if (w !== undefined && root.menuData.setMenuWidth)
-            root.menuData.setMenuWidth(root.clampW(w));
-        if (h !== undefined && root.menuData.setMenuHeight)
-            root.menuData.setMenuHeight(root.clampH(h));
-    }
-
-    /** Dialog popup only — reject only when BOTH axes look like a desktop shell. */
-    function grabPopupWindow() {
-        var w = root.window ? root.window : Window.window;
-        if (!w)
-            return null;
-        if (w.width >= Screen.width - 8 && w.height >= Screen.height - 8)
-            return null;
-        return w;
+    /** Persist the dragged size once, then leave live-drag mode. */
+    function commitDrag() {
+        if (root.menuData) {
+            if (root.liveWidth > 0 && root.menuData.setMenuWidth)
+                root.menuData.setMenuWidth(root.liveWidth);
+            if (root.liveHeight > 0 && root.menuData.setMenuHeight)
+                root.menuData.setMenuHeight(root.liveHeight);
+        }
+        root.liveWidth = -1;
+        root.liveHeight = -1;
     }
 
     component EdgeHandle: MouseArea {
@@ -75,13 +81,11 @@ Item {
         property real pressGlobalY: 0
         property int pressW: 0
         property int pressH: 0
-        property real pressWinW: 0
-        property real pressWinH: 0
-        property var pressWin: null
 
         z: 50
         hoverEnabled: true
         preventStealing: true
+        acceptedButtons: Qt.LeftButton
         cursorShape: {
             switch (edgeRole) {
             case "e":
@@ -98,51 +102,30 @@ Item {
             var g = mapToGlobal(mouse.x, mouse.y);
             pressGlobalX = g.x;
             pressGlobalY = g.y;
-            pressW = root.menuData ? root.menuData.menuWidth : 620;
-            pressH = root.menuData ? root.menuData.menuHeight : 540;
-            pressWin = root.grabPopupWindow();
-            if (pressWin) {
-                pressWinW = pressWin.width;
-                pressWinH = pressWin.height;
-            }
+            // Seed from what is actually on screen, not from the config —
+            // the two can disagree (e.g. stale remembered popup size), which
+            // used to make the first drag appear to do nothing.
+            pressW = root.clampW(root.width - root.sideWidth);
+            pressH = root.clampH(root.height);
         }
         onPositionChanged: (mouse) => {
-            if (!pressed || !root.menuData)
+            if (!pressed)
                 return;
             var g = mapToGlobal(mouse.x, mouse.y);
             var dx = g.x - pressGlobalX;
             var dy = g.y - pressGlobalY;
-            var w = pressW;
-            var h = pressH;
             var role = edge.edgeRole;
-            var changeW = false;
-            var changeH = false;
-            if (role === "e" || role === "ne" || role === "se") {
-                w = pressW + dx;
-                changeW = true;
-            } else if (role === "w" || role === "nw" || role === "sw") {
-                w = pressW - dx;
-                changeW = true;
-            }
-            if (role === "s" || role === "se" || role === "sw") {
-                h = pressH + dy;
-                changeH = true;
-            } else if (role === "n" || role === "ne" || role === "nw") {
-                h = pressH - dy;
-                changeH = true;
-            }
-            var nw = changeW ? root.clampW(w) : pressW;
-            var nh = changeH ? root.clampH(h) : pressH;
-            root.applySize(changeW ? nw : undefined, changeH ? nh : undefined);
-
-            // Match content delta on the Dialog (grow and shrink). Skip if no safe window.
-            if (!pressWin)
-                return;
-            if (changeW)
-                pressWin.width = Math.max(root.minWidth, pressWinW + (nw - pressW));
-            if (changeH)
-                pressWin.height = Math.max(root.minHeight, pressWinH + (nh - pressH));
+            if (role === "e" || role === "ne" || role === "se")
+                root.liveWidth = root.clampW(pressW + dx);
+            else if (role === "w" || role === "nw" || role === "sw")
+                root.liveWidth = root.clampW(pressW - dx);
+            if (role === "s" || role === "se" || role === "sw")
+                root.liveHeight = root.clampH(pressH + dy);
+            else if (role === "n" || role === "ne" || role === "nw")
+                root.liveHeight = root.clampH(pressH - dy);
         }
+        onReleased: root.commitDrag()
+        onCanceled: root.commitDrag()
     }
 
     EdgeHandle {
