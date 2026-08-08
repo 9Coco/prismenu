@@ -1,4 +1,4 @@
-import QtQuick
+﻿import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
@@ -23,11 +23,10 @@ Item {
     property var expandedCategories: ({})
 
     readonly property var currentLayout: LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu")
-    readonly property string uiLang: Locale.resolveLanguage(
-        (function () {
-            try { return plasmoid.configuration.uiLanguage || "system"; } catch (e) { return "system"; }
-        })(),
-        Qt.locale().name)
+    readonly property string uiLanguagePref: {
+        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+    }
+    readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) {
         return Locale.tr(msgid, uiLang);
@@ -323,8 +322,8 @@ Item {
 
                 QQC2.CheckBox {
                     id: flipBox
-                    Kirigami.FormData.label: i18n("Horizontal flip:")
-                    text: i18n("Swap categories and applications columns")
+                    Kirigami.FormData.label: root.tr("Horizontal flip:")
+                    text: root.tr("Swap categories and applications columns")
                     checked: cfg_FlipHorizontal
                     onToggled: {
                         cfg_FlipHorizontal = checked;
@@ -335,9 +334,9 @@ Item {
 
                 QQC2.ComboBox {
                     id: searchLoc
-                    Kirigami.FormData.label: i18n("Search bar location:")
+                    Kirigami.FormData.label: root.tr("Search bar location:")
                     enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "searchbarLocation")
-                    model: [i18n("Top"), i18n("Bottom")]
+                    model: [root.tr("Top"), root.tr("Bottom")]
                     Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
                     onActivated: {
                         cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";

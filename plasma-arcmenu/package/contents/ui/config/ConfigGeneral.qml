@@ -1,4 +1,4 @@
-import QtQuick
+﻿import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Dialogs as Dialogs
@@ -20,10 +20,14 @@ Item {
     property alias cfg_FilterByActivity: filterActivity.checked
     property string cfg_UiLanguage
 
-    readonly property string uiLang: Locale.resolveLanguage(cfg_UiLanguage || "system", Qt.locale().name)
+    readonly property string uiLang: Locale.resolveLanguage(cfg_UiLanguage || "zh_CN", Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) {
         return Locale.tr(msgid, uiLang);
+    }
+
+    function trf(msgid, arg1) {
+        return Locale.trf(msgid, uiLang, arg1);
     }
 
     Kirigami.FormLayout {
@@ -53,12 +57,12 @@ Item {
         Kirigami.InlineMessage {
             Layout.fillWidth: true
             type: Kirigami.MessageType.Information
-            text: root.tr("UI language applies to menu labels (categories, places, actions).")
+            text: root.tr("UI language applies to the settings dialog and menu labels (categories, places, actions).")
         }
 
         QQC2.ComboBox {
             id: iconCombo
-            Kirigami.FormData.label: i18n("Button icon:")
+            Kirigami.FormData.label: root.tr("Button icon:")
             textRole: "name"
             valueRole: "id"
             model: Distro.builtinIcons()
@@ -71,15 +75,15 @@ Item {
         }
 
         RowLayout {
-            Kirigami.FormData.label: i18n("Custom icon path:")
+            Kirigami.FormData.label: root.tr("Custom icon path:")
             enabled: iconCombo.currentValue === "custom"
             QQC2.TextField {
                 id: customIconField
                 Layout.fillWidth: true
-                placeholderText: i18n("/path/to/icon.svg")
+                placeholderText: root.tr("/path/to/icon.svg")
             }
             QQC2.Button {
-                text: i18n("Browse…")
+                text: root.tr("Browse…")
                 onClicked: fileDialog.open()
             }
         }
@@ -88,43 +92,43 @@ Item {
             Layout.fillWidth: true
             visible: iconCombo.currentValue === "custom" && customIconField.text.length > 0 && !Distro.isLikelyImagePath(customIconField.text)
             type: Kirigami.MessageType.Warning
-            text: i18n("Custom icon path looks invalid or is not an image. The distribution logo will be used as fallback.")
+            text: root.tr("Custom icon path looks invalid or is not an image. The distribution logo will be used as fallback.")
         }
 
         QQC2.CheckBox {
             id: labelVisible
-            Kirigami.FormData.label: i18n("Show text label:")
-            text: i18n("Display label next to the icon")
+            Kirigami.FormData.label: root.tr("Show text label:")
+            text: root.tr("Display label next to the icon")
         }
 
         QQC2.TextField {
             id: labelText
-            Kirigami.FormData.label: i18n("Label text:")
+            Kirigami.FormData.label: root.tr("Label text:")
             enabled: labelVisible.checked
         }
 
         QQC2.TextField {
             id: hotkeyField
-            Kirigami.FormData.label: i18n("Menu hotkey:")
+            Kirigami.FormData.label: root.tr("Menu hotkey:")
             placeholderText: "Meta"
         }
 
         Kirigami.InlineMessage {
             Layout.fillWidth: true
             type: Kirigami.MessageType.Information
-            text: i18n("Hotkeys must not conflict with Plasma global shortcuts. Rebind if Plasma reports a conflict.")
+            text: root.tr("Hotkeys must not conflict with Plasma global shortcuts. Rebind if Plasma reports a conflict.")
         }
 
         QQC2.ComboBox {
             id: animCombo
-            Kirigami.FormData.label: i18n("Popup animation:")
+            Kirigami.FormData.label: root.tr("Popup animation:")
             textRole: "label"
             valueRole: "value"
             model: [
-                { label: i18n("Expand from button"), value: "expand" },
-                { label: i18n("Fade"), value: "fade" },
-                { label: i18n("Slide"), value: "slide" },
-                { label: i18n("None"), value: "none" }
+                { label: root.tr("Expand from button"), value: "expand" },
+                { label: root.tr("Fade"), value: "fade" },
+                { label: root.tr("Slide"), value: "slide" },
+                { label: root.tr("None"), value: "none" }
             ]
             Component.onCompleted: {
                 var values = ["expand", "fade", "slide", "none"];
@@ -135,21 +139,21 @@ Item {
 
         QQC2.CheckBox {
             id: shareConfig
-            Kirigami.FormData.label: i18n("Multi-instance:")
-            text: i18n("Share configuration across panel instances")
+            Kirigami.FormData.label: root.tr("Multi-instance:")
+            text: root.tr("Share configuration across panel instances")
         }
 
         QQC2.CheckBox {
             id: filterActivity
-            Kirigami.FormData.label: i18n("Activities:")
-            text: i18n("Filter favorites/recent by Plasma Activity (optional)")
+            Kirigami.FormData.label: root.tr("Activities:")
+            text: root.tr("Filter favorites/recent by Plasma Activity (optional)")
         }
     }
 
     Dialogs.FileDialog {
         id: fileDialog
-        title: i18n("Choose custom icon")
-        nameFilters: [i18n("Images (*.png *.svg *.jpg *.jpeg *.webp)"), i18n("All files (*)")]
+        title: root.tr("Choose custom icon")
+        nameFilters: [root.tr("Images (*.png *.svg *.jpg *.jpeg *.webp)"), root.tr("All files (*)")]
         onAccepted: customIconField.text = selectedFile.toString().replace("file://", "")
     }
 }

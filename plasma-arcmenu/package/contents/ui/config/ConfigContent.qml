@@ -1,4 +1,4 @@
-import QtQuick
+﻿import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
@@ -26,11 +26,18 @@ Item {
     property var customNamesMap: AppsModel.parseJsonMap(cfg_CustomNames)
     property var customIconsMap: AppsModel.parseJsonMap(cfg_CustomIcons)
 
-    readonly property string uiLang: Locale.resolveLanguage(
-        (function () {
-            try { return plasmoid.configuration.uiLanguage || "system"; } catch (e) { return "system"; }
-        })(),
-        Qt.locale().name)
+    readonly property string uiLanguagePref: {
+        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+    }
+    readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
+
+    function tr(msgid) {
+        return Locale.tr(msgid, uiLang);
+    }
+
+    function trf(msgid, arg1) {
+        return Locale.trf(msgid, uiLang, arg1);
+    }
 
     function isHidden(id) {
         return (cfg_Hidden || []).indexOf(id) >= 0;
@@ -61,11 +68,11 @@ Item {
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
 
-        Kirigami.Heading { text: i18n("Categories"); level: 2 }
+        Kirigami.Heading { text: root.tr("Categories"); level: 2 }
 
         QQC2.CheckBox {
             id: showEmpty
-            text: i18n("Show empty categories")
+            text: root.tr("Show empty categories")
         }
 
         ListView {
@@ -112,7 +119,7 @@ Item {
                 }
                 QQC2.TextField {
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-                    placeholderText: i18n("Icon name")
+                    placeholderText: root.tr("Icon name")
                     text: root.customIconsMap[modelData.id] || ""
                     onEditingFinished: {
                         var map = Object.assign({}, root.customIconsMap);
@@ -134,31 +141,31 @@ Item {
             }
         }
 
-        Kirigami.Heading { text: i18n("Favorites"); level: 2 }
+        Kirigami.Heading { text: root.tr("Favorites"); level: 2 }
 
         QQC2.SpinBox {
             id: pinnedColsSpin
             from: 4
             to: 8
-            Kirigami.FormData.label: i18n("Pinned columns:")
+            Kirigami.FormData.label: root.tr("Pinned columns:")
         }
-        QQC2.Label { text: i18n("Pinned columns: %1", pinnedColsSpin.value) }
+        QQC2.Label { text: root.trf("Pinned columns: %1", pinnedColsSpin.value) }
 
         QQC2.CheckBox {
             id: syncPlasma
-            text: i18n("Sync favorites with Plasma global favorites")
+            text: root.tr("Sync favorites with Plasma global favorites")
         }
 
         QQC2.Label {
-            text: i18n("Pinned apps: %1", (cfg_PinnedApps || []).length)
+            text: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
             opacity: 0.8
         }
 
-        Kirigami.Heading { text: i18n("Recent applications"); level: 2 }
+        Kirigami.Heading { text: root.tr("Recent applications"); level: 2 }
 
         QQC2.CheckBox {
             id: recentEnabled
-            text: i18n("Enable recent applications section")
+            text: root.tr("Enable recent applications section")
         }
 
         QQC2.SpinBox {
@@ -167,10 +174,10 @@ Item {
             to: 20
             enabled: recentEnabled.checked
         }
-        QQC2.Label { text: i18n("Maximum recent items: %1", recentMaxSpin.value); enabled: recentEnabled.checked }
+        QQC2.Label { text: root.trf("Maximum recent items: %1", recentMaxSpin.value); enabled: recentEnabled.checked }
 
         QQC2.Button {
-            text: i18n("Clear recent applications")
+            text: root.tr("Clear recent applications")
             icon.name: "edit-clear-history"
             onClicked: cfg_RecentApps = []
         }

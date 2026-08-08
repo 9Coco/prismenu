@@ -1,9 +1,11 @@
-import QtQuick
+﻿import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import QtQuick.Dialogs as Dialogs
 import org.kde.kirigami as Kirigami
+import org.kde.plasma.plasmoid
 import "../../code/Theme.js" as ThemeHelper
+import "../../code/Locale.js" as Locale
 
 Item {
     id: root
@@ -25,6 +27,15 @@ Item {
     readonly property bool customMode: cfg_ThemeMode === "custom"
     readonly property bool lowContrast: ThemeHelper.hasLowContrast(cfg_FgColor, cfg_BgColor)
 
+    readonly property string uiLanguagePref: {
+        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+    }
+    readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
+
+    function tr(msgid) {
+        return Locale.tr(msgid, uiLang);
+    }
+
     ColumnLayout {
         spacing: Kirigami.Units.largeSpacing
 
@@ -37,32 +48,32 @@ Item {
 
                 QQC2.ComboBox {
                     id: themeMode
-                    Kirigami.FormData.label: i18n("Theme mode:")
-                    model: [i18n("Follow Plasma theme"), i18n("Custom theme")]
+                    Kirigami.FormData.label: root.tr("Theme mode:")
+                    model: [root.tr("Follow Plasma theme"), root.tr("Custom theme")]
                     Component.onCompleted: currentIndex = cfg_ThemeMode === "custom" ? 1 : 0
                     onActivated: cfg_ThemeMode = currentIndex === 1 ? "custom" : "system"
                 }
 
                 QQC2.CheckBox {
                     id: followScheme
-                    Kirigami.FormData.label: i18n("Color scheme:")
-                    text: i18n("Follow Plasma light/dark mode")
+                    Kirigami.FormData.label: root.tr("Color scheme:")
+                    text: root.tr("Follow Plasma light/dark mode")
                 }
 
                 RowLayout {
-                    Kirigami.FormData.label: i18n("Background:")
+                    Kirigami.FormData.label: root.tr("Background:")
                     enabled: customMode
                     QQC2.TextField { id: bgField; text: cfg_BgColor; onTextChanged: cfg_BgColor = text; Layout.fillWidth: true; placeholderText: "#RRGGBB" }
                     QQC2.Button { text: "…"; onClicked: { colorDialog.targetProp = "bg"; colorDialog.selectedColor = cfg_BgColor || "#ffffff"; colorDialog.open(); } }
                 }
                 RowLayout {
-                    Kirigami.FormData.label: i18n("Foreground:")
+                    Kirigami.FormData.label: root.tr("Foreground:")
                     enabled: customMode
                     QQC2.TextField { id: fgField; text: cfg_FgColor; onTextChanged: cfg_FgColor = text; Layout.fillWidth: true }
                     QQC2.Button { text: "…"; onClicked: { colorDialog.targetProp = "fg"; colorDialog.selectedColor = cfg_FgColor || "#000000"; colorDialog.open(); } }
                 }
                 RowLayout {
-                    Kirigami.FormData.label: i18n("Border color:")
+                    Kirigami.FormData.label: root.tr("Border color:")
                     enabled: customMode
                     QQC2.TextField { text: cfg_BorderColor; onTextChanged: cfg_BorderColor = text; Layout.fillWidth: true }
                     QQC2.Button { text: "…"; onClicked: { colorDialog.targetProp = "border"; colorDialog.selectedColor = cfg_BorderColor || "#888888"; colorDialog.open(); } }
@@ -70,42 +81,42 @@ Item {
 
                 QQC2.SpinBox {
                     id: borderWidthSpin
-                    Kirigami.FormData.label: i18n("Border width:")
+                    Kirigami.FormData.label: root.tr("Border width:")
                     from: 0
                     to: 8
                 }
 
                 QQC2.SpinBox {
                     id: radiusSpin
-                    Kirigami.FormData.label: i18n("Corner radius:")
+                    Kirigami.FormData.label: root.tr("Corner radius:")
                     from: -1
                     to: 32
-                    textFromValue: (v) => v < 0 ? i18n("Follow theme") : (v + " px")
+                    textFromValue: (v) => v < 0 ? root.tr("Follow theme") : (v + " px")
                 }
 
                 QQC2.TextField {
                     id: fontField
-                    Kirigami.FormData.label: i18n("Font:")
+                    Kirigami.FormData.label: root.tr("Font:")
                     enabled: customMode
-                    placeholderText: i18n("Leave empty to follow Plasma")
+                    placeholderText: root.tr("Leave empty to follow Plasma")
                 }
 
                 QQC2.SpinBox {
                     id: fontSizeSpin
-                    Kirigami.FormData.label: i18n("Font size:")
+                    Kirigami.FormData.label: root.tr("Font size:")
                     from: -1
                     to: 32
-                    textFromValue: (v) => v < 0 ? i18n("Follow theme") : (v + " pt")
+                    textFromValue: (v) => v < 0 ? root.tr("Follow theme") : (v + " pt")
                 }
 
                 RowLayout {
-                    Kirigami.FormData.label: i18n("Selected background:")
+                    Kirigami.FormData.label: root.tr("Selected background:")
                     enabled: customMode
                     QQC2.TextField { text: cfg_SelectedBg; onTextChanged: cfg_SelectedBg = text; Layout.fillWidth: true }
                     QQC2.Button { text: "…"; onClicked: { colorDialog.targetProp = "selBg"; colorDialog.selectedColor = cfg_SelectedBg || "#3daee9"; colorDialog.open(); } }
                 }
                 RowLayout {
-                    Kirigami.FormData.label: i18n("Selected foreground:")
+                    Kirigami.FormData.label: root.tr("Selected foreground:")
                     enabled: customMode
                     QQC2.TextField { text: cfg_SelectedFg; onTextChanged: cfg_SelectedFg = text; Layout.fillWidth: true }
                     QQC2.Button { text: "…"; onClicked: { colorDialog.targetProp = "selFg"; colorDialog.selectedColor = cfg_SelectedFg || "#ffffff"; colorDialog.open(); } }
@@ -113,19 +124,19 @@ Item {
 
                 QQC2.SpinBox {
                     id: catIconSpin
-                    Kirigami.FormData.label: i18n("Category icon size:")
+                    Kirigami.FormData.label: root.tr("Category icon size:")
                     from: 16
                     to: 64
                 }
                 QQC2.SpinBox {
                     id: appIconSpin
-                    Kirigami.FormData.label: i18n("Application icon size:")
+                    Kirigami.FormData.label: root.tr("Application icon size:")
                     from: 16
                     to: 96
                 }
 
                 QQC2.Button {
-                    text: i18n("Reset to defaults")
+                    text: root.tr("Reset to defaults")
                     onClicked: {
                         cfg_ThemeMode = "system";
                         cfg_BgColor = "";
@@ -160,7 +171,7 @@ Item {
                     spacing: Kirigami.Units.smallSpacing
 
                     QQC2.Label {
-                        text: i18n("Preview")
+                        text: root.tr("Preview")
                         font.bold: true
                         color: customMode && cfg_FgColor ? cfg_FgColor : Kirigami.Theme.textColor
                         font.family: cfg_Font || Kirigami.Theme.defaultFont.family
@@ -174,13 +185,13 @@ Item {
                         color: customMode && cfg_SelectedBg ? cfg_SelectedBg : Kirigami.Theme.highlightColor
                         QQC2.Label {
                             anchors.centerIn: parent
-                            text: i18n("Selected item")
+                            text: root.tr("Selected item")
                             color: customMode && cfg_SelectedFg ? cfg_SelectedFg : Kirigami.Theme.highlightedTextColor
                         }
                     }
 
                     QQC2.Label {
-                        text: i18n("Application name")
+                        text: root.tr("Application name")
                         color: customMode && cfg_FgColor ? cfg_FgColor : Kirigami.Theme.textColor
                         font.family: cfg_Font || Kirigami.Theme.defaultFont.family
                     }
@@ -194,7 +205,7 @@ Item {
             Layout.fillWidth: true
             visible: customMode && lowContrast
             type: Kirigami.MessageType.Warning
-            text: i18n("Foreground/background contrast appears below WCAG AA. Saving is still allowed, but readability may suffer.")
+            text: root.tr("Foreground/background contrast appears below WCAG AA. Saving is still allowed, but readability may suffer.")
         }
     }
 
