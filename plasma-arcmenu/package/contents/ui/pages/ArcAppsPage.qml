@@ -9,8 +9,9 @@ import "../../code/CatalogBridge.js" as CatalogBridge
 
 /**
  * ArcMenu apps page (reference):
- * Header "所有应用程序" + fixed category rows (always shown).
- * Click a category → app list; Back returns to categories.
+ * Extra categories (from settings) sit above normal categories, then a separator.
+ * “All Applications” is an optional extra-category row — not a permanent header.
+ * Header chrome appears only when drilled into a list (back + title).
  */
 Item {
     id: root
@@ -61,6 +62,7 @@ Item {
     readonly property var categoryItems: {
         var host = root.dataHost;
         var epoch = host ? host.catalogEpoch : 0; // binding dependency
+        var structure = host ? host.structureEpoch : 0;
         var tick = root.refreshTick;
         var _ = root.uiLang;
         var allApps = host && host.allApps ? host.allApps : [];
@@ -69,13 +71,12 @@ Item {
         var out = [];
         var i;
 
-        // Extra categories (Pinned / Favorites / …) first.
-        // Skip all-apps: the page header already is “所有应用程序” and opens the full list.
+        // Extra categories (Pinned / All Apps / Favorites / …) — controlled by settings.
         var extras = (host && host.enabledExtraCategories) ? host.enabledExtraCategories : [];
         var extrasShown = 0;
         for (i = 0; i < extras.length; ++i) {
             var ex = extras[i];
-            if (!ex || !ex.id || ex.id === "all-apps")
+            if (!ex || !ex.id)
                 continue;
             out.push({
                 id: ex.id,
@@ -86,6 +87,16 @@ Item {
                 extra: true
             });
             extrasShown++;
+        }
+        if (extrasShown > 0) {
+            out.push({
+                id: "__extra_sep__",
+                name: "",
+                icon: "",
+                apps: [],
+                appCount: 0,
+                separator: true
+            });
         }
 
         for (i = 0; i < fromData.length; ++i) {
@@ -107,7 +118,7 @@ Item {
             });
         }
 
-        if (out.length > extrasShown)
+        if (out.length > extrasShown + (extrasShown > 0 ? 1 : 0))
             return out;
 
         var preferred = [
@@ -139,6 +150,7 @@ Item {
         var epoch = host ? host.catalogEpoch : 0;
         var tick = root.refreshTick;
         if (root.specialListId === "favorites" || root.specialListId === "pinned") {
+            // Same pin list for now (Plasma favorites sync); labels differ by specialListId
             return (host && host.pinnedApps) ? host.pinnedApps : [];
         }
         if (root.specialListId === "frequent") {
@@ -215,7 +227,13 @@ Item {
         if (bridged)
             root.menuData = bridged;
 
-        if (id === "pinned" || id === "favorites") {
+        if (id === "__extra_sep__")
+            return;
+        if (id === "pinned") {
+            root.openSpecialList("pinned");
+            return;
+        }
+        if (id === "favorites") {
             root.openSpecialList("favorites");
             return;
         }
@@ -223,7 +241,7 @@ Item {
             root.openSpecialList("frequent");
             return;
         }
-        if (id === "all-apps") {
+        if (id === "all-apps" || id === "all") {
             specialListId = "";
             drillCategoryId = "all";
             var hostAll = root.dataHost;
@@ -252,12 +270,16 @@ Item {
     }
 
     function categoryTitle() {
-        if (root.specialListId === "favorites" || root.specialListId === "pinned")
+        if (root.specialListId === "pinned")
+            return Locale.tr("Pinned Applications", root.uiLang);
+        if (root.specialListId === "favorites")
             return Locale.tr("Favorites", root.uiLang);
         if (root.specialListId === "frequent")
             return Locale.tr("Frequent Apps", root.uiLang);
-        if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
+        if (root.drillCategoryId === "all")
             return Locale.tr("All Applications", root.uiLang);
+        if (root.showingCategories)
+            return "";
         var cats = root.categoryItems;
         for (var i = 0; i < cats.length; ++i) {
             if (cats[i].id === root.drillCategoryId)
@@ -267,13 +289,16 @@ Item {
     }
 
     function categoryHeaderIcon() {
-        if (root.specialListId === "favorites" || root.specialListId === "pinned")
-            return "bookmarks";
+        if (root.specialListId === "pinned")
+            return "pin";
+        if (root.specialListId === "favorites")
+            return "emblem-favorite";
         if (root.specialListId === "frequent")
             return "view-calendar";
-        // Only the category-list / all-apps views use the grid "all apps" icon
-        if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
+        if (root.drillCategoryId === "all")
             return "view-app-grid-symbolic";
+        if (root.showingCategories)
+            return "";
         var cats = root.categoryItems;
         for (var i = 0; i < cats.length; ++i) {
             if (cats[i].id === root.drillCategoryId)
@@ -286,35 +311,23 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // Header: category list → open all apps; drilled view → click title to go up.
+        // Header only when drilled — category list has no permanent “All Applications” chrome.
         Item {
             id: appsHeader
             Layout.fillWidth: true
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 2.0
-            Layout.bottomMargin: Kirigami.Units.smallSpacing
+            Layout.preferredHeight: visible ? Kirigami.Units.gridUnit * 2.0 : 0
+            Layout.bottomMargin: visible ? Kirigami.Units.smallSpacing : 0
+            visible: !root.showingCategories
 
-            readonly property bool drilled: !root.showingCategories
-            readonly property bool inCategory: drilled
-                && ((root.drillCategoryId.length > 0 && root.drillCategoryId !== "all")
-                    || root.specialListId.length > 0)
-            readonly property bool headerClickable: true
-            readonly property bool headerActive: root.drillCategoryId === "all" && root.specialListId.length === 0
             readonly property bool headerHot: headerMouse.containsMouse
-                || (!drilled && headerActive)
 
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
                 radius: Kirigami.Units.smallSpacing
-                color: {
-                    if (appsHeader.headerHot)
-                        return root.selectedBg;
-                    // Soft band so drilled titles don't look like another app row
-                    if (appsHeader.drilled)
-                        return Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08);
-                    return "transparent";
-                }
-                opacity: 1
+                color: appsHeader.headerHot
+                    ? root.selectedBg
+                    : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08)
             }
 
             RowLayout {
@@ -324,7 +337,6 @@ Item {
                 spacing: Kirigami.Units.smallSpacing
 
                 Kirigami.Icon {
-                    visible: appsHeader.drilled
                     source: "go-previous-symbolic"
                     Layout.preferredWidth: Kirigami.Units.iconSizes.small
                     Layout.preferredHeight: Kirigami.Units.iconSizes.small
@@ -337,7 +349,7 @@ Item {
                     tintColor: appsHeader.headerHot ? root.selectedFg : root.fg
                     Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                     Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                    opacity: appsHeader.headerHot ? 1 : (appsHeader.drilled ? 0.9 : 1)
+                    opacity: appsHeader.headerHot ? 1 : 0.9
                 }
 
                 PlasmaComponents.Label {
@@ -346,7 +358,7 @@ Item {
                     elide: Text.ElideRight
                     font.weight: Font.DemiBold
                     font.pointSize: Kirigami.Theme.defaultFont.pointSize * 0.95
-                    opacity: appsHeader.headerHot ? 1 : (appsHeader.drilled ? 0.85 : 1)
+                    opacity: appsHeader.headerHot ? 1 : 0.85
                     color: appsHeader.headerHot ? root.selectedFg : root.fg
                 }
             }
@@ -356,16 +368,9 @@ Item {
                 anchors.fill: parent
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
-                Accessible.name: appsHeader.drilled
-                    ? (Locale.tr("Back", root.uiLang) + " — " + root.categoryTitle())
-                    : Locale.tr("All Applications", root.uiLang)
+                Accessible.name: Locale.tr("Back", root.uiLang) + " — " + root.categoryTitle()
                 Accessible.role: Accessible.Button
-                onClicked: {
-                    if (appsHeader.drilled)
-                        root.goBackToCategories();
-                    else
-                        root.openCategory("all");
-                }
+                onClicked: root.goBackToCategories()
             }
         }
 
@@ -373,6 +378,7 @@ Item {
             Layout.fillWidth: true
             opacity: 0.4
             Layout.bottomMargin: Kirigami.Units.smallSpacing
+            visible: !root.showingCategories
         }
 
         // Category list
@@ -398,11 +404,29 @@ Item {
                         id: catDel
                         required property int index
                         readonly property var cat: root.categoryItems[index]
-                        visible: !!(catDel.cat && catDel.cat.name)
+                        readonly property bool isSep: !!(catDel.cat && catDel.cat.separator)
+                        visible: !!(catDel.cat && (catDel.cat.separator || catDel.cat.name))
                         width: catColumn.width
-                        height: visible ? Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1) : 0
+                        height: {
+                            if (!visible)
+                                return 0;
+                            if (catDel.isSep)
+                                return Kirigami.Units.smallSpacing * 3;
+                            return Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1);
+                        }
+
+                        Kirigami.Separator {
+                            visible: catDel.isSep
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.verticalCenter: parent.verticalCenter
+                            anchors.leftMargin: Kirigami.Units.smallSpacing
+                            anchors.rightMargin: Kirigami.Units.smallSpacing
+                            opacity: 0.45
+                        }
 
                         Rectangle {
+                            visible: !catDel.isSep
                             anchors.fill: parent
                             anchors.margins: 1
                             radius: Kirigami.Units.smallSpacing
@@ -410,6 +434,7 @@ Item {
                         }
 
                         RowLayout {
+                            visible: !catDel.isSep
                             anchors.fill: parent
                             anchors.leftMargin: Kirigami.Units.smallSpacing
                             anchors.rightMargin: Kirigami.Units.smallSpacing
@@ -434,9 +459,9 @@ Item {
                         MouseArea {
                             id: catMouse
                             anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            enabled: !!(catDel.cat && catDel.cat.id)
+                            hoverEnabled: !catDel.isSep
+                            cursorShape: catDel.isSep ? Qt.ArrowCursor : Qt.PointingHandCursor
+                            enabled: !catDel.isSep && !!(catDel.cat && catDel.cat.id)
                             onClicked: root.openCategory(catDel.cat ? catDel.cat.id : "")
                         }
                     }
