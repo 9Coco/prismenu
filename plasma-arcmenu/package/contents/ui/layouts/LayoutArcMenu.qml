@@ -39,16 +39,7 @@ LayoutBase {
     }
 
     function activateShortcut(item) {
-        if (!item) return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
+        root.activateItem(item);
     }
 
     function resolveCatalog() {

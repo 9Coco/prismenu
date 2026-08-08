@@ -106,7 +106,7 @@ LayoutBase {
             root.userMenu();
             return;
         }
-        if (def.exec || def.action) {
+        if (def.exec || def.action || def.place) {
             root.activateItem(def);
         }
     }
@@ -142,20 +142,46 @@ LayoutBase {
                     PlasmaComponents.ToolButton {
                         required property int index
                         readonly property var def: root.railTop[index]
+                        readonly property bool isUser: def.id === "user"
+                        readonly property string faceSrc: {
+                            if (!isUser || !menuData || !menuData.userIcon)
+                                return "";
+                            var s = String(menuData.userIcon);
+                            if (s.indexOf("file:") === 0 || s.indexOf("image:") === 0)
+                                return s;
+                            if (s.indexOf("/") === 0)
+                                return "file://" + s;
+                            return "";
+                        }
                         Layout.alignment: Qt.AlignHCenter
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 2.4
                         Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
                         flat: true
                         checkable: true
                         checked: root.railSelectedId === def.id
-                        icon.name: def.icon
+                        icon.name: isUser && faceSrc.length ? "" : def.icon
                         icon.width: Kirigami.Units.iconSizes.smallMedium
                         icon.height: Kirigami.Units.iconSizes.smallMedium
-                        Accessible.name: def.tip
+                        Accessible.name: isUser && menuData && menuData.userName
+                            ? menuData.userName
+                            : def.tip
                         onClicked: root.activateRail(def)
-                        PlasmaComponents.ToolTip.text: def.tip
+                        PlasmaComponents.ToolTip.text: isUser && menuData && menuData.userName
+                            ? menuData.userName
+                            : def.tip
                         PlasmaComponents.ToolTip.visible: hovered
                         PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+
+                        Image {
+                            anchors.centerIn: parent
+                            width: Kirigami.Units.iconSizes.smallMedium
+                            height: width
+                            visible: parent.isUser && parent.faceSrc.length && status === Image.Ready
+                            source: parent.faceSrc
+                            fillMode: Image.PreserveAspectCrop
+                            asynchronous: true
+                            layer.enabled: true
+                        }
                     }
                 }
 

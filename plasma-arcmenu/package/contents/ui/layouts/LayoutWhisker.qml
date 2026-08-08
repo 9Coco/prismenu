@@ -116,18 +116,24 @@ LayoutBase {
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
             spacing: Kirigami.Units.smallSpacing
 
-            PlasmaComponents.ToolButton {
-                flat: true
+            Item {
                 Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-                icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                icon.width: Kirigami.Units.iconSizes.medium
-                icon.height: Kirigami.Units.iconSizes.medium
-                Accessible.name: root.tr("User")
-                onClicked: root.userMenu()
-                PlasmaComponents.ToolTip.text: root.tr("User account")
-                PlasmaComponents.ToolTip.visible: hovered
-                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Components.UserFace {
+                    anchors.fill: parent
+                    userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                    fallbackColor: root.fg
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    cursorShape: Qt.PointingHandCursor
+                    hoverEnabled: true
+                    Accessible.name: root.tr("User")
+                    onClicked: root.userMenu()
+                    PlasmaComponents.ToolTip.text: root.tr("User account")
+                    PlasmaComponents.ToolTip.visible: containsMouse
+                    PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                }
             }
 
             PlasmaComponents.Label {

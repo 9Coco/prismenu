@@ -39,7 +39,7 @@ LayoutBase {
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
                 fg: root.fg
-                onActivated: root.appActivated(model)
+                onActivated: root.activateItem(model)
                 onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
             }
 

@@ -144,16 +144,21 @@ LayoutBase {
                 Layout.alignment: Qt.AlignHCenter
                 spacing: Kirigami.Units.smallSpacing
 
-                PlasmaComponents.ToolButton {
+                Item {
                     Layout.alignment: Qt.AlignHCenter
-                    flat: true
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 3.5
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 3.5
-                    icon.name: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                    icon.width: Kirigami.Units.iconSizes.huge
-                    icon.height: Kirigami.Units.iconSizes.huge
-                    Accessible.name: root.tr("User")
-                    onClicked: root.userMenu()
+                    Components.UserFace {
+                        anchors.fill: parent
+                        userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                        fallbackColor: root.fg
+                    }
+                    MouseArea {
+                        anchors.fill: parent
+                        cursorShape: Qt.PointingHandCursor
+                        Accessible.name: root.tr("User")
+                        onClicked: root.userMenu()
+                    }
                 }
 
                 PlasmaComponents.Label {
