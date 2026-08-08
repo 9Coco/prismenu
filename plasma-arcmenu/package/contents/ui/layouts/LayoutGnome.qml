@@ -132,6 +132,8 @@ LayoutBase {
                         selected: !root.searching && root.gnomeSelectedId === "pinned"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectGnome("pinned")
                     }
@@ -144,6 +146,8 @@ LayoutBase {
                         selected: !root.searching && root.gnomeSelectedId === "all"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectGnome("all")
                     }
@@ -164,6 +168,8 @@ LayoutBase {
                             selected: !root.searching && root.gnomeSelectedId === root.categories[index].id
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectGnome(root.categories[index].id)
                         }
@@ -211,6 +217,8 @@ LayoutBase {
                                 showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.activateItem(root.contentItems[index])
                                 onContextMenuRequested: (x, y) => {
@@ -248,6 +256,8 @@ LayoutBase {
             iconSize: Math.max(root.categoryIconSize, 24)
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.powerAction("overview")
         }

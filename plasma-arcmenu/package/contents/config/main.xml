@@ -62,8 +62,19 @@
     </group>
 
     <group name="Theme">
+        <!-- system | custom — kept in sync with OverrideMenuTheme -->
         <entry name="ThemeMode" type="String">
             <default>system</default>
+        </entry>
+        <entry name="OverrideMenuTheme" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MenuThemeName" type="String">
+            <default>ArcMenu Style</default>
+        </entry>
+        <!-- JSON array of custom presets (ArcMenu menu-themes compatible) -->
+        <entry name="CustomThemes" type="String">
+            <default>[]</default>
         </entry>
         <entry name="BgColor" type="String">
             <default></default>
@@ -86,6 +97,22 @@
         <entry name="FontSize" type="Int">
             <default>-1</default>
         </entry>
+        <entry name="SeparatorColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="HoverBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="HoverFg" type="String">
+            <default></default>
+        </entry>
+        <entry name="ActiveBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="ActiveFg" type="String">
+            <default></default>
+        </entry>
+        <!-- Legacy aliases; mirrored from Active* when saving -->
         <entry name="SelectedBg" type="String">
             <default></default>
         </entry>

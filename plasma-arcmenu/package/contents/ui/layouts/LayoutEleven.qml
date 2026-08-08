@@ -245,6 +245,8 @@ LayoutBase {
                         showDescription: false
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.activateItem(root.frequentItems[index])
                         onContextMenuRequested: (x, y) => {
@@ -307,6 +309,8 @@ LayoutBase {
                             showDescription: false
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.activateItem(root.allAppsItems[index])
                             onContextMenuRequested: (x, y) => {

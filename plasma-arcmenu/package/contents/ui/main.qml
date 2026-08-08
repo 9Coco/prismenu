@@ -114,6 +114,9 @@ PlasmoidItem {
 
     readonly property var themeStyle: ThemeHelper.buildStyle({
         themeMode: plasmoid.configuration.themeMode,
+        overrideMenuTheme: !!plasmoid.configuration.overrideMenuTheme
+            || plasmoid.configuration.themeMode === "custom",
+        menuThemeName: plasmoid.configuration.menuThemeName || "",
         bgColor: plasmoid.configuration.bgColor,
         fgColor: plasmoid.configuration.fgColor,
         borderColor: plasmoid.configuration.borderColor,
@@ -121,6 +124,11 @@ PlasmoidItem {
         cornerRadius: plasmoid.configuration.cornerRadius,
         font: plasmoid.configuration.font,
         fontSize: plasmoid.configuration.fontSize,
+        separatorColor: plasmoid.configuration.separatorColor,
+        hoverBg: plasmoid.configuration.hoverBg,
+        hoverFg: plasmoid.configuration.hoverFg,
+        activeBg: plasmoid.configuration.activeBg,
+        activeFg: plasmoid.configuration.activeFg,
         selectedBg: plasmoid.configuration.selectedBg,
         selectedFg: plasmoid.configuration.selectedFg,
         categoryIconSize: plasmoid.configuration.categoryIconSize,

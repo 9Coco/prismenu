@@ -180,6 +180,8 @@ LayoutBase {
                         showDescription: false
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.activateItem(root.contentItems[index])
                         onContextMenuRequested: (x, y) => {

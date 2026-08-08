@@ -15,6 +15,8 @@ Item {
     property int iconSize: 28
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color hoverBg: selectedBg
+    property color hoverFg: selectedFg
     property color fg: Kirigami.Theme.textColor
 
     signal appActivated(var app)
@@ -95,6 +97,8 @@ Item {
                     showDescription: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
                     fg: root.fg
                     onActivated: root.appActivated(modelData)
                     onContextMenuRequested: (x, y) => {
