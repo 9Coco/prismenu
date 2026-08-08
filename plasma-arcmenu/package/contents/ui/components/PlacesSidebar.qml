@@ -41,13 +41,13 @@ ColumnLayout {
         ];
     }
 
+    // Extra shortcuts (configurable later); Overview omitted — no KDE equivalent
     readonly property var shortcutItems: {
         var _ = root.uiLang;
         return [
             { id: "shortcut-software", name: root.t("Software"), icon: "plasmadiscover", action: "discover" },
             { id: "shortcut-settings", name: root.t("Settings"), icon: "preferences-system", action: "settings" },
-            { id: "shortcut-tweaks", name: root.t("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-            { id: "shortcut-overview", name: root.t("Activities Overview"), icon: "overview", action: "overview" }
+            { id: "shortcut-tweaks", name: root.t("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
         ];
     }
 
