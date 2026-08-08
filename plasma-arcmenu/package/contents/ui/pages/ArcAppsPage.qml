@@ -184,12 +184,14 @@ Item {
     }
 
     function categoryTitle() {
-        if (root.showingCategories)
+        // Always keep "All Applications" as the clickable header label
+        // (category name is clear from the list context / back target)
+        if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
             return Locale.tr("All Applications", root.uiLang);
         var cats = root.categoryItems;
         for (var i = 0; i < cats.length; ++i) {
             if (cats[i].id === root.drillCategoryId)
-                return cats[i].name || "";
+                return cats[i].name || Locale.tr("All Applications", root.uiLang);
         }
         return Locale.tr("All Applications", root.uiLang);
     }
@@ -198,25 +200,60 @@ Item {
         anchors.fill: parent
         spacing: 0
 
-        // Header
-        RowLayout {
+        // Header: click "所有应用程序" → list every app (GNOME ArcMenu)
+        Item {
+            id: appsHeader
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
             Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
-            spacing: Kirigami.Units.smallSpacing
 
-            Kirigami.Icon {
-                source: "view-app-grid-symbolic"
-                Layout.preferredWidth: Math.max(root.categoryIconSize, 24)
-                Layout.preferredHeight: Math.max(root.categoryIconSize, 24)
+            readonly property bool headerClickable: root.showingCategories
+                || root.drillCategoryId !== "all"
+            readonly property bool headerActive: root.drillCategoryId === "all"
+            readonly property bool headerHot: headerMouse.containsMouse || headerActive
+
+            Rectangle {
+                anchors.fill: parent
+                anchors.margins: 1
+                radius: Kirigami.Units.smallSpacing
+                color: appsHeader.headerHot ? root.selectedBg : "transparent"
+                opacity: appsHeader.headerHot ? 1 : 0
             }
 
-            PlasmaComponents.Label {
-                Layout.fillWidth: true
-                text: root.categoryTitle()
-                elide: Text.ElideRight
-                font.weight: Font.Medium
-                color: root.fg
+            RowLayout {
+                anchors.fill: parent
+                anchors.leftMargin: Kirigami.Units.smallSpacing
+                anchors.rightMargin: Kirigami.Units.smallSpacing
+                spacing: Kirigami.Units.smallSpacing
+
+                Kirigami.Icon {
+                    source: "view-app-grid-symbolic"
+                    Layout.preferredWidth: Math.max(root.categoryIconSize, 24)
+                    Layout.preferredHeight: Math.max(root.categoryIconSize, 24)
+                    color: appsHeader.headerHot ? root.selectedFg : root.fg
+                }
+
+                PlasmaComponents.Label {
+                    Layout.fillWidth: true
+                    text: root.categoryTitle()
+                    elide: Text.ElideRight
+                    font.weight: Font.Medium
+                    color: appsHeader.headerHot ? root.selectedFg : root.fg
+                }
+            }
+
+            MouseArea {
+                id: headerMouse
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: appsHeader.headerClickable ? Qt.PointingHandCursor : Qt.ArrowCursor
+                enabled: appsHeader.headerClickable
+                Accessible.name: Locale.tr("All Applications", root.uiLang)
+                Accessible.role: Accessible.Button
+                onClicked: {
+                    if (root.drillCategoryId !== "all")
+                        root.openCategory("all");
+                }
             }
         }
 
