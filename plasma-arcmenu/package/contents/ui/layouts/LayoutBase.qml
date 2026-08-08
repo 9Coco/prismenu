@@ -69,9 +69,19 @@ Item {
 
     Rectangle {
         anchors.fill: parent
+        z: -2
         color: root.bg
         border.color: root.borderColor
         border.width: root.borderWidth
         radius: root.radius
+    }
+
+    // Catch right-clicks on layout empty space (not on app/shortcut MouseAreas)
+    MouseArea {
+        anchors.fill: parent
+        z: -1
+        acceptedButtons: Qt.RightButton
+        onPressed: (mouse) => { mouse.accepted = true; }
+        onClicked: (mouse) => { mouse.accepted = true; }
     }
 }

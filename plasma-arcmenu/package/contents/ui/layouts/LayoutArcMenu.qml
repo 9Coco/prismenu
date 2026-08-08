@@ -224,6 +224,7 @@ LayoutBase {
                 fg: root.fg
                 onUserClicked: root.userMenu()
                 onItemActivated: (item) => root.activateShortcut(item)
+                onItemContextMenu: (item, x, y) => root.appContextMenu(item, x, y)
             }
         }
 
