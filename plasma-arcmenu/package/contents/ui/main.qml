@@ -8,6 +8,7 @@ import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
 import org.kde.coreaddons as KCoreAddons
+import org.kde.kcmutils as KCM
 import "../code/Distro.js" as Distro
 import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
@@ -48,14 +49,12 @@ PlasmoidItem {
             menuData.userIcon = face;
         if (kuser.os)
             menuData.osPrettyName = kuser.os;
-        console.log("ArcMenu KUser:", name, face);
     }
 
     onExpandedChanged: function (expanded) {
         if (expanded) {
             root.applyKUserMeta();
-            backend.refreshUserMeta();
-            // ArcMenu search providers / extra-category “Recent Files”
+            // os-release already probed at startup; face/name from KUser above
             if (plasmoid.configuration.searchRecentFiles
                 || menuData.isExtraCategoryEnabled("recent-files"))
                 backend.refreshRecentFiles();
@@ -184,20 +183,14 @@ PlasmoidItem {
                         "epoch", menuData.catalogEpoch);
         }
         onMetaUpdated: (userName, userIcon, osId, osPretty) => {
-            if (userName)
-                menuData.userName = userName;
-            // Keep Kickoff path (kuser.faceIconUrl) when present; only use staged
-            // PNG if KUser has not provided a face yet.
-            var kface = "";
-            try { kface = String(kuser.faceIconUrl || ""); } catch (e) {}
-            if ((!kface || kface.length <= 8) && userIcon && userIcon !== "user-identity")
-                menuData.userIcon = userIcon;
+            // Name/face: KUser only (Kickoff). Meta script supplies os-release.
             if (osId)
                 menuData.osReleaseId = osId;
             if (osPretty)
                 menuData.osPrettyName = osPretty;
         }
         Component.onCompleted: {
+            menuData.appsBackend = backend;
             root.applyKUserMeta();
             refreshUserMeta();
         }
@@ -271,12 +264,30 @@ PlasmoidItem {
     }
 
     function handlePower(actionId) {
-        var destructive = ["shutdown", "restart", "logout"];
-        if (plasmoid.configuration.confirm && destructive.indexOf(actionId) >= 0) {
-            confirmDialog.openFor(actionId);
+        // Kickoff: Users KCM via KCMLauncher
+        if (actionId === "accountsettings") {
+            try {
+                KCM.KCMLauncher.openSystemSettings("kcm_users");
+                closeMenu();
+                return;
+            } catch (e) {
+                console.warn("ArcMenu KCMLauncher failed, fallback", e);
+            }
+        }
+        // SessionManagement shows the system leave prompt (Kickoff Leave).
+        // ArcMenu "confirm" → ForcePrompt; off → SkipPrompt.
+        var sessionIds = ["shutdown", "restart", "logout", "lock", "suspend", "hibernate", "switchuser", "hybridsleep"];
+        var confMode = plasmoid.configuration.confirm ? "force" : "skip";
+        if (sessionIds.indexOf(actionId) >= 0) {
+            // Still allow ArcMenu dialog as an extra gate when ForcePrompt unsupported
+            if (plasmoid.configuration.confirm && ["shutdown", "restart", "logout"].indexOf(actionId) >= 0) {
+                confirmDialog.openFor(actionId);
+                return;
+            }
+            backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, confMode);
             return;
         }
-        backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
+        backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, confMode);
         if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings") {
             closeMenu();
         }
@@ -715,7 +726,8 @@ PlasmoidItem {
             anchors.centerIn: parent
             menuData: root.catalog
             onConfirmed: (actionId) => {
-                backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
+                // User already confirmed in ArcMenu dialog → skip system prompt
+                backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, "skip");
             }
         }
 

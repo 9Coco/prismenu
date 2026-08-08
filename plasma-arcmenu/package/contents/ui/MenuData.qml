@@ -403,6 +403,12 @@ QtObject {
     property string userIcon: "user-identity"
     property string osReleaseId: "kubuntu"
     property string osPrettyName: "Kubuntu"
+    /** Populated by PlasmaNative (Kickoff-aligned) */
+    property var runnerResults: []
+    property var plasmaRecentApps: []
+    property var plasmaFavoriteIds: []
+    property var plasmaPlaces: []
+    property var appsBackend: null
 
     readonly property var categories: {
         var _apps = allApps || [];
@@ -443,10 +449,48 @@ QtObject {
 
     /** Config list, or defaults when never saved — used by display + toggle */
     function effectivePinnedIds() {
-        var ids = IdList.normalizeIdList(cfg("pinnedApps", []));
-        if (ids.length === 0)
+        var local = IdList.normalizeIdList(cfg("pinnedApps", []));
+        // Sync with Plasma global favorites (Kickoff / KAStats)
+        if (root.syncFavorites && root.plasmaFavoriteIds && root.plasmaFavoriteIds.length) {
+            var merged = [];
+            var seen = {};
+            // Keep ArcMenu-only pins from local config first
+            for (var i = 0; i < local.length; ++i) {
+                var lid = String(local[i] || "");
+                if (!lid)
+                    continue;
+                if (lid === "arcmenu-settings" || lid.indexOf("custom:") === 0
+                    || lid.indexOf("shortcut-") === 0) {
+                    if (!seen[lid]) {
+                        seen[lid] = true;
+                        merged.push(lid);
+                    }
+                }
+            }
+            for (var p = 0; p < root.plasmaFavoriteIds.length; ++p) {
+                var pid = String(root.plasmaFavoriteIds[p] || "");
+                if (!pid || seen[pid])
+                    continue;
+                seen[pid] = true;
+                merged.push(pid);
+            }
+            // Local desktop pins not yet in Plasma (migration)
+            for (var j = 0; j < local.length; ++j) {
+                var id = String(local[j] || "");
+                if (!id || seen[id])
+                    continue;
+                if (id === "arcmenu-settings" || id.indexOf("custom:") === 0
+                    || id.indexOf("shortcut-") === 0)
+                    continue;
+                seen[id] = true;
+                merged.push(id);
+            }
+            if (merged.length)
+                return merged;
+        }
+        if (local.length === 0)
             return IdList.defaultPinnedIds().slice();
-        return ids;
+        return local;
     }
 
     /** Map sidebar shortcuts → pin ids (prefer real .desktop when known) */
@@ -578,6 +622,9 @@ QtObject {
         if (!recentEnabled) {
             return [];
         }
+        // Prefer KAStats recent apps (same as Kickoff)
+        if (plasmaRecentApps && plasmaRecentApps.length)
+            return plasmaRecentApps.slice(0, recentMax || 10);
         var ids = cfg("recentApps", []);
         return AppsModel.resolveAppsByIds(allApps, ids);
     }
@@ -590,8 +637,19 @@ QtObject {
         }
         var _cfg = searchConfigEpoch;
         var _rf = recentFilesEpoch;
+        var _rr = runnerResults;
         var q = searchQuery.trim();
-        // Fetch more apps than max so extras still have room after merge
+        // Plasma Search (RunnerModel) first — Kickoff path
+        var runners = runnerResults || [];
+        if (runners.length) {
+            var extrasR = [];
+            if (searchRecentFiles)
+                extrasR = extrasR.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
+            if (searchWindows)
+                extrasR = extrasR.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
+            return SearchExtras.mergeSearchResults(runners, extrasR, maxSearchResults);
+        }
+        // Fallback: in-memory app filter
         var appCap = Math.max(maxSearchResults * 2, maxSearchResults + 8);
         var apps = AppsModel.searchApps(allApps, q, appCap);
         var extras = [];
@@ -762,6 +820,18 @@ QtObject {
      */
     readonly property var places: {
         var _ = root.uiLang;
+        // Prefer KFilePlacesModel (Dolphin / Kickoff places)
+        if (plasmaPlaces && plasmaPlaces.length) {
+            var kp = plasmaPlaces.slice();
+            if (root.showBookmarks) {
+                kp.push({
+                    id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
+                    special: "bookmarks",
+                    categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
+                });
+            }
+            return kp;
+        }
         var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
         var out = [];
         for (var i = 0; i < raw.length; ++i) {
@@ -784,7 +854,6 @@ QtObject {
         if (root.showBookmarks) {
             out.push({
                 id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
-                // In-menu GTK bookmarks list — bookmarks:/ KIO is unreliable on Plasma
                 special: "bookmarks",
                 categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
             });
@@ -827,28 +896,56 @@ QtObject {
         return out;
     }
 
-    function isFavorite(appOrId) {
-        var ids = root.effectivePinnedIds();
-        if (appOrId && typeof appOrId === "object") {
-            var pinId = root.resolvePinId(appOrId);
-            return Favorites.isFavorite(ids, pinId)
-                || Favorites.isFavorite(ids, appOrId.id);
-        }
-        return Favorites.isFavorite(ids, appOrId);
-    }
-
     function toggleFavorite(app) {
         if (!app || !plasmoidConfig) {
             return;
         }
-        // Seed defaults on first edit so pinning does not wipe Files / ArcMenu Settings
-        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
-        if (current.length === 0)
-            current = IdList.defaultPinnedIds().slice();
         var pinId = root.resolvePinId(app);
         if (!pinId)
             pinId = app.id;
+        var favId = app.favoriteId || pinId;
+        var isSpecial = String(pinId).indexOf("custom:") === 0
+            || String(pinId).indexOf("shortcut-") === 0
+            || pinId === "arcmenu-settings";
+
+        // Kickoff path: KAStats global favorites for real apps
+        if (root.syncFavorites && !isSpecial && appsBackend
+            && appsBackend.togglePlasmaFavorite) {
+            var wasFav = appsBackend.isPlasmaFavorite
+                ? appsBackend.isPlasmaFavorite(favId) : false;
+            if (appsBackend.togglePlasmaFavorite(favId)) {
+                var cur = IdList.normalizeIdList(cfg("pinnedApps", []));
+                if (cur.length === 0)
+                    cur = IdList.defaultPinnedIds().slice();
+                var nowFav = !wasFav;
+                var locally = Favorites.isFavorite(cur, pinId);
+                if (nowFav !== locally)
+                    plasmoidConfig.pinnedApps = Favorites.toggleFavorite(cur, pinId);
+                return;
+            }
+        }
+
+        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
+        if (current.length === 0)
+            current = IdList.defaultPinnedIds().slice();
         plasmoidConfig.pinnedApps = Favorites.toggleFavorite(current, pinId);
+    }
+
+    function isFavorite(appOrId) {
+        var ids = root.effectivePinnedIds();
+        if (appOrId && typeof appOrId === "object") {
+            var pinId = root.resolvePinId(appOrId);
+            var favId = appOrId.favoriteId || pinId;
+            if (root.syncFavorites && appsBackend && appsBackend.isPlasmaFavorite
+                && favId && appsBackend.isPlasmaFavorite(favId))
+                return true;
+            return Favorites.isFavorite(ids, pinId)
+                || Favorites.isFavorite(ids, appOrId.id);
+        }
+        if (root.syncFavorites && appsBackend && appsBackend.isPlasmaFavorite
+            && appsBackend.isPlasmaFavorite(appOrId))
+            return true;
+        return Favorites.isFavorite(ids, appOrId);
     }
 
     /** Keep ArcMenu Settings in the pinned list when config was previously wiped */
