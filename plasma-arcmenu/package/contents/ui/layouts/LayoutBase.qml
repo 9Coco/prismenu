@@ -93,7 +93,7 @@ Item {
      * Handles configure, power actions, place: keys, and normal apps.
      */
     function activateItem(item) {
-        if (!item)
+        if (!item || item.isSection)
             return;
         if (item.action === "configure") {
             if (menuData)

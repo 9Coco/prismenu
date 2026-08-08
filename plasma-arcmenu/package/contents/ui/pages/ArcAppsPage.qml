@@ -550,6 +550,7 @@ Item {
                         required property int index
                         width: appColumn.width
                         app: root.drilledApps[index]
+                        menuData: root.menuData || root.dataHost
                         iconSize: root.appIconSize
                         showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
                         showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
@@ -559,8 +560,16 @@ Item {
                         hoverBg: root.hoverBg
                         hoverFg: root.hoverFg
                         fg: root.fg
-                        onActivated: root.appActivated(root.drilledApps[index])
-                        onContextMenuRequested: (x, y) => root.appContextMenu(root.drilledApps[index], x, y)
+                        onActivated: {
+                            var a = root.drilledApps[index];
+                            if (a && !a.isSection)
+                                root.appActivated(a);
+                        }
+                        onContextMenuRequested: (x, y) => {
+                            var a = root.drilledApps[index];
+                            if (a && !a.isSection)
+                                root.appContextMenu(a, x, y);
+                        }
                     }
                 }
 
@@ -589,6 +598,7 @@ Item {
                                 required property var modelData
                                 width: appColumn.width
                                 app: modelData
+                                menuData: root.menuData || root.dataHost
                                 iconSize: root.appIconSize
                                 showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
                                 showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)

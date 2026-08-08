@@ -84,6 +84,7 @@ LayoutBase {
                 clip: true
                 model: appModel
                 delegate: Components.AppListItem {
+                    menuData: menuData
                     width: appList.width
                     app: model
                     iconSize: root.appIconSize
@@ -118,6 +119,7 @@ LayoutBase {
                     clip: true
                     model: recentModel
                     delegate: Components.AppListItem {
+                        menuData: menuData
                         width: parent.width
                         app: model
                         iconSize: root.appIconSize

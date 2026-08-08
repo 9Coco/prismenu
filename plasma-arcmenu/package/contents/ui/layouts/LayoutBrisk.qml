@@ -78,7 +78,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -253,6 +254,7 @@ LayoutBase {
                             model: root.contentItems.length
                             Components.AppListItem {
                                 required property int index
+                                menuData: menuData
                                 width: contentCol.width
                                 app: root.contentItems[index]
                                 iconSize: Math.max(root.appIconSize, 28)

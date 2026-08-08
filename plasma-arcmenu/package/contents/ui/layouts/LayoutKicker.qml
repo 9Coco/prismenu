@@ -139,6 +139,7 @@ LayoutBase {
             clip: true
             model: cascadeAppModel
             delegate: Components.AppListItem {
+                menuData: menuData
                 width: cascadeApps.width
                 app: model
                 iconSize: root.appIconSize

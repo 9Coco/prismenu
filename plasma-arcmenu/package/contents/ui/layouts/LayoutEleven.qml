@@ -9,7 +9,7 @@ import "../../code/AppsModel.js" as AppsModel
  * Eleven layout (Windows 11 Start / ArcMenu Eleven style).
  *
  * Search
- * å·²å›ºå®?header + All apps link | pinned icon grid
+ * å·²å›ºï¿½?header + All apps link | pinned icon grid
  * å¸¸ç”¨ | two-column recent list
  * Footer: user | files, settings, power
  */
@@ -93,7 +93,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -121,7 +122,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: {
                 if (menuData) menuData.setSearch(text);
@@ -153,7 +154,7 @@ LayoutBase {
                 }
             }
 
-            // Fixed cell size, left-packed (Win11 style â€?not stretched to 6 columns)
+            // Fixed cell size, left-packed (Win11 style ï¿½?not stretched to 6 columns)
             Flow {
                 id: pinnedFlow
                 Layout.fillWidth: true
@@ -226,7 +227,7 @@ LayoutBase {
                 color: root.fg
             }
 
-            // Two-column frequent list â€?content-sized, does not eat leftover height
+            // Two-column frequent list ï¿½?content-sized, does not eat leftover height
             GridLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
@@ -238,6 +239,7 @@ LayoutBase {
                     model: root.frequentItems.length
                     Components.AppListItem {
                         required property int index
+                        menuData: menuData
                         Layout.fillWidth: true
                         Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
                         app: root.frequentItems[index]
@@ -303,6 +305,7 @@ LayoutBase {
                         model: root.allAppsItems.length
                         Components.AppListItem {
                             required property int index
+                            menuData: menuData
                             width: allCol.width
                             app: root.allAppsItems[index]
                             iconSize: Math.max(root.appIconSize, 28)
