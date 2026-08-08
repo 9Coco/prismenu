@@ -8,8 +8,7 @@ import "../../code/Theme.js" as ThemeHelper
 import "../../code/Locale.js" as Locale
 
 /**
- * Menu Theme settings — mirrors GNOME ArcMenu:
- * Override toggle → preset picker → Menu Style / Menu Item Style + Save as Theme
+ * Menu Theme settings — ConfigPage chrome.
  */
 Item {
     id: root
@@ -52,9 +51,7 @@ Item {
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
-    function tr(msgid) {
-        return Locale.tr(msgid, uiLang);
-    }
+    function tr(msgid) { return Locale.tr(msgid, uiLang); }
 
     function syncOverride(on) {
         cfg_OverrideMenuTheme = on;
@@ -127,10 +124,8 @@ Item {
         name = String(name || "").trim();
         if (!name)
             return;
-        if (ThemeHelper.isBuiltinName(name)) {
-            // Saving over a built-in name → store as custom copy with suffix
+        if (ThemeHelper.isBuiltinName(name))
             name = name + " (custom)";
-        }
         var customs = ThemeHelper.parseCustomThemesJson(cfg_CustomThemes || "[]");
         var next = [];
         var replaced = false;
@@ -197,16 +192,15 @@ Item {
         themeCombo.currentIndex = Math.max(0, root.presetNames.indexOf("ArcMenu Style"));
     }
 
-    component ColorRow: RowLayout {
+    component ColorRow: ConfigSettingRow {
         id: colorRow
-        property string label: ""
         property string colorValue: ""
         property string propKey: ""
+        property bool rowEnabled: true
         signal colorEdited(string value)
 
-        Kirigami.FormData.label: colorRow.label
-        enabled: root.overrideOn
-        spacing: Kirigami.Units.smallSpacing
+        enabled: colorRow.rowEnabled
+        opacity: rowEnabled ? 1 : 0.45
 
         Rectangle {
             Layout.preferredWidth: Kirigami.Units.gridUnit * 1.6
@@ -219,7 +213,6 @@ Item {
                     return "transparent";
                 try { return colorRow.colorValue; } catch (e) { return "transparent"; }
             }
-            // Checkerboard hint when empty / transparent-looking
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
@@ -232,6 +225,7 @@ Item {
             }
             MouseArea {
                 anchors.fill: parent
+                enabled: colorRow.rowEnabled
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     colorDialog.targetProp = colorRow.propKey;
@@ -240,9 +234,9 @@ Item {
                 }
             }
         }
-
         QQC2.TextField {
-            Layout.fillWidth: true
+            Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+            enabled: colorRow.rowEnabled
             text: colorRow.colorValue
             placeholderText: "rgb() / #RRGGBB"
             onEditingFinished: colorRow.colorEdited(text)
@@ -253,177 +247,194 @@ Item {
         }
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: Kirigami.Units.smallSpacing
+    ConfigPage {
+        title: root.tr("Menu Theme")
+        tip: root.tr("Modify menu colors, font size, and border")
 
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
-
-            QQC2.Switch {
-                id: overrideSwitch
-                Kirigami.FormData.label: root.tr("Override theme")
-                checked: root.overrideOn
-                onToggled: {
-                    syncOverride(checked);
-                    if (checked && (!cfg_BgColor || cfg_BgColor === "")) {
-                        var t = ThemeHelper.findPreset(cfg_MenuThemeName || "ArcMenu Style", cfg_CustomThemes);
+        ConfigGroup {
+            title: root.tr("Theme")
+            ConfigSettingRow {
+                title: root.tr("Override theme")
+                subtitle: root.tr("Results may vary with third-party Plasma themes.")
+                iconName: "preferences-desktop-theme"
+                accent: "blue"
+                QQC2.Switch {
+                    id: overrideSwitch
+                    checked: root.overrideOn
+                    onToggled: {
+                        syncOverride(checked);
+                        if (checked && (!cfg_BgColor || cfg_BgColor === "")) {
+                            var t = ThemeHelper.findPreset(cfg_MenuThemeName || "ArcMenu Style", cfg_CustomThemes);
+                            if (t)
+                                applyPreset(t);
+                        }
+                    }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Current theme:")
+                iconName: "color-management"
+                accent: "purple"
+                opacity: root.overrideOn ? 1 : 0.45
+                QQC2.ComboBox {
+                    id: themeCombo
+                    enabled: root.overrideOn
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
+                    model: root.presetNames
+                    Component.onCompleted: {
+                        var idx = root.presetNames.indexOf(cfg_MenuThemeName || "ArcMenu Style");
+                        currentIndex = idx >= 0 ? idx : 0;
+                    }
+                    onActivated: {
+                        var name = model[currentIndex];
+                        var t = ThemeHelper.findPreset(name, cfg_CustomThemes);
                         if (t)
                             applyPreset(t);
                     }
                 }
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.65
-                text: root.tr("Results may vary with third-party Plasma themes.")
-            }
-        }
-
-        Kirigami.Separator { Layout.fillWidth: true }
-
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
-            enabled: root.overrideOn
-
-            QQC2.ComboBox {
-                id: themeCombo
-                Kirigami.FormData.label: root.tr("Current theme:")
-                model: root.presetNames
-                Component.onCompleted: {
-                    var idx = root.presetNames.indexOf(cfg_MenuThemeName || "ArcMenu Style");
-                    currentIndex = idx >= 0 ? idx : 0;
+                QQC2.Button {
+                    text: root.tr("Save as theme")
+                    enabled: root.overrideOn
+                    onClicked: {
+                        saveNameField.text = cfg_MenuThemeName && !ThemeHelper.isBuiltinName(cfg_MenuThemeName)
+                            ? cfg_MenuThemeName : "";
+                        saveDialog.open();
+                    }
                 }
-                onActivated: {
-                    var name = model[currentIndex];
-                    var t = ThemeHelper.findPreset(name, cfg_CustomThemes);
-                    if (t)
-                        applyPreset(t);
+                QQC2.Button {
+                    text: root.tr("Delete theme")
+                    enabled: root.overrideOn && cfg_MenuThemeName && !ThemeHelper.isBuiltinName(cfg_MenuThemeName)
+                    onClicked: deleteCurrentCustom()
                 }
             }
         }
 
-        // ---- Menu Style ----
-        RowLayout {
-            Layout.fillWidth: true
-            QQC2.Label {
-                text: root.tr("Menu style")
-                font.bold: true
-                Layout.fillWidth: true
-            }
-            QQC2.Button {
-                text: root.tr("Save as theme")
-                enabled: root.overrideOn
-                onClicked: {
-                    saveNameField.text = cfg_MenuThemeName && !ThemeHelper.isBuiltinName(cfg_MenuThemeName)
-                        ? cfg_MenuThemeName : "";
-                    saveDialog.open();
-                }
-            }
-            QQC2.Button {
-                text: root.tr("Delete theme")
-                enabled: root.overrideOn && cfg_MenuThemeName && !ThemeHelper.isBuiltinName(cfg_MenuThemeName)
-                onClicked: deleteCurrentCustom()
-            }
-        }
-
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
-            enabled: root.overrideOn
-
+        ConfigGroup {
+            title: root.tr("Menu style")
             ColorRow {
-                label: root.tr("Background color:")
+                title: root.tr("Background color:")
+                iconName: "fill-color"
+                accent: "blue"
                 colorValue: cfg_BgColor
                 propKey: "bg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_BgColor = v; writeLive("bgColor", v); }
             }
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Foreground color:")
+                title: root.tr("Foreground color:")
+                iconName: "format-text-color"
+                accent: "purple"
                 colorValue: cfg_FgColor
                 propKey: "fg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_FgColor = v; writeLive("fgColor", v); }
             }
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Border color:")
+                title: root.tr("Border color:")
+                iconName: "object-stroke-style"
+                accent: "teal"
                 colorValue: cfg_BorderColor
                 propKey: "border"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_BorderColor = v; writeLive("borderColor", v); }
             }
-
-            QQC2.SpinBox {
-                id: borderWidthSpin
-                Kirigami.FormData.label: root.tr("Border width:")
-                from: 0
-                to: 8
-                value: cfg_BorderWidth
-                onValueModified: {
-                    cfg_BorderWidth = value;
-                    writeLive("borderWidth", value);
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Border width:")
+                iconName: "resizecol"
+                accent: "orange"
+                opacity: root.overrideOn ? 1 : 0.45
+                QQC2.SpinBox {
+                    id: borderWidthSpin
+                    enabled: root.overrideOn
+                    from: 0; to: 8
+                    value: cfg_BorderWidth
+                    onValueModified: {
+                        cfg_BorderWidth = value;
+                        writeLive("borderWidth", value);
+                    }
                 }
             }
-
-            QQC2.SpinBox {
-                id: radiusSpin
-                Kirigami.FormData.label: root.tr("Border corner radius:")
-                from: -1
-                to: 32
-                value: cfg_CornerRadius
-                textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
-                onValueModified: {
-                    cfg_CornerRadius = value;
-                    writeLive("cornerRadius", value);
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Border corner radius:")
+                iconName: "draw-square-rounded"
+                accent: "green"
+                opacity: root.overrideOn ? 1 : 0.45
+                QQC2.SpinBox {
+                    id: radiusSpin
+                    enabled: root.overrideOn
+                    from: -1; to: 32
+                    value: cfg_CornerRadius
+                    textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
+                    onValueModified: {
+                        cfg_CornerRadius = value;
+                        writeLive("cornerRadius", value);
+                    }
                 }
             }
-
-            QQC2.SpinBox {
-                id: fontSizeSpin
-                Kirigami.FormData.label: root.tr("Font size:")
-                from: -1
-                to: 32
-                value: cfg_FontSize
-                textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
-                onValueModified: {
-                    cfg_FontSize = value;
-                    writeLive("fontSize", value);
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Font size:")
+                iconName: "font-size"
+                accent: "cyan"
+                opacity: root.overrideOn ? 1 : 0.45
+                QQC2.SpinBox {
+                    id: fontSizeSpin
+                    enabled: root.overrideOn
+                    from: -1; to: 32
+                    value: cfg_FontSize
+                    textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
+                    onValueModified: {
+                        cfg_FontSize = value;
+                        writeLive("fontSize", value);
+                    }
                 }
             }
-
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Separator color:")
+                title: root.tr("Separator color:")
+                iconName: "view-split-left-right"
+                accent: "indigo"
                 colorValue: cfg_SeparatorColor
                 propKey: "sep"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_SeparatorColor = v; writeLive("separatorColor", v); }
             }
         }
 
-        // ---- Menu Item Style ----
-        QQC2.Label {
-            text: root.tr("Menu item style")
-            font.bold: true
-        }
-
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
-            enabled: root.overrideOn
-
+        ConfigGroup {
+            title: root.tr("Menu item style")
             ColorRow {
-                label: root.tr("Hover background color:")
+                title: root.tr("Hover background color:")
+                iconName: "fill-color"
+                accent: "blue"
                 colorValue: cfg_HoverBg
                 propKey: "hoverBg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_HoverBg = v; writeLive("hoverBg", v); }
             }
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Hover foreground color:")
+                title: root.tr("Hover foreground color:")
+                iconName: "format-text-color"
+                accent: "purple"
                 colorValue: cfg_HoverFg
                 propKey: "hoverFg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => { cfg_HoverFg = v; writeLive("hoverFg", v); }
             }
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Active background color:")
+                title: root.tr("Active background color:")
+                iconName: "fill-color"
+                accent: "teal"
                 colorValue: cfg_ActiveBg
                 propKey: "activeBg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => {
                     cfg_ActiveBg = v;
                     cfg_SelectedBg = v;
@@ -431,10 +442,14 @@ Item {
                     writeLive("selectedBg", v);
                 }
             }
+            ConfigSep {}
             ColorRow {
-                label: root.tr("Active foreground color:")
+                title: root.tr("Active foreground color:")
+                iconName: "format-text-color"
+                accent: "orange"
                 colorValue: cfg_ActiveFg
                 propKey: "activeFg"
+                rowEnabled: root.overrideOn
                 onColorEdited: (v) => {
                     cfg_ActiveFg = v;
                     cfg_SelectedFg = v;
@@ -444,94 +459,92 @@ Item {
             }
         }
 
-        Kirigami.Separator { Layout.fillWidth: true }
-
-        // Icons (kept from previous settings)
-        Kirigami.FormLayout {
-            Layout.fillWidth: true
-
-            QQC2.SpinBox {
-                id: catIconSpin
-                Kirigami.FormData.label: root.tr("Category icon size:")
-                from: 16
-                to: 64
-                value: cfg_CategoryIconSize
-                onValueModified: {
-                    cfg_CategoryIconSize = value;
-                    writeLive("categoryIconSize", value);
+        ConfigGroup {
+            title: root.tr("Icons")
+            ConfigSettingRow {
+                title: root.tr("Category icon size:")
+                iconName: "view-categories"
+                accent: "green"
+                QQC2.SpinBox {
+                    id: catIconSpin
+                    from: 16; to: 64
+                    value: cfg_CategoryIconSize
+                    onValueModified: {
+                        cfg_CategoryIconSize = value;
+                        writeLive("categoryIconSize", value);
+                    }
                 }
             }
-            QQC2.SpinBox {
-                id: appIconSpin
-                Kirigami.FormData.label: root.tr("Application icon size:")
-                from: 16
-                to: 96
-                value: cfg_AppIconSize
-                onValueModified: {
-                    cfg_AppIconSize = value;
-                    writeLive("appIconSize", value);
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Application icon size:")
+                iconName: "applications-all"
+                accent: "pink"
+                QQC2.SpinBox {
+                    id: appIconSpin
+                    from: 16; to: 96
+                    value: cfg_AppIconSize
+                    onValueModified: {
+                        cfg_AppIconSize = value;
+                        writeLive("appIconSize", value);
+                    }
                 }
             }
         }
 
-        // Preview
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 8
-            radius: cfg_CornerRadius < 0 ? Kirigami.Units.cornerRadius : cfg_CornerRadius
-            color: root.overrideOn && cfg_BgColor ? cfg_BgColor : Kirigami.Theme.backgroundColor
-            border.width: cfg_BorderWidth
-            border.color: root.overrideOn && cfg_BorderColor ? cfg_BorderColor : Kirigami.Theme.disabledTextColor
-
-            ColumnLayout {
-                anchors.fill: parent
-                anchors.margins: Kirigami.Units.smallSpacing
-                spacing: Kirigami.Units.smallSpacing / 2
-
-                QQC2.Label {
-                    text: root.tr("Preview")
-                    font.bold: true
-                    color: root.overrideOn && cfg_FgColor ? cfg_FgColor : Kirigami.Theme.textColor
-                    font.pointSize: cfg_FontSize > 0 ? cfg_FontSize : Kirigami.Theme.defaultFont.pointSize
-                }
-
+        ConfigGroup {
+            title: root.tr("Preview")
+            Item {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 8 + Kirigami.Units.largeSpacing * 2
                 Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
-                    radius: 4
-                    color: {
-                        if (root.overrideOn && cfg_HoverBg)
-                            return cfg_HoverBg;
-                        return Kirigami.Theme.highlightColor;
-                    }
-                    QQC2.Label {
-                        anchors.centerIn: parent
-                        text: root.tr("Hover item")
-                        color: root.overrideOn && cfg_HoverFg ? cfg_HoverFg : Kirigami.Theme.highlightedTextColor
-                    }
-                }
+                    anchors.fill: parent
+                    anchors.margins: Kirigami.Units.largeSpacing
+                    radius: cfg_CornerRadius < 0 ? Kirigami.Units.cornerRadius : cfg_CornerRadius
+                    color: root.overrideOn && cfg_BgColor ? cfg_BgColor : Kirigami.Theme.backgroundColor
+                    border.width: cfg_BorderWidth
+                    border.color: root.overrideOn && cfg_BorderColor ? cfg_BorderColor : Kirigami.Theme.disabledTextColor
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
-                    radius: 4
-                    color: {
-                        if (root.overrideOn && cfg_ActiveBg)
-                            return cfg_ActiveBg;
-                        return Kirigami.Theme.highlightColor;
-                    }
-                    QQC2.Label {
-                        anchors.centerIn: parent
-                        text: root.tr("Active item")
-                        color: root.overrideOn && cfg_ActiveFg ? cfg_ActiveFg : Kirigami.Theme.highlightedTextColor
-                    }
-                }
+                    ColumnLayout {
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.smallSpacing
+                        spacing: Kirigami.Units.smallSpacing / 2
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 1
-                    color: root.overrideOn && cfg_SeparatorColor ? cfg_SeparatorColor : Kirigami.Theme.disabledTextColor
-                    opacity: root.overrideOn && cfg_SeparatorColor ? 1 : 0.4
+                        QQC2.Label {
+                            text: root.tr("Preview")
+                            font.bold: true
+                            color: root.overrideOn && cfg_FgColor ? cfg_FgColor : Kirigami.Theme.textColor
+                            font.pointSize: cfg_FontSize > 0 ? cfg_FontSize : Kirigami.Theme.defaultFont.pointSize
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
+                            radius: 4
+                            color: root.overrideOn && cfg_HoverBg ? cfg_HoverBg : Kirigami.Theme.highlightColor
+                            QQC2.Label {
+                                anchors.centerIn: parent
+                                text: root.tr("Hover item")
+                                color: root.overrideOn && cfg_HoverFg ? cfg_HoverFg : Kirigami.Theme.highlightedTextColor
+                            }
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
+                            radius: 4
+                            color: root.overrideOn && cfg_ActiveBg ? cfg_ActiveBg : Kirigami.Theme.highlightColor
+                            QQC2.Label {
+                                anchors.centerIn: parent
+                                text: root.tr("Active item")
+                                color: root.overrideOn && cfg_ActiveFg ? cfg_ActiveFg : Kirigami.Theme.highlightedTextColor
+                            }
+                        }
+                        Rectangle {
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 1
+                            color: root.overrideOn && cfg_SeparatorColor ? cfg_SeparatorColor : Kirigami.Theme.disabledTextColor
+                            opacity: root.overrideOn && cfg_SeparatorColor ? 1 : 0.4
+                        }
+                    }
                 }
             }
         }
@@ -547,8 +560,6 @@ Item {
             text: root.tr("Reset to defaults")
             onClicked: resetToDefaults()
         }
-
-        Item { Layout.fillHeight: true }
     }
 
     Dialogs.ColorDialog {
@@ -600,7 +611,6 @@ Item {
         fontSizeSpin.value = cfg_FontSize;
         catIconSpin.value = cfg_CategoryIconSize || 24;
         appIconSpin.value = cfg_AppIconSize || 24;
-        // Migrate legacy selected → active
         if ((!cfg_ActiveBg || cfg_ActiveBg === "") && cfg_SelectedBg)
             cfg_ActiveBg = cfg_SelectedBg;
         if ((!cfg_ActiveFg || cfg_ActiveFg === "") && cfg_SelectedFg)

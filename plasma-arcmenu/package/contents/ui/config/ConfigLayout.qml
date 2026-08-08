@@ -147,26 +147,15 @@ Item {
         expandedCategories = next;
     }
 
-    QQC2.ScrollView {
+    ConfigPage {
         id: scroll
-        anchors.fill: parent
-        contentWidth: availableWidth
-        clip: true
-
-        ColumnLayout {
-            width: scroll.availableWidth
-            spacing: Kirigami.Units.largeSpacing
-
-            Kirigami.Heading {
-                text: root.tr("Menu Layout")
-                level: 2
-                Layout.fillWidth: true
-            }
+        title: root.tr("Menu Layout")
+        tip: root.tr("Choose a layout style for the menu")
 
             // ---- Current layout ----
             QQC2.Label {
                 text: root.tr("Current Menu Layout")
-                font.bold: true
+                font.weight: Font.DemiBold
                 Layout.fillWidth: true
             }
 
@@ -404,7 +393,6 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.largeSpacing
             }
-        }
     }
 
     Connections {

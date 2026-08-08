@@ -14,7 +14,7 @@ Item {
 
     property var cfg_Options: []
     property var cfg_PowerOptionsOrder: []
-    property alias cfg_Confirm: confirmBox.checked
+    property alias cfg_Confirm: confirmSwitch.checked
     property alias cfg_SoftwareCenterCmd: softwareCmd.text
     property string cfg_PowerDisplayStyle
 
@@ -50,7 +50,6 @@ Item {
         var idx = list.indexOf(id);
         if (on && idx < 0) list.push(id);
         if (!on && idx >= 0) list.splice(idx, 1);
-        // Keep Options in PowerOptionsOrder sequence
         var order = ordered.map(function (d) { return d.id; });
         var sorted = [];
         for (var i = 0; i < order.length; ++i) {
@@ -65,7 +64,6 @@ Item {
         order = SC.moveItem(order, from, to);
         cfg_PowerOptionsOrder = order;
         writeLive("powerOptionsOrder", order);
-        // Re-sort enabled options
         var enabled = SC.normalizeList(cfg_Options, []);
         var sorted = [];
         for (var i = 0; i < order.length; ++i) {
@@ -75,104 +73,90 @@ Item {
         writeLive("options", sorted);
     }
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
+    ConfigPage {
+        title: root.tr("Power Options")
+        tip: root.tr("If unavailable on your system, the action will be hidden from ArcMenu.")
 
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label { text: root.tr("Power Options"); font.bold: true }
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.65
-                text: root.tr("If unavailable on your system, the action will be hidden from ArcMenu.")
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: listCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
+        ConfigGroup {
+            title: root.tr("Power Options")
+            Repeater {
+                model: root.ordered
                 ColumnLayout {
-                    id: listCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: root.ordered
-                        RowLayout {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            Kirigami.Icon { source: "transform-move"; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small; opacity: 0.4 }
-                            Kirigami.Icon { source: modelData.icon; Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium; Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium }
-                            QQC2.Label { text: modelData.name; Layout.fillWidth: true }
-                            QQC2.Switch {
-                                checked: root.isOn(modelData.id)
-                                onToggled: root.setOn(modelData.id, checked)
-                            }
-                            QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.move(index, index - 1) }
-                            QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < root.ordered.length - 1; onClicked: root.move(index, index + 1) }
+                    required property var modelData
+                    required property int index
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: modelData.name
+                        iconName: modelData.icon
+                        accent: index % 2 === 0 ? "blue" : "purple"
+                        Kirigami.Icon {
+                            source: "transform-move"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.4
                         }
+                        QQC2.Switch {
+                            checked: root.isOn(modelData.id)
+                            onToggled: root.setOn(modelData.id, checked)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-up"
+                            flat: true
+                            enabled: index > 0
+                            onClicked: root.move(index, index - 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            flat: true
+                            enabled: index < root.ordered.length - 1
+                            onClicked: root.move(index, index + 1)
+                        }
+                    }
+                    ConfigSep { visible: index < root.ordered.length - 1 }
+                }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Display Style")
+            ConfigSettingRow {
+                title: root.tr("Override Display Style")
+                iconName: "view-list-icons"
+                accent: "teal"
+                QQC2.ComboBox {
+                    model: [root.tr("Off"), root.tr("Buttons"), root.tr("List")]
+                    property var keys: ["off", "buttons", "list"]
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                    Component.onCompleted: {
+                        var i = keys.indexOf(cfg_PowerDisplayStyle || "off");
+                        currentIndex = i >= 0 ? i : 0;
+                    }
+                    onActivated: {
+                        cfg_PowerDisplayStyle = keys[currentIndex];
+                        writeLive("powerDisplayStyle", cfg_PowerDisplayStyle);
                     }
                 }
             }
-
-            QQC2.Label { text: root.tr("Display Style"); font.bold: true }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: styleCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: styleCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Override Display Style"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: [root.tr("Off"), root.tr("Buttons"), root.tr("List")]
-                            property var keys: ["off", "buttons", "list"]
-                            Component.onCompleted: {
-                                var i = keys.indexOf(cfg_PowerDisplayStyle || "off");
-                                currentIndex = i >= 0 ? i : 0;
-                            }
-                            onActivated: {
-                                cfg_PowerDisplayStyle = keys[currentIndex];
-                                writeLive("powerDisplayStyle", cfg_PowerDisplayStyle);
-                            }
-                        }
-                    }
-                }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Confirm shut down / restart / log out")
+                iconName: "dialog-warning"
+                accent: "orange"
+                QQC2.Switch { id: confirmSwitch }
             }
-
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-                QQC2.CheckBox {
-                    id: confirmBox
-                    Kirigami.FormData.label: root.tr("Confirmation:")
-                    text: root.tr("Confirm shut down / restart / log out")
-                }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Software center command:")
+                subtitle: "auto-detect"
+                iconName: "applications-other"
+                accent: "green"
                 QQC2.TextField {
                     id: softwareCmd
-                    Kirigami.FormData.label: root.tr("Software center command:")
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
                     placeholderText: "auto-detect"
                 }
             }
-
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
         }
     }
 

@@ -6,7 +6,7 @@ import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
 
 /**
- * Search Options — ArcMenu-style search settings.
+ * Search Options — ConfigPage chrome.
  */
 Item {
     id: root
@@ -35,136 +35,92 @@ Item {
         } catch (e) {}
     }
 
-    component ToggleRow: RowLayout {
-        id: trow
-        property string label: ""
-        property string hint: ""
-        property bool checked: false
-        signal toggled(bool on)
-        Layout.fillWidth: true
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-            QQC2.Label { text: trow.label; Layout.fillWidth: true; wrapMode: Text.WordWrap }
-            QQC2.Label {
-                visible: trow.hint.length > 0
-                text: trow.hint
-                opacity: 0.6
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-            }
-        }
-        QQC2.Switch {
-            checked: trow.checked
-            onToggled: trow.toggled(checked)
-        }
-    }
+    ConfigPage {
+        title: root.tr("Search Options")
+        tip: root.tr("Providers, highlight, and result limits")
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
-
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label { text: root.tr("Search Options"); font.bold: true }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: optCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: optCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    ToggleRow {
-                        label: root.tr("Hide Search Bar")
-                        hint: root.tr("The search bar hides when empty and appears when typing.")
-                        checked: cfg_HideSearchBar
-                        onToggled: (on) => { cfg_HideSearchBar = on; writeLive("hideSearchBar", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    ToggleRow {
-                        label: root.tr("Show search result descriptions")
-                        checked: cfg_ShowDescription
-                        onToggled: (on) => { cfg_ShowDescription = on; writeLive("showDescription", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    ToggleRow {
-                        label: root.tr("Highlight search result terms")
-                        checked: cfg_HighlightSearchTerms
-                        onToggled: (on) => { cfg_HighlightSearchTerms = on; writeLive("highlightSearchTerms", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Maximum search results"); Layout.fillWidth: true }
-                        QQC2.SpinBox {
-                            from: 1; to: 100
-                            value: cfg_MaxResults > 0 ? cfg_MaxResults : 5
-                            onValueModified: { cfg_MaxResults = value; writeLive("maxResults", value); }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Search box border radius"); Layout.fillWidth: true }
-                        QQC2.Switch {
-                            checked: cfg_SearchBoxRadiusEnabled
-                            onToggled: { cfg_SearchBoxRadiusEnabled = checked; writeLive("searchBoxRadiusEnabled", checked); }
-                        }
-                        QQC2.SpinBox {
-                            from: 0; to: 48
-                            enabled: cfg_SearchBoxRadiusEnabled
-                            value: cfg_SearchBoxRadius
-                            onValueModified: { cfg_SearchBoxRadius = value; writeLive("searchBoxRadius", value); }
-                        }
-                    }
+        ConfigGroup {
+            title: root.tr("Search Options")
+            ConfigSettingRow {
+                title: root.tr("Hide Search Bar")
+                subtitle: root.tr("The search bar hides when empty and appears when typing.")
+                iconName: "edit-find"
+                accent: "blue"
+                QQC2.Switch {
+                    checked: cfg_HideSearchBar
+                    onToggled: { cfg_HideSearchBar = checked; writeLive("hideSearchBar", checked); }
                 }
             }
-
-            QQC2.Label { text: root.tr("Additional Search Providers"); font.bold: true }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: provCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: provCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    ToggleRow {
-                        label: root.tr("Search windows open in all workspaces")
-                        checked: cfg_SearchWindows
-                        onToggled: (on) => { cfg_SearchWindows = on; writeLive("searchWindows", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    ToggleRow {
-                        label: root.tr("Search recent files")
-                        checked: cfg_SearchRecentFiles
-                        onToggled: (on) => { cfg_SearchRecentFiles = on; writeLive("searchRecentFiles", on); }
-                    }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Show search result descriptions")
+                iconName: "text-x-generic"
+                accent: "purple"
+                QQC2.Switch {
+                    checked: cfg_ShowDescription
+                    onToggled: { cfg_ShowDescription = checked; writeLive("showDescription", checked); }
                 }
             }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Highlight search result terms")
+                iconName: "format-text-color"
+                accent: "teal"
+                QQC2.Switch {
+                    checked: cfg_HighlightSearchTerms
+                    onToggled: { cfg_HighlightSearchTerms = checked; writeLive("highlightSearchTerms", checked); }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Maximum search results")
+                iconName: "view-list-details"
+                accent: "orange"
+                QQC2.SpinBox {
+                    from: 1; to: 100
+                    value: cfg_MaxResults > 0 ? cfg_MaxResults : 5
+                    onValueModified: { cfg_MaxResults = value; writeLive("maxResults", value); }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Search box border radius")
+                iconName: "draw-square-rounded"
+                accent: "green"
+                QQC2.Switch {
+                    checked: cfg_SearchBoxRadiusEnabled
+                    onToggled: { cfg_SearchBoxRadiusEnabled = checked; writeLive("searchBoxRadiusEnabled", checked); }
+                }
+                QQC2.SpinBox {
+                    from: 0; to: 48
+                    enabled: cfg_SearchBoxRadiusEnabled
+                    value: cfg_SearchBoxRadius
+                    onValueModified: { cfg_SearchBoxRadius = value; writeLive("searchBoxRadius", value); }
+                }
+            }
+        }
 
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
+        ConfigGroup {
+            title: root.tr("Additional Search Providers")
+            ConfigSettingRow {
+                title: root.tr("Search windows open in all workspaces")
+                iconName: "window-duplicate"
+                accent: "indigo"
+                QQC2.Switch {
+                    checked: cfg_SearchWindows
+                    onToggled: { cfg_SearchWindows = checked; writeLive("searchWindows", checked); }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Search recent files")
+                iconName: "document-open-recent"
+                accent: "cyan"
+                QQC2.Switch {
+                    checked: cfg_SearchRecentFiles
+                    onToggled: { cfg_SearchRecentFiles = checked; writeLive("searchRecentFiles", checked); }
+                }
+            }
         }
     }
 
