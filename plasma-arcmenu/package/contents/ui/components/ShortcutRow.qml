@@ -18,6 +18,7 @@ Item {
     property color fg: Kirigami.Theme.textColor
 
     signal activated()
+    signal contextMenuRequested(real x, real y)
 
     height: Math.max(iconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 1.85)
     Accessible.name: label
@@ -56,6 +57,12 @@ Item {
         id: mouse
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: root.activated()
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton)
+                root.contextMenuRequested(mouse.x, mouse.y);
+            else
+                root.activated();
+        }
     }
 }

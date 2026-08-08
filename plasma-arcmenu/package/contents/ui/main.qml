@@ -77,6 +77,7 @@ PlasmoidItem {
         currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
+            menuData.ensureArcMenuSettingsPinned();
             console.log("ArcMenu catalog registered on bridge");
         }
     }
@@ -175,7 +176,8 @@ PlasmoidItem {
         implicitWidth: isVertical ? compactContent.implicitHeight : compactContent.implicitWidth
         implicitHeight: isVertical ? compactContent.implicitWidth : compactContent.implicitHeight
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+        // Swallow right-click so Plasma's applet menu (Configure / Remove / …) does not appear
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
         Accessible.name: plasmoid.configuration.buttonLabelVisible
             ? plasmoid.configuration.buttonLabelText
@@ -184,8 +186,18 @@ PlasmoidItem {
         Accessible.onPressAction: root.toggleMenu()
 
         property bool wasExpanded: false
-        onPressed: wasExpanded = root.expanded
+        onPressed: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                mouse.accepted = true;
+                return;
+            }
+            wasExpanded = root.expanded;
+        }
         onClicked: (mouse) => {
+            if (mouse.button === Qt.RightButton) {
+                mouse.accepted = true;
+                return;
+            }
             if (mouse.button === Qt.LeftButton || mouse.button === Qt.MiddleButton) {
                 root.toggleMenu();
             }
@@ -282,17 +294,30 @@ PlasmoidItem {
             easing.type: Easing.OutCubic
         }
 
+        // Swallow right-clicks on empty chrome so Plasma's
+        // "Configure / Edit mode" applet menu never appears.
+        // Only RightButton — left clicks and child context menus still work.
+        MouseArea {
+            anchors.fill: parent
+            z: 0
+            acceptedButtons: Qt.RightButton
+            onPressed: (mouse) => { mouse.accepted = true; }
+            onClicked: (mouse) => { mouse.accepted = true; }
+        }
+
         LayoutHost {
             id: host
             anchors.fill: parent
+            z: 1
             // MUST use root.catalog — bare `menuData` id is often invisible here
             menuData: root.catalog
             themeStyle: root.themeStyle
             onAppActivated: (app) => root.launchApp(app)
             onAppContextMenu: (app, x, y) => {
                 contextMenu.app = app;
-                contextMenu.isFavorite = root.catalog.isFavorite(app.id);
-                contextMenu.canUninstall = true;
+                contextMenu.isFavorite = root.catalog.isFavorite(app);
+                contextMenu.canUninstall = !(app && (app.action || app.place
+                    || String(app.id || "").indexOf("shortcut-") === 0));
                 contextMenu.popup();
             }
             onPowerAction: (id) => root.handlePower(id)
@@ -304,12 +329,18 @@ PlasmoidItem {
             id: contextMenu
             menuData: root.catalog
             onLaunchRequested: (app) => root.launchApp(app)
+            onNewWindowRequested: (app) => {
+                backend.openNewWindow(app);
+                root.closeMenu();
+            }
             onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
-            onAddToDesktopRequested: (app) => backend.addDesktopShortcut(app)
+            onAddToDesktopRequested: (app) => {
+                backend.addDesktopShortcut(app);
+                root.closeMenu();
+            }
             onAddToPanelRequested: (app) => {
-                // Panel shortcut creation is environment-specific; open app details guidance.
-                detailsDialog.app = app;
-                detailsDialog.open();
+                backend.pinToTaskManager(app);
+                root.closeMenu();
             }
             onEditRequested: (app) => backend.editDesktop(app)
             onDetailsRequested: (app) => {
@@ -372,20 +403,37 @@ PlasmoidItem {
         }
     }
 
-    // Plasma already provides "Configure…" — only add extras here
-    Plasmoid.contextualActions: [
-        PlasmaCore.Action {
-            text: menuData.tr("Clear Recent Applications")
-            icon.name: "edit-clear-history"
-            onTriggered: menuData.clearRecent()
+    // No custom contextual actions — panel right-click is swallowed by compact MouseArea
+    Plasmoid.contextualActions: []
+
+    Component.onCompleted: {
+        // Hide from any residual Plasma applet menu; configure stays triggerable
+        var hide = ["configure", "remove", "alternatives"];
+        for (var i = 0; i < hide.length; ++i) {
+            try {
+                var a = plasmoid.internalAction(hide[i]);
+                if (a) {
+                    a.visible = false;
+                    if (hide[i] !== "configure")
+                        a.enabled = false;
+                }
+            } catch (e) {}
         }
-    ]
+    }
 
     Connections {
         target: menuData
         function onRequestConfigure() {
             root.closeMenu();
-            Qt.callLater(() => plasmoid.internalAction("configure").trigger());
+            Qt.callLater(() => {
+                try {
+                    var a = plasmoid.internalAction("configure");
+                    if (a) {
+                        a.enabled = true;
+                        a.trigger();
+                    }
+                } catch (e) {}
+            });
         }
     }
 }

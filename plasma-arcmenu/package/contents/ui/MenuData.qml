@@ -162,12 +162,70 @@ QtObject {
 
     readonly property var categoryApps: AppsModel.appsInCategory(allApps, currentCategoryId)
 
+    /** Config list, or defaults when never saved — used by display + toggle */
+    function effectivePinnedIds() {
+        var ids = IdList.normalizeIdList(cfg("pinnedApps", []));
+        if (ids.length === 0)
+            return IdList.defaultPinnedIds().slice();
+        return ids;
+    }
+
+    /** Map sidebar shortcuts → pin ids (prefer real .desktop when known) */
+    function resolvePinId(app) {
+        if (!app)
+            return "";
+        var id = String(app.id || "");
+        if (app.action === "discover" || id === "shortcut-software") {
+            var disc = AppsModel.findAppById(allApps, "org.kde.discover.desktop")
+                || AppsModel.findAppById(allApps, "plasma-discover.desktop");
+            return disc ? disc.id : "org.kde.discover.desktop";
+        }
+        if (app.action === "settings" || id === "shortcut-settings") {
+            var set = AppsModel.findAppById(allApps, "systemsettings.desktop")
+                || AppsModel.findAppById(allApps, "org.kde.systemsettings.desktop");
+            return set ? set.id : "systemsettings.desktop";
+        }
+        if (id === "shortcut-tweaks" || (app.exec && String(app.exec).indexOf("kcm_lookandfeel") >= 0))
+            return "shortcut-tweaks";
+        if (app.action === "overview" || id === "shortcut-overview")
+            return "shortcut-overview";
+        return id;
+    }
+
+    function shortcutById(id) {
+        var lang = root.uiLang;
+        var list = root.systemShortcuts || [];
+        for (var i = 0; i < list.length; ++i) {
+            if (list[i].id === id) {
+                var s = Object.assign({}, list[i]);
+                s.noDisplay = false;
+                return s;
+            }
+        }
+        if (id === "shortcut-tweaks") {
+            return {
+                id: id,
+                name: Locale.tr("Tweaks", lang),
+                icon: "preferences-desktop-display",
+                exec: "systemsettings kcm_lookandfeel",
+                noDisplay: false
+            };
+        }
+        if (id === "shortcut-overview") {
+            return {
+                id: id,
+                name: Locale.tr("Activities Overview", lang),
+                icon: "overview",
+                action: "overview",
+                noDisplay: false
+            };
+        }
+        return null;
+    }
+
     readonly property var pinnedApps: {
         var lang = root.uiLang; // binding dependency
-        var ids = IdList.normalizeIdList(cfg("pinnedApps", []));
-        if (ids.length === 0) {
-            ids = IdList.defaultPinnedIds();
-        }
+        var ids = root.effectivePinnedIds();
         var result = [];
         for (var i = 0; i < ids.length; ++i) {
             var id = ids[i];
@@ -183,6 +241,12 @@ QtObject {
                     genericName: Locale.tr("Configure Arc Menu", lang),
                     noDisplay: false
                 });
+                continue;
+            }
+            if (String(id).indexOf("shortcut-") === 0) {
+                var sc = root.shortcutById(id);
+                if (sc)
+                    result.push(sc);
                 continue;
             }
             var app = AppsModel.findAppById(allApps, id);
@@ -349,23 +413,49 @@ QtObject {
         { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "overview", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Overview"), noDisplay: false, action: "overview" }
     ]
 
-    function isFavorite(appId) {
-        var pinned = cfg("pinnedApps", []);
-        return Favorites.isFavorite(pinned, appId);
+    function isFavorite(appOrId) {
+        var ids = root.effectivePinnedIds();
+        if (appOrId && typeof appOrId === "object") {
+            var pinId = root.resolvePinId(appOrId);
+            return Favorites.isFavorite(ids, pinId)
+                || Favorites.isFavorite(ids, appOrId.id);
+        }
+        return Favorites.isFavorite(ids, appOrId);
     }
 
     function toggleFavorite(app) {
         if (!app || !plasmoidConfig) {
             return;
         }
-        plasmoidConfig.pinnedApps = Favorites.toggleFavorite(plasmoidConfig.pinnedApps, app.id);
+        // Seed defaults on first edit so pinning does not wipe Files / ArcMenu Settings
+        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
+        if (current.length === 0)
+            current = IdList.defaultPinnedIds().slice();
+        var pinId = root.resolvePinId(app);
+        if (!pinId)
+            pinId = app.id;
+        plasmoidConfig.pinnedApps = Favorites.toggleFavorite(current, pinId);
+    }
+
+    /** Keep ArcMenu Settings in the pinned list when config was previously wiped */
+    function ensureArcMenuSettingsPinned() {
+        if (!plasmoidConfig)
+            return;
+        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
+        if (current.length === 0)
+            return; // display already uses defaults including ArcMenu Settings
+        if (current.indexOf("arcmenu-settings") < 0) {
+            current.push("arcmenu-settings");
+            plasmoidConfig.pinnedApps = current;
+        }
     }
 
     function reorderPinned(from, to) {
         if (!plasmoidConfig) {
             return;
         }
-        plasmoidConfig.pinnedApps = Favorites.moveItem(plasmoidConfig.pinnedApps, from, to);
+        var current = root.effectivePinnedIds();
+        plasmoidConfig.pinnedApps = Favorites.moveItem(current, from, to);
     }
 
     function recordLaunch(app) {

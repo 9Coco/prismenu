@@ -546,18 +546,105 @@ Item {
         runShell(cmd);
     }
 
-    function addDesktopShortcut(app) {
+    function desktopFileId(app) {
         if (!app)
-            return;
+            return "";
+        // Sidebar shortcuts → real desktop entries
+        if (app.action === "discover" || app.id === "shortcut-software")
+            return "org.kde.discover.desktop";
+        if (app.action === "settings" || app.id === "shortcut-settings")
+            return "systemsettings.desktop";
+        var id = String(app.id || "");
+        if (id.indexOf("applications:") === 0)
+            id = id.substring("applications:".length);
+        if (id.indexOf("shortcut-") === 0)
+            return "";
+        if (id.indexOf(".desktop") < 0 && id.length)
+            id = id + ".desktop";
+        return id;
+    }
+
+    function desktopFilePath(app) {
+        if (!app)
+            return "";
         var src = app.entryPath || "";
         if (src.indexOf("file://") === 0)
             src = decodeURIComponent(src.substring(7));
-        if (!src || src.indexOf(".desktop") < 0)
-            src = "/usr/share/applications/" + String(app.id || "");
-        exec.connectSource("bash -lc " + shellQuote(
-            "dest=\"$HOME/Desktop\"; [ -d \"$dest\" ] || dest=\"$HOME/桌面\"; [ -d \"$dest\" ] || dest=\"$HOME\"; " +
-            "f=" + shellQuote(src) + "; [ -f \"$f\" ] && cp \"$f\" \"$dest/\" && chmod +x \"$dest/$(basename \"$f\")\""
-        ));
+        if (src && src.indexOf(".desktop") >= 0)
+            return src;
+        var id = desktopFileId(app);
+        if (!id)
+            return "";
+        return "/usr/share/applications/" + id;
+    }
+
+    /** Open another window / instance of the app (ArcMenu "New Window"). */
+    function openNewWindow(app) {
+        if (!app)
+            return;
+        var id = desktopFileId(app);
+        var path = desktopFilePath(app);
+        var url = app.kickerUrl || (path ? ("file://" + path) : "");
+        // Prefer desktop action NewWindow when present; else relaunch desktop entry
+        var script = "id=" + shellQuote(id) + "; f=" + shellQuote(path) + "; "
+            + "if [ -f \"$f\" ] && grep -qE '^\\[Desktop Action (NewWindow|new-window|WindowNew)\\]' \"$f\" 2>/dev/null; then "
+            + "  act=$(grep -oE '\\[Desktop Action [^]]+\\]' \"$f\" | head -n1 | sed -E 's/\\[Desktop Action |\\]//g'); "
+            + "  gtk-launch \"$id\" \"$act\" 2>/dev/null || kioclient exec " + shellQuote(url) + "; "
+            + "elif [ -n \"$id\" ]; then "
+            + "  gtk-launch \"$id\" 2>/dev/null || kioclient exec " + shellQuote(url) + " || true; "
+            + "else "
+            + "  kioclient exec " + shellQuote(url) + "; "
+            + "fi";
+        console.log("ArcMenu openNewWindow", id);
+        runShell(script);
+    }
+
+    /**
+     * Pin application to Plasma Task Manager / Icon Tasks (快捷栏).
+     * Writes launchers=… on the first matching panel widget.
+     */
+    function pinToTaskManager(app) {
+        if (!app)
+            return;
+        var id = desktopFileId(app);
+        if (!id)
+            return;
+        var entry = "applications:" + id;
+        // plasmashell JS: append to Icon Tasks / Task Manager launchers
+        var js = ""
+            + "var entry = " + JSON.stringify(entry) + ";"
+            + "var panels = panels();"
+            + "for (var i = 0; i < panels.length; ++i) {"
+            + "  var ws = panels[i].widgets();"
+            + "  for (var j = 0; j < ws.length; ++j) {"
+            + "    var t = ws[j].type;"
+            + "    if (t !== 'org.kde.plasma.icontasks' && t !== 'org.kde.plasma.taskmanager') continue;"
+            + "    ws[j].currentConfigGroup = ['General'];"
+            + "    var cur = String(ws[j].readConfig('launchers', ''));"
+            + "    if (cur.indexOf(entry) >= 0) return;"
+            + "    var next = cur.length ? (cur + ',' + entry) : entry;"
+            + "    ws[j].writeConfig('launchers', next);"
+            + "    ws[j].reloadConfig();"
+            + "    return;"
+            + "  }"
+            + "}";
+        console.log("ArcMenu pinToTaskManager", entry);
+        runShell("qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+            + shellQuote(js)
+            + " || qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
+            + shellQuote(js));
+    }
+
+    function addDesktopShortcut(app) {
+        if (!app)
+            return;
+        var src = desktopFilePath(app);
+        if (!src)
+            return;
+        runShell(
+            "dest=\"$HOME/Desktop\"; [ -d \"$dest\" ] || dest=\"$HOME/桌面\"; [ -d \"$dest\" ] || dest=\"$HOME\"; "
+            + "f=" + shellQuote(src) + "; [ -f \"$f\" ] && cp \"$f\" \"$dest/\" && chmod +x \"$dest/$(basename \"$f\")\""
+        );
     }
 
     function editDesktop(app) {
