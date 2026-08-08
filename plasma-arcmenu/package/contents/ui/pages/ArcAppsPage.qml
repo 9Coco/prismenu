@@ -2,10 +2,12 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.plasmoid
 import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 import "../../code/Locale.js" as Locale
 import "../../code/CatalogBridge.js" as CatalogBridge
+import "../../code/ShortcutsConfig.js" as ShortcutsConfig
 
 /**
  * ArcMenu apps page (reference):
@@ -63,6 +65,10 @@ Item {
         var host = root.dataHost;
         var epoch = host ? host.catalogEpoch : 0; // binding dependency
         var structure = host ? host.structureEpoch : 0;
+        var extrasSig = host ? host.extrasSignature : "";
+        // Also bind plasmoid.configuration directly (config dialog → live menu)
+        var liveEnabled = plasmoid.configuration.extraCategoriesEnabled;
+        var liveOrder = plasmoid.configuration.extraCategoriesOrder;
         var tick = root.refreshTick;
         var _ = root.uiLang;
         var allApps = host && host.allApps ? host.allApps : [];
@@ -71,8 +77,27 @@ Item {
         var out = [];
         var i;
 
-        // Extra categories (Pinned / All Apps / Favorites / …) — controlled by settings.
-        var extras = (host && host.enabledExtraCategories) ? host.enabledExtraCategories : [];
+        // Prefer live config (immediate), then MenuData enabled list
+        var extras = [];
+        if (liveEnabled !== undefined && liveEnabled !== null) {
+            var order = ShortcutsConfig.normalizeList(liveOrder, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
+            var enabled = ShortcutsConfig.normalizeList(liveEnabled, ShortcutsConfig.DEFAULT_EXTRA_ON);
+            for (i = 0; i < order.length; ++i) {
+                var eid = order[i];
+                if (!eid || enabled.indexOf(eid) < 0)
+                    continue;
+                var ename = eid;
+                var eicon = "applications-other";
+                if (eid === "favorites") { ename = Locale.tr("Favorites", _); eicon = "emblem-favorite"; }
+                else if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
+                else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
+                else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
+                else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }
+                extras.push({ id: eid, name: ename, icon: eicon, extra: true });
+            }
+        } else if (host && host.enabledExtraCategories) {
+            extras = host.enabledExtraCategories;
+        }
         var extrasShown = 0;
         for (i = 0; i < extras.length; ++i) {
             var ex = extras[i];
