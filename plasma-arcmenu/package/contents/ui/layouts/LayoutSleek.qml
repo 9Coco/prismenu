@@ -81,7 +81,7 @@ LayoutBase {
     RowLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        spacing: 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
         // ---- Left: search + pinned / all-apps grid ----
@@ -220,20 +220,26 @@ LayoutBase {
             }
         }
 
-        // Subtle vertical divider between panes
-        Rectangle {
+        Components.ColumnSplitHandle {
             Layout.fillHeight: true
-            Layout.preferredWidth: 1
-            color: root.borderColor
-            opacity: 0.35
+            Layout.preferredWidth: implicitWidth
+            z: 5
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: true
+            flipped: root.flip
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
         }
 
         // ---- Right sidebar: avatar + places + power ----
         ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: false
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 11
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 13
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing
 
             // Centered circular avatar + username

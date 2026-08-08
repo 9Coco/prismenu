@@ -78,8 +78,10 @@ QtObject {
     readonly property int menuWidth: LayoutRegistry.clampSize(cfgInt("menuWidth", 620), 400, 900, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
     readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 540), 400, 800, 540)
-    /** Places / shortcuts column width (Arc Menu); default ~36% of 620 */
+    /** Places / categories side column width; default ~36% of 620 */
     readonly property int sidebarWidth: LayoutRegistry.clampSize(cfgInt("sidebarWidth", 220), 160, 360, 220)
+    /** Zest middle categories column */
+    readonly property int categoryColumnWidth: LayoutRegistry.clampSize(cfgInt("categoryColumnWidth", 220), 160, 360, 220)
     readonly property int defaultMenuWidth: {
         var meta = layoutInfo;
         return meta && meta.defaultWidth ? meta.defaultWidth : 620;
@@ -90,6 +92,7 @@ QtObject {
         return h > 800 ? 800 : h;
     }
     readonly property int defaultSidebarWidth: 220
+    readonly property int defaultCategoryColumnWidth: 220
 
     function setMenuWidth(w) {
         if (!plasmoidConfig)
@@ -109,12 +112,19 @@ QtObject {
         plasmoidConfig.sidebarWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
     }
 
+    function setCategoryColumnWidth(w) {
+        if (!plasmoidConfig)
+            return;
+        plasmoidConfig.categoryColumnWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
+    }
+
     function resetLayoutSizesToDefaults() {
         if (!plasmoidConfig)
             return;
         plasmoidConfig.menuWidth = defaultMenuWidth;
         plasmoidConfig.menuHeight = defaultMenuHeight;
         plasmoidConfig.sidebarWidth = defaultSidebarWidth;
+        plasmoidConfig.categoryColumnWidth = defaultCategoryColumnWidth;
     }
     readonly property int appIconSize: Math.max(16, cfgInt("appIconSize", 24))
     readonly property int categoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))

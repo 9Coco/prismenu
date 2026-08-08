@@ -87,7 +87,7 @@ LayoutBase {
     RowLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        spacing: 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
         // ---- Left: search + apps grid ----
@@ -226,12 +226,26 @@ LayoutBase {
             }
         }
 
+        Components.ColumnSplitHandle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: implicitWidth
+            z: 5
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: true
+            flipped: root.flip
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
+        }
+
         // ---- Right sidebar ----
         ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: false
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 11
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 13
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing / 2
 
             Components.ShortcutRow {

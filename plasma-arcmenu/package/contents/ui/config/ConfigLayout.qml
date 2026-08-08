@@ -16,6 +16,7 @@ Item {
     property int cfg_MenuWidth
     property int cfg_MenuHeight
     property int cfg_SidebarWidth
+    property int cfg_CategoryColumnWidth
 
     property var layouts: LayoutRegistry.allLayouts()
     property var categories: LayoutRegistry.layoutCategories()
@@ -49,9 +50,11 @@ Item {
             cfg_MenuWidth = meta.defaultWidth;
             cfg_MenuHeight = h;
             cfg_SidebarWidth = 220;
+            cfg_CategoryColumnWidth = 220;
             widthSpin.value = meta.defaultWidth;
             heightSpin.value = h;
             sidebarSpin.value = 220;
+            categoryColSpin.value = 220;
             heightSpin.to = 800;
 
             // Keep the selected layout's category expanded
@@ -64,6 +67,7 @@ Item {
                 plasmoid.configuration.menuWidth = meta.defaultWidth;
                 plasmoid.configuration.menuHeight = cfg_MenuHeight;
                 plasmoid.configuration.sidebarWidth = 220;
+                plasmoid.configuration.categoryColumnWidth = 220;
             }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);
@@ -79,13 +83,16 @@ Item {
         cfg_MenuWidth = w;
         cfg_MenuHeight = h;
         cfg_SidebarWidth = 220;
+        cfg_CategoryColumnWidth = 220;
         widthSpin.value = w;
         heightSpin.value = h;
         sidebarSpin.value = 220;
+        categoryColSpin.value = 220;
         try {
             plasmoid.configuration.menuWidth = w;
             plasmoid.configuration.menuHeight = h;
             plasmoid.configuration.sidebarWidth = 220;
+            plasmoid.configuration.categoryColumnWidth = 220;
         } catch (e) {}
     }
 
@@ -409,6 +416,20 @@ Item {
                     textFromValue: (v) => v + " px"
                 }
 
+                QQC2.SpinBox {
+                    id: categoryColSpin
+                    Kirigami.FormData.label: root.tr("Category column width:")
+                    from: 160
+                    to: 360
+                    stepSize: 10
+                    Component.onCompleted: value = cfg_CategoryColumnWidth || 220
+                    onValueModified: {
+                        cfg_CategoryColumnWidth = value;
+                        try { plasmoid.configuration.categoryColumnWidth = value; } catch (e) {}
+                    }
+                    textFromValue: (v) => v + " px"
+                }
+
                 QQC2.Label {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
@@ -455,6 +476,12 @@ Item {
                 sidebarSpin.value = v;
             cfg_SidebarWidth = v;
         }
+        function onCategoryColumnWidthChanged() {
+            var v = plasmoid.configuration.categoryColumnWidth;
+            if (categoryColSpin.value !== v)
+                categoryColSpin.value = v;
+            cfg_CategoryColumnWidth = v;
+        }
     }
 
     Component.onCompleted: {
@@ -476,5 +503,6 @@ Item {
         }
         heightSpin.value = h;
         sidebarSpin.value = cfg_SidebarWidth || 220;
+        categoryColSpin.value = cfg_CategoryColumnWidth || 220;
     }
 }

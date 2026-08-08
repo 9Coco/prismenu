@@ -23,7 +23,7 @@ LayoutBase {
     readonly property int pinCellWidth: Kirigami.Units.gridUnit * 5.5
     readonly property int pinCellHeight: pinIconSize + Kirigami.Units.gridUnit * 1.8
     readonly property int frequentMax: 6
-    readonly property int sideWidth: Math.max(Kirigami.Units.gridUnit * 12, parent.width * 0.38)
+    readonly property int sideWidth: root.sidebarW
 
     readonly property var defaultPinned: [
         {
@@ -268,13 +268,14 @@ LayoutBase {
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: Kirigami.Units.largeSpacing
+            spacing: 0
             layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
             Flickable {
                 id: sideFlick
                 Layout.preferredWidth: root.sideWidth
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                Layout.minimumWidth: root.sidebarMin
+                Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
                 Layout.fillWidth: false
                 contentWidth: width
@@ -394,11 +395,17 @@ LayoutBase {
                 }
             }
 
-            Rectangle {
+            Components.ColumnSplitHandle {
                 Layout.fillHeight: true
-                Layout.preferredWidth: 1
-                color: root.borderColor
-                opacity: 0.35
+                Layout.preferredWidth: implicitWidth
+                z: 5
+                fg: root.fg
+                currentWidth: root.sidebarW
+                minWidth: root.sidebarMin
+                maxWidth: root.sidebarMax
+                sidebarOnRight: false
+                flipped: root.flip
+                onWidthDragged: (w) => root.setSidebarFromDrag(w)
             }
 
             PinnedPanel {
@@ -632,19 +639,25 @@ LayoutBase {
             }
         }
 
-        Rectangle {
+        Components.ColumnSplitHandle {
             Layout.fillHeight: true
-            Layout.preferredWidth: 1
-            color: root.borderColor
-            opacity: 0.35
+            Layout.preferredWidth: implicitWidth
+            z: 5
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: true
+            flipped: root.flip
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
         }
 
         PinnedPanel {
             Layout.fillHeight: true
             Layout.fillWidth: false
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 10
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 14
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
         }
     }
 }
