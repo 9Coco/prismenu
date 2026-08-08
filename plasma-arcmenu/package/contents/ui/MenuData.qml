@@ -19,6 +19,12 @@ QtObject {
     property var plasmoidConfig: null
     // Bound directly from main.qml → plasmoid.configuration.menuLayoutId
     property string currentLayoutId: "arcmenu"
+    /**
+     * Bound from main.qml as real QML bindings (not via var/cfg()), so toggles
+     * in the config dialog refresh the open menu immediately.
+     */
+    property var extraCategoriesEnabledRaw
+    property var extraCategoriesOrderRaw
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -601,15 +607,18 @@ QtObject {
     readonly property var applicationShortcutIds: {
         return ShortcutsConfig.normalizeList(cfg("applicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
     }
-    // Read config keys directly so QML tracks *Changed notifications
     readonly property var extraCategoriesOrder: {
         var _ = root.structureEpoch;
-        var raw = plasmoidConfig ? plasmoidConfig.extraCategoriesOrder : undefined;
+        var raw = (extraCategoriesOrderRaw !== undefined && extraCategoriesOrderRaw !== null)
+            ? extraCategoriesOrderRaw
+            : (plasmoidConfig ? plasmoidConfig.extraCategoriesOrder : undefined);
         return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
     }
     readonly property var extraCategoriesEnabled: {
         var _ = root.structureEpoch;
-        var raw = plasmoidConfig ? plasmoidConfig.extraCategoriesEnabled : undefined;
+        var raw = (extraCategoriesEnabledRaw !== undefined && extraCategoriesEnabledRaw !== null)
+            ? extraCategoriesEnabledRaw
+            : (plasmoidConfig ? plasmoidConfig.extraCategoriesEnabled : undefined);
         return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ON);
     }
     readonly property var contextMenuItems: {
@@ -618,6 +627,10 @@ QtObject {
 
     function isExtraCategoryEnabled(id) {
         return (extraCategoriesEnabled || []).indexOf(id) >= 0;
+    }
+
+    function bumpStructure() {
+        structureEpoch++;
     }
 
     readonly property var enabledExtraCategories: {
@@ -641,17 +654,11 @@ QtObject {
         return out;
     }
 
-    // QtObject has no default property — keep Connections as a named property
-    property Connections structureConfigWatch: Connections {
-        target: root.plasmoidConfig
-        ignoreUnknownSignals: true
-        // KConfigPropertyMap notifies via valueChanged(key, value)
-        function onValueChanged(key, value) {
-            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder")
-                root.structureEpoch++;
-        }
-        function onExtraCategoriesEnabledChanged() { root.structureEpoch++; }
-        function onExtraCategoriesOrderChanged() { root.structureEpoch++; }
+    /** String signature so UI bindings re-run when extras change (var host.* is not tracked). */
+    readonly property string extrasSignature: {
+        var e = extraCategoriesEnabled || [];
+        var o = extraCategoriesOrder || [];
+        return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",");
     }
 
     /**
