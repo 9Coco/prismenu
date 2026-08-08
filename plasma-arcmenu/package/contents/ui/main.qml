@@ -254,6 +254,8 @@ PlasmoidItem {
         Layout.minimumHeight: root.effectiveMenuHeight
         Layout.preferredWidth: root.catalog.menuWidth + hostSideWidth
         Layout.preferredHeight: root.effectiveMenuHeight
+        Layout.maximumWidth: 900 + hostSideWidth
+        Layout.maximumHeight: root.isRavenLayout ? 1400 : 800
 
         focus: true
 
@@ -323,6 +325,16 @@ PlasmoidItem {
             onPowerAction: (id) => root.handlePower(id)
             // ArcMenu "User" → System Settings → Users (not switch-user dialog)
             onUserMenu: root.handlePower("accountsettings")
+        }
+
+        // Drag edges/corners to resize popup (persists MenuWidth / MenuHeight)
+        Components.MenuResizeHandles {
+            anchors.fill: parent
+            z: 40
+            menuData: root.catalog
+            maxHeight: root.isRavenLayout ? 1400 : 800
+            // Raven fills the screen vertically — width only
+            resizeHeight: !root.isRavenLayout
         }
 
         Components.AppContextMenu {

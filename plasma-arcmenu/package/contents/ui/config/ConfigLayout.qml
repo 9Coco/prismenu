@@ -15,6 +15,7 @@ Item {
     property string cfg_SearchbarLocation
     property int cfg_MenuWidth
     property int cfg_MenuHeight
+    property int cfg_SidebarWidth
 
     property var layouts: LayoutRegistry.allLayouts()
     property var categories: LayoutRegistry.layoutCategories()
@@ -47,8 +48,10 @@ Item {
                 h = 800;
             cfg_MenuWidth = meta.defaultWidth;
             cfg_MenuHeight = h;
+            cfg_SidebarWidth = 220;
             widthSpin.value = meta.defaultWidth;
             heightSpin.value = h;
+            sidebarSpin.value = 220;
             heightSpin.to = 800;
 
             // Keep the selected layout's category expanded
@@ -60,10 +63,30 @@ Item {
             if (meta) {
                 plasmoid.configuration.menuWidth = meta.defaultWidth;
                 plasmoid.configuration.menuHeight = cfg_MenuHeight;
+                plasmoid.configuration.sidebarWidth = 220;
             }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);
         }
+    }
+
+    function resetSizesToDefaults() {
+        var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu");
+        var w = meta && meta.defaultWidth ? meta.defaultWidth : 620;
+        var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
+        if (h > 800)
+            h = 800;
+        cfg_MenuWidth = w;
+        cfg_MenuHeight = h;
+        cfg_SidebarWidth = 220;
+        widthSpin.value = w;
+        heightSpin.value = h;
+        sidebarSpin.value = 220;
+        try {
+            plasmoid.configuration.menuWidth = w;
+            plasmoid.configuration.menuHeight = h;
+            plasmoid.configuration.sidebarWidth = 220;
+        } catch (e) {}
     }
 
     function ensureCategoryExpanded(categoryId) {
@@ -371,6 +394,32 @@ Item {
                     }
                     textFromValue: (v) => v + " px"
                 }
+
+                QQC2.SpinBox {
+                    id: sidebarSpin
+                    Kirigami.FormData.label: root.tr("Sidebar width:")
+                    from: 160
+                    to: 360
+                    stepSize: 10
+                    Component.onCompleted: value = cfg_SidebarWidth || 220
+                    onValueModified: {
+                        cfg_SidebarWidth = value;
+                        try { plasmoid.configuration.sidebarWidth = value; } catch (e) {}
+                    }
+                    textFromValue: (v) => v + " px"
+                }
+
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.7
+                    text: root.tr("Tip: drag the menu edges to resize, or the divider between columns.")
+                }
+
+                QQC2.Button {
+                    text: root.tr("Reset to defaults")
+                    onClicked: root.resetSizesToDefaults()
+                }
             }
 
             Item {
@@ -387,6 +436,24 @@ Item {
             var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId);
             if (meta)
                 root.ensureCategoryExpanded(meta.category);
+        }
+        function onMenuWidthChanged() {
+            var v = plasmoid.configuration.menuWidth;
+            if (widthSpin.value !== v)
+                widthSpin.value = v;
+            cfg_MenuWidth = v;
+        }
+        function onMenuHeightChanged() {
+            var v = Math.min(plasmoid.configuration.menuHeight || 540, 800);
+            if (heightSpin.value !== v)
+                heightSpin.value = v;
+            cfg_MenuHeight = v;
+        }
+        function onSidebarWidthChanged() {
+            var v = plasmoid.configuration.sidebarWidth;
+            if (sidebarSpin.value !== v)
+                sidebarSpin.value = v;
+            cfg_SidebarWidth = v;
         }
     }
 
@@ -408,5 +475,6 @@ Item {
             try { plasmoid.configuration.menuHeight = h; } catch (e) {}
         }
         heightSpin.value = h;
+        sidebarSpin.value = cfg_SidebarWidth || 220;
     }
 }
