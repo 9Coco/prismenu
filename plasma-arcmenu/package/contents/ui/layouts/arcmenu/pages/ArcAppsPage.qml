@@ -234,6 +234,8 @@ Item {
                         showDescription: false
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.appActivated(root.drilledApps[index])
                         onContextMenuRequested: (x, y) => root.appContextMenu(root.drilledApps[index], x, y)

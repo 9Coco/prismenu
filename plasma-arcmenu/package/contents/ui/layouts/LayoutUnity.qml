@@ -431,6 +431,8 @@ LayoutBase {
                                 showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.activateItem(root.allAppsItems[index])
                                 onContextMenuRequested: (x, y) => {
@@ -589,6 +591,8 @@ LayoutBase {
                         selected: root.onHome
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectNav("home")
                     }
@@ -601,6 +605,8 @@ LayoutBase {
                         selected: !root.searching && root.selectedId === "all"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectNav("all")
                     }
@@ -621,6 +627,8 @@ LayoutBase {
                             selected: !root.searching && root.selectedId === root.categories[index].id
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectNav(root.categories[index].id)
                         }

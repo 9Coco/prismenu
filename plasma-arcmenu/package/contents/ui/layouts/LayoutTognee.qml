@@ -267,6 +267,8 @@ LayoutBase {
                             iconSize: root.categoryIconSize
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectNav("pinned")
                         }
@@ -278,6 +280,8 @@ LayoutBase {
                             iconSize: root.categoryIconSize
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectNav("all")
                         }
@@ -297,6 +301,8 @@ LayoutBase {
                                 iconSize: root.categoryIconSize
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.selectNav(root.categories[index].id)
                             }
@@ -358,6 +364,8 @@ LayoutBase {
                                         showDescription: false
                                         selectedBg: root.selectedBg
                                         selectedFg: root.selectedFg
+                                        hoverBg: root.hoverBg
+                                        hoverFg: root.hoverFg
                                         fg: root.fg
                                         onActivated: root.activateItem(root.contentItems[index])
                                         onContextMenuRequested: (x, y) => {

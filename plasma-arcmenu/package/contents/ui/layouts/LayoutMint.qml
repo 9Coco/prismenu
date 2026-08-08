@@ -231,6 +231,8 @@ LayoutBase {
                             selected: !root.searching && root.mintSelectedId === "pinned"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectMint("pinned")
                         }
@@ -243,6 +245,8 @@ LayoutBase {
                             selected: !root.searching && root.mintSelectedId === "all"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectMint("all")
                         }
@@ -263,6 +267,8 @@ LayoutBase {
                                 selected: !root.searching && root.mintSelectedId === root.categories[index].id
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.selectMint(root.categories[index].id)
                             }
@@ -310,6 +316,8 @@ LayoutBase {
                                     showDescription: false
                                     selectedBg: root.selectedBg
                                     selectedFg: root.selectedFg
+                                    hoverBg: root.hoverBg
+                                    hoverFg: root.hoverFg
                                     fg: root.fg
                                     onActivated: root.activateItem(root.contentItems[index])
                                     onContextMenuRequested: (x, y) => {

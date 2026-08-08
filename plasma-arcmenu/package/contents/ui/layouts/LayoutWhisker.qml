@@ -201,6 +201,8 @@ LayoutBase {
                         selected: !root.searching && root.whiskerSelectedId === "pinned"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectWhisker("pinned")
                     }
@@ -213,6 +215,8 @@ LayoutBase {
                         selected: !root.searching && root.whiskerSelectedId === "all"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectWhisker("all")
                     }
@@ -233,6 +237,8 @@ LayoutBase {
                             selected: !root.searching && root.whiskerSelectedId === root.categories[index].id
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectWhisker(root.categories[index].id)
                         }
@@ -280,6 +286,8 @@ LayoutBase {
                                 showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.activateItem(root.contentItems[index])
                                 onContextMenuRequested: (x, y) => {

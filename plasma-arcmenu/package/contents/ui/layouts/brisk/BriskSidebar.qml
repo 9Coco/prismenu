@@ -81,6 +81,8 @@ Item {
                 selected: root.selectedId === "pinned"
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
                 fg: root.fg
                 onActivated: root.selectionChanged("pinned")
             }
@@ -93,6 +95,8 @@ Item {
                 selected: root.selectedId === "all"
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
                 fg: root.fg
                 onActivated: root.selectionChanged("all")
             }
@@ -114,6 +118,8 @@ Item {
                     selected: root.selectedId === root.categories[index].id
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
                     fg: root.fg
                     onActivated: root.selectionChanged(root.categories[index].id)
                 }
@@ -136,6 +142,8 @@ Item {
                     selected: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
                     fg: root.fg
                     onActivated: root.shortcutActivated(root.extras[index])
                 }

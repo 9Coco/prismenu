@@ -38,8 +38,11 @@ Item {
     }
 
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
-    readonly property color selectedBg: themeStyle.selectedBg || Kirigami.Theme.highlightColor
-    readonly property color selectedFg: themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color selectedBg: themeStyle.activeBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
+    readonly property color selectedFg: themeStyle.activeFg || themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color hoverBg: themeStyle.hoverBg || root.selectedBg
+    readonly property color hoverFg: themeStyle.hoverFg || root.selectedFg
+    readonly property color separatorColor: themeStyle.separator || Kirigami.Theme.disabledTextColor
     readonly property int appIconSize: {
         var n = dataHost ? dataHost.appIconSize : 24;
         n = parseInt(n, 10);
@@ -330,7 +333,7 @@ Item {
                             anchors.fill: parent
                             anchors.margins: 1
                             radius: Kirigami.Units.smallSpacing
-                            color: catMouse.containsMouse ? root.selectedBg : "transparent"
+                            color: catMouse.containsMouse ? root.hoverBg : "transparent"
                         }
 
                         RowLayout {
@@ -341,7 +344,7 @@ Item {
 
                             Components.ResolvedIcon {
                                 iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
-                                tintColor: catMouse.containsMouse ? root.selectedFg : root.fg
+                                tintColor: catMouse.containsMouse ? root.hoverFg : root.fg
                                 Layout.preferredWidth: root.categoryIconSize
                                 Layout.preferredHeight: root.categoryIconSize
                             }
@@ -350,7 +353,7 @@ Item {
                                 Layout.fillWidth: true
                                 text: (catDel.cat && catDel.cat.name) ? catDel.cat.name : ""
                                 elide: Text.ElideRight
-                                color: catMouse.containsMouse ? root.selectedFg : root.fg
+                                color: catMouse.containsMouse ? root.hoverFg : root.fg
                             }
                         }
 
@@ -393,6 +396,8 @@ Item {
                         showDescription: false
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.appActivated(root.drilledApps[index])
                         onContextMenuRequested: (x, y) => root.appContextMenu(root.drilledApps[index], x, y)

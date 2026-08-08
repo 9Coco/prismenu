@@ -37,6 +37,8 @@ Item {
             selected: appList.currentIndex === index
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.appActivated(model)
             onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)

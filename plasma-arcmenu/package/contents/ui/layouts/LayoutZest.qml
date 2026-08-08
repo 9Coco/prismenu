@@ -222,6 +222,8 @@ LayoutBase {
                             iconSize: root.categoryIconSize
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.activateItem(root.sideItems[index])
                         }
@@ -289,6 +291,8 @@ LayoutBase {
                             selected: !root.searching && root.selectedId === "pinned"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectNav("pinned")
                         }
@@ -301,6 +305,8 @@ LayoutBase {
                             selected: !root.searching && root.selectedId === "all"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectNav("all")
                         }
@@ -321,6 +327,8 @@ LayoutBase {
                                 selected: !root.searching && root.selectedId === root.categories[index].id
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.selectNav(root.categories[index].id)
                             }
@@ -372,6 +380,8 @@ LayoutBase {
                                     showDescription: false
                                     selectedBg: root.selectedBg
                                     selectedFg: root.selectedFg
+                                    hoverBg: root.hoverBg
+                                    hoverFg: root.hoverFg
                                     fg: root.fg
                                     onActivated: root.activateItem(root.flatItems[index])
                                     onContextMenuRequested: (x, y) => {
@@ -421,6 +431,8 @@ LayoutBase {
                                             showDescription: false
                                             selectedBg: root.selectedBg
                                             selectedFg: root.selectedFg
+                                            hoverBg: root.hoverBg
+                                            hoverFg: root.hoverFg
                                             fg: root.fg
                                             onActivated: root.activateItem(section.apps[index])
                                             onContextMenuRequested: (x, y) => {
