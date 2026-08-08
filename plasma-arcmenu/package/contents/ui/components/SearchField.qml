@@ -9,6 +9,19 @@ PlasmaComponents.TextField {
 
     property string placeholder: i18n("Search applications…")
     property bool searching: text.length > 0
+    property var menuData: null
+    /** When hideSearchBar is on, collapse until focused/typing */
+    property bool forceVisible: false
+
+    readonly property bool hideWhenEmpty: !!(menuData && menuData.hideSearchBar)
+    readonly property bool effectivelyVisible: !hideWhenEmpty || searching || forceVisible || activeFocus
+    readonly property int boxRadius: (menuData && menuData.searchBoxRadiusEnabled)
+        ? Math.max(0, menuData.searchBoxRadius)
+        : Kirigami.Units.smallSpacing
+
+    visible: effectivelyVisible
+    opacity: effectivelyVisible ? 1 : 0
+    Layout.preferredHeight: effectivelyVisible ? Kirigami.Units.gridUnit * 2.2 : 0
 
     placeholderText: placeholder
     clearButtonShown: true

@@ -33,6 +33,38 @@
         <entry name="UiLanguage" type="String">
             <default>zh_CN</default>
         </entry>
+        <!-- Menu button (panel) -->
+        <entry name="PanelButtonIconSize" type="Int">
+            <default>20</default>
+        </entry>
+        <!-- arcmenu | context | overview | configure | show-desktop | nothing -->
+        <entry name="LeftClickAction" type="String">
+            <default>arcmenu</default>
+        </entry>
+        <entry name="RightClickAction" type="String">
+            <default>context</default>
+        </entry>
+        <entry name="MiddleClickAction" type="String">
+            <default>arcmenu</default>
+        </entry>
+        <entry name="ButtonStyleFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleHoverBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleHoverBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleHoverFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleHoverFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleActiveBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleActiveBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleActiveFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleActiveFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleRadiusEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleRadius" type="Int"><default>20</default></entry>
+        <entry name="ButtonStyleBorderWidthEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBorderWidth" type="Int"><default>3</default></entry>
+        <entry name="ButtonStyleBorderColorEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBorderColor" type="String"><default></default></entry>
     </group>
 
     <group name="Layout">
@@ -239,6 +271,27 @@
         </entry>
     </group>
 
+    <group name="Shortcuts">
+        <!-- Builtin place keys (HOME/…) or custom:Name|icon|/path -->
+        <entry name="DirectoryShortcuts" type="StringList">
+            <default>HOME,DOCUMENTS,DOWNLOAD,MUSIC,PICTURES,VIDEOS</default>
+        </entry>
+        <!-- Builtin: discover|settings|tweaks|overview — or desktop id — or custom:Name|icon|exec -->
+        <entry name="ApplicationShortcuts" type="StringList">
+            <default>discover,settings,tweaks</default>
+        </entry>
+        <entry name="ExtraCategoriesOrder" type="StringList">
+            <default>pinned,all-apps,favorites,frequent,recent-files</default>
+        </entry>
+        <entry name="ExtraCategoriesEnabled" type="StringList">
+            <default>pinned,all-apps</default>
+        </entry>
+        <!-- Button context menu items: configure|panel-settings|separator|power|overview|show-desktop|desktop:…|custom:… -->
+        <entry name="ContextMenuItems" type="StringList">
+            <default>configure,separator,power,overview,show-desktop</default>
+        </entry>
+    </group>
+
     <group name="Search">
         <entry name="Providers" type="StringList">
             <default>applications</default>
@@ -247,10 +300,28 @@
             <default>Search…</default>
         </entry>
         <entry name="ShowDescription" type="Bool">
-            <default>true</default>
+            <default>false</default>
         </entry>
         <entry name="MaxResults" type="Int">
-            <default>20</default>
+            <default>5</default>
+        </entry>
+        <entry name="HideSearchBar" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="HighlightSearchTerms" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="SearchBoxRadiusEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SearchBoxRadius" type="Int">
+            <default>25</default>
+        </entry>
+        <entry name="SearchWindows" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="SearchRecentFiles" type="Bool">
+            <default>false</default>
         </entry>
     </group>
 
@@ -306,13 +377,20 @@
 
     <group name="Power">
         <entry name="Options" type="StringList">
-            <default>shutdown,restart,logout,lock,suspend,hibernate,settings,discover,switchuser</default>
+            <default>logout,lock,restart,shutdown</default>
+        </entry>
+        <entry name="PowerOptionsOrder" type="StringList">
+            <default>logout,lock,restart,shutdown,suspend,hybridsleep,hibernate,switchuser</default>
         </entry>
         <entry name="Confirm" type="Bool">
             <default>true</default>
         </entry>
         <entry name="SoftwareCenterCmd" type="String">
             <default>auto-detect</default>
+        </entry>
+        <!-- off | buttons | list -->
+        <entry name="PowerDisplayStyle" type="String">
+            <default>off</default>
         </entry>
     </group>
 </kcfg>

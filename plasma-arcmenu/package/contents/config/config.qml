@@ -28,6 +28,11 @@ ConfigModel {
         source: "config/ConfigGeneral.qml"
     }
     ConfigCategory {
+        name: configModel.tr("Menu Button")
+        icon: "view-app-grid-symbolic"
+        source: "config/ConfigMenuButton.qml"
+    }
+    ConfigCategory {
         name: configModel.tr("Menu Layout")
         icon: "view-grid"
         source: "config/ConfigLayout.qml"
@@ -41,6 +46,21 @@ ConfigModel {
         name: configModel.tr("Pinned Applications")
         icon: "pin"
         source: "config/ConfigPinned.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("Directory Shortcuts")
+        icon: "folder"
+        source: "config/ConfigDirectoryShortcuts.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("Application Shortcuts")
+        icon: "applications-other"
+        source: "config/ConfigAppShortcuts.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("Extra Categories")
+        icon: "view-list-details"
+        source: "config/ConfigExtraCategories.qml"
     }
     ConfigCategory {
         name: configModel.tr("Menu Visual Appearance")
@@ -59,18 +79,23 @@ ConfigModel {
     }
     ConfigCategory {
         name: configModel.tr("Menu Content")
-        icon: "view-list-details"
+        icon: "view-catalog"
         source: "config/ConfigContent.qml"
     }
     ConfigCategory {
-        name: configModel.tr("Search")
+        name: configModel.tr("Search Options")
         icon: "edit-find"
         source: "config/ConfigSearch.qml"
     }
     ConfigCategory {
-        name: configModel.tr("System Actions")
+        name: configModel.tr("Power Options")
         icon: "system-shutdown"
         source: "config/ConfigPower.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("Modify ArcMenu Context Menu")
+        icon: "open-menu-symbolic"
+        source: "config/ConfigContextMenu.qml"
     }
     // No custom About page — Plasma already adds one from metadata.json
 }

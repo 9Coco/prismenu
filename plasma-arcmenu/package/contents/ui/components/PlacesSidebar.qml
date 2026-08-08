@@ -37,7 +37,9 @@ ColumnLayout {
 
     readonly property var placeItems: {
         var _ = root.uiLang;
-        var items = [
+        if (menuData && menuData.places && menuData.places.length)
+            return menuData.places;
+        return [
             { id: "place-home", name: root.t("Home"), icon: "user-home", place: "HOME" },
             { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
             { id: "place-dl", name: root.t("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
@@ -45,27 +47,12 @@ ColumnLayout {
             { id: "place-pics", name: root.t("Pictures"), icon: "folder-pictures", place: "PICTURES" },
             { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", place: "VIDEOS" }
         ];
-        if (menuData && menuData.showBookmarks) {
-            items.push({
-                id: "place-bookmarks",
-                name: root.t("Bookmarks"),
-                icon: "bookmarks",
-                exec: "kioclient exec bookmarks:/ || xdg-open bookmarks:/"
-            });
-        }
-        if (menuData && menuData.showExternalDevices) {
-            items.push({
-                id: "place-devices",
-                name: root.t("External devices"),
-                icon: "drive-removable-media",
-                exec: "kioclient exec computer:/ || dolphin computer:/ || xdg-open computer:/"
-            });
-        }
-        return items;
     }
 
     readonly property var shortcutItems: {
         var _ = root.uiLang;
+        if (menuData && menuData.systemShortcuts && menuData.systemShortcuts.length)
+            return menuData.systemShortcuts;
         return [
             { id: "shortcut-software", name: root.t("Software"), icon: "plasmadiscover", action: "discover" },
             { id: "shortcut-settings", name: root.t("Settings"), icon: "preferences-system", action: "settings" },

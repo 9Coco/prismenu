@@ -544,6 +544,7 @@ Item {
             "lock": "loginctl lock-session || qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock",
             "logout": "qdbus org.kde.Shutdown /Shutdown logout || loginctl terminate-user \"$USER\"",
             "suspend": "systemctl suspend",
+            "hybridsleep": "systemctl hybrid-sleep || systemctl suspend",
             "hibernate": "systemctl hibernate",
             "restart": "systemctl reboot",
             "shutdown": "systemctl poweroff",
@@ -552,7 +553,8 @@ Item {
             "switchuser": "qdbus org.kde.ksmserver /KSMServer openSwitchUserDialog || dm-tool switch-to-greeter",
             // ArcMenu User button → System Settings → Users
             "accountsettings": "systemsettings kcm_users || kcmshell6 kcm_users || plasma-open-settings kcm_users || systemsettings",
-            "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview"
+            "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview",
+            "show-desktop": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop' || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Show Desktop' || xdotool key Super+D"
         };
         var cmd = map[actionId];
         if (!cmd) {
