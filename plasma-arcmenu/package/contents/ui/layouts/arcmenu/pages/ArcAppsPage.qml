@@ -137,8 +137,9 @@ Item {
                             anchors.rightMargin: Kirigami.Units.smallSpacing
                             spacing: Kirigami.Units.smallSpacing
 
-                            Kirigami.Icon {
-                                source: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "applications-other"
+                            Components.ResolvedIcon {
+                                iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
+                                tintColor: catMouse.containsMouse ? root.selectedFg : root.fg
                                 Layout.preferredWidth: root.categoryIconSize
                                 Layout.preferredHeight: root.categoryIconSize
                             }

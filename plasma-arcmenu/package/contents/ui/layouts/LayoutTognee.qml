@@ -8,7 +8,7 @@ import "../../code/AppsModel.js" as AppsModel
 /**
  * Tognee layout (ArcMenu Tognee).
  *
- * Left: icon rail (places â†’ software/settings/tweaks â†’ expand â†’ power)
+ * Left: icon rail (places â†?software/settings/tweaks â†?expand â†?power)
  * Right: category list (home) or app list (drill-in) + search at bottom
  */
 LayoutBase {
@@ -37,13 +37,13 @@ LayoutBase {
     ]
 
     readonly property var categories: [
-        { id: "Office", name: root.tr("Office"), icon: "applications-office" },
-        { id: "Development", name: root.tr("Programming"), icon: "applications-development" },
-        { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: root.tr("Tools"), icon: "applications-utilities" },
-        { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
+        { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
+        { id: "Development", name: root.tr("Programming"), icon: "arcmenu-cat-dev-brush" },
+        { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
+        { id: "Utility", name: root.tr("Tools"), icon: "arcmenu-cat-tools-build" },
+        { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
+        { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
+        { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
     ]
 
     readonly property var defaultPinned: [
@@ -389,7 +389,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);

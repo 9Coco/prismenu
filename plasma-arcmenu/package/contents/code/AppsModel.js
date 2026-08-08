@@ -239,18 +239,19 @@ function resolveAppsByIds(apps, ids) {
     return result;
 }
 
+// Icons: Material Symbols Outlined (see CategoryIcons.js + icons/categories/)
 var DEFAULT_CATEGORIES = [
-    { id: "Development", name: "Development", icon: "applications-development" },
-    { id: "Education", name: "Education", icon: "applications-education" },
-    { id: "Game", name: "Games", icon: "applications-games" },
-    { id: "Graphics", name: "Graphics", icon: "applications-graphics" },
-    { id: "Network", name: "Internet", icon: "applications-internet" },
-    { id: "AudioVideo", name: "Multimedia", icon: "applications-multimedia" },
-    { id: "Office", name: "Office", icon: "applications-office" },
-    { id: "Settings", name: "Settings", icon: "preferences-system" },
-    { id: "System", name: "System", icon: "applications-system" },
-    { id: "Utility", name: "Utilities", icon: "applications-utilities" },
-    { id: "Accessories", name: "Accessories", icon: "applications-accessories" }
+    { id: "Development", name: "Development", icon: "arcmenu-cat-dev-brush" },
+    { id: "Education", name: "Education", icon: "arcmenu-cat-edu-school" },
+    { id: "Game", name: "Games", icon: "arcmenu-cat-games-esports" },
+    { id: "Graphics", name: "Graphics", icon: "arcmenu-cat-graphics-image" },
+    { id: "Network", name: "Internet", icon: "arcmenu-cat-internet-public" },
+    { id: "AudioVideo", name: "Multimedia", icon: "arcmenu-cat-av-movie" },
+    { id: "Office", name: "Office", icon: "arcmenu-cat-office-barchart" },
+    { id: "Settings", name: "Settings", icon: "arcmenu-cat-tools-tune" },
+    { id: "System", name: "System", icon: "arcmenu-cat-system-settings" },
+    { id: "Utility", name: "Utilities", icon: "arcmenu-cat-tools-build" },
+    { id: "Accessories", name: "Accessories", icon: "arcmenu-cat-accessories-handyman" }
 ];
 
 function defaultCategories() {
