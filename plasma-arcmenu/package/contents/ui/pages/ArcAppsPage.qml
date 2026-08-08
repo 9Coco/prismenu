@@ -69,6 +69,7 @@ Item {
         // Also bind plasmoid.configuration directly (config dialog → live menu)
         var liveEnabled = plasmoid.configuration.extraCategoriesEnabled;
         var liveOrder = plasmoid.configuration.extraCategoriesOrder;
+        var liveUserSet = plasmoid.configuration.extraCategoriesUserSet;
         var tick = root.refreshTick;
         var _ = root.uiLang;
         var allApps = host && host.allApps ? host.allApps : [];
@@ -77,27 +78,27 @@ Item {
         var out = [];
         var i;
 
-        // Prefer live config (immediate), then MenuData enabled list
+        // Prefer live config; until userSet, empty/missing lists use GNOME defaults
         var extras = [];
-        if (liveEnabled !== undefined && liveEnabled !== null) {
-            var order = ShortcutsConfig.normalizeList(liveOrder, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
-            var enabled = ShortcutsConfig.normalizeList(liveEnabled, ShortcutsConfig.DEFAULT_EXTRA_ON);
-            for (i = 0; i < order.length; ++i) {
-                var eid = order[i];
-                if (!eid || enabled.indexOf(eid) < 0)
-                    continue;
-                var ename = eid;
-                var eicon = "applications-other";
-                if (eid === "favorites") { ename = Locale.tr("Favorites", _); eicon = "emblem-favorite"; }
-                else if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
-                else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
-                else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
-                else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }
-                extras.push({ id: eid, name: ename, icon: eicon, extra: true });
-            }
-        } else if (host && host.enabledExtraCategories) {
-            extras = host.enabledExtraCategories;
+        var userSet = false;
+        try { userSet = !!plasmoid.configuration.extraCategoriesUserSet; } catch (e0) {}
+        var order = ShortcutsConfig.normalizeList(liveOrder, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
+        var enabled = ShortcutsConfig.effectiveExtraEnabled(liveEnabled, userSet);
+        for (i = 0; i < order.length; ++i) {
+            var eid = order[i];
+            if (!eid || enabled.indexOf(eid) < 0)
+                continue;
+            var ename = eid;
+            var eicon = "applications-other";
+            if (eid === "favorites") { ename = Locale.tr("Favorites", _); eicon = "emblem-favorite"; }
+            else if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
+            else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
+            else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
+            else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }
+            extras.push({ id: eid, name: ename, icon: eicon, extra: true });
         }
+        if (!extras.length && host && host.enabledExtraCategories)
+            extras = host.enabledExtraCategories;
         var extrasShown = 0;
         for (i = 0; i < extras.length; ++i) {
             var ex = extras[i];
@@ -180,6 +181,14 @@ Item {
         }
         if (root.specialListId === "frequent") {
             return (host && host.recentApps) ? host.recentApps : [];
+        }
+        if (root.specialListId === "recent-files") {
+            var _rf = host ? host.recentFilesEpoch : 0;
+            return (host && host.recentFileResults) ? host.recentFileResults : [];
+        }
+        if (root.specialListId === "bookmarks") {
+            var _bm = host ? host.bookmarksEpoch : 0;
+            return (host && host.bookmarkResults) ? host.bookmarkResults : [];
         }
         if (root.drillCategoryId.length === 0)
             return [];
@@ -275,12 +284,16 @@ Item {
             return;
         }
         if (id === "recent-files") {
-            root.appActivated({
-                id: "recent-files",
-                name: Locale.tr("Recent Files", root.uiLang),
-                icon: "document-open-recent",
-                exec: "kioclient exec recent:/ || xdg-open recent:/"
-            });
+            // Show GTK recently-used.xbel list inside the menu (recent:/ KIO often fails on Plasma)
+            if (bridged && bridged.requestRecentFilesRefresh)
+                bridged.requestRecentFilesRefresh();
+            root.openSpecialList("recent-files");
+            return;
+        }
+        if (id === "bookmarks" || id === "place-bookmarks") {
+            if (bridged && bridged.requestBookmarksRefresh)
+                bridged.requestBookmarksRefresh();
+            root.openSpecialList("bookmarks");
             return;
         }
 
@@ -301,6 +314,10 @@ Item {
             return Locale.tr("Favorites", root.uiLang);
         if (root.specialListId === "frequent")
             return Locale.tr("Frequent Apps", root.uiLang);
+        if (root.specialListId === "recent-files")
+            return Locale.tr("Recent Files", root.uiLang);
+        if (root.specialListId === "bookmarks")
+            return Locale.tr("Bookmarks", root.uiLang);
         if (root.drillCategoryId === "all")
             return Locale.tr("All Applications", root.uiLang);
         if (root.showingCategories)
@@ -320,6 +337,10 @@ Item {
             return "emblem-favorite";
         if (root.specialListId === "frequent")
             return "view-calendar";
+        if (root.specialListId === "recent-files")
+            return "document-open-recent";
+        if (root.specialListId === "bookmarks")
+            return "bookmarks";
         if (root.drillCategoryId === "all")
             return "view-app-grid-symbolic";
         if (root.showingCategories)

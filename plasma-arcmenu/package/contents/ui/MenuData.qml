@@ -25,6 +25,7 @@ QtObject {
      */
     property var extraCategoriesEnabledRaw
     property var extraCategoriesOrderRaw
+    property bool extraCategoriesUserSetRaw: false
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -37,6 +38,20 @@ QtObject {
     /** Secondary search providers (filled by AppsBackend) */
     property var recentFileResults: []
     property var openWindowResults: []
+    property var bookmarkResults: []
+    /** Bumped when recent-file list is refreshed — forces UI list bindings */
+    property int recentFilesEpoch: 0
+    property int bookmarksEpoch: 0
+    /** Increment to ask AppsBackend to re-read recently-used.xbel */
+    property int recentFilesRequest: 0
+    property int bookmarksRequest: 0
+
+    function requestRecentFilesRefresh() {
+        recentFilesRequest++;
+    }
+    function requestBookmarksRefresh() {
+        bookmarksRequest++;
+    }
 
     /**
      * Safe config read: plasmoid.configuration keys can be undefined when
@@ -607,6 +622,12 @@ QtObject {
     readonly property var applicationShortcutIds: {
         return ShortcutsConfig.normalizeList(cfg("applicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
     }
+    readonly property bool extraCategoriesUserSet: {
+        var _ = root.structureEpoch;
+        if (extraCategoriesUserSetRaw === true || extraCategoriesUserSetRaw === 1)
+            return true;
+        return cfgBool("extraCategoriesUserSet", false);
+    }
     readonly property var extraCategoriesOrder: {
         var _ = root.structureEpoch;
         var raw = (extraCategoriesOrderRaw !== undefined && extraCategoriesOrderRaw !== null)
@@ -619,7 +640,7 @@ QtObject {
         var raw = (extraCategoriesEnabledRaw !== undefined && extraCategoriesEnabledRaw !== null)
             ? extraCategoriesEnabledRaw
             : (plasmoidConfig ? plasmoidConfig.extraCategoriesEnabled : undefined);
-        return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ON);
+        return ShortcutsConfig.effectiveExtraEnabled(raw, root.extraCategoriesUserSet);
     }
     readonly property var contextMenuItems: {
         return ShortcutsConfig.normalizeList(cfg("contextMenuItems", ShortcutsConfig.DEFAULT_CTX), ShortcutsConfig.DEFAULT_CTX);
@@ -688,7 +709,8 @@ QtObject {
         if (root.showBookmarks) {
             out.push({
                 id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
-                exec: "kioclient exec bookmarks:/ || xdg-open bookmarks:/",
+                // In-menu GTK bookmarks list — bookmarks:/ KIO is unreliable on Plasma
+                special: "bookmarks",
                 categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
             });
         }
