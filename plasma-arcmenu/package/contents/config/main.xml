@@ -51,6 +51,10 @@
         <entry name="MenuHeight" type="Int">
             <default>540</default>
         </entry>
+        <!-- Arc Menu right places column width (px); other layouts ignore -->
+        <entry name="SidebarWidth" type="Int">
+            <default>220</default>
+        </entry>
     </group>
 
     <group name="Theme">

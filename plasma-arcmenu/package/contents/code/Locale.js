@@ -83,6 +83,8 @@ var ZH_CN = {
     "Menu hotkey:": "菜单快捷键：",
     "Menu language:": "菜单语言：",
     "Menu width:": "菜单宽度：",
+    "Sidebar width:": "侧栏宽度：",
+    "Tip: drag the menu edges to resize, or the divider between columns.": "提示：可拖拽菜单边缘调整整体大小，或拖拽中间分隔条调整左右栏宽度。",
     "Modern Menu Layouts": "现代菜单布局",
     "Multimedia": "多媒体",
     "Music": "音乐",
