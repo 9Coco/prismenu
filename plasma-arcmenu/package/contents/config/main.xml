@@ -226,6 +226,56 @@
         </entry>
     </group>
 
+    <!-- ArcMenu Fine-tuning / 微调 -->
+    <group name="FineTune">
+        <entry name="ShowCategorySubmenus" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowAppDescriptions" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowGenericNames" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowHiddenRecentFiles" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MultiLineLabels" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ShowTooltips" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="GroupAppsAlphabeticallyList" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="GroupAppsAlphabeticallyGrid" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ActivateExistingWindow" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="KeepOpenOnCtrlClick" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ScrollviewFadeEffects" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ShowScrollbars" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="OverlayScrollbars" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- fullcolor | symbolic -->
+        <entry name="CategoryIconType" type="String">
+            <default>symbolic</default>
+        </entry>
+        <entry name="ShortcutIconType" type="String">
+            <default>symbolic</default>
+        </entry>
+    </group>
+
     <group name="Power">
         <entry name="Options" type="StringList">
             <default>shutdown,restart,logout,lock,suspend,hibernate,settings,discover,switchuser</default>

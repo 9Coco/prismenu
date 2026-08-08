@@ -242,7 +242,7 @@ LayoutBase {
                         Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
                         app: root.frequentItems[index]
                         iconSize: Math.max(root.appIconSize, 28)
-                        showDescription: false
+                        showDescription: root.showAppDescriptions
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
                         hoverBg: root.hoverBg
@@ -306,7 +306,7 @@ LayoutBase {
                             width: allCol.width
                             app: root.allAppsItems[index]
                             iconSize: Math.max(root.appIconSize, 28)
-                            showDescription: false
+                            showDescription: root.showAppDescriptions
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
                             hoverBg: root.hoverBg

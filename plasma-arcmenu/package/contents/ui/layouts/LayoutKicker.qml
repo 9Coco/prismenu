@@ -142,7 +142,7 @@ LayoutBase {
                 width: cascadeApps.width
                 app: model
                 iconSize: root.appIconSize
-                showDescription: false
+                showDescription: root.showAppDescriptions
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
                 hoverBg: root.hoverBg

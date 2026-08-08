@@ -246,7 +246,7 @@ Item {
         return display ? String(display).replace(/\s+/g, "_") + ".desktop" : "";
     }
 
-    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp) {
+    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp, genericName) {
         display = String(display || "").trim();
         if (!display)
             return;
@@ -256,12 +256,14 @@ Item {
         if (seenApp[id]) {
             if (catId && catId !== "all" && seenApp[id].categories.indexOf(catId) < 0)
                 seenApp[id].categories.push(catId);
+            if (genericName && !seenApp[id].genericName)
+                seenApp[id].genericName = String(genericName);
             return;
         }
         var app = {
             id: id,
             name: display,
-            genericName: "",
+            genericName: genericName ? String(genericName) : "",
             icon: iconNameFromDecoration(decoration) || "application-x-executable",
             exec: "",
             categories: (catId && catId !== "all") ? [catId] : [],
@@ -288,10 +290,14 @@ Item {
                     var nested = row.nestedInst.objectAt(j);
                     if (!nested || nested.hasChildren)
                         continue;
-                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp);
+                    var ng = "";
+                    try { ng = nested.genericName || nested.description || ""; } catch (e1) {}
+                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp, ng);
                 }
             } else if (!row.hasChildren) {
-                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp);
+                var g = "";
+                try { g = row.genericName || row.description || ""; } catch (e2) {}
+                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp, g);
             }
         }
     }
@@ -475,9 +481,10 @@ Item {
         exec.connectSource("/bin/bash -lc " + shellQuote(script));
     }
 
-    function launch(app) {
+    function launch(app, opts) {
         if (!app)
             return;
+        opts = opts || {};
 
         // Preferred: explicit place key from PlacesSidebar / MenuData
         if (app.place) {
@@ -488,9 +495,18 @@ Item {
         var url = app.kickerUrl || app.entryPath || "";
         if (url) {
             var id = String(app.id || "").replace(/\.desktop$/, "");
-            exec.connectSource("kioclient exec " + shellQuote(url)
-                + " || gtk-launch " + shellQuote(id)
-                + " || xdg-open " + shellQuote(url));
+            // activateExisting: prefer kstart5/kstart --activate when available
+            if (opts.activateExisting) {
+                exec.connectSource("kstart --activate " + shellQuote(url)
+                    + " 2>/dev/null || kstart5 --activate " + shellQuote(url)
+                    + " 2>/dev/null || kioclient exec " + shellQuote(url)
+                    + " || gtk-launch " + shellQuote(id)
+                    + " || xdg-open " + shellQuote(url));
+            } else {
+                exec.connectSource("kioclient exec " + shellQuote(url)
+                    + " || gtk-launch " + shellQuote(id)
+                    + " || xdg-open " + shellQuote(url));
+            }
             return;
         }
 

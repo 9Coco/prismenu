@@ -183,6 +183,25 @@ QtObject {
     readonly property bool recentEnabled: cfgBool("enabled", true)
     readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))
     readonly property bool showSearchDescription: cfgBool("showDescription", true)
+
+    // ---- Fine-tuning ----
+    readonly property bool showCategorySubmenus: cfgBool("showCategorySubmenus", false)
+    readonly property bool showAppDescriptions: cfgBool("showAppDescriptions", false)
+    readonly property bool showGenericNames: cfgBool("showGenericNames", false)
+    readonly property bool showHiddenRecentFiles: cfgBool("showHiddenRecentFiles", false)
+    readonly property bool multiLineLabels: cfgBool("multiLineLabels", true)
+    readonly property bool showTooltips: cfgBool("showTooltips", true)
+    readonly property bool groupAppsAlphabeticallyList: cfgBool("groupAppsAlphabeticallyList", true)
+    readonly property bool groupAppsAlphabeticallyGrid: cfgBool("groupAppsAlphabeticallyGrid", false)
+    readonly property bool activateExistingWindow: cfgBool("activateExistingWindow", false)
+    readonly property bool keepOpenOnCtrlClick: cfgBool("keepOpenOnCtrlClick", true)
+    readonly property bool scrollviewFadeEffects: cfgBool("scrollviewFadeEffects", true)
+    readonly property bool showScrollbars: cfgBool("showScrollbars", true)
+    readonly property bool overlayScrollbars: cfgBool("overlayScrollbars", true)
+    readonly property string categoryIconType: cfgStr("categoryIconType", "symbolic")
+    readonly property string shortcutIconType: cfgStr("shortcutIconType", "symbolic")
+    readonly property bool categoryIconsSymbolic: categoryIconType !== "fullcolor"
+    readonly property bool shortcutIconsSymbolic: shortcutIconType !== "fullcolor"
     readonly property int maxSearchResults: Math.max(1, cfgInt("maxResults", 20))
     readonly property var searchProviders: {
         var p = cfg("providers", ["applications"]);

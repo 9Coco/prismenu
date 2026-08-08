@@ -214,7 +214,7 @@ LayoutBase {
                                 width: contentCol.width
                                 app: root.contentItems[index]
                                 iconSize: Math.max(root.appIconSize, 28)
-                                showDescription: false
+                                showDescription: root.showAppDescriptions
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
                                 hoverBg: root.hoverBg
