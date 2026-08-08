@@ -16,7 +16,7 @@ LayoutBase {
         Components.SearchField {
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }

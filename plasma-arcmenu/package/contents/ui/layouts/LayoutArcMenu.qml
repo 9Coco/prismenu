@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
+import "../../code/CatalogBridge.js" as CatalogBridge
 
 /**
  * Official ArcMenu shell.
@@ -50,11 +51,23 @@ LayoutBase {
         root.appActivated(item);
     }
 
+    function resolveCatalog() {
+        if (root.menuData)
+            return root.menuData;
+        // Fallback if LayoutHost passed null (fullRepresentation scope bug)
+        try {
+            return CatalogBridge.menuData();
+        } catch (e) {
+            return null;
+        }
+    }
+
     function wirePage(loader) {
         var item = loader.item;
         if (!item)
             return;
-        item.menuData = root.menuData;
+        var md = root.resolveCatalog();
+        item.menuData = md;
         item.themeStyle = root.themeStyle;
         if (item.appActivated) {
             try { item.appActivated.disconnect(root.activateShortcut); } catch (e) {}
@@ -64,6 +77,18 @@ LayoutBase {
             try { item.appContextMenu.disconnect(root._ctx); } catch (e2) {}
             item.appContextMenu.connect(root._ctx);
         }
+        var n = (md && md.allApps) ? md.allApps.length : 0;
+        console.log("ArcMenu wirePage", loader.source, "catalog=", n);
+    }
+
+    function reattachCatalog() {
+        if (!root.menuData) {
+            var bridged = root.resolveCatalog();
+            if (bridged)
+                root.menuData = bridged;
+        }
+        root.wirePage(appsLoader);
+        root.wirePage(searchLoader);
     }
 
     function _ctx(app, x, y) {
@@ -142,7 +167,7 @@ LayoutBase {
                         id: appsLoader
                         anchors.fill: parent
                         visible: root.activePageId === "apps"
-                        enabled: visible
+                        enabled: true
                         z: visible ? 2 : 0
                         active: true
                         asynchronous: false
@@ -232,13 +257,10 @@ LayoutBase {
     }
 
     onMenuDataChanged: {
-        root.showingApps = false;
-        root.wirePage(appsLoader);
-        root.wirePage(searchLoader);
+        root.reattachCatalog();
     }
 
     Component.onCompleted: {
-        root.wirePage(appsLoader);
-        root.wirePage(searchLoader);
+        root.reattachCatalog();
     }
 }

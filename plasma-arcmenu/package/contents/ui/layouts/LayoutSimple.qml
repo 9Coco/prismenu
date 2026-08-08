@@ -17,7 +17,7 @@ LayoutBase {
             id: search
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search applications…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
             Component.onCompleted: forceActiveFocus()

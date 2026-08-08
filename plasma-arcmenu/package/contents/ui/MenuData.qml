@@ -14,8 +14,7 @@ QtObject {
 
     // ---- Config bindings (set from main.qml) ----
     property var plasmoidConfig: null
-    // Bound directly from main.qml → plasmoid.configuration.currentLayout
-    // (do NOT read via plasmoidConfig.var — QML won't notify on nested changes)
+    // Bound directly from main.qml → plasmoid.configuration.menuLayoutId
     property string currentLayoutId: "arcmenu"
 
     // ---- Runtime state ----
@@ -27,8 +26,41 @@ QtObject {
     property string currentPage: "home" // home | apps | search
     property var focusedApp: null
 
+    /**
+     * Safe config read: plasmoid.configuration keys can be undefined when
+     * accessed via a var alias — never return undefined into typed properties.
+     */
+    function cfg(key, fallback) {
+        try {
+            if (!plasmoidConfig)
+                return fallback;
+            var v = plasmoidConfig[key];
+            if (v === undefined || v === null)
+                return fallback;
+            return v;
+        } catch (e) {
+            return fallback;
+        }
+    }
+
+    function cfgBool(key, fallback) {
+        var v = cfg(key, fallback);
+        return v === true || v === 1 || v === "true";
+    }
+
+    function cfgInt(key, fallback) {
+        var v = cfg(key, fallback);
+        var n = parseInt(v, 10);
+        return isNaN(n) ? fallback : n;
+    }
+
+    function cfgStr(key, fallback) {
+        var v = cfg(key, fallback);
+        return (v === undefined || v === null) ? fallback : String(v);
+    }
+
     // ---- UI language (General → Menu language) ----
-    readonly property string uiLanguagePref: plasmoidConfig ? (plasmoidConfig.uiLanguage || "zh_CN") : "zh_CN"
+    readonly property string uiLanguagePref: cfgStr("uiLanguage", "zh_CN")
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) {
@@ -41,49 +73,52 @@ QtObject {
 
     // ---- Derived config accessors ----
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
-    readonly property bool flipHorizontal: plasmoidConfig ? plasmoidConfig.flipHorizontal : false
-    readonly property string searchbarLocation: plasmoidConfig ? plasmoidConfig.searchbarLocation : "top"
-    readonly property int menuWidth: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuWidth : 600, 400, 900, 600)
+    readonly property bool flipHorizontal: cfgBool("flipHorizontal", false)
+    readonly property string searchbarLocation: cfgStr("searchbarLocation", "top")
+    readonly property int menuWidth: LayoutRegistry.clampSize(cfgInt("menuWidth", 600), 400, 900, 600)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
-    readonly property int menuHeight: LayoutRegistry.clampSize(plasmoidConfig ? plasmoidConfig.menuHeight : 550, 400, 800, 550)
-    readonly property int appIconSize: plasmoidConfig ? plasmoidConfig.appIconSize : 24
-    readonly property int categoryIconSize: plasmoidConfig ? plasmoidConfig.categoryIconSize : 24
-    readonly property int pinnedCols: plasmoidConfig ? plasmoidConfig.pinnedCols : 6
-    readonly property bool recentEnabled: plasmoidConfig ? plasmoidConfig.enabled : true
-    readonly property int recentMax: plasmoidConfig ? plasmoidConfig.maxItems : 5
-    readonly property bool showSearchDescription: plasmoidConfig ? plasmoidConfig.showDescription : true
-    readonly property int maxSearchResults: plasmoidConfig ? plasmoidConfig.maxResults : 20
-    readonly property var searchProviders: plasmoidConfig ? plasmoidConfig.providers : ["applications"]
+    readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 550), 400, 800, 550)
+    readonly property int appIconSize: Math.max(16, cfgInt("appIconSize", 24))
+    readonly property int categoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))
+    readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))
+    readonly property bool recentEnabled: cfgBool("enabled", true)
+    readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))
+    readonly property bool showSearchDescription: cfgBool("showDescription", true)
+    readonly property int maxSearchResults: Math.max(1, cfgInt("maxResults", 20))
+    readonly property var searchProviders: {
+        var p = cfg("providers", ["applications"]);
+        if (typeof p === "string")
+            return p.length ? p.split(",") : ["applications"];
+        if (!p || p.length === undefined)
+            return ["applications"];
+        return p;
+    }
     readonly property string searchPlaceholder: {
-        var p = plasmoidConfig ? plasmoidConfig.placeholder : "";
+        var p = cfgStr("placeholder", "Search…");
         if (!p || p === "Search…")
             return root.tr("Search…");
         return root.tr(p);
     }
     readonly property var powerOptions: {
         var fallback = ["shutdown", "restart", "logout", "lock"];
-        if (!plasmoidConfig) {
+        var opts = cfg("options", fallback);
+        if (opts === undefined || opts === null)
             return fallback;
-        }
-        var opts = plasmoidConfig.options;
-        if (opts === undefined || opts === null) {
-            return fallback;
-        }
-        if (typeof opts === "string") {
+        if (typeof opts === "string")
             return opts.length ? opts.split(",") : fallback;
-        }
-        if (opts.length === 0) {
+        if (opts.length === 0)
             return fallback;
-        }
         return opts;
     }
-    readonly property bool powerConfirm: plasmoidConfig ? plasmoidConfig.confirm : true
-    readonly property string softwareCenterCmd: plasmoidConfig ? plasmoidConfig.softwareCenterCmd : "auto-detect"
-    readonly property bool syncFavorites: plasmoidConfig ? plasmoidConfig.syncWithPlasma : true
-    readonly property bool showEmptyCategories: plasmoidConfig ? plasmoidConfig.showEmpty : false
+    readonly property bool powerConfirm: cfgBool("confirm", true)
+    readonly property string softwareCenterCmd: cfgStr("softwareCenterCmd", "auto-detect")
+    readonly property bool syncFavorites: cfgBool("syncWithPlasma", true)
+    readonly property bool showEmptyCategories: cfgBool("showEmpty", true)
 
-    // ---- Application catalog (populated by runner / demo fallback) ----
+    // ---- Application catalog (populated by AppsBackend / Kicker RootModel) ----
     property var allApps: []
+    /** Bumped when allApps is replaced — forces UI bindings to refresh */
+    property int catalogEpoch: 0
     property var rawCategories: []
     property string userName: ""
     property string userIcon: "user-identity"
@@ -91,15 +126,18 @@ QtObject {
     property string osPrettyName: "Kubuntu"
 
     readonly property var categories: {
-        var base = rawCategories.length ? rawCategories : AppsModel.defaultCategories();
-        // attach counts + translate default English names
+        var _apps = allApps || [];
+        var base = (rawCategories && rawCategories.length) ? rawCategories : AppsModel.defaultCategories();
+        // attach counts + translate default English names (keep already-localized Kickoff names)
         var withCounts = [];
         for (var i = 0; i < base.length; ++i) {
             var c = Object.assign({}, base[i]);
-            c.name = root.tr(c.name);
+            var originalName = String(c.name || "");
+            var translated = root.tr(originalName);
+            c.name = translated || originalName || c.id;
             if (!CategoryIcons.isBundled(c.icon))
                 c.icon = CategoryIcons.defaultIcon(c.id);
-            c.apps = AppsModel.appsInCategory(allApps, c.id);
+            c.apps = AppsModel.appsInCategory(_apps, c.id);
             c.appCount = c.apps.length;
             withCounts.push(c);
         }
@@ -108,15 +146,15 @@ QtObject {
             id: "all",
             name: root.tr("All Applications"),
             icon: "arcmenu-cat-other-apps",
-            apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps)),
-            appCount: allApps.length
+            apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps)),
+            appCount: _apps.length
         };
         var customized = AppsModel.applyCategoryCustomization(
             withCounts,
-            plasmoidConfig ? plasmoidConfig.order : [],
-            plasmoidConfig ? plasmoidConfig.hidden : [],
-            plasmoidConfig ? plasmoidConfig.customNames : "{}",
-            plasmoidConfig ? plasmoidConfig.customIcons : "{}",
+            cfg("order", []),
+            cfg("hidden", []),
+            cfgStr("customNames", "{}"),
+            cfgStr("customIcons", "{}"),
             showEmptyCategories
         );
         return [all].concat(customized);
@@ -126,7 +164,7 @@ QtObject {
 
     readonly property var pinnedApps: {
         var lang = root.uiLang; // binding dependency
-        var ids = IdList.normalizeIdList(plasmoidConfig ? plasmoidConfig.pinnedApps : []);
+        var ids = IdList.normalizeIdList(cfg("pinnedApps", []));
         if (ids.length === 0) {
             ids = IdList.defaultPinnedIds();
         }
@@ -194,7 +232,7 @@ QtObject {
         if (!recentEnabled) {
             return [];
         }
-        var ids = plasmoidConfig ? plasmoidConfig.recentApps : [];
+        var ids = cfg("recentApps", []);
         return AppsModel.resolveAppsByIds(allApps, ids);
     }
 
@@ -222,8 +260,8 @@ QtObject {
     }
 
     readonly property string buttonIcon: Distro.resolveButtonIcon(
-        plasmoidConfig ? plasmoidConfig.buttonIcon : "auto-distro",
-        plasmoidConfig ? plasmoidConfig.customButtonIcon : "",
+        cfgStr("buttonIcon", "auto-distro"),
+        cfgStr("customButtonIcon", ""),
         osReleaseId,
         osPrettyName
     )
@@ -312,7 +350,7 @@ QtObject {
     ]
 
     function isFavorite(appId) {
-        var pinned = plasmoidConfig ? plasmoidConfig.pinnedApps : [];
+        var pinned = cfg("pinnedApps", []);
         return Favorites.isFavorite(pinned, appId);
     }
 
@@ -345,9 +383,9 @@ QtObject {
         }
     }
 
-    function seedDemoApps() {
-        // Used when KService runner is unavailable (dev / packaging checks).
-        if (allApps.length > 0) {
+    function seedDemoApps(force) {
+        // Used when desktop scan is unavailable (dev / packaging checks).
+        if (!force && allApps.length > 0) {
             return;
         }
         allApps = [
@@ -367,5 +405,5 @@ QtObject {
         osPrettyName = "Kubuntu";
     }
 
-    Component.onCompleted: seedDemoApps()
+    // Apps come from AppsBackend — no demo seed on startup
 }

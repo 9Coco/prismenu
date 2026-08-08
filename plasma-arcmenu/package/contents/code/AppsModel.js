@@ -90,6 +90,35 @@ function appsAzSections(apps) {
     return sections;
 }
 
+function categoryMatches(appCats, categoryId) {
+    if (!categoryId) {
+        return false;
+    }
+    var cats = appCats || [];
+    for (var j = 0; j < cats.length; ++j) {
+        if (cats[j] === categoryId) {
+            return true;
+        }
+    }
+    // ArcMenu "系统工具" also includes Settings-tagged apps
+    if (categoryId === "System") {
+        for (var s = 0; s < cats.length; ++s) {
+            if (cats[s] === "Settings") {
+                return true;
+            }
+        }
+    }
+    // "附件" and "工具" overlap on many desktops
+    if (categoryId === "Accessories") {
+        for (var a = 0; a < cats.length; ++a) {
+            if (cats[a] === "Utility") {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function appsInCategory(apps, categoryId) {
     if (!categoryId || categoryId === "all") {
         return sortAppsByName(filterVisibleApps(apps));
@@ -100,12 +129,8 @@ function appsInCategory(apps, categoryId) {
         if (!app || app.noDisplay) {
             continue;
         }
-        var cats = app.categories || [];
-        for (var j = 0; j < cats.length; ++j) {
-            if (cats[j] === categoryId) {
-                result.push(app);
-                break;
-            }
+        if (categoryMatches(app.categories, categoryId)) {
+            result.push(app);
         }
     }
     return sortAppsByName(result);

@@ -6,7 +6,7 @@ Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu
 
 - **26 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Raven, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
-- **Browse / search / launch** applications from `.desktop` entries
+- **Browse / search / launch** applications via **Plasma Kicker** (`org.kde.plasma.private.kicker` → `RootModel` / KService) — same stack as Kickoff
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
 - **System actions**: shut down, restart, log out, lock, suspend, hibernate, System Settings, Discover, switch user (with confirmations)
 - **Theme engine**: follow Plasma theme or fully custom colors/fonts/radii/icon sizes
@@ -16,7 +16,7 @@ Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu
 
 ## Requirements
 
-- KDE Plasma 6
+- KDE Plasma 6 (`plasma-workspace` provides Kicker — no GMenu / Python scan)
 - Qt 6 / KF6 (for CMake install)
 - Kubuntu 24.04+ / openSUSE KDE / Fedora KDE / Arch / Manjaro KDE (or any Plasma 6 system)
 

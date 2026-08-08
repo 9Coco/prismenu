@@ -2,6 +2,7 @@ import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../code/LayoutRegistry.js" as LayoutRegistry
+import "../code/CatalogBridge.js" as CatalogBridge
 
 Item {
     id: root
@@ -14,8 +15,6 @@ Item {
     signal powerAction(string actionId)
     signal userMenu()
 
-    // Read layout id from configuration DIRECTLY so Apply always triggers reload.
-    // Fallback to menuData for tests / if config is empty.
     readonly property string layoutId: {
         var fromConfig = "";
         try {
@@ -25,8 +24,9 @@ Item {
         }
         if (fromConfig.length)
             return fromConfig;
-        if (menuData && menuData.currentLayoutId)
-            return menuData.currentLayoutId;
+        var md = root.resolvedMenuData();
+        if (md && md.currentLayoutId)
+            return md.currentLayoutId;
         return "arcmenu";
     }
 
@@ -36,31 +36,55 @@ Item {
             ? layoutLoader.item.sidePanelWidth
             : 0
 
-    width: (menuData ? menuData.menuWidth : 600) + sidePanelWidth
-    // Prefer parent height when fullRepresentation sizes us (e.g. Raven fill)
-    height: (parent && parent.height >= 400) ? parent.height : (menuData ? menuData.menuHeight : 550)
+    width: {
+        var md = root.resolvedMenuData();
+        return (md ? md.menuWidth : 600) + sidePanelWidth;
+    }
+    height: {
+        var md = root.resolvedMenuData();
+        return (parent && parent.height >= 400) ? parent.height : (md ? md.menuHeight : 550);
+    }
+
+    property string _loadedLayoutId: ""
+
+    function resolvedMenuData() {
+        if (root.menuData)
+            return root.menuData;
+        return CatalogBridge.menuData();
+    }
 
     function layoutUrl() {
-        if (layoutMeta && layoutMeta.source) {
+        if (layoutMeta && layoutMeta.source)
             return Qt.resolvedUrl(layoutMeta.source);
-        }
         return Qt.resolvedUrl("layouts/LayoutArcMenu.qml");
     }
 
     function reloadLayout() {
-        var src = layoutUrl();
-        console.log("ArcMenu LayoutHost reload:", root.layoutId, src);
-        layoutLoader.source = "";
-        layoutLoader.source = src;
+        var id = root.layoutId;
+        // Only recreate when the layout *id* changes — never on catalog updates
+        if (layoutLoader.item && root._loadedLayoutId === id) {
+            wireItem();
+            return;
+        }
+        console.log("ArcMenu LayoutHost reload:", id, layoutUrl(),
+                    "catalog=", CatalogBridge.appCount());
+        root._loadedLayoutId = id;
+        layoutLoader.setSource(layoutUrl(), {
+            menuData: root.resolvedMenuData(),
+            themeStyle: root.themeStyle
+        });
     }
 
     function wireItem() {
         var item = layoutLoader.item;
-        if (!item) {
+        if (!item)
             return;
-        }
-        item.menuData = root.menuData;
+        var md = root.resolvedMenuData();
+        // Direct object reference (stable). Do not use Qt.binding here.
+        item.menuData = md;
         item.themeStyle = root.themeStyle;
+        if (item.reattachCatalog)
+            item.reattachCatalog();
         if (item.appActivated) {
             try { item.appActivated.disconnect(root.appActivated); } catch (e) {}
             item.appActivated.connect(root.appActivated);
@@ -77,6 +101,8 @@ Item {
             try { item.userMenu.disconnect(root.userMenu); } catch (e4) {}
             item.userMenu.connect(root.userMenu);
         }
+        console.log("ArcMenu LayoutHost wireItem catalog=",
+                    md && md.allApps ? md.allApps.length : 0);
     }
 
     Loader {
@@ -85,9 +111,8 @@ Item {
         asynchronous: false
 
         onStatusChanged: {
-            if (status === Loader.Error) {
+            if (status === Loader.Error)
                 console.error("ArcMenu LayoutHost failed:", source, "layoutId=", root.layoutId);
-            }
         }
         onLoaded: root.wireItem()
     }
@@ -100,22 +125,16 @@ Item {
         border.width: 1
         z: 10
 
-        Column {
+        Text {
             anchors.centerIn: parent
-            spacing: Kirigami.Units.smallSpacing
             width: parent.width * 0.85
-
-            Text {
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WordWrap
-                color: Kirigami.Theme.textColor
-                text: i18n("Failed to load layout: %1", root.layoutId)
-            }
+            horizontalAlignment: Text.AlignHCenter
+            wrapMode: Text.WordWrap
+            color: Kirigami.Theme.textColor
+            text: i18n("Failed to load layout: %1", root.layoutId)
         }
     }
 
-    // Tiny debug badge so you can see which layout is actually loaded
     Rectangle {
         anchors.right: parent.right
         anchors.top: parent.top
@@ -130,26 +149,40 @@ Item {
             anchors.centerIn: parent
             color: "white"
             font.pixelSize: 10
-            text: root.layoutId + (layoutLoader.status === Loader.Error ? " ERR" : "")
+            text: {
+                var md = root.resolvedMenuData();
+                var n = (md && md.allApps) ? md.allApps.length : 0;
+                var ep = md ? md.catalogEpoch : 0;
+                return root.layoutId + " · " + n + " apps · e" + ep;
+            }
         }
     }
 
-    onLayoutIdChanged: reloadLayout()
-    onMenuDataChanged: {
-        if (layoutLoader.item) {
-            wireItem();
-        } else if (layoutLoader.status !== Loader.Loading) {
-            reloadLayout();
-        }
+    onLayoutIdChanged: {
+        // Only when string id changes
+        if (root.layoutId !== root._loadedLayoutId)
+            Qt.callLater(root.reloadLayout);
     }
-    onThemeStyleChanged: wireItem()
+    onMenuDataChanged: Qt.callLater(root.wireItem)
 
     Connections {
         target: plasmoid.configuration
         function onMenuLayoutIdChanged() {
-            root.reloadLayout();
+            Qt.callLater(root.reloadLayout);
         }
     }
 
-    Component.onCompleted: reloadLayout()
+    // When catalog fills, re-wire without destroying the layout
+    Connections {
+        target: root.menuData
+        ignoreUnknownSignals: true
+        function onCatalogEpochChanged() {
+            Qt.callLater(root.wireItem);
+        }
+        function onAllAppsChanged() {
+            Qt.callLater(root.wireItem);
+        }
+    }
+
+    Component.onCompleted: Qt.callLater(root.reloadLayout)
 }
