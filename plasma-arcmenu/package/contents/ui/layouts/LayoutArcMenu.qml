@@ -26,6 +26,9 @@ LayoutBase {
             return "apps";
         return "home";
     }
+    readonly property bool showVerticalSep: menuData ? menuData.showVerticalSeparator : false
+    readonly property string quickLinkPos: menuData ? menuData.quickLinkPosition : "bottom"
+    readonly property var homeQuickLinks: menuData ? menuData.enabledQuickLinks : []
 
     readonly property var powerOptions: {
         if (!menuData) {
@@ -39,13 +42,52 @@ LayoutBase {
     }
 
     function activateShortcut(item) {
+        if (item && item.action && String(item.action).indexOf("quicklink:") === 0) {
+            root.handleQuickLink(String(item.action).substring(10));
+            return;
+        }
         root.activateItem(item);
+    }
+
+    function handleQuickLink(id) {
+        if (id === "recent-files") {
+            root.activateItem({
+                id: "quick-recent-files",
+                name: root.tr("Recent Files"),
+                icon: "document-open-recent",
+                exec: "kioclient exec recent:/ || xdg-open recent:/"
+            });
+            return;
+        }
+        if (id === "pinned") {
+            root.showingApps = false;
+            if (menuData)
+                menuData.navigateTo("home");
+            return;
+        }
+        // favorites / frequent / all-apps → apps page
+        root.showingApps = true;
+        if (menuData)
+            menuData.navigateTo("apps");
+        Qt.callLater(function () {
+            if (!appsLoader.item)
+                return;
+            if (id === "all-apps") {
+                if (menuData && menuData.allAppsButtonAction === "all-apps")
+                    appsLoader.item.openCategory("all");
+                else
+                    appsLoader.item.resetToCategories();
+            } else if (id === "favorites") {
+                appsLoader.item.openSpecialList("favorites");
+            } else if (id === "frequent") {
+                appsLoader.item.openSpecialList("frequent");
+            }
+        });
     }
 
     function resolveCatalog() {
         if (root.menuData)
             return root.menuData;
-        // Fallback if LayoutHost passed null (fullRepresentation scope bug)
         try {
             return CatalogBridge.menuData();
         } catch (e) {
@@ -90,10 +132,16 @@ LayoutBase {
 
     function openAppsPage() {
         root.showingApps = true;
-        if (appsLoader.item && appsLoader.item.resetToCategories)
-            appsLoader.item.resetToCategories();
         if (menuData)
             menuData.navigateTo("apps");
+        Qt.callLater(function () {
+            if (!appsLoader.item)
+                return;
+            if (menuData && menuData.allAppsButtonAction === "all-apps")
+                appsLoader.item.openCategory("all");
+            else
+                appsLoader.item.resetToCategories();
+        });
     }
 
     function handleBack() {
@@ -116,12 +164,40 @@ LayoutBase {
         }
     }
 
+    component QuickLinksBlock: Column {
+        id: qblock
+        property var links: []
+        width: parent ? parent.width : 0
+        spacing: 0
+        visible: links && links.length > 0
+        height: visible ? implicitHeight : 0
+
+        Repeater {
+            model: qblock.links
+            Components.ShortcutRow {
+                required property var modelData
+                width: qblock.width
+                iconName: modelData.icon
+                label: modelData.name
+                iconSize: Math.max(root.appIconSize, 24)
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                preferSymbolic: root.shortcutIconsSymbolic
+                showTooltips: root.showTooltips
+                onActivated: root.activateShortcut(modelData)
+            }
+        }
+    }
+
     // Single RowLayout: columns run full height (search under left, power under right)
     RowLayout {
         id: columns
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: 0
+        spacing: root.showVerticalSep ? Kirigami.Units.smallSpacing : 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
         // ---- LEFT column ----
@@ -131,28 +207,53 @@ LayoutBase {
             Layout.minimumWidth: Kirigami.Units.gridUnit * 12
             spacing: Kirigami.Units.smallSpacing
 
+            Components.SearchField {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                visible: root.searchOnTop
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Components.PinnedAppsList {
+                ColumnLayout {
                     anchors.fill: parent
+                    spacing: Kirigami.Units.smallSpacing
                     visible: root.activePageId === "home"
                     enabled: visible
                     z: visible ? 2 : 0
-                    menuData: root.menuData
-                    apps: menuData ? menuData.pinnedApps : []
-                    iconSize: Math.max(root.appIconSize, 28)
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
-                    showDescription: root.showAppDescriptions
-                    showGenericNames: root.showGenericNames
-                    multiLineLabels: root.multiLineLabels
-                    onAppActivated: (app) => root.activateShortcut(app)
-                    onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+
+                    QuickLinksBlock {
+                        Layout.fillWidth: true
+                        links: root.quickLinkPos === "top" ? root.homeQuickLinks : []
+                    }
+
+                    Components.PinnedAppsList {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        menuData: root.menuData
+                        apps: menuData ? menuData.pinnedApps : []
+                        iconSize: Math.max(root.appIconSize, 28)
+                        selectedBg: root.selectedBg
+                        selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
+                        fg: root.fg
+                        showDescription: root.showAppDescriptions
+                        showGenericNames: root.showGenericNames
+                        multiLineLabels: root.multiLineLabels
+                        onAppActivated: (app) => root.activateShortcut(app)
+                        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                    }
+
+                    QuickLinksBlock {
+                        Layout.fillWidth: true
+                        links: root.quickLinkPos !== "top" ? root.homeQuickLinks : []
+                    }
                 }
 
                 Loader {
@@ -214,10 +315,18 @@ LayoutBase {
             Components.SearchField {
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                visible: !root.searchOnTop
                 placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }
+        }
+
+        Kirigami.Separator {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            visible: root.showVerticalSep
+            opacity: 0.45
         }
 
         Components.ColumnSplitHandle {

@@ -75,7 +75,51 @@ QtObject {
     // ---- Derived config accessors ----
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: cfgBool("flipHorizontal", false)
-    readonly property string searchbarLocation: cfgStr("searchbarLocation", "top")
+    readonly property string searchbarLocation: cfgStr("searchbarLocation", "bottom")
+    readonly property string allAppsButtonAction: cfgStr("allAppsButtonAction", "category-list")
+    readonly property bool showUserAvatar: cfgBool("showUserAvatar", true)
+    readonly property string avatarShape: cfgStr("avatarShape", "circle")
+    readonly property bool showVerticalSeparator: cfgBool("showVerticalSeparator", false)
+    readonly property bool showExternalDevices: cfgBool("showExternalDevices", false)
+    readonly property bool showBookmarks: cfgBool("showBookmarks", true)
+    readonly property var quickLinksOrder: {
+        var o = cfg("quickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
+        if (typeof o === "string")
+            return o.length ? o.split(",") : [];
+        return o || [];
+    }
+    readonly property var quickLinksEnabled: {
+        var o = cfg("quickLinksEnabled", []);
+        if (typeof o === "string")
+            return o.length ? o.split(",") : [];
+        return o || [];
+    }
+    readonly property string quickLinkPosition: cfgStr("quickLinkPosition", "bottom")
+
+    function isQuickLinkEnabled(id) {
+        return (quickLinksEnabled || []).indexOf(id) >= 0;
+    }
+
+    readonly property var enabledQuickLinks: {
+        var order = quickLinksOrder.length
+            ? quickLinksOrder
+            : ["favorites", "frequent", "all-apps", "pinned", "recent-files"];
+        var out = [];
+        for (var i = 0; i < order.length; ++i) {
+            var id = order[i];
+            if (!root.isQuickLinkEnabled(id))
+                continue;
+            var name = id;
+            var icon = "application-x-executable";
+            if (id === "favorites") { name = root.tr("Favorites"); icon = "bookmarks"; }
+            else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
+            else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
+            else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
+            else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
+            out.push({ id: "quick-" + id, quickId: id, name: name, icon: icon, action: "quicklink:" + id });
+        }
+        return out;
+    }
     readonly property int leftPanelWidth: LayoutRegistry.clampSize(cfgInt("leftPanelWidth", 380), 180, 600, 380)
     readonly property int rightPanelWidth: LayoutRegistry.clampSize(cfgInt("rightPanelWidth", 220), 160, 360, 220)
     readonly property int widthOffset: LayoutRegistry.clampSize(cfgInt("widthOffset", 0), -200, 400, 0)
@@ -354,6 +398,20 @@ QtObject {
                 var sc = root.shortcutById(id);
                 if (sc)
                     result.push(sc);
+                continue;
+            }
+            if (String(id).indexOf("custom:") === 0) {
+                var rest = String(id).substring(7).split("|");
+                result.push({
+                    id: id,
+                    name: rest[0] || Locale.tr("Custom shortcut", lang),
+                    icon: rest[1] || "application-x-executable",
+                    exec: rest[2] || "",
+                    categories: [],
+                    keywords: [],
+                    genericName: "",
+                    noDisplay: false
+                });
                 continue;
             }
             var app = AppsModel.findAppById(allApps, id);

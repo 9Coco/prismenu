@@ -22,9 +22,11 @@ Item {
     signal appContextMenu(var app, real x, real y)
 
     property string drillCategoryId: ""
+    /** favorites | frequent | empty — special lists outside normal categories */
+    property string specialListId: ""
 
-    readonly property bool showingCategories: drillCategoryId.length === 0
-    readonly property bool canGoBackToCategories: drillCategoryId.length > 0
+    readonly property bool showingCategories: drillCategoryId.length === 0 && specialListId.length === 0
+    readonly property bool canGoBackToCategories: drillCategoryId.length > 0 || specialListId.length > 0
 
     /** Always prefer live catalog (property or CatalogBridge) */
     readonly property var dataHost: {
@@ -114,11 +116,17 @@ Item {
     }
 
     readonly property var drilledApps: {
-        if (root.drillCategoryId.length === 0)
-            return [];
         var host = root.dataHost;
         var epoch = host ? host.catalogEpoch : 0;
         var tick = root.refreshTick;
+        if (root.specialListId === "favorites" || root.specialListId === "pinned") {
+            return (host && host.pinnedApps) ? host.pinnedApps : [];
+        }
+        if (root.specialListId === "frequent") {
+            return (host && host.recentApps) ? host.recentApps : [];
+        }
+        if (root.drillCategoryId.length === 0)
+            return [];
         var _apps = host && host.allApps ? host.allApps : [];
         var cats = root.categoryItems;
         for (var i = 0; i < cats.length; ++i) {
@@ -161,12 +169,22 @@ Item {
 
     function goBackToCategories() {
         drillCategoryId = "";
+        specialListId = "";
         var host = root.dataHost;
         if (host)
             host.currentCategoryId = "all";
     }
 
     function resetToCategories() {
+        drillCategoryId = "";
+        specialListId = "";
+    }
+
+    function openSpecialList(id) {
+        var bridged = CatalogBridge.menuData();
+        if (bridged)
+            root.menuData = bridged;
+        specialListId = id || "";
         drillCategoryId = "";
     }
 
@@ -177,6 +195,7 @@ Item {
         var bridged = CatalogBridge.menuData();
         if (bridged)
             root.menuData = bridged;
+        specialListId = "";
         drillCategoryId = id;
         var host = root.dataHost;
         if (host && host.selectCategory)
@@ -187,6 +206,10 @@ Item {
     }
 
     function categoryTitle() {
+        if (root.specialListId === "favorites" || root.specialListId === "pinned")
+            return Locale.tr("Favorites", root.uiLang);
+        if (root.specialListId === "frequent")
+            return Locale.tr("Frequent Apps", root.uiLang);
         if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
             return Locale.tr("All Applications", root.uiLang);
         var cats = root.categoryItems;
@@ -198,6 +221,10 @@ Item {
     }
 
     function categoryHeaderIcon() {
+        if (root.specialListId === "favorites" || root.specialListId === "pinned")
+            return "bookmarks";
+        if (root.specialListId === "frequent")
+            return "view-calendar";
         // Only the category-list / all-apps views use the grid "all apps" icon
         if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
             return "view-app-grid-symbolic";
@@ -222,10 +249,10 @@ Item {
 
             readonly property bool drilled: !root.showingCategories
             readonly property bool inCategory: drilled
-                && root.drillCategoryId.length > 0
-                && root.drillCategoryId !== "all"
+                && ((root.drillCategoryId.length > 0 && root.drillCategoryId !== "all")
+                    || root.specialListId.length > 0)
             readonly property bool headerClickable: true
-            readonly property bool headerActive: root.drillCategoryId === "all"
+            readonly property bool headerActive: root.drillCategoryId === "all" && root.specialListId.length === 0
             readonly property bool headerHot: headerMouse.containsMouse
                 || (!drilled && headerActive)
 

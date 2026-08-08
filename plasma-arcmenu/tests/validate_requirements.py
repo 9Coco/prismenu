@@ -113,7 +113,10 @@ def main() -> int:
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
-        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth",
+        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation",
+        "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
+        "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
+        "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth",
         "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance",
         "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther",
         "ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles",
@@ -135,7 +138,8 @@ def main() -> int:
         check(f'name="{key}"' in cfg, f"config key: {key}")
 
     config_pages = [
-        "ConfigGeneral.qml", "ConfigLayout.qml", "LayoutPreview.qml", "ConfigTheme.qml",
+        "ConfigGeneral.qml", "ConfigLayout.qml", "ConfigArcLayout.qml", "ConfigPinned.qml",
+        "LayoutPreview.qml", "ConfigTheme.qml", "ConfigVisual.qml", "ConfigFineTune.qml",
         "ConfigContent.qml", "ConfigSearch.qml", "ConfigPower.qml",
     ]
     for page in config_pages:
@@ -143,7 +147,11 @@ def main() -> int:
 
     config_model = (PKG / "contents/config/config.qml").read_text()
     # "About" comes from Plasma metadata, not a custom ConfigCategory
-    for label in ["General", "Menu Layout", "Theme & Appearance", "Menu Content", "Search", "System Actions"]:
+    for label in [
+        "General", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
+        "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
+        "Menu Content", "Search", "System Actions",
+    ]:
         check(label in config_model, f"settings category: {label}")
 
     components = [
