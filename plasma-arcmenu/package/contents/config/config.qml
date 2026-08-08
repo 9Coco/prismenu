@@ -52,9 +52,5 @@ ConfigModel {
         icon: "system-shutdown"
         source: "config/ConfigPower.qml"
     }
-    ConfigCategory {
-        name: configModel.tr("About")
-        icon: "help-about"
-        source: "config/ConfigAbout.qml"
-    }
+    // No custom About page — Plasma already adds one from metadata.json
 }

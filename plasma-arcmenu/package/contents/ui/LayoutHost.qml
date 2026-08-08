@@ -135,29 +135,6 @@ Item {
         }
     }
 
-    Rectangle {
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.margins: 4
-        z: 20
-        radius: 3
-        color: "#80000000"
-        width: dbg.implicitWidth + 10
-        height: dbg.implicitHeight + 4
-        Text {
-            id: dbg
-            anchors.centerIn: parent
-            color: "white"
-            font.pixelSize: 10
-            text: {
-                var md = root.resolvedMenuData();
-                var n = (md && md.allApps) ? md.allApps.length : 0;
-                var ep = md ? md.catalogEpoch : 0;
-                return root.layoutId + " · " + n + " apps · e" + ep;
-            }
-        }
-    }
-
     onLayoutIdChanged: {
         // Only when string id changes
         if (root.layoutId !== root._loadedLayoutId)
