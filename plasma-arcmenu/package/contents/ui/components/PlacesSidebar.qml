@@ -95,6 +95,7 @@ ColumnLayout {
                 UserFace {
                     anchors.fill: parent
                     userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                    userName: (menuData && menuData.userName) ? menuData.userName : ""
                     fallbackColor: userMouse.containsMouse ? root.hoverFg : root.fg
                     shape: root.avatarShape
                     showRing: true

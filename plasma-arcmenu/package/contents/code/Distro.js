@@ -4,6 +4,8 @@
  * Detect distribution logo for the panel button.
  * Reads /etc/os-release style info when available via Plasma,
  * otherwise falls back to KDE branding.
+ *
+ * Bundled ArcMenu presets live in contents/icons/menu-button/ (see PresetIcons.js).
  */
 
 var DISTRO_ICONS = {
@@ -24,6 +26,31 @@ var DISTRO_ICONS = {
     "default": "start-here-kde"
 };
 
+/** Curated theme icons shown under “System” in the icon chooser. */
+var SYSTEM_ICONS = [
+    "start-here",
+    "start-here-kde",
+    "start-here-kubuntu",
+    "start-here-ubuntu",
+    "start-here-fedora",
+    "start-here-opensuse",
+    "start-here-archlinux",
+    "start-here-debian",
+    "start-here-manjaro",
+    "start-here-linuxmint",
+    "plasma",
+    "applications-all",
+    "applications-other",
+    "application-menu",
+    "dash-launcher",
+    "kde",
+    "distributor-logo",
+    "user-desktop",
+    "folder-home",
+    "preferences-system",
+    "system-run"
+];
+
 var BUILTIN_ICONS = [
     { id: "auto-distro", name: "Auto-detect distribution", icon: "start-here" },
     { id: "kde", name: "KDE Logo", icon: "start-here-kde" },
@@ -40,6 +67,20 @@ var BUILTIN_ICONS = [
 
 function builtinIcons() {
     return BUILTIN_ICONS.slice();
+}
+
+function systemIconNames() {
+    return SYSTEM_ICONS.slice();
+}
+
+/** Bundled ArcMenu action icons use icon-* / distro-* ids. */
+function isPresetIcon(id) {
+    var s = String(id || "");
+    return s.indexOf("icon-") === 0 || s.indexOf("distro-") === 0;
+}
+
+function isSymbolicIcon(id) {
+    return String(id || "").indexOf("-symbolic") >= 0;
 }
 
 function detectDistroId(osReleaseId, prettyName) {
@@ -59,6 +100,10 @@ function detectDistroId(osReleaseId, prettyName) {
     return "default";
 }
 
+/**
+ * Resolve stored buttonIcon config to a Kirigami.Icon source string.
+ * Preset icons return "preset:<id>" — QML must map that to a file URL.
+ */
 function resolveButtonIcon(buttonIcon, customPath, osReleaseId, prettyName) {
     if (buttonIcon === "custom") {
         if (customPath && customPath.length > 0) {
@@ -69,12 +114,31 @@ function resolveButtonIcon(buttonIcon, customPath, osReleaseId, prettyName) {
     if (buttonIcon === "auto-distro") {
         return DISTRO_ICONS[detectDistroId(osReleaseId, prettyName)];
     }
+    if (isPresetIcon(buttonIcon)) {
+        return "preset:" + buttonIcon;
+    }
     for (var i = 0; i < BUILTIN_ICONS.length; ++i) {
         if (BUILTIN_ICONS[i].id === buttonIcon) {
             return BUILTIN_ICONS[i].icon;
         }
     }
+    if (buttonIcon && String(buttonIcon).length > 0) {
+        return buttonIcon;
+    }
     return DISTRO_ICONS["default"];
+}
+
+/** Whether the panel button should tint the icon (symbolic / mask). */
+function buttonIconIsMask(buttonIcon, customPath) {
+    if (buttonIcon === "custom") {
+        if (customPath && String(customPath).indexOf("-symbolic") >= 0)
+            return true;
+        return false;
+    }
+    if (isPresetIcon(buttonIcon)) {
+        return isSymbolicIcon(buttonIcon);
+    }
+    return true;
 }
 
 function isLikelyImagePath(path) {

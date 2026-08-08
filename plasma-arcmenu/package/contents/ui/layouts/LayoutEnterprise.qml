@@ -111,7 +111,8 @@ LayoutBase {
                 Components.UserFace {
                     anchors.fill: parent
                     userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                    fallbackColor: root.fg
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
+                            fallbackColor: root.fg
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -137,7 +138,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

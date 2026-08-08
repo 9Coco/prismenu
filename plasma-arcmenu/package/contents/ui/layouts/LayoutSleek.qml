@@ -93,7 +93,7 @@ LayoutBase {
             Components.SearchField {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);
@@ -269,6 +269,7 @@ LayoutBase {
                         Components.UserFace {
                             anchors.fill: parent
                             userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
                             fallbackColor: root.fg
                         }
                         MouseArea {

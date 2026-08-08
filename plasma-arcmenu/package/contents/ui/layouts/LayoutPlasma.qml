@@ -110,7 +110,8 @@ LayoutBase {
                 Components.UserFace {
                     anchors.fill: parent
                     userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                    fallbackColor: root.fg
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
+                            fallbackColor: root.fg
                 }
                 MouseArea {
                     anchors.fill: parent
@@ -141,7 +142,7 @@ LayoutBase {
 
                 Components.SearchField {
                     Layout.fillWidth: true
-                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                     text: menuData ? menuData.searchQuery : ""
                     onTextChanged: if (menuData) menuData.setSearch(text)
                 }
@@ -154,7 +155,7 @@ LayoutBase {
             opacity: 0.35
         }
 
-        // Middle content â€” takes all leftover height
+        // Middle content â€?takes all leftover height
         Flickable {
             id: listFlick
             Layout.fillWidth: true
@@ -214,7 +215,7 @@ LayoutBase {
             opacity: 0.35
         }
 
-        // Compact footer tabs â€” fixed height, never stretch
+        // Compact footer tabs â€?fixed height, never stretch
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: false
