@@ -81,7 +81,11 @@ Item {
         if (!menuData) {
             return [];
         }
-        return searching ? menuData.searchResults : menuData.categoryApps;
+        // Prefer flat results for shared grid helpers; list layouts that want
+        // section headers bind menuData.searchResults directly.
+        return searching
+            ? (menuData.searchResultsFlat || menuData.searchResults)
+            : menuData.categoryApps;
     }
 
     /**

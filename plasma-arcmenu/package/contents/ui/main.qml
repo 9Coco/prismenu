@@ -246,7 +246,7 @@ PlasmoidItem {
     }
 
     function launchApp(app) {
-        if (!app) return;
+        if (!app || app.isSection) return;
         var mods = 0;
         try { mods = Qt.keyboardModifiers; } catch (e) {}
         var ctrl = (mods & Qt.ControlModifier) !== 0;

@@ -20,7 +20,7 @@ LayoutBase {
 
     readonly property var gridItems: {
         if (root.searching) {
-            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
+            return (menuData && menuData.searchResultsFlat) ? menuData.searchResultsFlat : [];
         }
         if (menuData && menuData.allApps && menuData.allApps.length)
             return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
