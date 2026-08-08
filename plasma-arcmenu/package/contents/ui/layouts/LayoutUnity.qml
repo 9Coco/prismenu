@@ -6,10 +6,10 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Unity layout (ArcMenu Unity compact menu �?not Unity Dash).
+ * Unity layout (ArcMenu Unity compact menu �?not Unity Dash).
  *
- * Search + hamburger �?category flyout
- * 已固�?| pinned icon grid
+ * Search + hamburger �?category flyout
+ * 已固�?| pinned icon grid
  * 快捷方式 | software / settings / tweaks / overview
  * Bottom: places + session (centered darker strip)
  */
@@ -172,7 +172,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search�?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);
@@ -211,7 +211,7 @@ LayoutBase {
                 width: parent.width
                 spacing: Kirigami.Units.largeSpacing
 
-                // Section: 已固�?
+                // Section: 已固�?
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: Kirigami.Units.smallSpacing

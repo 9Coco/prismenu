@@ -6,7 +6,7 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Brisk Menu â€?matches ArcMenu Brisk reference:
+ * Brisk Menu ï¿½?matches ArcMenu Brisk reference:
  *   Search top | Sidebar (pinned / all / categories / software / settings) | Content | Session bottom
  */
 LayoutBase {
@@ -109,7 +109,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }

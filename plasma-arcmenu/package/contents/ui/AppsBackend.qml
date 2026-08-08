@@ -1,140 +1,395 @@
 import QtQuick
+import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
-import "../code/AppsModel.js" as AppsModel
+import org.kde.plasma.private.kicker as Kicker
 
+/**
+ * Application catalog via Plasma Kicker — same stack as Kickoff / XDG menus on KDE:
+ *   org.kde.plasma.private.kicker → RootModel → KService / KSycoca / applications.menu
+ *
+ * Categories (办公 / 影音 / 系统…) and apps are read from RootModel with the same
+ * QML model roles Kickoff uses (display, hasChildren, url, favoriteId, …).
+ * No Python / GMenu scan.
+ */
 Item {
     id: root
 
     property var menuData: null
-    property bool useDemoFallback: true
+    property string lastScanError: ""
+    property string scanBackend: "kicker"
+    property int lastAppCount: 0
+    property bool _rebuilding: false
+    property int _rebuildToken: 0
 
     signal appsUpdated(var apps)
     signal metaUpdated(string userName, string userIcon, string osId, string osPretty)
+    signal scanFailed(string message)
 
-    readonly property string scanScript: "bash -lc " + shellQuote([
-        "set +e",
-        "ID=$(. /etc/os-release 2>/dev/null; echo ${ID:-linux})",
-        "PRETTY=$(. /etc/os-release 2>/dev/null; echo ${PRETTY_NAME:-Linux})",
-        "USER=$(id -un 2>/dev/null || echo user)",
-        "echo \"__META__|$USER|user-identity|$ID|$PRETTY\"",
-        "python3 - <<'PY'",
-        "import os, sys",
-        "dirs=[]",
-        "for d in ['/usr/share/applications','/usr/local/share/applications', os.path.expanduser('~/.local/share/applications')]:",
-        "    if os.path.isdir(d): dirs.append(d)",
-        "cats_map={'Audio':'AudioVideo','Video':'AudioVideo','AudioVideo':'AudioVideo','Development':'Development','Education':'Education','Science':'Education','Game':'Game','Graphics':'Graphics','Network':'Network','Office':'Office','Settings':'Settings','System':'System','Utility':'Utility','Accessories':'Accessories'}",
-        "seen=set()",
-        "apps=[]",
-        "for d in dirs:",
-        "  for name in os.listdir(d):",
-        "    if not name.endswith('.desktop'): continue",
-        "    path=os.path.join(d,name)",
-        "    if name in seen: continue",
-        "    seen.add(name)",
-        "    data={}",
-        "    try:",
-        "      with open(path,'r',encoding='utf-8',errors='ignore') as f:",
-        "        in_desktop=False",
-        "        for line in f:",
-        "          line=line.rstrip('\\n')",
-        "          if line.startswith('[') and line.endswith(']'):",
-        "            in_desktop=(line=='[Desktop Entry]')",
-        "            continue",
-        "          if not in_desktop or '=' not in line: continue",
-        "          k,v=line.split('=',1)",
-        "          if k in ('Name','GenericName','Icon','Exec','Categories','Keywords','NoDisplay','Hidden','Type') and k not in data:",
-        "            data[k]=v",
-        "    except Exception:",
-        "      continue",
-        "    if data.get('Type','Application') not in ('Application',''): continue",
-        "    if str(data.get('Hidden','')).lower()=='true': continue",
-        "    if not data.get('Name'): continue",
-        "    raw=(data.get('Categories') or '').split(';')",
-        "    cats=[]",
-        "    for c in raw:",
-        "      m=cats_map.get(c)",
-        "      if m and m not in cats: cats.append(m)",
-        "    if not cats: cats=['Utility']",
-        "    keys=[k for k in (data.get('Keywords') or '').split(';') if k]",
-        "    execv=(data.get('Exec') or '')",
-        "    for tok in ('%f','%F','%u','%U','%i','%c','%k'): execv=execv.replace(tok,'')",
-        "    nod=str(data.get('NoDisplay','')).lower()=='true'",
-        "    print('|'.join([",
-        "      name,",
-        "      data.get('Name','').replace('|','/'),",
-        "      data.get('GenericName','').replace('|','/'),",
-        "      data.get('Icon','application-x-executable').replace('|','/'),",
-        "      execv.strip().replace('|','/'),",
-        "      ','.join(cats),",
-        "      ','.join(keys).replace('|','/'),",
-        "      '1' if nod else '0',",
-        "      path.replace('|','/')",
-        "    ]))",
-        "PY"
-    ].join("; "))
+    readonly property var nameToId: ({
+        "Office": "Office", "办公": "Office",
+        "Development": "Development", "开发": "Development", "Programming": "Development", "编程": "Development",
+        "Utility": "Utility", "Utilities": "Utility", "Tools": "Utility", "工具": "Utility", "实用工具": "Utility",
+        "Accessories": "Accessories", "附件": "Accessories",
+        "Network": "Network", "Internet": "Network", "互联网": "Network", "网络": "Network",
+        "Graphics": "Graphics", "图像处理": "Graphics", "图形": "Graphics",
+        "System": "System", "系统": "System", "系统工具": "System",
+        "Settings": "Settings", "设置": "Settings",
+        "Education": "Education", "科学和数学": "Education", "Science": "Education", "Science & Math": "Education",
+        "Game": "Game", "Games": "Game", "游戏": "Game",
+        "AudioVideo": "AudioVideo", "Multimedia": "AudioVideo", "Sound & Video": "AudioVideo", "影音": "AudioVideo", "音视频": "AudioVideo",
+        "Help": "Help", "帮助": "Help"
+    })
 
+    readonly property var skipNames: ({
+        "Favorites": true, "Favorite Applications": true, "常用应用程序": true,
+        "All Applications": true, "全部应用程序": true, "所有应用程序": true,
+        "Recent Applications": true, "Recent Documents": true, "Recent Contacts": true,
+        "Often Used Applications": true, "Often Used Documents": true,
+        "Power / Session": true, "Leave": true, "会话": true
+    })
+
+    // Launch / power only (not used for catalog)
     P5Support.DataSource {
         id: exec
         engine: "executable"
         connectedSources: []
-        onNewData: (sourceName, data) => {
-            var out = data["stdout"] || "";
-            disconnectSource(sourceName);
-            if (sourceName.indexOf("__LAUNCH__") === 0 || sourceName.indexOf("__ACTION__") === 0) {
-                return;
+        onNewData: (sourceName, data) => { disconnectSource(sourceName); }
+    }
+
+    Kicker.RootModel {
+        id: rootModel
+        appletInterface: plasmoid
+        appNameFormat: 0
+        flat: false
+        showSeparators: false
+        showAllApps: true
+        showRecentApps: false
+        showRecentDocs: false
+        showPowerSession: false
+
+        Component.onCompleted: {
+            function setOpt(obj, key, value) {
+                try { obj[key] = value; } catch (e) {}
             }
-            handleScan(out);
+            setOpt(rootModel, "sorted", true);
+            setOpt(rootModel, "showRecentContacts", false);
+            setOpt(rootModel, "showFavoritesPlaceholder", false);
+            // Plasma 6: autoPopulate lives on AppsModel; prefer explicit refresh
+            setOpt(rootModel, "autoPopulate", false);
+            Qt.callLater(function () {
+                root.refresh();
+            });
         }
+
+        onCountChanged: root.scheduleRebuild()
+        onRefreshed: root.scheduleRebuild()
+    }
+
+    // Nested Instantiators materialize the same roles Kickoff ListViews see.
+    Instantiator {
+        id: catInst
+        model: rootModel
+        asynchronous: false
+
+        delegate: Item {
+            id: catDel
+            width: 0
+            height: 0
+            visible: false
+
+            readonly property int row: index
+            readonly property string display: String(model.display !== undefined ? model.display : "")
+            readonly property bool hasChildren: !!(model.hasChildren)
+            readonly property string description: String(model.description !== undefined ? model.description : "")
+            readonly property var decoration: model.decoration
+            readonly property var childModel: catDel.hasChildren ? rootModel.modelForRow(index) : null
+            property alias appInst: appInst
+
+            Instantiator {
+                id: appInst
+                model: catDel.childModel
+                asynchronous: false
+
+                delegate: Item {
+                    id: appDel
+                    width: 0
+                    height: 0
+                    visible: false
+
+                    readonly property int row: index
+                    readonly property string display: String(model.display !== undefined ? model.display : "")
+                    readonly property bool hasChildren: !!(model.hasChildren)
+                    readonly property string description: String(model.description !== undefined ? model.description : "")
+                    readonly property var decoration: model.decoration
+                    readonly property var url: model.url
+                    readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
+                    readonly property var nestedModel: (appDel.hasChildren && catDel.childModel)
+                        ? catDel.childModel.modelForRow(index) : null
+                    property alias nestedInst: nestedInst
+
+                    Instantiator {
+                        id: nestedInst
+                        model: appDel.nestedModel
+                        asynchronous: false
+
+                        delegate: Item {
+                            width: 0
+                            height: 0
+                            visible: false
+                            readonly property string display: String(model.display !== undefined ? model.display : "")
+                            readonly property bool hasChildren: !!(model.hasChildren)
+                            readonly property var decoration: model.decoration
+                            readonly property var url: model.url
+                            readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
+                        }
+
+                        onObjectAdded: root.scheduleRebuild()
+                        onObjectRemoved: root.scheduleRebuild()
+                    }
+                }
+
+                onObjectAdded: root.scheduleRebuild()
+                onObjectRemoved: root.scheduleRebuild()
+            }
+        }
+
+        onObjectAdded: root.scheduleRebuild()
+        onObjectRemoved: root.scheduleRebuild()
+    }
+
+    Timer {
+        id: rebuildTimer
+        interval: 120
+        repeat: false
+        onTriggered: root.rebuild()
+    }
+
+    Timer {
+        id: retryTimer
+        interval: 500
+        repeat: false
+        onTriggered: {
+            if (root.lastAppCount === 0 && rootModel.count > 0)
+                root.rebuild();
+        }
+    }
+
+    function scheduleRebuild() {
+        rebuildTimer.restart();
     }
 
     function shellQuote(s) {
         return "'" + String(s).replace(/'/g, "'\\''") + "'";
     }
 
-    function refresh() {
-        exec.connectSource(scanScript);
+    function categoryIdFromName(name) {
+        if (!name)
+            return "";
+        if (root.nameToId[name] !== undefined)
+            return root.nameToId[name];
+        return String(name).replace(/\s+/g, "") || "";
     }
 
-    function handleScan(out) {
-        var lines = String(out).split("\n");
-        var apps = [];
-        for (var i = 0; i < lines.length; ++i) {
-            var line = lines[i].trim();
-            if (!line) continue;
-            if (line.indexOf("__META__|") === 0) {
-                var m = line.split("|");
-                metaUpdated(m[1] || "user", m[2] || "user-identity", m[3] || "linux", m[4] || "Linux");
-                continue;
-            }
-            var p = line.split("|");
-            if (p.length < 9) continue;
-            apps.push({
-                id: p[0],
-                name: p[1],
-                genericName: p[2],
-                icon: p[3] || "application-x-executable",
-                exec: p[4],
-                categories: p[5] ? p[5].split(",") : ["Utility"],
-                keywords: p[6] ? p[6].split(",") : [],
-                noDisplay: p[7] === "1",
-                isFavorite: false,
-                entryPath: p[8]
-            });
+    function iconNameFromDecoration(dec) {
+        if (dec === undefined || dec === null)
+            return "applications-other";
+        if (typeof dec === "string")
+            return dec.length ? dec : "applications-other";
+        try {
+            if (dec.name)
+                return String(dec.name);
+        } catch (e) {}
+        return "applications-other";
+    }
+
+    function desktopIdFromUrl(url, favoriteId, display) {
+        if (favoriteId && String(favoriteId).indexOf(".desktop") >= 0)
+            return String(favoriteId);
+        var u = String(url || "");
+        if (u.indexOf("applications:") === 0)
+            return u.substring("applications:".length);
+        if (u.indexOf("file://") === 0) {
+            var path = decodeURIComponent(u.substring(7));
+            var slash = path.lastIndexOf("/");
+            return slash >= 0 ? path.substring(slash + 1) : path;
         }
-        apps = AppsModel.sortAppsByName(AppsModel.filterVisibleApps(apps));
-        if (apps.length === 0 && useDemoFallback && menuData) {
-            menuData.seedDemoApps();
-            appsUpdated(menuData.allApps);
+        if (u.endsWith(".desktop")) {
+            var s = u.lastIndexOf("/");
+            return s >= 0 ? u.substring(s + 1) : u;
+        }
+        if (favoriteId && String(favoriteId).length)
+            return String(favoriteId);
+        return display ? String(display).replace(/\s+/g, "_") + ".desktop" : "";
+    }
+
+    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp) {
+        display = String(display || "").trim();
+        if (!display)
+            return;
+        var id = desktopIdFromUrl(url, favoriteId, display);
+        if (!id)
+            return;
+        if (seenApp[id]) {
+            if (catId && catId !== "all" && seenApp[id].categories.indexOf(catId) < 0)
+                seenApp[id].categories.push(catId);
             return;
         }
+        var app = {
+            id: id,
+            name: display,
+            genericName: "",
+            icon: iconNameFromDecoration(decoration) || "application-x-executable",
+            exec: "",
+            categories: (catId && catId !== "all") ? [catId] : [],
+            keywords: [],
+            noDisplay: false,
+            isFavorite: false,
+            entryPath: String(url || ""),
+            favoriteId: favoriteId ? String(favoriteId) : id,
+            kickerUrl: url ? String(url) : ""
+        };
+        seenApp[id] = app;
+        apps.push(app);
+    }
+
+    function collectFromAppInst(appInst, catId, apps, seenApp) {
+        if (!appInst)
+            return;
+        for (var i = 0; i < appInst.count; ++i) {
+            var row = appInst.objectAt(i);
+            if (!row)
+                continue;
+            if (row.hasChildren && row.nestedInst && row.nestedInst.count > 0) {
+                for (var j = 0; j < row.nestedInst.count; ++j) {
+                    var nested = row.nestedInst.objectAt(j);
+                    if (!nested || nested.hasChildren)
+                        continue;
+                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp);
+                }
+            } else if (!row.hasChildren) {
+                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp);
+            }
+        }
+    }
+
+    function rebuild() {
+        if (root._rebuilding)
+            return;
+        root._rebuilding = true;
+        var token = ++root._rebuildToken;
+
+        var apps = [];
+        var cats = [];
+        var seenApp = {};
+
+        try {
+            console.log("ArcMenu Kicker rebuild: rootModel.count=", rootModel.count,
+                        "catInst.count=", catInst.count);
+
+            for (var i = 0; i < catInst.count; ++i) {
+                var cat = catInst.objectAt(i);
+                if (!cat)
+                    continue;
+
+                var name = String(cat.display || "").trim();
+                var desc = String(cat.description || "");
+
+                // Separator / empty
+                if (!name || name.indexOf("---") === 0)
+                    continue;
+
+                // Kickoff "All Applications" synthetic model
+                if (desc.indexOf("KICKER_ALL_MODEL") >= 0 || root.skipNames[name]) {
+                    if (desc.indexOf("KICKER_ALL_MODEL") >= 0)
+                        collectFromAppInst(cat.appInst, "all", apps, seenApp);
+                    continue;
+                }
+
+                if (!cat.hasChildren || !cat.childModel)
+                    continue;
+
+                var catId = categoryIdFromName(name);
+                if (!catId)
+                    continue;
+
+                cats.push({
+                    id: catId,
+                    name: name,
+                    icon: iconNameFromDecoration(cat.decoration)
+                });
+                collectFromAppInst(cat.appInst, catId, apps, seenApp);
+            }
+        } catch (err) {
+            lastScanError = String(err);
+            console.warn("ArcMenu Kicker rebuild failed:", err);
+            scanFailed(lastScanError);
+            root._rebuilding = false;
+            return;
+        }
+
+        if (token !== root._rebuildToken) {
+            root._rebuilding = false;
+            return;
+        }
+
+        apps.sort(function (a, b) {
+            return String(a.name || "").localeCompare(String(b.name || ""), undefined, { sensitivity: "base" });
+        });
+
+        lastAppCount = apps.length;
+        scanBackend = "kicker";
+        lastScanError = apps.length === 0 ? "kicker returned 0 apps" : "";
+        console.log("ArcMenu Kicker:", apps.length, "apps,", cats.length, "cats");
+
+        if (menuData) {
+            if (cats.length > 0)
+                menuData.rawCategories = cats;
+            menuData.allApps = apps;
+        }
         appsUpdated(apps);
+
+        if (apps.length === 0)
+            scanFailed(lastScanError);
+
+        root._rebuilding = false;
+
+        // Model often finishes populating shortly after first refresh
+        if (apps.length === 0 && rootModel.count > 0)
+            retryTimer.start();
+    }
+
+    function refresh() {
+        lastScanError = "";
+        try {
+            if (rootModel.refresh)
+                rootModel.refresh();
+            else
+                scheduleRebuild();
+        } catch (e) {
+            lastScanError = String(e);
+            console.warn("ArcMenu Kicker refresh failed:", e);
+            scanFailed(lastScanError);
+            scheduleRebuild();
+        }
+        // User meta (best-effort, independent of catalog)
+        try {
+            metaUpdated("", "user-identity", "", "");
+        } catch (e2) {}
     }
 
     function launch(app) {
-        if (!app || !app.exec) return;
-        // Double-quoted bash -lc so $HOME / ~ in Places shortcuts expand.
-        var cmd = String(app.exec).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-        exec.connectSource("__LAUNCH__; /bin/bash -lc \"" + cmd + "\"");
+        if (!app)
+            return;
+        var url = app.kickerUrl || app.entryPath || "";
+        if (url) {
+            var id = String(app.id || "").replace(/\.desktop$/, "");
+            exec.connectSource("kioclient exec " + shellQuote(url)
+                + " || gtk-launch " + shellQuote(id)
+                + " || xdg-open " + shellQuote(url));
+            return;
+        }
+        if (app.exec)
+            exec.connectSource(String(app.exec));
     }
 
     function runPower(actionId, softwareCenterCmd) {
@@ -155,37 +410,46 @@ Item {
             "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview"
         };
         var cmd = map[actionId];
-        if (cmd) {
-            exec.connectSource("__ACTION__; " + cmd);
-        }
+        if (cmd)
+            exec.connectSource(cmd);
     }
 
     function addDesktopShortcut(app) {
-        if (!app || !app.entryPath) return;
-        var cmd = "bash -lc " + shellQuote(
-            "dest=\"$HOME/Desktop\"; " +
-            "[ -d \"$dest\" ] || dest=\"$HOME/桌面\"; " +
-            "[ -d \"$dest\" ] || dest=\"$HOME\"; " +
-            "cp " + shellQuote(app.entryPath) + " \"$dest/\" && chmod +x \"$dest/$(basename " + shellQuote(app.entryPath) + ")\""
-        );
-        exec.connectSource("__ACTION__; " + cmd);
+        if (!app)
+            return;
+        var src = app.entryPath || "";
+        if (src.indexOf("file://") === 0)
+            src = decodeURIComponent(src.substring(7));
+        if (!src || src.indexOf(".desktop") < 0)
+            src = "/usr/share/applications/" + String(app.id || "");
+        exec.connectSource("bash -lc " + shellQuote(
+            "dest=\"$HOME/Desktop\"; [ -d \"$dest\" ] || dest=\"$HOME/桌面\"; [ -d \"$dest\" ] || dest=\"$HOME\"; " +
+            "f=" + shellQuote(src) + "; [ -f \"$f\" ] && cp \"$f\" \"$dest/\" && chmod +x \"$dest/$(basename \"$f\")\""
+        ));
     }
 
     function editDesktop(app) {
-        if (!app || !app.entryPath) return;
-        exec.connectSource("__ACTION__; kwriteconfig6 >/dev/null 2>&1; kate " + shellQuote(app.entryPath) + " || kwrite " + shellQuote(app.entryPath));
+        if (!app)
+            return;
+        var src = app.entryPath || "";
+        if (src.indexOf("file://") === 0)
+            src = decodeURIComponent(src.substring(7));
+        if (src)
+            exec.connectSource("kate " + shellQuote(src) + " || kwrite " + shellQuote(src));
     }
 
     function runInTerminal(app) {
-        if (!app || !app.exec) return;
-        exec.connectSource("__ACTION__; konsole -e bash -lc " + shellQuote(app.exec));
+        if (!app)
+            return;
+        var url = app.kickerUrl || app.entryPath || "";
+        if (url)
+            exec.connectSource("konsole -e bash -lc " + shellQuote("kioclient exec " + url));
     }
 
     function uninstall(app) {
-        if (!app) return;
+        if (!app)
+            return;
         var id = String(app.id || "").replace(/\.desktop$/, "");
-        exec.connectSource("__ACTION__; plasma-discover --mode uninstall --application " + shellQuote(id));
+        exec.connectSource("plasma-discover --mode uninstall --application " + shellQuote(id));
     }
-
-    Component.onCompleted: Qt.callLater(refresh)
 }

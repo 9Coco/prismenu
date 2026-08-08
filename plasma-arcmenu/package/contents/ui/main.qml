@@ -11,6 +11,7 @@ import "../code/Distro.js" as Distro
 import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
 import "../code/Favorites.js" as Favorites
+import "../code/CatalogBridge.js" as CatalogBridge
 import "components" as Components
 
 PlasmoidItem {
@@ -26,6 +27,12 @@ PlasmoidItem {
     property bool menuOpen: false
     property string lastLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
 
+    /**
+     * fullRepresentation / compactRepresentation often cannot see sibling ids.
+     * Always pass catalog through this alias: root.catalog
+     */
+    property alias catalog: menuData
+
     readonly property bool isRavenLayout: (plasmoid.configuration.menuLayoutId || "") === "raven"
     // Raven: fill vertical desktop space (panel-reserved area excluded when available)
     readonly property int ravenFillHeight: {
@@ -40,6 +47,10 @@ PlasmoidItem {
         id: menuData
         plasmoidConfig: plasmoid.configuration
         currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+        Component.onCompleted: {
+            CatalogBridge.setMenuData(menuData);
+            console.log("ArcMenu catalog registered on bridge");
+        }
     }
 
     AppsBackend {
@@ -47,12 +58,22 @@ PlasmoidItem {
         menuData: menuData
         onAppsUpdated: (apps) => {
             menuData.allApps = apps;
+            menuData.catalogEpoch += 1;
+            CatalogBridge.setMenuData(menuData);
+            console.log("ArcMenu: allApps updated →", apps ? apps.length : 0,
+                        "epoch", menuData.catalogEpoch);
         }
         onMetaUpdated: (userName, userIcon, osId, osPretty) => {
-            menuData.userName = userName;
-            menuData.userIcon = userIcon;
-            menuData.osReleaseId = osId;
-            menuData.osPrettyName = osPretty;
+            if (userName)
+                menuData.userName = userName;
+            menuData.userIcon = userIcon || menuData.userIcon;
+            if (osId)
+                menuData.osReleaseId = osId;
+            if (osPretty)
+                menuData.osPrettyName = osPretty;
+        }
+        onScanFailed: (message) => {
+            console.warn("ArcMenu: Kicker catalog failed:", message);
         }
     }
 
@@ -149,18 +170,23 @@ PlasmoidItem {
 
             Kirigami.Icon {
                 id: buttonIcon
-                source: menuData.buttonIcon
+                source: menuData.buttonIcon || "start-here-kde"
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                active: compact.containsMouse || root.expanded
-                opacity: Distro.isLikelyImagePath(plasmoid.configuration.customButtonIcon)
-                    && plasmoid.configuration.buttonIcon === "custom"
-                    && String(source).indexOf("start-here") === 0 ? 0.9 : 1
+                opacity: {
+                    try {
+                        if (Distro.isLikelyImagePath(plasmoid.configuration.customButtonIcon)
+                            && plasmoid.configuration.buttonIcon === "custom"
+                            && String(source).indexOf("start-here") === 0)
+                            return 0.9;
+                    } catch (e) {}
+                    return 1;
+                }
             }
 
             PlasmaComponents.Label {
-                visible: plasmoid.configuration.buttonLabelVisible
-                text: plasmoid.configuration.buttonLabelText
+                visible: !!plasmoid.configuration.buttonLabelVisible
+                text: plasmoid.configuration.buttonLabelText || ""
                 Layout.alignment: Qt.AlignVCenter
             }
         }
@@ -178,9 +204,9 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: fullRep
         readonly property int hostSideWidth: host.sidePanelWidth || 0
-        Layout.minimumWidth: menuData.menuWidth + hostSideWidth
+        Layout.minimumWidth: root.catalog.menuWidth + hostSideWidth
         Layout.minimumHeight: root.effectiveMenuHeight
-        Layout.preferredWidth: menuData.menuWidth + hostSideWidth
+        Layout.preferredWidth: root.catalog.menuWidth + hostSideWidth
         Layout.preferredHeight: root.effectiveMenuHeight
 
         focus: true
@@ -225,12 +251,13 @@ PlasmoidItem {
         LayoutHost {
             id: host
             anchors.fill: parent
-            menuData: menuData
+            // MUST use root.catalog — bare `menuData` id is often invisible here
+            menuData: root.catalog
             themeStyle: root.themeStyle
             onAppActivated: (app) => root.launchApp(app)
             onAppContextMenu: (app, x, y) => {
                 contextMenu.app = app;
-                contextMenu.isFavorite = menuData.isFavorite(app.id);
+                contextMenu.isFavorite = root.catalog.isFavorite(app.id);
                 contextMenu.canUninstall = true;
                 contextMenu.popup();
             }
@@ -240,9 +267,9 @@ PlasmoidItem {
 
         Components.AppContextMenu {
             id: contextMenu
-            menuData: menuData
+            menuData: root.catalog
             onLaunchRequested: (app) => root.launchApp(app)
-            onToggleFavoriteRequested: (app) => menuData.toggleFavorite(app)
+            onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
             onAddToDesktopRequested: (app) => backend.addDesktopShortcut(app)
             onAddToPanelRequested: (app) => {
                 // Panel shortcut creation is environment-specific; open app details guidance.
@@ -261,7 +288,7 @@ PlasmoidItem {
         Components.ConfirmDialog {
             id: confirmDialog
             anchors.centerIn: parent
-            menuData: menuData
+            menuData: root.catalog
             onConfirmed: (actionId) => {
                 backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
             }
