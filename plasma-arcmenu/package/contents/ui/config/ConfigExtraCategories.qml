@@ -18,64 +18,93 @@ Item {
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
-    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
 
-    readonly property var ordered: {
+    function writeLive(key, value) {
+        try {
+            plasmoid.configuration[key] = value;
+        } catch (e) {}
+    }
+
+    function rebuildModel() {
         var order = SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER);
         var defs = SC.extraCategoryDefs(root.tr);
         var byId = {};
         for (var i = 0; i < defs.length; ++i)
             byId[defs[i].id] = defs[i];
-        var out = [];
+        var enabled = enabledIds();
+        listModel.clear();
+        var seen = {};
         for (var o = 0; o < order.length; ++o) {
-            if (byId[order[o]])
-                out.push(byId[order[o]]);
+            var id = order[o];
+            if (!byId[id] || seen[id])
+                continue;
+            seen[id] = true;
+            listModel.append({
+                catId: id,
+                catName: byId[id].name,
+                catIcon: byId[id].icon || "applications-other",
+                catOn: enabled.indexOf(id) >= 0
+            });
         }
         for (var k = 0; k < defs.length; ++k) {
-            if (order.indexOf(defs[k].id) < 0)
-                out.push(defs[k]);
+            if (seen[defs[k].id])
+                continue;
+            listModel.append({
+                catId: defs[k].id,
+                catName: defs[k].name,
+                catIcon: defs[k].icon || "applications-other",
+                catOn: enabled.indexOf(defs[k].id) >= 0
+            });
         }
-        return out;
     }
 
     function enabledIds() {
-        // null/undefined → defaults; [] stays []
         if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null)
             return SC.DEFAULT_EXTRA_ON.slice();
         return SC.normalizeList(cfg_ExtraCategoriesEnabled, SC.DEFAULT_EXTRA_ON);
     }
 
-    function isOn(id) {
-        return enabledIds().indexOf(id) >= 0;
-    }
-
-    function setOn(id, on) {
-        if (!id)
-            return;
-        var list = enabledIds().slice();
-        var idx = list.indexOf(id);
-        if (on && idx < 0)
-            list.push(id);
-        if (!on && idx >= 0)
-            list.splice(idx, 1);
-        // New array so Plasma cfg StringList + bindings refresh
+    function persistEnabledFromModel() {
+        var list = [];
+        for (var i = 0; i < listModel.count; ++i) {
+            if (listModel.get(i).catOn)
+                list.push(listModel.get(i).catId);
+        }
         cfg_ExtraCategoriesEnabled = list.slice();
         writeLive("extraCategoriesEnabled", list.slice());
     }
 
-    function move(from, to) {
-        var order = ordered.map(function (q) { return q.id; });
-        order = SC.moveItem(order, from, to);
+    function persistOrderFromModel() {
+        var order = [];
+        for (var i = 0; i < listModel.count; ++i)
+            order.push(listModel.get(i).catId);
         cfg_ExtraCategoriesOrder = order.slice();
         writeLive("extraCategoriesOrder", order.slice());
+    }
+
+    function setRowOn(index, on) {
+        if (index < 0 || index >= listModel.count)
+            return;
+        listModel.setProperty(index, "catOn", !!on);
+        persistEnabledFromModel();
+    }
+
+    function move(from, to) {
+        if (from < 0 || to < 0 || from >= listModel.count || to >= listModel.count || from === to)
+            return;
+        listModel.move(from, to, 1);
+        persistOrderFromModel();
     }
 
     function resetDefaults() {
         cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
         cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
-        writeLive("extraCategoriesOrder", cfg_ExtraCategoriesOrder);
-        writeLive("extraCategoriesEnabled", cfg_ExtraCategoriesEnabled);
+        writeLive("extraCategoriesOrder", cfg_ExtraCategoriesOrder.slice());
+        writeLive("extraCategoriesEnabled", cfg_ExtraCategoriesEnabled.slice());
+        rebuildModel();
     }
+
+    ListModel { id: listModel }
 
     Flickable {
         anchors.fill: parent
@@ -93,7 +122,7 @@ Item {
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
                 opacity: 0.65
-                text: root.tr("“All Applications” is already available from the apps page header.")
+                text: root.tr("Toggle which fixed categories appear above the normal category list.")
             }
 
             Rectangle {
@@ -109,16 +138,15 @@ Item {
                     spacing: Kirigami.Units.smallSpacing
 
                     Repeater {
-                        model: root.ordered
+                        model: listModel
 
                         delegate: RowLayout {
                             id: row
-                            required property var modelData
                             required property int index
-                            // Capture id once — nested Switch must not rely on loose modelData lookup
-                            readonly property string catId: modelData && modelData.id ? String(modelData.id) : ""
-                            readonly property string catName: modelData && modelData.name ? String(modelData.name) : ""
-                            readonly property string catIcon: modelData && modelData.icon ? String(modelData.icon) : "applications-other"
+                            required property string catId
+                            required property string catName
+                            required property string catIcon
+                            required property bool catOn
 
                             Layout.fillWidth: true
 
@@ -138,9 +166,9 @@ Item {
                                 Layout.fillWidth: true
                             }
                             QQC2.Switch {
-                                // Bind via row.catId so toggles never affect the wrong row
-                                checked: root.isOn(row.catId)
-                                onToggled: root.setOn(row.catId, checked)
+                                // Drive from ListModel role — not a shared JS array lookup
+                                checked: row.catOn
+                                onToggled: root.setRowOn(row.index, checked)
                             }
                             QQC2.Button {
                                 icon.name: "go-up"
@@ -151,7 +179,7 @@ Item {
                             QQC2.Button {
                                 icon.name: "go-down"
                                 flat: true
-                                enabled: row.index < root.ordered.length - 1
+                                enabled: row.index < listModel.count - 1
                                 onClicked: root.move(row.index, row.index + 1)
                             }
                         }
@@ -169,5 +197,25 @@ Item {
             cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
         if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null)
             cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
+        rebuildModel();
+    }
+
+    onCfg_ExtraCategoriesOrderChanged: {
+        // Rebuild when parent ConfigMenu syncs values into this page
+        if (listModel.count === 0)
+            rebuildModel();
+    }
+    onCfg_ExtraCategoriesEnabledChanged: {
+        if (listModel.count === 0)
+            rebuildModel();
+        else {
+            // Keep ListModel switches in sync if cfg was updated externally
+            var enabled = enabledIds();
+            for (var i = 0; i < listModel.count; ++i) {
+                var on = enabled.indexOf(listModel.get(i).catId) >= 0;
+                if (listModel.get(i).catOn !== on)
+                    listModel.setProperty(i, "catOn", on);
+            }
+        }
     }
 }

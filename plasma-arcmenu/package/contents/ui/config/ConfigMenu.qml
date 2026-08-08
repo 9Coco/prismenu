@@ -222,6 +222,8 @@ Item {
             page.width = Qt.binding(function () { return stack.width; });
             page.height = Qt.binding(function () { return stack.height; });
             syncCfg(root, page);
+            if (typeof page.rebuildModel === "function")
+                page.rebuildModel();
         }
         refreshUnsaved();
     }
