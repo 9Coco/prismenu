@@ -52,7 +52,16 @@ Item {
     PlasmaComponents.Label {
         anchors.centerIn: parent
         visible: appModel.count === 0
-        text: i18n("No matching applications found")
+        text: {
+            if (!menuData)
+                return i18n("No matching applications found");
+            try {
+                return menuData.tr ? menuData.tr("No matching applications found")
+                    : i18n("No matching applications found");
+            } catch (e) {
+                return i18n("No matching applications found");
+            }
+        }
         opacity: 0.6
         color: root.fg
     }

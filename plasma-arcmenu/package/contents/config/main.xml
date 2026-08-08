@@ -307,7 +307,7 @@
             <default>Search…</default>
         </entry>
         <entry name="ShowDescription" type="Bool">
-            <default>false</default>
+            <default>true</default>
         </entry>
         <entry name="MaxResults" type="Int">
             <default>5</default>
@@ -316,7 +316,7 @@
             <default>false</default>
         </entry>
         <entry name="HighlightSearchTerms" type="Bool">
-            <default>false</default>
+            <default>true</default>
         </entry>
         <entry name="SearchBoxRadiusEnabled" type="Bool">
             <default>true</default>

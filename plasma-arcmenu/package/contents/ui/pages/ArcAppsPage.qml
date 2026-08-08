@@ -184,7 +184,9 @@ Item {
         }
         if (root.specialListId === "recent-files") {
             var _rf = host ? host.recentFilesEpoch : 0;
-            return (host && host.recentFileResults) ? host.recentFileResults : [];
+            // Prefer MenuData cache; also ask backend refresh via request on open
+            var list = (host && host.recentFileResults) ? host.recentFileResults : [];
+            return list;
         }
         if (root.specialListId === "bookmarks") {
             var _bm = host ? host.bookmarksEpoch : 0;

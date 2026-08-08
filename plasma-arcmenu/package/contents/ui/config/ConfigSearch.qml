@@ -28,7 +28,12 @@ Item {
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
-    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
+    function writeLive(key, value) {
+        try {
+            plasmoid.configuration[key] = value;
+            try { plasmoid.configuration.writeConfig(); } catch (e2) {}
+        } catch (e) {}
+    }
 
     component ToggleRow: RowLayout {
         id: trow

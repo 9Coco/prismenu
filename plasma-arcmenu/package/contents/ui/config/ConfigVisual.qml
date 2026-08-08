@@ -7,7 +7,8 @@ import "../../code/Locale.js" as Locale
 import "../../code/IconSizes.js" as IconSizes
 
 /**
- * Menu Visual Appearance — ArcMenu-style size, position, and icon overrides.
+ * Menu Visual Appearance — row layout matches GNOME ArcMenu Adw.ActionRow:
+ * title (+ subtitle) on the left, control(s) on the right — no lone hint lines.
  */
 Item {
     id: root
@@ -33,13 +34,8 @@ Item {
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
-    function tr(msgid) {
-        return Locale.tr(msgid, uiLang);
-    }
-
-    function writeLive(key, value) {
-        try { plasmoid.configuration[key] = value; } catch (e) {}
-    }
+    function tr(msgid) { return Locale.tr(msgid, uiLang); }
+    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
 
     function syncWidthFromPanels() {
         var w = cfg_LeftPanelWidth + cfg_RightPanelWidth + 24 + cfg_WidthOffset;
@@ -67,38 +63,62 @@ Item {
         var n = IconSizes.clampLevel(level);
         return n < 0 ? 0 : n + 1;
     }
-
     function indexToLevel(index) {
         return index <= 0 ? -1 : index - 1;
     }
 
-    component IconOverrideRow: RowLayout {
-        id: irow
-        property string label: ""
-        property string hint: ""
-        property int level: -1
-        signal levelEdited(int value)
+    /** Adw.ActionRow-style: title/subtitle left, trailing controls right */
+    component SettingRow: RowLayout {
+        id: srow
+        property string title: ""
+        property string subtitle: ""
+        default property alias trailing: trail.data
 
-        Kirigami.FormData.label: irow.label
-        spacing: Kirigami.Units.smallSpacing
+        Layout.fillWidth: true
+        spacing: Kirigami.Units.largeSpacing
 
         ColumnLayout {
             Layout.fillWidth: true
-            spacing: 0
-            QQC2.ComboBox {
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 2
+            QQC2.Label {
+                text: srow.title
                 Layout.fillWidth: true
-                model: root.iconLevelModel
-                currentIndex: root.levelToIndex(irow.level)
-                onActivated: irow.levelEdited(root.indexToLevel(currentIndex))
+                elide: Text.ElideRight
+                wrapMode: Text.WordWrap
             }
             QQC2.Label {
-                visible: irow.hint.length > 0
-                text: irow.hint
+                visible: srow.subtitle.length > 0
+                text: srow.subtitle
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
                 opacity: 0.6
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
             }
+        }
+
+        RowLayout {
+            id: trail
+            Layout.fillWidth: false
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+            spacing: Kirigami.Units.smallSpacing
+        }
+    }
+
+    component GroupCard: Rectangle {
+        id: card
+        default property alias content: inner.data
+        Layout.fillWidth: true
+        implicitHeight: inner.implicitHeight + Kirigami.Units.largeSpacing * 2
+        radius: Kirigami.Units.smallSpacing
+        color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
+
+        ColumnLayout {
+            id: inner
+            anchors.fill: parent
+            anchors.margins: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
         }
     }
 
@@ -114,123 +134,98 @@ Item {
             width: parent.width
             spacing: Kirigami.Units.largeSpacing
 
-            // ---- Menu size ----
-            QQC2.Label {
-                text: root.tr("Menu size")
-                font.bold: true
-            }
+            QQC2.Label { text: root.tr("Menu size"); font.bold: true }
 
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-
-                QQC2.SpinBox {
-                    id: heightSpin
-                    Kirigami.FormData.label: root.tr("Height:")
-                    from: 400
-                    to: 800
-                    stepSize: 10
-                    value: cfg_MenuHeight
-                    onValueModified: {
-                        cfg_MenuHeight = value;
-                        writeLive("menuHeight", value);
+            GroupCard {
+                SettingRow {
+                    title: root.tr("Height")
+                    QQC2.SpinBox {
+                        id: heightSpin
+                        from: 400; to: 800; stepSize: 10
+                        value: cfg_MenuHeight
+                        onValueModified: {
+                            cfg_MenuHeight = value;
+                            writeLive("menuHeight", value);
+                        }
+                        textFromValue: (v) => v + " px"
                     }
-                    textFromValue: (v) => v + " px"
                 }
-
-                QQC2.SpinBox {
-                    id: leftSpin
-                    Kirigami.FormData.label: root.tr("Left panel width:")
-                    from: 180
-                    to: 600
-                    stepSize: 5
-                    value: cfg_LeftPanelWidth
-                    onValueModified: {
-                        cfg_LeftPanelWidth = value;
-                        root.syncWidthFromPanels();
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Left panel width")
+                    subtitle: root.tr("Traditional layouts")
+                    QQC2.SpinBox {
+                        id: leftSpin
+                        from: 180; to: 600; stepSize: 5
+                        value: cfg_LeftPanelWidth
+                        onValueModified: {
+                            cfg_LeftPanelWidth = value;
+                            root.syncWidthFromPanels();
+                        }
+                        textFromValue: (v) => v + " px"
                     }
-                    textFromValue: (v) => v + " px"
                 }
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    opacity: 0.6
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: root.tr("Traditional layouts")
-                }
-
-                QQC2.SpinBox {
-                    id: rightSpin
-                    Kirigami.FormData.label: root.tr("Right panel width:")
-                    from: 160
-                    to: 360
-                    stepSize: 5
-                    value: cfg_RightPanelWidth
-                    onValueModified: {
-                        cfg_RightPanelWidth = value;
-                        root.syncWidthFromPanels();
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Right panel width")
+                    subtitle: root.tr("Traditional layouts")
+                    QQC2.SpinBox {
+                        id: rightSpin
+                        from: 160; to: 360; stepSize: 5
+                        value: cfg_RightPanelWidth
+                        onValueModified: {
+                            cfg_RightPanelWidth = value;
+                            root.syncWidthFromPanels();
+                        }
+                        textFromValue: (v) => v + " px"
                     }
-                    textFromValue: (v) => v + " px"
                 }
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    opacity: 0.6
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: root.tr("Traditional layouts")
-                }
-
-                QQC2.SpinBox {
-                    id: offsetSpin
-                    Kirigami.FormData.label: root.tr("Width offset:")
-                    from: -200
-                    to: 400
-                    stepSize: 10
-                    value: cfg_WidthOffset
-                    onValueModified: {
-                        cfg_WidthOffset = value;
-                        root.syncWidthFromPanels();
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Width offset")
+                    subtitle: root.tr("Non-traditional layouts")
+                    QQC2.SpinBox {
+                        id: offsetSpin
+                        from: -200; to: 400; stepSize: 10
+                        value: cfg_WidthOffset
+                        onValueModified: {
+                            cfg_WidthOffset = value;
+                            root.syncWidthFromPanels();
+                        }
+                        textFromValue: (v) => v + " px"
                     }
-                    textFromValue: (v) => v + " px"
-                }
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    opacity: 0.6
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: root.tr("Non-traditional layouts")
                 }
             }
 
-            Kirigami.Separator { Layout.fillWidth: true }
+            QQC2.Label { text: root.tr("Menu position"); font.bold: true }
 
-            // ---- Menu position ----
-            QQC2.Label {
-                text: root.tr("Menu position")
-                font.bold: true
-            }
-
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-
-                QQC2.ComboBox {
-                    id: posCombo
-                    Kirigami.FormData.label: root.tr("Override menu position:")
-                    model: [
-                        root.tr("Off"),
-                        root.tr("Top centered"),
-                        root.tr("Bottom centered"),
-                        root.tr("Center")
-                    ]
-                    property var keys: ["off", "top-centered", "bottom-centered", "center"]
-                    Component.onCompleted: {
-                        var i = keys.indexOf(cfg_OverrideMenuPosition || "off");
-                        currentIndex = i >= 0 ? i : 0;
-                    }
-                    onActivated: {
-                        cfg_OverrideMenuPosition = keys[currentIndex];
-                        writeLive("overrideMenuPosition", cfg_OverrideMenuPosition);
+            GroupCard {
+                SettingRow {
+                    title: root.tr("Override menu position")
+                    QQC2.ComboBox {
+                        id: posCombo
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        model: [
+                            root.tr("Off"),
+                            root.tr("Top centered"),
+                            root.tr("Bottom centered"),
+                            root.tr("Center")
+                        ]
+                        property var keys: ["off", "top-centered", "bottom-centered", "center"]
+                        Component.onCompleted: {
+                            var i = keys.indexOf(cfg_OverrideMenuPosition || "off");
+                            currentIndex = i >= 0 ? i : 0;
+                        }
+                        onActivated: {
+                            cfg_OverrideMenuPosition = keys[currentIndex];
+                            writeLive("overrideMenuPosition", cfg_OverrideMenuPosition);
+                        }
                     }
                 }
-
-                RowLayout {
-                    Kirigami.FormData.label: root.tr("Override menu rise:")
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Override menu rise")
+                    subtitle: root.tr("Distance between the menu and the panel or screen edge.")
                     QQC2.Switch {
                         id: riseSwitch
                         checked: cfg_OverrideMenuRise
@@ -241,8 +236,7 @@ Item {
                     }
                     QQC2.SpinBox {
                         id: riseSpin
-                        from: 0
-                        to: 64
+                        from: 0; to: 64
                         enabled: cfg_OverrideMenuRise
                         value: cfg_MenuRiseDistance
                         onValueModified: {
@@ -252,22 +246,9 @@ Item {
                         textFromValue: (v) => v + " px"
                     }
                 }
-                QQC2.Label {
-                    Layout.fillWidth: true
-                    opacity: 0.6
-                    wrapMode: Text.WordWrap
-                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                    text: root.tr("Distance between the menu and the panel or screen edge.")
-                }
             }
 
-            Kirigami.Separator { Layout.fillWidth: true }
-
-            // ---- Icon sizes ----
-            QQC2.Label {
-                text: root.tr("Override icon size")
-                font.bold: true
-            }
+            QQC2.Label { text: root.tr("Override icon size"); font.bold: true }
             QQC2.Label {
                 Layout.fillWidth: true
                 opacity: 0.65
@@ -275,61 +256,88 @@ Item {
                 text: root.tr("Override icon size for various menu items.")
             }
 
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-
-                IconOverrideRow {
-                    label: root.tr("Grid menu items:")
-                    hint: root.tr("Applications, pinned apps, shortcuts and grid search results (non-traditional layouts).")
-                    level: cfg_IconSizeGrid
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeGrid = v;
-                        writeLive("iconSizeGrid", v);
+            GroupCard {
+                SettingRow {
+                    title: root.tr("Grid menu items")
+                    subtitle: root.tr("Applications, pinned apps, shortcuts and grid search results (non-traditional layouts).")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeGrid)
+                        onActivated: {
+                            cfg_IconSizeGrid = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeGrid", cfg_IconSizeGrid);
+                        }
                     }
                 }
-                IconOverrideRow {
-                    label: root.tr("Applications:")
-                    hint: root.tr("Applications, pinned apps, items in categories, and list search results.")
-                    level: cfg_IconSizeApps
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeApps = v;
-                        writeLive("iconSizeApps", v);
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Applications")
+                    subtitle: root.tr("Applications, pinned apps, items in categories, and list search results.")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeApps)
+                        onActivated: {
+                            cfg_IconSizeApps = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeApps", cfg_IconSizeApps);
+                        }
                     }
                 }
-                IconOverrideRow {
-                    label: root.tr("Shortcuts:")
-                    hint: root.tr("Directories, application shortcuts, and the power menu.")
-                    level: cfg_IconSizeShortcuts
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeShortcuts = v;
-                        writeLive("iconSizeShortcuts", v);
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Shortcuts")
+                    subtitle: root.tr("Directories, application shortcuts, and the power menu.")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeShortcuts)
+                        onActivated: {
+                            cfg_IconSizeShortcuts = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeShortcuts", cfg_IconSizeShortcuts);
+                        }
                     }
                 }
-                IconOverrideRow {
-                    label: root.tr("Application categories:")
-                    hint: root.tr("Category list.")
-                    level: cfg_IconSizeCategories
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeCategories = v;
-                        writeLive("iconSizeCategories", v);
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Application categories")
+                    subtitle: root.tr("Category list.")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeCategories)
+                        onActivated: {
+                            cfg_IconSizeCategories = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeCategories", cfg_IconSizeCategories);
+                        }
                     }
                 }
-                IconOverrideRow {
-                    label: root.tr("Button widgets:")
-                    hint: root.tr("Power buttons, Unity-style bottom bar, and Mint-style sidebar buttons.")
-                    level: cfg_IconSizeButtons
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeButtons = v;
-                        writeLive("iconSizeButtons", v);
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Button widgets")
+                    subtitle: root.tr("Power buttons, Unity-style bottom bar, and Mint-style sidebar buttons.")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeButtons)
+                        onActivated: {
+                            cfg_IconSizeButtons = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeButtons", cfg_IconSizeButtons);
+                        }
                     }
                 }
-                IconOverrideRow {
-                    label: root.tr("Other:")
-                    hint: root.tr("User avatar, search icon, and navigation icons.")
-                    level: cfg_IconSizeOther
-                    onLevelEdited: (v) => {
-                        cfg_IconSizeOther = v;
-                        writeLive("iconSizeOther", v);
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Other")
+                    subtitle: root.tr("User avatar, search icon, and navigation icons.")
+                    QQC2.ComboBox {
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                        model: root.iconLevelModel
+                        currentIndex: root.levelToIndex(cfg_IconSizeOther)
+                        onActivated: {
+                            cfg_IconSizeOther = root.indexToLevel(currentIndex);
+                            writeLive("iconSizeOther", cfg_IconSizeOther);
+                        }
                     }
                 }
             }
