@@ -27,11 +27,14 @@ Item {
         ? Math.max(0, menuData.searchBoxRadius)
         : Kirigami.Units.smallSpacing
     readonly property bool useCustomRadius: !!(menuData && menuData.searchBoxRadiusEnabled)
+    /** Space for the leading search glyph + gap before text (fixes icon/text overlap) */
+    readonly property int searchIconGutter: Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing
     readonly property int sideInset: Math.max(
-        Kirigami.Units.largeSpacing,
-        Math.round(boxRadius * 0.65) + Kirigami.Units.smallSpacing
+        Kirigami.Units.smallSpacing,
+        root.useCustomRadius ? Math.round(boxRadius * 0.45) : 0
     )
-    /** Inner field focus (Item.activeFocus is FINAL — do not override) */
+    readonly property int fieldLeftPad: root.sideInset + root.searchIconGutter + Kirigami.Units.smallSpacing
+    readonly property int fieldRightPad: root.sideInset + Kirigami.Units.iconSizes.small + Kirigami.Units.largeSpacing
     readonly property bool fieldActiveFocus: searchField.activeFocus
 
     signal accepted()
@@ -77,14 +80,9 @@ Item {
         id: searchField
         anchors.fill: parent
         z: 1
-        Binding on leftPadding {
-            when: root.useCustomRadius
-            value: root.sideInset
-        }
-        Binding on rightPadding {
-            when: root.useCustomRadius
-            value: root.sideInset + Kirigami.Units.gridUnit
-        }
+        // Always reserve room for search icon + clear button (PlasmaExtras draws them in padding)
+        leftPadding: root.fieldLeftPad
+        rightPadding: root.fieldRightPad
 
         onAccepted: root.accepted()
         onTextEdited: root.textEdited()

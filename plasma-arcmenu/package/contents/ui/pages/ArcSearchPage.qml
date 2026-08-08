@@ -44,8 +44,16 @@ Item {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             fg: root.fg
-            onActivated: root.appActivated(model)
-            onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+            onActivated: {
+                if (model && model.isSection)
+                    return;
+                root.appActivated(model);
+            }
+            onContextMenuRequested: (x, y) => {
+                if (model && model.isSection)
+                    return;
+                root.appContextMenu(model, x, y);
+            }
         }
     }
 

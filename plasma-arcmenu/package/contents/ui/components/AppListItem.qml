@@ -22,7 +22,8 @@ Item {
     property color hoverFg: selectedFg
     property color fg: Kirigami.Theme.textColor
 
-    readonly property bool hot: root.selected || mouse.containsMouse
+    readonly property bool isSection: !!(app && app.isSection)
+    readonly property bool hot: !root.isSection && (root.selected || mouse.containsMouse)
     readonly property color chipBg: root.selected ? root.selectedBg
         : (mouse.containsMouse ? root.hoverBg : "transparent")
     readonly property color chipFg: root.selected ? root.selectedFg
@@ -36,7 +37,7 @@ Item {
         return app.name || "";
     }
     readonly property string secondaryText: {
-        if (!app || !root.showDescription)
+        if (!app || root.isSection || !root.showDescription)
             return "";
         if (root.showGenericNames)
             return app.name || "";
@@ -46,14 +47,36 @@ Item {
     signal activated()
     signal contextMenuRequested(real x, real y)
 
-    height: Math.max(iconSize + Kirigami.Units.smallSpacing * 2,
-                     secondaryText ? Kirigami.Units.gridUnit * 2.2 : Kirigami.Units.gridUnit * 1.8)
+    height: root.isSection
+        ? Kirigami.Units.gridUnit * 1.35
+        : Math.max(iconSize + Kirigami.Units.smallSpacing * 2,
+                   secondaryText ? Kirigami.Units.gridUnit * 2.2 : Kirigami.Units.gridUnit * 1.8)
     Accessible.name: primaryText
-    Accessible.role: Accessible.ListItem
-    Accessible.onPressAction: root.activated()
+    Accessible.role: root.isSection ? Accessible.Heading : Accessible.ListItem
+    Accessible.onPressAction: {
+        if (!root.isSection)
+            root.activated();
+    }
 
+    // ---- Section header (Applications / Files / Windows) ----
+    PlasmaComponents.Label {
+        anchors.fill: parent
+        anchors.leftMargin: Kirigami.Units.smallSpacing
+        anchors.rightMargin: Kirigami.Units.smallSpacing
+        visible: root.isSection
+        text: root.primaryText
+        elide: Text.ElideRight
+        verticalAlignment: Text.AlignVCenter
+        font.pointSize: Kirigami.Theme.smallFont.pointSize
+        font.weight: Font.DemiBold
+        opacity: 0.65
+        color: root.fg
+    }
+
+    // ---- Normal result row ----
     Rectangle {
         anchors.fill: parent
+        visible: !root.isSection
         radius: Kirigami.Units.smallSpacing
         color: root.chipBg
         opacity: root.hot ? 1 : 0
@@ -64,6 +87,7 @@ Item {
         anchors.leftMargin: Kirigami.Units.smallSpacing
         anchors.rightMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
+        visible: !root.isSection
 
         Kirigami.Icon {
             source: root.app ? root.app.icon : "application-x-executable"
@@ -106,7 +130,8 @@ Item {
     MouseArea {
         id: mouse
         anchors.fill: parent
-        hoverEnabled: true
+        enabled: !root.isSection
+        hoverEnabled: !root.isSection
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton) {

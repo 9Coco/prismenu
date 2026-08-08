@@ -64,7 +64,7 @@ LayoutBase {
         id: appModel
         source: {
             if (!menuData) return [];
-            if (menuData.isSearching) return menuData.searchResults;
+            if (menuData.isSearching) return menuData.searchResultsFlat;
             return menuData.categoryApps;
         }
     }

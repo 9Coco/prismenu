@@ -126,7 +126,10 @@ Item {
             readonly property var decoration: model.decoration
             readonly property var url: model.url
             readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
-            readonly property bool isSeparator: !!(model.isSeparator || model.IsSeparator)
+            readonly property string group: String(model.group !== undefined ? model.group
+                : (model.category !== undefined ? model.category : ""))
+            readonly property bool isSeparator: !!(model.isSeparator || model.IsSeparator
+                || model.isSection || model.IsSection)
         }
         onObjectAdded: root.rebuildRunnerResults()
         onObjectRemoved: root.rebuildRunnerResults()
@@ -135,10 +138,16 @@ Item {
     function rebuildRunnerResults() {
         var out = [];
         var n = runnerInst.count;
+        // RunnerModel inserts separator rows whose display is the category (Apps / Settings / …)
+        var currentGroup = "";
         for (var i = 0; i < n && out.length < 40; ++i) {
             var obj = runnerInst.objectAt(i);
-            if (!obj || obj.isSeparator)
+            if (!obj)
                 continue;
+            if (obj.isSeparator) {
+                currentGroup = String(obj.display || "").trim();
+                continue;
+            }
             var name = String(obj.display || "").trim();
             if (!name)
                 continue;
@@ -150,6 +159,13 @@ Item {
                     icon = String(obj.decoration.name);
             } catch (e) {}
             var uri = obj.url !== undefined && obj.url !== null ? String(obj.url) : "";
+            var group = "";
+            try {
+                if (obj.group)
+                    group = String(obj.group);
+            } catch (e2) {}
+            if (!group)
+                group = currentGroup;
             out.push({
                 id: "runner:" + i + ":" + (obj.favoriteId || name),
                 name: name,
@@ -160,6 +176,7 @@ Item {
                 kickerUrl: uri,
                 entryPath: uri,
                 provider: "runner",
+                group: group,
                 runnerIndex: obj.row,
                 noDisplay: false
             });

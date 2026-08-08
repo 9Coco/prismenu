@@ -194,6 +194,8 @@ var ZH_CN = {
     "Select a new menu layout?": "选择新的菜单布局？",
     "Session": "会话",
     "Settings": "设置",
+    "Windows": "窗口",
+    "more": "更多",
     "Shortcuts": "快捷方式",
     "Show Details": "显示详细信息",
     "Show categories": "显示分类",
