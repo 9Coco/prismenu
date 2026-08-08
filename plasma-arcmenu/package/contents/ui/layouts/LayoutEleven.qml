@@ -9,7 +9,7 @@ import "../../code/AppsModel.js" as AppsModel
  * Eleven layout (Windows 11 Start / ArcMenu Eleven style).
  *
  * Search
- * 已固定 header + All apps link | pinned icon grid
+ * 已固�?header + All apps link | pinned icon grid
  * 常用 | two-column recent list
  * Footer: user | files, settings, power
  */
@@ -121,7 +121,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search�?)
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: {
                 if (menuData) menuData.setSearch(text);
@@ -153,7 +153,7 @@ LayoutBase {
                 }
             }
 
-            // Fixed cell size, left-packed (Win11 style — not stretched to 6 columns)
+            // Fixed cell size, left-packed (Win11 style �?not stretched to 6 columns)
             Flow {
                 id: pinnedFlow
                 Layout.fillWidth: true
@@ -226,7 +226,7 @@ LayoutBase {
                 color: root.fg
             }
 
-            // Two-column frequent list — content-sized, does not eat leftover height
+            // Two-column frequent list �?content-sized, does not eat leftover height
             GridLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
@@ -355,7 +355,8 @@ LayoutBase {
                     Components.UserFace {
                         anchors.fill: parent
                         userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                        fallbackColor: root.fg
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
+                            fallbackColor: root.fg
                     }
                     MouseArea {
                         anchors.fill: parent

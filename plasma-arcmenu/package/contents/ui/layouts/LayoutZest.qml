@@ -6,17 +6,17 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Zest layout (ArcMenu Zest) ï¿½?three columns.
+ * Zest layout (ArcMenu Zest) ï¿?three columns.
  *
  * Left:   avatar + places/software/settings + session
  * Middle: pinned / all / categories  (controls right)
- * Right:  apps for the middle selection (Aâ€“Z when â€œallï¿½?
+ * Right:  apps for the middle selection (Aâ€“Z when â€œallï¿?
  * Search spans middle + right at the bottom
  */
 LayoutBase {
     id: root
 
-    // Middle column selection ï¿½?drives right column content
+    // Middle column selection ï¿?drives right column content
     property string selectedId: "all"
 
     readonly property bool searching: menuData ? menuData.isSearching : false
@@ -170,6 +170,7 @@ LayoutBase {
                         Components.UserFace {
                             anchors.fill: parent
                             userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
                             fallbackColor: root.fg
                         }
                         MouseArea {
@@ -391,7 +392,7 @@ LayoutBase {
                                 }
                             }
 
-                            // All apps ï¿½?Aâ€“Z sections
+                            // All apps ï¿?Aâ€“Z sections
                             Repeater {
                                 model: (!root.searching && root.selectedId === "all")
                                        ? root.azSections.length : 0
@@ -471,7 +472,7 @@ LayoutBase {
             // Search under middle + right only
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

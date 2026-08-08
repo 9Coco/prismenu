@@ -29,6 +29,16 @@ PlasmaComponents.TextField {
     Accessible.role: Accessible.EditableText
     focus: true
 
+    // Capsule / large radius clips glyphs without extra horizontal inset
+    readonly property int sideInset: Math.max(
+        Kirigami.Units.largeSpacing,
+        Math.round(boxRadius * 0.65) + Kirigami.Units.smallSpacing
+    )
+    leftPadding: sideInset
+    rightPadding: sideInset + (clearButtonShown ? Kirigami.Units.gridUnit : 0)
+    topPadding: Kirigami.Units.smallSpacing
+    bottomPadding: Kirigami.Units.smallSpacing
+
     // ArcMenu search-entry-border-radius
     background: Rectangle {
         implicitHeight: Kirigami.Units.gridUnit * 2.2

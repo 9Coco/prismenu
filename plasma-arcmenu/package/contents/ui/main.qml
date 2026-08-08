@@ -35,19 +35,31 @@ PlasmoidItem {
         id: kuser
     }
 
+    function faceNeedsStaging(url) {
+        var s = String(url || "");
+        if (!s.length)
+            return true;
+        // Extensionless AccountsService icons often fail QML Image / Avatar decode
+        if (s.indexOf("/var/lib/AccountsService/icons/") >= 0
+            && !/\.(png|jpe?g|webp|bmp|svg)$/i.test(s))
+            return true;
+        return false;
+    }
+
     function applyKUserMeta() {
-        var name = kuser.loginName || kuser.fullName || "";
+        var name = kuser.fullName || kuser.loginName || "";
         if (name)
             menuData.userName = name;
         var face = "";
         try {
             face = String(kuser.faceIconUrl || "");
         } catch (e) {}
-        if (face.length > 8)
+        // Use KUser face only when it is directly displayable; otherwise wait for staged cache
+        if (face.length > 8 && !root.faceNeedsStaging(face))
             menuData.userIcon = face;
         if (kuser.os)
             menuData.osPrettyName = kuser.os;
-        console.log("ArcMenu KUser:", name, face);
+        console.log("ArcMenu KUser:", name, face, "stage=", root.faceNeedsStaging(face));
     }
 
     onExpandedChanged: function (expanded) {
@@ -288,10 +300,31 @@ PlasmoidItem {
         }
         readonly property int panelPadding: {
             var n = parseInt(plasmoid.configuration.panelButtonPadding, 10);
+            // -1 = theme default (no extra padding)
             if (isNaN(n) || n < 0)
                 return 0;
-            return Math.min(32, n);
+            return Math.min(25, n);
         }
+        readonly property int positionOffset: {
+            var n = parseInt(plasmoid.configuration.panelButtonPositionOffset, 10);
+            if (isNaN(n) || n < 0)
+                return 0;
+            return Math.min(10, n);
+        }
+        readonly property string buttonAppearance: {
+            var a = plasmoid.configuration.menuButtonAppearance || "";
+            if (a)
+                return a;
+            // Migrate older configs that only had buttonLabelVisible
+            return plasmoid.configuration.buttonLabelVisible ? "icon-text" : "icon";
+        }
+        readonly property bool showButtonIcon: buttonAppearance === "icon"
+            || buttonAppearance === "icon-text"
+            || buttonAppearance === "text-icon"
+        readonly property bool showButtonText: buttonAppearance === "text"
+            || buttonAppearance === "icon-text"
+            || buttonAppearance === "text-icon"
+        readonly property bool buttonHidden: buttonAppearance === "hidden"
         readonly property string leftAction: plasmoid.configuration.leftClickAction || "arcmenu"
         readonly property string rightAction: plasmoid.configuration.rightClickAction || "context"
         readonly property string middleAction: plasmoid.configuration.middleClickAction || "arcmenu"
@@ -320,21 +353,29 @@ PlasmoidItem {
         }
 
         implicitWidth: {
+            if (compact.buttonHidden)
+                return 1;
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitHeight : compactContent.implicitWidth;
-            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2;
+            var offset = isVertical ? 0 : compact.positionOffset * Kirigami.Units.smallSpacing;
+            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
         }
         implicitHeight: {
+            if (compact.buttonHidden)
+                return 1;
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitWidth : compactContent.implicitHeight;
-            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2;
+            var offset = isVertical ? compact.positionOffset * Kirigami.Units.smallSpacing : 0;
+            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
         }
+        opacity: compact.buttonHidden ? 0 : 1
+        enabled: !compact.buttonHidden
         hoverEnabled: true
         // Swallow right-click so Plasma's applet menu (Configure / Remove / …) does not appear
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
-        Accessible.name: plasmoid.configuration.buttonLabelVisible
-            ? plasmoid.configuration.buttonLabelText
+        Accessible.name: compact.showButtonText
+            ? (plasmoid.configuration.buttonLabelText || i18n("Arc Menu"))
             : i18n("Arc Menu")
         Accessible.role: Accessible.Button
         Accessible.onPressAction: root.toggleMenu()
@@ -509,29 +550,29 @@ PlasmoidItem {
             anchors.centerIn: parent
             z: 1
             spacing: Kirigami.Units.smallSpacing
+            visible: !compact.buttonHidden
+            // text-icon: show label before icon via mirrored layout
+            layoutDirection: compact.buttonAppearance === "text-icon" ? Qt.RightToLeft : Qt.LeftToRight
 
             Kirigami.Icon {
                 id: buttonIcon
+                visible: compact.showButtonIcon
                 source: menuData.buttonIcon || "start-here-kde"
+                isMask: menuData.buttonIconIsMask
                 Layout.preferredWidth: compact.panelIconSize
                 Layout.preferredHeight: compact.panelIconSize
-                color: root.expanded ? compact.styleActiveFg
-                    : (compact.containsMouse ? compact.styleHoverFg : compact.styleFg)
-                opacity: {
-                    try {
-                        if (Distro.isLikelyImagePath(plasmoid.configuration.customButtonIcon)
-                            && plasmoid.configuration.buttonIcon === "custom"
-                            && String(source).indexOf("start-here") === 0)
-                            return 0.9;
-                    } catch (e) {}
-                    return 1;
-                }
+                LayoutMirroring.enabled: false
+                color: menuData.buttonIconIsMask
+                    ? (root.expanded ? compact.styleActiveFg
+                        : (compact.containsMouse ? compact.styleHoverFg : compact.styleFg))
+                    : undefined
             }
 
             PlasmaComponents.Label {
-                visible: !!plasmoid.configuration.buttonLabelVisible
+                visible: compact.showButtonText
                 text: plasmoid.configuration.buttonLabelText || ""
                 Layout.alignment: Qt.AlignVCenter
+                LayoutMirroring.enabled: false
                 color: root.expanded ? compact.styleActiveFg
                     : (compact.containsMouse ? compact.styleHoverFg : compact.styleFg)
             }
