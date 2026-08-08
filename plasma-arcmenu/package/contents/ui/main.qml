@@ -35,18 +35,8 @@ PlasmoidItem {
         id: kuser
     }
 
-    function faceNeedsStaging(url) {
-        var s = String(url || "");
-        if (!s.length)
-            return true;
-        // Extensionless AccountsService icons often fail QML Image / Avatar decode
-        if (s.indexOf("/var/lib/AccountsService/icons/") >= 0
-            && !/\.(png|jpe?g|webp|bmp|svg)$/i.test(s))
-            return true;
-        return false;
-    }
-
     function applyKUserMeta() {
+        // Match Kickoff Header.qml: Avatar { source: kuser.faceIconUrl; name: kuser.fullName }
         var name = kuser.fullName || kuser.loginName || "";
         if (name)
             menuData.userName = name;
@@ -54,12 +44,11 @@ PlasmoidItem {
         try {
             face = String(kuser.faceIconUrl || "");
         } catch (e) {}
-        // Use KUser face only when it is directly displayable; otherwise wait for staged cache
-        if (face.length > 8 && !root.faceNeedsStaging(face))
+        if (face.length > 8)
             menuData.userIcon = face;
         if (kuser.os)
             menuData.osPrettyName = kuser.os;
-        console.log("ArcMenu KUser:", name, face, "stage=", root.faceNeedsStaging(face));
+        console.log("ArcMenu KUser:", name, face);
     }
 
     onExpandedChanged: function (expanded) {
@@ -197,8 +186,11 @@ PlasmoidItem {
         onMetaUpdated: (userName, userIcon, osId, osPretty) => {
             if (userName)
                 menuData.userName = userName;
-            // Prefer resolved face file; don't wipe KUser face with bare fallback icon
-            if (userIcon && userIcon !== "user-identity")
+            // Keep Kickoff path (kuser.faceIconUrl) when present; only use staged
+            // PNG if KUser has not provided a face yet.
+            var kface = "";
+            try { kface = String(kuser.faceIconUrl || ""); } catch (e) {}
+            if ((!kface || kface.length <= 8) && userIcon && userIcon !== "user-identity")
                 menuData.userIcon = userIcon;
             if (osId)
                 menuData.osReleaseId = osId;
