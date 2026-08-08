@@ -37,8 +37,9 @@ Item {
         anchors.rightMargin: Kirigami.Units.smallSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        Kirigami.Icon {
-            source: root.iconName
+        ResolvedIcon {
+            iconName: root.iconName
+            tintColor: root.selected || mouse.containsMouse ? root.selectedFg : root.fg
             Layout.preferredWidth: root.iconSize
             Layout.preferredHeight: root.iconSize
         }

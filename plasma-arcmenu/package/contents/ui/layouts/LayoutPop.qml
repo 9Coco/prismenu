@@ -23,8 +23,8 @@ LayoutBase {
 
     readonly property var tabs: [
         { id: 0, name: root.tr("Library Home"), icon: "user-home" },
-        { id: 1, name: root.tr("System"), icon: "applications-system" },
-        { id: 2, name: root.tr("Utility Tools"), icon: "applications-utilities" }
+        { id: 1, name: root.tr("System"), icon: "arcmenu-cat-system-settings" },
+        { id: 2, name: root.tr("Utility Tools"), icon: "arcmenu-cat-tools-build" }
     ]
 
     readonly property var gridItems: {
@@ -67,7 +67,7 @@ LayoutBase {
         Components.SearchField {
             Layout.fillWidth: true
             Layout.fillHeight: false
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }

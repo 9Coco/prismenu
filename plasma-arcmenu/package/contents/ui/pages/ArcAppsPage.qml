@@ -36,13 +36,13 @@ Item {
     readonly property var categoryItems: {
         var _ = root.uiLang;
         return [
-            { id: "Office", name: Locale.tr("Office", _), icon: "applications-office" },
-            { id: "Development", name: Locale.tr("Programming", _), icon: "applications-development" },
-            { id: "Accessories", name: Locale.tr("Accessories", _), icon: "applications-accessories" },
-            { id: "Utility", name: Locale.tr("Tools", _), icon: "applications-utilities" },
-            { id: "Network", name: Locale.tr("Internet", _), icon: "applications-internet" },
-            { id: "Graphics", name: Locale.tr("Graphics", _), icon: "applications-graphics" },
-            { id: "System", name: Locale.tr("System Tools", _), icon: "applications-system" }
+            { id: "Office", name: Locale.tr("Office", _), icon: "arcmenu-cat-office-barchart" },
+            { id: "Development", name: Locale.tr("Programming", _), icon: "arcmenu-cat-dev-brush" },
+            { id: "Accessories", name: Locale.tr("Accessories", _), icon: "arcmenu-cat-accessories-handyman" },
+            { id: "Utility", name: Locale.tr("Tools", _), icon: "arcmenu-cat-tools-build" },
+            { id: "Network", name: Locale.tr("Internet", _), icon: "arcmenu-cat-internet-public" },
+            { id: "Graphics", name: Locale.tr("Graphics", _), icon: "arcmenu-cat-graphics-image" },
+            { id: "System", name: Locale.tr("System Tools", _), icon: "arcmenu-cat-system-settings" }
         ];
     }
 
@@ -153,8 +153,9 @@ Item {
                             anchors.rightMargin: Kirigami.Units.smallSpacing
                             spacing: Kirigami.Units.smallSpacing
 
-                            Kirigami.Icon {
-                                source: catDel.cat ? catDel.cat.icon : "applications-other"
+                            Components.ResolvedIcon {
+                                iconName: catDel.cat ? catDel.cat.icon : "arcmenu-cat-other-apps"
+                                tintColor: catMouse.containsMouse ? root.selectedFg : root.fg
                                 Layout.preferredWidth: root.categoryIconSize
                                 Layout.preferredHeight: root.categoryIconSize
                             }

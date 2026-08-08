@@ -6,7 +6,7 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Brisk Menu â€” matches ArcMenu Brisk reference:
+ * Brisk Menu â€?matches ArcMenu Brisk reference:
  *   Search top | Sidebar (pinned / all / categories / software / settings) | Content | Session bottom
  */
 LayoutBase {
@@ -26,13 +26,13 @@ LayoutBase {
 
     // Always show the standard category set (do not hide empty ones)
     readonly property var categories: [
-        { id: "Office", name: root.tr("Office"), icon: "applications-office" },
-        { id: "Development", name: root.tr("Development"), icon: "applications-development" },
-        { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: root.tr("Utilities"), icon: "applications-utilities" },
-        { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
+        { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
+        { id: "Development", name: root.tr("Development"), icon: "arcmenu-cat-dev-brush" },
+        { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
+        { id: "Utility", name: root.tr("Utilities"), icon: "arcmenu-cat-tools-build" },
+        { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
+        { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
+        { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
     ]
 
     readonly property var extras: [
@@ -109,7 +109,7 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
         }
