@@ -7,15 +7,21 @@
 var DEFAULT_DIRS = ["HOME", "DOCUMENTS", "DOWNLOAD", "MUSIC", "PICTURES", "VIDEOS"];
 var DEFAULT_APPS = ["discover", "settings", "tweaks"];
 var DEFAULT_EXTRA_ORDER = ["pinned", "all-apps", "favorites", "frequent", "recent-files"];
-var DEFAULT_EXTRA_ON = ["pinned", "all-apps"];
+// Default: pinned only — “all-apps” duplicates the ArcAppsPage header
+var DEFAULT_EXTRA_ON = ["pinned"];
 var DEFAULT_CTX = ["configure", "separator", "power", "overview", "show-desktop"];
 var DEFAULT_POWER_ORDER = ["logout", "lock", "restart", "shutdown", "suspend", "hybridsleep", "hibernate", "switchuser"];
 
 function normalizeList(raw, fallback) {
-    if (raw === undefined || raw === null || raw === "")
+    if (raw === undefined || raw === null)
+        return (fallback || []).slice();
+    if (raw === "")
         return (fallback || []).slice();
     if (typeof raw === "string") {
         var parts = raw.split(",").map(function (s) { return String(s).trim(); }).filter(function (s) { return s.length; });
+        // Explicit empty string after split → empty list (not fallback)
+        if (!parts.length && raw.length === 0)
+            return [];
         return parts.length ? parts : (fallback || []).slice();
     }
     var out = [];
@@ -24,6 +30,9 @@ function normalizeList(raw, fallback) {
         if (s.length)
             out.push(s);
     }
+    // Empty array is intentional (e.g. all extras disabled) — do not reinstate defaults
+    if (raw.length === 0)
+        return [];
     return out.length ? out : (fallback || []).slice();
 }
 
