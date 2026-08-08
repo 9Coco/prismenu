@@ -59,7 +59,7 @@ Item {
         Kirigami.InlineMessage {
             Layout.fillWidth: true
             type: Kirigami.MessageType.Information
-            text: root.tr("Panel icon, click actions and button style are under Menu Button.")
+            text: root.tr("Panel icon, click actions and button style are under Menu Button. Layout and content settings are under Menu.")
         }
 
         QQC2.CheckBox {
