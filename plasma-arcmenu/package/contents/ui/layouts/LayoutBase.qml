@@ -47,6 +47,12 @@ Item {
     readonly property int shortcutIconSize: menuData && menuData.shortcutIconSize ? menuData.shortcutIconSize : categoryIconSize
     readonly property int buttonIconSize: menuData && menuData.buttonIconSize ? menuData.buttonIconSize : 22
     readonly property int otherIconSize: menuData && menuData.otherIconSize ? menuData.otherIconSize : 22
+    readonly property bool showAppDescriptions: menuData ? menuData.showAppDescriptions : false
+    readonly property bool showGenericNames: menuData ? menuData.showGenericNames : false
+    readonly property bool multiLineLabels: !menuData || menuData.multiLineLabels
+    readonly property bool showTooltips: !menuData || menuData.showTooltips
+    readonly property bool categoryIconsSymbolic: !menuData || menuData.categoryIconsSymbolic
+    readonly property bool shortcutIconsSymbolic: !menuData || menuData.shortcutIconsSymbolic
     readonly property bool flip: menuData ? menuData.flipHorizontal : false
     readonly property bool searchOnTop: !menuData || menuData.searchbarLocation !== "bottom"
     readonly property bool searching: menuData ? menuData.isSearching : false

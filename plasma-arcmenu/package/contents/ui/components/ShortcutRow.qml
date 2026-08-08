@@ -18,6 +18,8 @@ Item {
     property color hoverBg: selectedBg
     property color hoverFg: selectedFg
     property color fg: Kirigami.Theme.textColor
+    property bool preferSymbolic: true
+    property bool showTooltips: true
 
     readonly property bool hot: root.selected || mouse.containsMouse
     readonly property color chipBg: root.selected ? root.selectedBg
@@ -49,6 +51,7 @@ Item {
         ResolvedIcon {
             iconName: root.iconName
             tintColor: root.chipFg
+            preferSymbolic: root.preferSymbolic
             Layout.preferredWidth: root.iconSize
             Layout.preferredHeight: root.iconSize
         }

@@ -11,6 +11,8 @@ Kirigami.Icon {
     property string iconName: ""
     /** When set, used for bundled (mask) icons so they follow list selection/hover. */
     property color tintColor: Kirigami.Theme.textColor
+    /** Prefer symbolic / mask rendering (Fine-tuning → Icon style) */
+    property bool preferSymbolic: true
 
     readonly property bool bundled: CategoryIcons.isBundled(iconName)
 
@@ -22,9 +24,14 @@ Kirigami.Icon {
         // Face / custom paths (Kickoff-style user icons)
         if (iconName.indexOf("/") === 0)
             return "file://" + iconName;
+        if (root.preferSymbolic) {
+            var n = String(iconName);
+            if (n.indexOf("-symbolic") < 0 && n.indexOf("/") < 0 && n.indexOf(".") < 0)
+                return n + "-symbolic";
+        }
         return iconName;
     }
 
-    isMask: bundled
+    isMask: bundled || root.preferSymbolic
     color: tintColor
 }

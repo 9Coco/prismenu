@@ -160,8 +160,19 @@ PlasmoidItem {
 
     function launchApp(app) {
         if (!app) return;
-        backend.launch(app);
+        var mods = 0;
+        try { mods = Qt.keyboardModifiers; } catch (e) {}
+        var ctrl = (mods & Qt.ControlModifier) !== 0;
+        if (ctrl && backend.openNewWindow) {
+            backend.openNewWindow(app);
+        } else {
+            backend.launch(app, {
+                activateExisting: !!plasmoid.configuration.activateExistingWindow && !ctrl
+            });
+        }
         menuData.recordLaunch(app);
+        if (ctrl && plasmoid.configuration.keepOpenOnCtrlClick)
+            return;
         closeMenu();
     }
 

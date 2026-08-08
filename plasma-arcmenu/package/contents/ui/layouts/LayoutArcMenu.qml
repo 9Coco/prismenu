@@ -148,6 +148,9 @@ LayoutBase {
                     hoverBg: root.hoverBg
                     hoverFg: root.hoverFg
                     fg: root.fg
+                    showDescription: root.showAppDescriptions
+                    showGenericNames: root.showGenericNames
+                    multiLineLabels: root.multiLineLabels
                     onAppActivated: (app) => root.activateShortcut(app)
                     onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
                 }
@@ -250,6 +253,8 @@ LayoutBase {
                 hoverFg: root.hoverFg
                 separatorColor: root.separatorColor
                 fg: root.fg
+                preferSymbolic: root.shortcutIconsSymbolic
+                showTooltips: root.showTooltips
                 onUserClicked: root.userMenu()
                 onItemActivated: (item) => root.activateShortcut(item)
                 onItemContextMenu: (item, x, y) => root.appContextMenu(item, x, y)

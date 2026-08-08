@@ -18,6 +18,9 @@ Item {
     property color hoverBg: selectedBg
     property color hoverFg: selectedFg
     property color fg: Kirigami.Theme.textColor
+    property bool showDescription: false
+    property bool showGenericNames: false
+    property bool multiLineLabels: false
 
     signal appActivated(var app)
     signal appContextMenu(var app, real x, real y)
@@ -100,6 +103,9 @@ Item {
                     hoverBg: root.hoverBg
                     hoverFg: root.hoverFg
                     fg: root.fg
+                    showDescription: root.showDescription
+                    showGenericNames: root.showGenericNames
+                    multiLineLabels: root.multiLineLabels
                     onActivated: root.appActivated(modelData)
                     onContextMenuRequested: (x, y) => {
                         // Allow unpin / actions even for ArcMenu Settings (action: configure)

@@ -377,7 +377,7 @@ LayoutBase {
                                     width: rightCol.width
                                     app: root.flatItems[index]
                                     iconSize: Math.max(root.appIconSize, 28)
-                                    showDescription: false
+                                    showDescription: root.showAppDescriptions
                                     selectedBg: root.selectedBg
                                     selectedFg: root.selectedFg
                                     hoverBg: root.hoverBg
@@ -428,7 +428,7 @@ LayoutBase {
                                             width: rightCol.width
                                             app: section.apps[index]
                                             iconSize: Math.max(root.appIconSize, 28)
-                                            showDescription: false
+                                            showDescription: root.showAppDescriptions
                                             selectedBg: root.selectedBg
                                             selectedFg: root.selectedFg
                                             hoverBg: root.hoverBg
