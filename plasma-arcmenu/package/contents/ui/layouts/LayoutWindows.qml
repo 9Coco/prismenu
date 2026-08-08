@@ -76,12 +76,12 @@ LayoutBase {
     ]
 
     readonly property var placeItems: [
-        { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-        { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
+        { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
+        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
+        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
+        { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
+        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
+        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS" }
     ]
 
     readonly property string deviceLabel: {

@@ -377,9 +377,59 @@ Item {
         } catch (e2) {}
     }
 
+    /**
+     * Open an XDG user directory via real filesystem path.
+     * `xdg:Download` is NOT a valid KIO URL — use `xdg-user-dir DOWNLOAD`.
+     * name: HOME | DOCUMENTS | DOWNLOAD | MUSIC | PICTURES | VIDEOS | …
+     */
+    function openXdgUserDir(name) {
+        var key = String(name || "HOME").toUpperCase();
+        var aliases = {
+            "DOWNLOADS": "DOWNLOAD",
+            "DOCS": "DOCUMENTS",
+            "DOCUMENT": "DOCUMENTS",
+            "PIC": "PICTURES",
+            "PICTURE": "PICTURES",
+            "VIDEO": "VIDEOS"
+        };
+        if (aliases[key])
+            key = aliases[key];
+
+        var script;
+        if (key === "HOME" || key === "") {
+            script = 'p="$HOME"; kioclient exec "$p" || dolphin "$p" || xdg-open "$p"';
+        } else {
+            // Resolve with xdg-user-dir (honors zh_CN 下载/文档/…); then open with Dolphin/KIO
+            script = 'p=$(xdg-user-dir ' + key + ' 2>/dev/null); '
+                + 'if [ -z "$p" ] || [ ! -e "$p" ]; then '
+                + '  case ' + key + ' in '
+                + '    DOCUMENTS) p="$HOME/Documents"; [ -d "$HOME/文档" ] && p="$HOME/文档" ;; '
+                + '    DOWNLOAD)  p="$HOME/Downloads"; [ -d "$HOME/下载" ] && p="$HOME/下载" ;; '
+                + '    MUSIC)     p="$HOME/Music";     [ -d "$HOME/音乐" ] && p="$HOME/音乐" ;; '
+                + '    PICTURES)  p="$HOME/Pictures";  [ -d "$HOME/图片" ] && p="$HOME/图片" ;; '
+                + '    VIDEOS)    p="$HOME/Videos";    [ -d "$HOME/视频" ] && p="$HOME/视频" ;; '
+                + '    DESKTOP)   p="$HOME/Desktop";   [ -d "$HOME/桌面" ] && p="$HOME/桌面" ;; '
+                + '    *) p="$HOME" ;; '
+                + '  esac; '
+                + 'fi; '
+                + 'mkdir -p "$p" 2>/dev/null; '
+                + 'echo "ArcMenu openPlace ' + key + ' -> $p"; '
+                + 'kioclient exec "$p" || dolphin "$p" || xdg-open "$p"';
+        }
+        console.log("ArcMenu openXdgUserDir", key);
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+    }
+
     function launch(app) {
         if (!app)
             return;
+
+        // Preferred: explicit place key from PlacesSidebar / MenuData
+        if (app.place) {
+            openXdgUserDir(app.place);
+            return;
+        }
+
         var url = app.kickerUrl || app.entryPath || "";
         if (url) {
             var id = String(app.id || "").replace(/\.desktop$/, "");
@@ -388,8 +438,25 @@ Item {
                 + " || xdg-open " + shellQuote(url));
             return;
         }
-        if (app.exec)
-            exec.connectSource(String(app.exec));
+
+        if (app.exec) {
+            var e = String(app.exec);
+            // Legacy broken URLs: "xdg-open xdg:Download" → resolve via xdg-user-dir
+            var m = e.match(/xdg:\s*([A-Za-z]+)/);
+            if (m) {
+                openXdgUserDir(m[1]);
+                return;
+            }
+            if (/xdg-open\s+\$HOME/.test(e) || e === "xdg-open $HOME") {
+                openXdgUserDir("HOME");
+                return;
+            }
+            // Shell features ($HOME, args) need bash
+            if (e.indexOf("$") >= 0 || e.indexOf(" ") >= 0)
+                exec.connectSource("/bin/bash -lc " + shellQuote(e));
+            else
+                exec.connectSource(e);
+        }
     }
 
     function runPower(actionId, softwareCenterCmd) {

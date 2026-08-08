@@ -63,9 +63,9 @@ LayoutBase {
     ]
 
     readonly property var footPlaces: [
-        { id: "place-home", icon: "user-home", tip: root.tr("Home"), exec: "xdg-open $HOME" },
-        { id: "place-docs", icon: "folder-documents", tip: root.tr("Documents"), exec: "xdg-open xdg:Documents" },
-        { id: "place-dl", icon: "folder-download", tip: root.tr("Downloads"), exec: "xdg-open xdg:Download" },
+        { id: "place-home", icon: "user-home", tip: root.tr("Home"), place: "HOME" },
+        { id: "place-docs", icon: "folder-documents", tip: root.tr("Documents"), place: "DOCUMENTS" },
+        { id: "place-dl", icon: "folder-download", tip: root.tr("Downloads"), place: "DOWNLOAD" },
         { id: "shortcut-software-foot", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
         { id: "place-files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
     ]

@@ -29,10 +29,10 @@ LayoutBase {
         { id: "all", icon: "view-app-grid-symbolic", tip: root.tr("All Applications") },
         { id: "windows", icon: "window-duplicate", tip: root.tr("Windows") },
         { id: "tweaks", icon: "preferences-desktop-theme", tip: root.tr("Tweaks"), exec: "systemsettings kcm_lookandfeel" },
-        { id: "contacts", icon: "x-office-contact", tip: root.tr("Contacts"), exec: "xdg-open xdg:Documents" },
+        { id: "contacts", icon: "x-office-contact", tip: root.tr("Contacts"), place: "DOCUMENTS" },
         { id: "user", icon: "user-identity", tip: root.tr("User") },
         { id: "network", icon: "applications-internet", tip: root.tr("Internet"), exec: "xdg-open https://" },
-        { id: "pictures", icon: "folder-pictures", tip: root.tr("Pictures"), exec: "xdg-open xdg:Pictures" }
+        { id: "pictures", icon: "folder-pictures", tip: root.tr("Pictures"), place: "PICTURES" }
     ]
 
     readonly property var defaultPinned: [

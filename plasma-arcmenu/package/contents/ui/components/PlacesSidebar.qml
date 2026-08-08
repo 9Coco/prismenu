@@ -29,13 +29,14 @@ ColumnLayout {
 
     readonly property var placeItems: {
         var _ = root.uiLang;
+        // place: XDG user-dir key — resolved by AppsBackend.openXdgUserDir (not xdg:Download)
         return [
-            { id: "place-home", name: root.t("Home"), icon: "user-home", exec: "xdg-open $HOME" },
-            { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents" },
-            { id: "place-dl", name: root.t("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download" },
-            { id: "place-music", name: root.t("Music"), icon: "folder-music", exec: "xdg-open xdg:Music" },
-            { id: "place-pics", name: root.t("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures" },
-            { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos" }
+            { id: "place-home", name: root.t("Home"), icon: "user-home", place: "HOME" },
+            { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
+            { id: "place-dl", name: root.t("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
+            { id: "place-music", name: root.t("Music"), icon: "folder-music", place: "MUSIC" },
+            { id: "place-pics", name: root.t("Pictures"), icon: "folder-pictures", place: "PICTURES" },
+            { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", place: "VIDEOS" }
         ];
     }
 
