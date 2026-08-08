@@ -233,6 +233,20 @@ Item {
             }
         }
 
+        ConfigGroup {
+            title: root.tr("Reset")
+            ConfigSettingRow {
+                title: root.tr("Reset to defaults")
+                subtitle: root.tr("Restore all Arc Menu settings to their default values.")
+                iconName: "edit-undo"
+                accent: "red"
+                QQC2.Button {
+                    text: root.tr("Reset…")
+                    onClicked: resetConfirm.open()
+                }
+            }
+        }
+
         Kirigami.InlineMessage {
             Layout.fillWidth: true
             visible: root._statusText.length > 0
@@ -279,6 +293,24 @@ Item {
                 return;
             importConfirm.path = path;
             importConfirm.open();
+        }
+    }
+
+    QQC2.Dialog {
+        id: resetConfirm
+        title: root.tr("Reset to defaults")
+        modal: true
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        QQC2.Label {
+            text: root.tr("Reset all Arc Menu settings to their default values? This cannot be undone.")
+            wrapMode: Text.WordWrap
+            width: resetConfirm.availableWidth
+        }
+        onAccepted: {
+            var n = ConfigBackup.resetToDefaults(plasmoid.configuration);
+            root.syncLocalCfgFromConfig();
+            root._statusIsError = false;
+            root._statusText = root.tr("Restored %1 settings to defaults.").replace("%1", String(n));
         }
     }
 
