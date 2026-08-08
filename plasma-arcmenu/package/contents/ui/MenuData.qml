@@ -7,6 +7,7 @@ import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
 import "../code/IdList.js" as IdList
 import "../code/Locale.js" as Locale
+import "../code/CategoryIcons.js" as CategoryIcons
 
 QtObject {
     id: root
@@ -96,6 +97,8 @@ QtObject {
         for (var i = 0; i < base.length; ++i) {
             var c = Object.assign({}, base[i]);
             c.name = root.tr(c.name);
+            if (!CategoryIcons.isBundled(c.icon))
+                c.icon = CategoryIcons.defaultIcon(c.id);
             c.apps = AppsModel.appsInCategory(allApps, c.id);
             c.appCount = c.apps.length;
             withCounts.push(c);
@@ -104,7 +107,7 @@ QtObject {
         var all = {
             id: "all",
             name: root.tr("All Applications"),
-            icon: "applications-all",
+            icon: "arcmenu-cat-other-apps",
             apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps)),
             appCount: allApps.length
         };

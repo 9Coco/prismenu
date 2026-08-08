@@ -6,17 +6,17 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Zest layout (ArcMenu Zest) — three columns.
+ * Zest layout (ArcMenu Zest) �?three columns.
  *
  * Left:   avatar + places/software/settings + session
  * Middle: pinned / all / categories  (controls right)
- * Right:  apps for the middle selection (A–Z when “all”)
+ * Right:  apps for the middle selection (A–Z when “all�?
  * Search spans middle + right at the bottom
  */
 LayoutBase {
     id: root
 
-    // Middle column selection — drives right column content
+    // Middle column selection �?drives right column content
     property string selectedId: "all"
 
     readonly property bool searching: menuData ? menuData.isSearching : false
@@ -38,13 +38,13 @@ LayoutBase {
     readonly property var categories: {
         var _ = root.uiLang;
         return [
-            { id: "Office", name: root.tr("Office"), icon: "applications-office" },
-            { id: "Development", name: root.tr("Programming"), icon: "applications-development" },
-            { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
-            { id: "Utility", name: root.tr("Tools"), icon: "applications-utilities" },
-            { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
-            { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
-            { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
+            { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
+            { id: "Development", name: root.tr("Programming"), icon: "arcmenu-cat-dev-brush" },
+            { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
+            { id: "Utility", name: root.tr("Tools"), icon: "arcmenu-cat-tools-build" },
+            { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
+            { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
+            { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
         ];
     }
 
@@ -347,7 +347,7 @@ LayoutBase {
                                 }
                             }
 
-                            // All apps — A–Z sections
+                            // All apps �?A–Z sections
                             Repeater {
                                 model: (!root.searching && root.selectedId === "all")
                                        ? root.azSections.length : 0
@@ -425,7 +425,7 @@ LayoutBase {
             // Search under middle + right only
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search�?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

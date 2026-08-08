@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/AppsModel.js" as AppsModel
 import "../../code/Locale.js" as Locale
+import "../components" as Components
 
 Item {
     id: root
@@ -94,8 +95,8 @@ Item {
                     checked: !root.isHidden(modelData.id)
                     onToggled: root.toggleHidden(modelData.id, !checked)
                 }
-                Kirigami.Icon {
-                    source: root.customIconsMap[modelData.id] || modelData.icon
+                Components.ResolvedIcon {
+                    iconName: root.customIconsMap[modelData.id] || modelData.icon
                     Layout.preferredWidth: 20
                     Layout.preferredHeight: 20
                 }

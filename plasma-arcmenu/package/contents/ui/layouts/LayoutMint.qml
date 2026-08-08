@@ -32,13 +32,13 @@ LayoutBase {
     ]
 
     readonly property var categories: [
-        { id: "Office", name: root.tr("Office"), icon: "applications-office" },
-        { id: "Development", name: root.tr("Development"), icon: "applications-development" },
-        { id: "Accessories", name: root.tr("Accessories"), icon: "applications-accessories" },
-        { id: "Utility", name: root.tr("Utilities"), icon: "applications-utilities" },
-        { id: "Network", name: root.tr("Internet"), icon: "applications-internet" },
-        { id: "Graphics", name: root.tr("Graphics"), icon: "applications-graphics" },
-        { id: "System", name: root.tr("System Tools"), icon: "applications-system" }
+        { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
+        { id: "Development", name: root.tr("Development"), icon: "arcmenu-cat-dev-brush" },
+        { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
+        { id: "Utility", name: root.tr("Utilities"), icon: "arcmenu-cat-tools-build" },
+        { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
+        { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
+        { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
     ]
 
     readonly property var defaultPinned: [
@@ -119,7 +119,7 @@ LayoutBase {
             Layout.maximumWidth: Kirigami.Units.gridUnit * 3.5
             spacing: 0
 
-            // Equal flex spacers â†’ whole icon stack is vertically centered
+            // Equal flex spacers â†?whole icon stack is vertically centered
             Item { Layout.fillHeight: true }
 
             ColumnLayout {
@@ -195,7 +195,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }
