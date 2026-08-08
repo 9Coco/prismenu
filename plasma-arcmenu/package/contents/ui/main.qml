@@ -164,7 +164,7 @@ PlasmoidItem {
             return;
         }
         backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd);
-        if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings" || actionId === "overview") {
+        if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings") {
             closeMenu();
         }
     }

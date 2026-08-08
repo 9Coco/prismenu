@@ -51,8 +51,7 @@ LayoutBase {
     readonly property var shortcutItems: [
         { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
         { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" },
-        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "overview", action: "overview" }
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
     ]
 
     readonly property var gridItems: {

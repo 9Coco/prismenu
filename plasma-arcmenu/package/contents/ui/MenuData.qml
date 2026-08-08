@@ -187,8 +187,6 @@ QtObject {
         }
         if (id === "shortcut-tweaks" || (app.exec && String(app.exec).indexOf("kcm_lookandfeel") >= 0))
             return "shortcut-tweaks";
-        if (app.action === "overview" || id === "shortcut-overview")
-            return "shortcut-overview";
         return id;
     }
 
@@ -208,15 +206,6 @@ QtObject {
                 name: Locale.tr("Tweaks", lang),
                 icon: "preferences-desktop-display",
                 exec: "systemsettings kcm_lookandfeel",
-                noDisplay: false
-            };
-        }
-        if (id === "shortcut-overview") {
-            return {
-                id: id,
-                name: Locale.tr("Activities Overview", lang),
-                icon: "overview",
-                action: "overview",
                 noDisplay: false
             };
         }
@@ -406,11 +395,11 @@ QtObject {
         { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS", categories: ["Places"], keywords: [], genericName: root.tr("Videos"), noDisplay: false }
     ]
 
+    // Extra shortcuts — Overview omitted (no useful KDE equivalent)
     readonly property var systemShortcuts: [
         { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Software Center"), noDisplay: false, action: "discover" },
         { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", exec: "", categories: ["System"], keywords: [], genericName: root.tr("System Settings"), noDisplay: false, action: "settings" },
-        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: root.tr("Appearance"), noDisplay: false },
-        { id: "shortcut-overview", name: root.tr("Activities Overview"), icon: "overview", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Overview"), noDisplay: false, action: "overview" }
+        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: root.tr("Appearance"), noDisplay: false }
     ]
 
     function isFavorite(appOrId) {
