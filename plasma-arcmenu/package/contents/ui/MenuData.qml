@@ -75,9 +75,47 @@ QtObject {
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: cfgBool("flipHorizontal", false)
     readonly property string searchbarLocation: cfgStr("searchbarLocation", "top")
-    readonly property int menuWidth: LayoutRegistry.clampSize(cfgInt("menuWidth", 600), 400, 900, 600)
+    readonly property int menuWidth: LayoutRegistry.clampSize(cfgInt("menuWidth", 620), 400, 900, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
-    readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 550), 400, 800, 550)
+    readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 540), 400, 800, 540)
+    /** Places / shortcuts column width (Arc Menu); default ~36% of 620 */
+    readonly property int sidebarWidth: LayoutRegistry.clampSize(cfgInt("sidebarWidth", 220), 160, 360, 220)
+    readonly property int defaultMenuWidth: {
+        var meta = layoutInfo;
+        return meta && meta.defaultWidth ? meta.defaultWidth : 620;
+    }
+    readonly property int defaultMenuHeight: {
+        var meta = layoutInfo;
+        var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
+        return h > 800 ? 800 : h;
+    }
+    readonly property int defaultSidebarWidth: 220
+
+    function setMenuWidth(w) {
+        if (!plasmoidConfig)
+            return;
+        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(w, 400, 900, 620);
+    }
+
+    function setMenuHeight(h) {
+        if (!plasmoidConfig)
+            return;
+        plasmoidConfig.menuHeight = LayoutRegistry.clampSize(h, 400, 800, 540);
+    }
+
+    function setSidebarWidth(w) {
+        if (!plasmoidConfig)
+            return;
+        plasmoidConfig.sidebarWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
+    }
+
+    function resetLayoutSizesToDefaults() {
+        if (!plasmoidConfig)
+            return;
+        plasmoidConfig.menuWidth = defaultMenuWidth;
+        plasmoidConfig.menuHeight = defaultMenuHeight;
+        plasmoidConfig.sidebarWidth = defaultSidebarWidth;
+    }
     readonly property int appIconSize: Math.max(16, cfgInt("appIconSize", 24))
     readonly property int categoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))
     readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))

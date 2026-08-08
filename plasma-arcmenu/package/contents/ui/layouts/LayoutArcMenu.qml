@@ -4,12 +4,14 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
 import "../../code/CatalogBridge.js" as CatalogBridge
+import "../../code/LayoutRegistry.js" as LayoutRegistry
 
 /**
  * Official ArcMenu shell — true left/right columns to the bottom edge.
  *
  * Left:  content | 所有应用程序/返回 | search
  * Right: places / shortcuts | session buttons
+ * Outer size + sidebar width are drag-resizable (see MenuResizeHandles / split handle).
  */
 LayoutBase {
     id: root
@@ -36,6 +38,14 @@ LayoutBase {
         }
         return opts;
     }
+
+    readonly property int sidebarW: {
+        if (menuData && menuData.sidebarWidth)
+            return menuData.sidebarWidth;
+        return 220;
+    }
+    readonly property int sidebarMin: 160
+    readonly property int sidebarMax: 360
 
     function activateShortcut(item) {
         root.activateItem(item);
@@ -115,18 +125,25 @@ LayoutBase {
         }
     }
 
+    function setSidebarFromDrag(w) {
+        var clamped = LayoutRegistry.clampSize(w, root.sidebarMin, root.sidebarMax, 220);
+        if (menuData && menuData.setSidebarWidth)
+            menuData.setSidebarWidth(clamped);
+    }
+
     // Single RowLayout: columns run full height (search under left, power under right)
     RowLayout {
+        id: columns
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        spacing: 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
         // ---- LEFT column ----
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 14
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
             spacing: Kirigami.Units.smallSpacing
 
             Item {
@@ -213,10 +230,59 @@ LayoutBase {
             }
         }
 
+        // ---- Drag handle between columns ----
+        Item {
+            id: splitHandle
+            Layout.fillHeight: true
+            Layout.preferredWidth: Kirigami.Units.smallSpacing * 2
+            Layout.minimumWidth: Kirigami.Units.smallSpacing * 2
+            z: 5
+
+            Rectangle {
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                width: 2
+                height: Math.min(parent.height * 0.35, Kirigami.Units.gridUnit * 4)
+                radius: 1
+                color: root.fg
+                opacity: splitMouse.containsMouse || splitMouse.pressed ? 0.55 : 0.22
+                Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
+            }
+
+            MouseArea {
+                id: splitMouse
+                anchors.fill: parent
+                anchors.leftMargin: -2
+                anchors.rightMargin: -2
+                hoverEnabled: true
+                cursorShape: Qt.SplitHCursor
+                preventStealing: true
+                property real pressGlobalX: 0
+                property int pressSidebar: 220
+
+                onPressed: (mouse) => {
+                    var g = mapToGlobal(mouse.x, mouse.y);
+                    pressGlobalX = g.x;
+                    pressSidebar = root.sidebarW;
+                }
+                onPositionChanged: (mouse) => {
+                    if (!pressed)
+                        return;
+                    var g = mapToGlobal(mouse.x, mouse.y);
+                    var dx = g.x - pressGlobalX;
+                    // LTR: sidebar on the right → drag handle left grows sidebar
+                    // RTL (flip): sidebar on the left → drag handle right grows sidebar
+                    var next = root.flip ? (pressSidebar + dx) : (pressSidebar - dx);
+                    root.setSidebarFromDrag(next);
+                }
+            }
+        }
+
         // ---- RIGHT column ----
         ColumnLayout {
-            Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.36)
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
             Layout.fillHeight: true
             Layout.fillWidth: false
             spacing: Kirigami.Units.smallSpacing
