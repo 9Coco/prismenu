@@ -12,11 +12,16 @@ RowLayout {
 
     property var enabledOptions: ["logout", "lock", "restart", "shutdown"]
     property var menuData: null
+    property int iconSize: 0
 
     signal actionRequested(string actionId)
 
     spacing: Kirigami.Units.smallSpacing
     Layout.alignment: Qt.AlignVCenter
+
+    readonly property int resolvedIcon: iconSize > 0 ? iconSize
+        : (menuData && menuData.buttonIconSize ? menuData.buttonIconSize
+           : Kirigami.Units.iconSizes.smallMedium)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
 
@@ -48,6 +53,8 @@ RowLayout {
             required property var modelData
             visible: root.isOn(modelData.id)
             icon.name: modelData.icon
+            icon.width: root.resolvedIcon
+            icon.height: root.resolvedIcon
             Accessible.name: modelData.tip
             onClicked: root.actionRequested(modelData.id)
             PlasmaComponents.ToolTip.text: modelData.tip

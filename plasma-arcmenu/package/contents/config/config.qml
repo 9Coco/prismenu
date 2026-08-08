@@ -33,6 +33,11 @@ ConfigModel {
         source: "config/ConfigLayout.qml"
     }
     ConfigCategory {
+        name: configModel.tr("Menu Visual Appearance")
+        icon: "preferences-desktop-display"
+        source: "config/ConfigVisual.qml"
+    }
+    ConfigCategory {
         name: configModel.tr("Menu Theme")
         icon: "preferences-desktop-theme"
         source: "config/ConfigTheme.qml"

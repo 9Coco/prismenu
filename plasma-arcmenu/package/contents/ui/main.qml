@@ -281,16 +281,38 @@ PlasmoidItem {
             NumberAnimation { duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
         }
 
+        // Visual Appearance → Override menu rise / position (best-effort within Plasma popup)
+        readonly property int risePx: {
+            if (!plasmoid.configuration.overrideMenuRise)
+                return 0;
+            var d = parseInt(plasmoid.configuration.menuRiseDistance, 10);
+            return (!d || isNaN(d)) ? 6 : Math.max(0, Math.min(64, d));
+        }
+        readonly property string posMode: plasmoid.configuration.overrideMenuPosition || "off"
+        readonly property int posShiftY: {
+            if (posMode === "top-centered" || posMode === "center")
+                return -Math.round(fullRep.height * 0.08);
+            if (posMode === "bottom-centered")
+                return Math.round(fullRep.height * 0.02);
+            return 0;
+        }
+
         Component.onCompleted: {
+            var targetY = -fullRep.risePx + fullRep.posShiftY;
             if (plasmoid.configuration.popupAnimation === "fade") {
                 opacity = 0;
                 opacity = 1;
+                fullRep.y = targetY;
             } else if (plasmoid.configuration.popupAnimation === "expand") {
                 scale = 0.92;
                 scale = 1;
+                fullRep.y = targetY;
             } else if (plasmoid.configuration.popupAnimation === "slide") {
-                fullRep.y = 12;
+                fullRep.y = 12 + targetY;
+                slideAnim.to = targetY;
                 slideAnim.start();
+            } else {
+                fullRep.y = targetY;
             }
             Qt.callLater(() => fullRep.forceActiveFocus());
         }

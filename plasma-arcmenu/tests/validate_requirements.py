@@ -114,6 +114,8 @@ def main() -> int:
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
         "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth",
+        "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance",
+        "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther",
         "ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes",
         "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius",
         "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg",
