@@ -3,9 +3,10 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../../code/Locale.js" as Locale
+import "../../code/ShortcutsConfig.js" as SC
 
 /**
- * Functional module: session / power icon row (logout, lock, restart, shutdown).
+ * Functional module: session / power icon row (ordered from Power Options).
  */
 RowLayout {
     id: root
@@ -31,12 +32,21 @@ RowLayout {
 
     readonly property var buttonDefs: {
         var _ = root.uiLang;
-        return [
-            { id: "logout", icon: "system-log-out", tip: root.t("Log Out") },
-            { id: "lock", icon: "system-lock-screen", tip: root.t("Lock Screen") },
-            { id: "restart", icon: "system-reboot", tip: root.t("Restart") },
-            { id: "shutdown", icon: "system-shutdown", tip: root.t("Shut Down") }
-        ];
+        var defs = SC.powerDefs(root.t);
+        var order = (menuData && menuData.powerOptionsOrder && menuData.powerOptionsOrder.length)
+            ? menuData.powerOptionsOrder
+            : SC.DEFAULT_POWER_ORDER;
+        var byId = {};
+        for (var i = 0; i < defs.length; ++i)
+            byId[defs[i].id] = defs[i];
+        var out = [];
+        for (var o = 0; o < order.length; ++o) {
+            var d = byId[order[o]];
+            if (!d)
+                continue;
+            out.push({ id: d.id, icon: d.icon, tip: d.name });
+        }
+        return out;
     }
 
     function isOn(id) {

@@ -69,6 +69,22 @@ Item {
         var out = [];
         var i;
 
+        // Extra categories (Pinned / All Apps / Favorites / …) first
+        var extras = (host && host.enabledExtraCategories) ? host.enabledExtraCategories : [];
+        for (i = 0; i < extras.length; ++i) {
+            var ex = extras[i];
+            if (!ex || !ex.id)
+                continue;
+            out.push({
+                id: ex.id,
+                name: ex.name,
+                icon: ex.icon || "applications-other",
+                apps: [],
+                appCount: 0,
+                extra: true
+            });
+        }
+
         for (i = 0; i < fromData.length; ++i) {
             var c = fromData[i];
             if (!c || !c.id || c.id === "all")
@@ -88,7 +104,7 @@ Item {
             });
         }
 
-        if (out.length > 0)
+        if (out.length > extras.length)
             return out;
 
         var preferred = [
@@ -195,6 +211,33 @@ Item {
         var bridged = CatalogBridge.menuData();
         if (bridged)
             root.menuData = bridged;
+
+        if (id === "pinned" || id === "favorites") {
+            root.openSpecialList("favorites");
+            return;
+        }
+        if (id === "frequent") {
+            root.openSpecialList("frequent");
+            return;
+        }
+        if (id === "all-apps") {
+            specialListId = "";
+            drillCategoryId = "all";
+            var hostAll = root.dataHost;
+            if (hostAll && hostAll.selectCategory)
+                hostAll.selectCategory("all");
+            return;
+        }
+        if (id === "recent-files") {
+            root.appActivated({
+                id: "recent-files",
+                name: Locale.tr("Recent Files", root.uiLang),
+                icon: "document-open-recent",
+                exec: "kioclient exec recent:/ || xdg-open recent:/"
+            });
+            return;
+        }
+
         specialListId = "";
         drillCategoryId = id;
         var host = root.dataHost;
