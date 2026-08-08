@@ -59,6 +59,45 @@
         <entry name="CategoryColumnWidth" type="Int">
             <default>220</default>
         </entry>
+        <!-- Visual appearance: traditional left/right panels + non-traditional offset -->
+        <entry name="LeftPanelWidth" type="Int">
+            <default>380</default>
+        </entry>
+        <entry name="RightPanelWidth" type="Int">
+            <default>220</default>
+        </entry>
+        <entry name="WidthOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <!-- off | top-centered | bottom-centered | center -->
+        <entry name="OverrideMenuPosition" type="String">
+            <default>off</default>
+        </entry>
+        <entry name="OverrideMenuRise" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MenuRiseDistance" type="Int">
+            <default>6</default>
+        </entry>
+        <!-- Icon override levels: -1 Off, 0 XS … 4 XL -->
+        <entry name="IconSizeGrid" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeApps" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeShortcuts" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeCategories" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeButtons" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeOther" type="Int">
+            <default>-1</default>
+        </entry>
     </group>
 
     <group name="Theme">

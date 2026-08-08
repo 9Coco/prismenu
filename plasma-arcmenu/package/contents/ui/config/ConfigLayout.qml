@@ -17,6 +17,9 @@ Item {
     property int cfg_MenuHeight
     property int cfg_SidebarWidth
     property int cfg_CategoryColumnWidth
+    property int cfg_LeftPanelWidth
+    property int cfg_RightPanelWidth
+    property int cfg_WidthOffset
 
     property var layouts: LayoutRegistry.allLayouts()
     property var categories: LayoutRegistry.layoutCategories()
@@ -51,11 +54,9 @@ Item {
             cfg_MenuHeight = h;
             cfg_SidebarWidth = 220;
             cfg_CategoryColumnWidth = 220;
-            widthSpin.value = meta.defaultWidth;
-            heightSpin.value = h;
-            sidebarSpin.value = 220;
-            categoryColSpin.value = 220;
-            heightSpin.to = 800;
+            cfg_RightPanelWidth = 220;
+            cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - 220 - 24);
+            cfg_WidthOffset = 0;
 
             // Keep the selected layout's category expanded
             ensureCategoryExpanded(meta.category);
@@ -68,6 +69,9 @@ Item {
                 plasmoid.configuration.menuHeight = cfg_MenuHeight;
                 plasmoid.configuration.sidebarWidth = 220;
                 plasmoid.configuration.categoryColumnWidth = 220;
+                plasmoid.configuration.rightPanelWidth = 220;
+                plasmoid.configuration.leftPanelWidth = cfg_LeftPanelWidth;
+                plasmoid.configuration.widthOffset = 0;
             }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);
@@ -84,15 +88,17 @@ Item {
         cfg_MenuHeight = h;
         cfg_SidebarWidth = 220;
         cfg_CategoryColumnWidth = 220;
-        widthSpin.value = w;
-        heightSpin.value = h;
-        sidebarSpin.value = 220;
-        categoryColSpin.value = 220;
+        cfg_RightPanelWidth = 220;
+        cfg_LeftPanelWidth = Math.max(180, w - 220 - 24);
+        cfg_WidthOffset = 0;
         try {
             plasmoid.configuration.menuWidth = w;
             plasmoid.configuration.menuHeight = h;
             plasmoid.configuration.sidebarWidth = 220;
             plasmoid.configuration.categoryColumnWidth = 220;
+            plasmoid.configuration.rightPanelWidth = 220;
+            plasmoid.configuration.leftPanelWidth = cfg_LeftPanelWidth;
+            plasmoid.configuration.widthOffset = 0;
         } catch (e) {}
     }
 
@@ -374,60 +380,11 @@ Item {
                     }
                 }
 
-                QQC2.SpinBox {
-                    id: widthSpin
-                    Kirigami.FormData.label: root.tr("Menu width:")
-                    from: 400
-                    to: 900
-                    stepSize: 10
-                    Component.onCompleted: value = cfg_MenuWidth
-                    onValueModified: {
-                        cfg_MenuWidth = value;
-                        try { plasmoid.configuration.menuWidth = value; } catch (e) {}
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-
-                QQC2.SpinBox {
-                    id: heightSpin
-                    Kirigami.FormData.label: root.tr("Menu height:")
-                    from: 400
-                    to: 800
-                    stepSize: 10
-                    Component.onCompleted: value = Math.min(cfg_MenuHeight || 540, 800)
-                    onValueModified: {
-                        cfg_MenuHeight = value;
-                        try { plasmoid.configuration.menuHeight = value; } catch (e) {}
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-
-                QQC2.SpinBox {
-                    id: sidebarSpin
-                    Kirigami.FormData.label: root.tr("Sidebar width:")
-                    from: 160
-                    to: 360
-                    stepSize: 10
-                    Component.onCompleted: value = cfg_SidebarWidth || 220
-                    onValueModified: {
-                        cfg_SidebarWidth = value;
-                        try { plasmoid.configuration.sidebarWidth = value; } catch (e) {}
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-
-                QQC2.SpinBox {
-                    id: categoryColSpin
-                    Kirigami.FormData.label: root.tr("Category column width:")
-                    from: 160
-                    to: 360
-                    stepSize: 10
-                    Component.onCompleted: value = cfg_CategoryColumnWidth || 220
-                    onValueModified: {
-                        cfg_CategoryColumnWidth = value;
-                        try { plasmoid.configuration.categoryColumnWidth = value; } catch (e) {}
-                    }
-                    textFromValue: (v) => v + " px"
+                QQC2.Label {
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.75
+                    text: root.tr("Menu size, position, and icon overrides are in Menu Visual Appearance.")
                 }
 
                 QQC2.Label {
@@ -458,30 +415,6 @@ Item {
             if (meta)
                 root.ensureCategoryExpanded(meta.category);
         }
-        function onMenuWidthChanged() {
-            var v = plasmoid.configuration.menuWidth;
-            if (widthSpin.value !== v)
-                widthSpin.value = v;
-            cfg_MenuWidth = v;
-        }
-        function onMenuHeightChanged() {
-            var v = Math.min(plasmoid.configuration.menuHeight || 540, 800);
-            if (heightSpin.value !== v)
-                heightSpin.value = v;
-            cfg_MenuHeight = v;
-        }
-        function onSidebarWidthChanged() {
-            var v = plasmoid.configuration.sidebarWidth;
-            if (sidebarSpin.value !== v)
-                sidebarSpin.value = v;
-            cfg_SidebarWidth = v;
-        }
-        function onCategoryColumnWidthChanged() {
-            var v = plasmoid.configuration.categoryColumnWidth;
-            if (categoryColSpin.value !== v)
-                categoryColSpin.value = v;
-            cfg_CategoryColumnWidth = v;
-        }
     }
 
     Component.onCompleted: {
@@ -494,15 +427,11 @@ Item {
             cfg_MenuLayoutId = "arcmenu";
         }
         initExpanded();
-        widthSpin.value = cfg_MenuWidth || 620;
         var h = cfg_MenuHeight || 540;
         if (h > 800) {
             h = 800;
             cfg_MenuHeight = h;
             try { plasmoid.configuration.menuHeight = h; } catch (e) {}
         }
-        heightSpin.value = h;
-        sidebarSpin.value = cfg_SidebarWidth || 220;
-        categoryColSpin.value = cfg_CategoryColumnWidth || 220;
     }
 }

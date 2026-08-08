@@ -19,7 +19,7 @@ LayoutBase {
 
     readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int gridColumns: 4
-    readonly property int gridIconSize: Math.max(40, root.appIconSize + 12)
+    readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 

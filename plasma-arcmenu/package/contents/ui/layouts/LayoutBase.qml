@@ -43,6 +43,10 @@ Item {
     }
     readonly property int appIconSize: menuData ? menuData.appIconSize : 24
     readonly property int categoryIconSize: menuData ? menuData.categoryIconSize : 24
+    readonly property int gridIconSize: menuData && menuData.gridIconSize ? menuData.gridIconSize : Math.max(appIconSize + 12, 36)
+    readonly property int shortcutIconSize: menuData && menuData.shortcutIconSize ? menuData.shortcutIconSize : categoryIconSize
+    readonly property int buttonIconSize: menuData && menuData.buttonIconSize ? menuData.buttonIconSize : 22
+    readonly property int otherIconSize: menuData && menuData.otherIconSize ? menuData.otherIconSize : 22
     readonly property bool flip: menuData ? menuData.flipHorizontal : false
     readonly property bool searchOnTop: !menuData || menuData.searchbarLocation !== "bottom"
     readonly property bool searching: menuData ? menuData.isSearching : false
