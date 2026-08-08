@@ -54,8 +54,9 @@ PlasmoidItem {
         if (expanded) {
             root.applyKUserMeta();
             backend.refreshUserMeta();
-            // ArcMenu search providers: refresh secondary indexes when menu opens
-            if (plasmoid.configuration.searchRecentFiles)
+            // ArcMenu search providers / extra-category “Recent Files”
+            if (plasmoid.configuration.searchRecentFiles
+                || menuData.isExtraCategoryEnabled("recent-files"))
                 backend.refreshRecentFiles();
             if (plasmoid.configuration.searchWindows)
                 backend.refreshOpenWindows();
@@ -71,6 +72,22 @@ PlasmoidItem {
                 backend.refreshRecentFiles();
             if (plasmoid.configuration.searchWindows && (!menuData.openWindowResults || !menuData.openWindowResults.length))
                 backend.refreshOpenWindows();
+        }
+        function onRecentFilesRequestChanged() {
+            backend.refreshRecentFiles();
+        }
+        function onBookmarksRequestChanged() {
+            backend.refreshBookmarks();
+        }
+    }
+
+    Connections {
+        target: backend
+        function onRecentFilesUpdated() {
+            menuData.recentFilesEpoch++;
+        }
+        function onBookmarksUpdated() {
+            menuData.bookmarksEpoch++;
         }
     }
 
@@ -97,6 +114,7 @@ PlasmoidItem {
         // Direct bindings — required for live Extra Categories toggles
         extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
         extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
+        extraCategoriesUserSetRaw: !!plasmoid.configuration.extraCategoriesUserSet
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
             menuData.ensureArcMenuSettingsPinned();
@@ -108,13 +126,15 @@ PlasmoidItem {
         target: plasmoid.configuration
         ignoreUnknownSignals: true
         function onValueChanged(key, value) {
-            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder") {
+            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder"
+                || key === "extraCategoriesUserSet") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
         }
         function onExtraCategoriesEnabledChanged() { menuData.bumpStructure(); }
         function onExtraCategoriesOrderChanged() { menuData.bumpStructure(); }
+        function onExtraCategoriesUserSetChanged() { menuData.bumpStructure(); }
     }
 
     AppsBackend {

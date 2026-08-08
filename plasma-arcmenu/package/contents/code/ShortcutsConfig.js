@@ -12,6 +12,19 @@ var DEFAULT_EXTRA_ON = ["pinned", "all-apps"];
 var DEFAULT_CTX = ["configure", "separator", "power", "overview", "show-desktop"];
 var DEFAULT_POWER_ORDER = ["logout", "lock", "restart", "shutdown", "suspend", "hybridsleep", "hibernate", "switchuser"];
 
+/**
+ * Effective enabled extra categories.
+ * Until the user changes the Extra Categories page (userSet), always use defaults —
+ * prevents empty StringList / config-dialog [] from disagreeing with the live menu.
+ */
+function effectiveExtraEnabled(raw, userSet) {
+    if (!userSet)
+        return DEFAULT_EXTRA_ON.slice();
+    if (raw === undefined || raw === null)
+        return DEFAULT_EXTRA_ON.slice();
+    return normalizeList(raw, []);
+}
+
 function normalizeList(raw, fallback) {
     if (raw === undefined || raw === null)
         return (fallback || []).slice();
