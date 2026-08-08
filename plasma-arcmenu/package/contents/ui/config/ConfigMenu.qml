@@ -251,20 +251,45 @@ Item {
         }
     }
 
-    component NavRow: Rectangle {
+    /**
+     * Hub row — 图3 style: tinted icon badge + title/subtitle + chevron.
+     * accent: hue key used to tint the badge (blue/purple/green/…).
+     */
+    component NavRow: Item {
         id: nav
         property string title: ""
         property string subtitle: ""
         property string iconName: "configure"
+        property string accent: "blue"
         signal activated()
 
         Layout.fillWidth: true
-        implicitHeight: Math.max(Kirigami.Units.gridUnit * 2.6,
-                                 row.implicitHeight + Kirigami.Units.smallSpacing * 2)
-        radius: 0
-        color: navMouse.containsMouse
-            ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.08)
-            : "transparent"
+        implicitHeight: Math.max(Kirigami.Units.gridUnit * 3.2,
+                                 row.implicitHeight + Kirigami.Units.largeSpacing)
+
+        readonly property color accentColor: {
+            switch (nav.accent) {
+            case "purple": return "#8B5CF6";
+            case "green": return "#22C55E";
+            case "orange": return "#F59E0B";
+            case "pink": return "#EC4899";
+            case "teal": return "#14B8A6";
+            case "red": return "#EF4444";
+            case "cyan": return "#06B6D4";
+            case "indigo": return "#6366F1";
+            default: return Kirigami.Theme.highlightColor;
+            }
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            anchors.margins: 1
+            radius: Kirigami.Units.smallSpacing
+            color: navMouse.containsMouse
+                ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
+                          Kirigami.Theme.highlightColor.b, 0.12)
+                : "transparent"
+        }
 
         RowLayout {
             id: row
@@ -273,34 +298,49 @@ Item {
             anchors.rightMargin: Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.largeSpacing
 
-            Kirigami.Icon {
-                source: nav.iconName
-                Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+            // Colored badge (图3)
+            Rectangle {
+                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.1
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.1
+                Layout.alignment: Qt.AlignVCenter
+                radius: Kirigami.Units.smallSpacing
+                color: Qt.rgba(nav.accentColor.r, nav.accentColor.g, nav.accentColor.b, 0.22)
+
+                Kirigami.Icon {
+                    anchors.centerIn: parent
+                    width: Kirigami.Units.iconSizes.smallMedium
+                    height: width
+                    source: nav.iconName
+                    color: nav.accentColor
+                }
             }
+
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 2
+                Layout.alignment: Qt.AlignVCenter
+                spacing: 3
                 QQC2.Label {
                     text: nav.title
                     Layout.fillWidth: true
                     elide: Text.ElideRight
-                    font.weight: Font.DemiBold
+                    font.weight: Font.Medium
                 }
                 QQC2.Label {
                     visible: nav.subtitle.length > 0
                     text: nav.subtitle
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
-                    opacity: 0.65
+                    opacity: 0.55
                     font.pointSize: Kirigami.Theme.smallFont.pointSize
                 }
             }
+
             Kirigami.Icon {
                 source: "go-next-symbolic"
                 Layout.preferredWidth: Kirigami.Units.iconSizes.small
                 Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                opacity: 0.55
+                Layout.alignment: Qt.AlignVCenter
+                opacity: 0.4
             }
         }
 
@@ -311,8 +351,18 @@ Item {
             cursorShape: Qt.PointingHandCursor
             onClicked: nav.activated()
         }
+        Accessible.role: Accessible.Button
+        Accessible.name: nav.title
+        Accessible.onPressAction: nav.activated()
     }
 
+    component NavSep: Kirigami.Separator {
+        Layout.fillWidth: true
+        Layout.leftMargin: Kirigami.Units.gridUnit * 3.5
+        opacity: 0.12
+    }
+
+    /** Section: title + card of rows (图3 启动/界面/性能 blocks) */
     component NavGroup: ColumnLayout {
         id: group
         property string title: ""
@@ -322,24 +372,43 @@ Item {
 
         QQC2.Label {
             text: group.title
-            font.bold: true
-            opacity: 0.85
-            Layout.leftMargin: Kirigami.Units.smallSpacing
+            font.weight: Font.DemiBold
+            font.pointSize: Kirigami.Theme.defaultFont.pointSize
+            opacity: 0.9
+            Layout.topMargin: Kirigami.Units.smallSpacing
+            Layout.leftMargin: Kirigami.Units.smallSpacing / 2
         }
 
         Rectangle {
             Layout.fillWidth: true
-            implicitHeight: body.implicitHeight
-            radius: Kirigami.Units.smallSpacing
-            color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
+            implicitHeight: bodyCol.implicitHeight + Kirigami.Units.smallSpacing
+            radius: Kirigami.Units.largeSpacing
+            color: Qt.rgba(Kirigami.Theme.backgroundColor.r, Kirigami.Theme.backgroundColor.g,
+                           Kirigami.Theme.backgroundColor.b, 0.55)
             border.width: 1
-            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.08)
+            border.color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
+                                  Kirigami.Theme.textColor.b, 0.08)
+
+            // Slight lift vs page background
+            Rectangle {
+                anchors.fill: parent
+                radius: parent.radius
+                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g,
+                               Kirigami.Theme.textColor.b, 0.04)
+            }
 
             ColumnLayout {
-                id: body
+                id: bodyCol
                 anchors.left: parent.left
                 anchors.right: parent.right
+                anchors.verticalCenter: parent.verticalCenter
                 spacing: 0
+
+                ColumnLayout {
+                    id: body
+                    Layout.fillWidth: true
+                    spacing: 0
+                }
             }
         }
     }
@@ -386,44 +455,94 @@ Item {
         id: hubPage
         Flickable {
             contentWidth: width
-            contentHeight: hubCol.height
+            contentHeight: hubCol.height + Kirigami.Units.largeSpacing * 2
             clip: true
             boundsBehavior: Flickable.StopAtBounds
 
             ColumnLayout {
                 id: hubCol
-                width: parent.width
+                x: Kirigami.Units.largeSpacing
+                width: Math.max(0, parent.width - Kirigami.Units.largeSpacing * 2)
                 spacing: Kirigami.Units.largeSpacing
 
-                Item { Layout.preferredHeight: Kirigami.Units.smallSpacing }
+                // Page title (图3)
+                RowLayout {
+                    Layout.fillWidth: true
+                    Layout.topMargin: Kirigami.Units.largeSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    QQC2.Label {
+                        text: root.tr("Menu settings")
+                        font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.35
+                        font.weight: Font.DemiBold
+                        Layout.fillWidth: true
+                    }
+                }
+
+                // Tip banner (图3)
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: tipRow.implicitHeight + Kirigami.Units.largeSpacing
+                    radius: Kirigami.Units.smallSpacing
+                    color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
+                                   Kirigami.Theme.highlightColor.b, 0.14)
+                    border.width: 1
+                    border.color: Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g,
+                                          Kirigami.Theme.highlightColor.b, 0.28)
+
+                    RowLayout {
+                        id: tipRow
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.largeSpacing
+                        spacing: Kirigami.Units.largeSpacing
+
+                        Kirigami.Icon {
+                            source: "help-hint"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                            color: Kirigami.Theme.highlightColor
+                        }
+                        QQC2.Label {
+                            Layout.fillWidth: true
+                            wrapMode: Text.WordWrap
+                            text: root.tr("Open a section to edit settings. Click Apply in the dialog footer to save.")
+                            opacity: 0.9
+                            font.pointSize: Kirigami.Theme.smallFont.pointSize
+                        }
+                    }
+                }
 
                 NavGroup {
                     title: root.tr("How should the menu look?")
                     NavRow {
                         title: root.tr("Menu Layout")
                         subtitle: root.tr("Choose a layout style for the menu")
-                        iconName: "view-grid"
+                        iconName: "view-grid-symbolic"
+                        accent: "blue"
                         onActivated: root.openSubPage(pageLayout, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Menu Theme")
                         subtitle: root.tr("Modify menu colors, font size, and border")
-                        iconName: "preferences-desktop-theme"
+                        iconName: "preferences-desktop-theme-symbolic"
+                        accent: "purple"
                         onActivated: root.openSubPage(pageTheme, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Menu Visual Appearance")
                         subtitle: root.tr("Change menu height, width, location, and icon sizes")
-                        iconName: "preferences-desktop-display"
+                        iconName: "preferences-desktop-display-symbolic"
+                        accent: "teal"
                         onActivated: root.openSubPage(pageVisual, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Fine-tuning")
                         subtitle: root.tr("Adjust less commonly used settings")
-                        iconName: "preferences-other"
+                        iconName: "preferences-other-symbolic"
+                        accent: "orange"
                         onActivated: root.openSubPage(pageFineTune, title)
                     }
                 }
@@ -433,52 +552,64 @@ Item {
                     NavRow {
                         title: root.tr("ArcMenu layout adjustment")
                         subtitle: root.tr("Settings specific to the current menu layout")
-                        iconName: "settings-configure"
+                        iconName: "settings-configure-symbolic"
+                        accent: "indigo"
                         onActivated: root.openSubPage(pageArcLayout, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Pinned Applications")
+                        subtitle: root.tr("Reorder and manage pinned apps")
                         iconName: "pin"
+                        accent: "pink"
                         onActivated: root.openSubPage(pagePinned, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Directory Shortcuts")
-                        iconName: "folder"
+                        subtitle: root.tr("Folders shown in the places sidebar")
+                        iconName: "folder-symbolic"
+                        accent: "cyan"
                         onActivated: root.openSubPage(pageDirs, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Application Shortcuts")
-                        iconName: "applications-other"
+                        subtitle: root.tr("Shortcuts shown under places")
+                        iconName: "applications-all-symbolic"
+                        accent: "green"
                         onActivated: root.openSubPage(pageApps, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Search Options")
-                        iconName: "edit-find"
+                        subtitle: root.tr("Providers, highlight, and result limits")
+                        iconName: "search-symbolic"
+                        accent: "blue"
                         onActivated: root.openSubPage(pageSearch, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Power Options")
                         subtitle: root.tr("Select power options and display style")
-                        iconName: "system-shutdown"
+                        iconName: "system-shutdown-symbolic"
+                        accent: "red"
                         onActivated: root.openSubPage(pagePower, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Extra Categories")
                         subtitle: root.tr("Add or remove other custom categories")
-                        iconName: "view-list-details"
+                        iconName: "view-list-details-symbolic"
+                        accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
+                    NavSep {}
                     NavRow {
                         title: root.tr("Menu Content")
                         subtitle: root.tr("Category order, visibility, and recent apps")
-                        iconName: "view-catalog"
+                        iconName: "view-catalog-symbolic"
+                        accent: "teal"
                         onActivated: root.openSubPage(pageContent, title)
                     }
                 }
@@ -487,12 +618,14 @@ Item {
                     title: root.tr("What should show on the context menu?")
                     NavRow {
                         title: root.tr("Modify ArcMenu Context Menu")
+                        subtitle: root.tr("Actions shown when right-clicking an app")
                         iconName: "open-menu-symbolic"
+                        accent: "orange"
                         onActivated: root.openSubPage(pageContext, title)
                     }
                 }
 
-                Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
+                Item { Layout.preferredHeight: Kirigami.Units.gridUnit }
             }
         }
     }

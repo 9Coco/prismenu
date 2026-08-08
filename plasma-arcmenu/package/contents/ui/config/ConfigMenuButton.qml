@@ -8,7 +8,7 @@ import "../../code/Distro.js" as Distro
 import "../../code/Locale.js" as Locale
 
 /**
- * Menu Button — panel icon, click actions, and chrome style (ArcMenu 菜单按钮).
+ * Menu Button — panel icon, click actions, and chrome style.
  */
 Item {
     id: root
@@ -86,6 +86,10 @@ Item {
         var a = cfg_MenuButtonAppearance || "icon";
         return a !== "hidden";
     }
+    readonly property bool appearanceShowsIcon: {
+        var a = cfg_MenuButtonAppearance || "icon";
+        return a === "icon" || a === "icon-text" || a === "text-icon";
+    }
 
     function syncLabelVisibleFromAppearance() {
         var a = cfg_MenuButtonAppearance || "icon";
@@ -127,67 +131,14 @@ Item {
         return i >= 0 ? i : 0;
     }
 
-    component SettingRow: RowLayout {
+    component StyleColorRow: ConfigSettingRow {
         id: srow
-        property string title: ""
-        property string subtitle: ""
-        default property alias trailing: trail.data
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.largeSpacing
-        ColumnLayout {
-            Layout.fillWidth: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 2
-            QQC2.Label {
-                text: srow.title
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-            }
-            QQC2.Label {
-                visible: srow.subtitle.length > 0
-                text: srow.subtitle
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.6
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-            }
-        }
-        RowLayout {
-            id: trail
-            Layout.fillWidth: false
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-            spacing: Kirigami.Units.smallSpacing
-        }
-    }
-
-    component GroupCard: Rectangle {
-        id: card
-        default property alias content: inner.data
-        Layout.fillWidth: true
-        implicitHeight: inner.implicitHeight + Kirigami.Units.largeSpacing * 2
-        radius: Kirigami.Units.smallSpacing
-        color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-        ColumnLayout {
-            id: inner
-            anchors.fill: parent
-            anchors.margins: Kirigami.Units.largeSpacing
-            spacing: Kirigami.Units.smallSpacing
-        }
-    }
-
-    component StyleColorRow: RowLayout {
-        id: srow
-        property string label: ""
         property bool enabledFlag: false
         property string colorValue: ""
         property string enabledKey: ""
         property string colorKey: ""
         signal styleEnabledToggled(bool on)
-        signal colorEdited(string value)
 
-        Layout.fillWidth: true
-        QQC2.Label { text: srow.label; Layout.fillWidth: true }
         QQC2.Switch {
             checked: srow.enabledFlag
             onToggled: {
@@ -230,9 +181,8 @@ Item {
         }
     }
 
-    component StyleSpinRow: RowLayout {
+    component StyleSpinRow: ConfigSettingRow {
         id: nrow
-        property string label: ""
         property string hint: ""
         property bool enabledFlag: false
         property int spinValue: 0
@@ -243,20 +193,7 @@ Item {
         signal styleEnabledToggled(bool on)
         signal spinEdited(int v)
 
-        Layout.fillWidth: true
-        ColumnLayout {
-            Layout.fillWidth: true
-            spacing: 2
-            QQC2.Label { text: nrow.label; Layout.fillWidth: true }
-            QQC2.Label {
-                visible: nrow.hint.length > 0
-                text: nrow.hint
-                opacity: 0.6
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-            }
-        }
+        subtitle: hint
         QQC2.Switch {
             checked: nrow.enabledFlag
             onToggled: {
@@ -276,21 +213,26 @@ Item {
         }
     }
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
+    ConfigPage {
+        title: root.tr("Menu Button")
+        tip: root.tr("Customize the panel button appearance, click actions, and colors. Click Apply in the dialog footer to save.")
 
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            // ---- Appearance ----
-            RowLayout {
-                Layout.fillWidth: true
-                QQC2.Label { text: root.tr("Appearance"); font.bold: true; Layout.fillWidth: true }
+        ConfigGroup {
+            title: root.tr("Appearance")
+            ConfigSettingRow {
+                title: root.tr("Display Style")
+                iconName: "view-list-details"
+                accent: "blue"
+                QQC2.ComboBox {
+                    id: appearanceCombo
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    model: root.appearanceLabels
+                    Component.onCompleted: {
+                        var i = root.appearanceKeys.indexOf(cfg_MenuButtonAppearance || "icon");
+                        currentIndex = i >= 0 ? i : 0;
+                    }
+                    onActivated: root.applyAppearance(root.appearanceKeys[currentIndex])
+                }
                 QQC2.ToolButton {
                     icon.name: "view-refresh-symbolic"
                     QQC2.ToolTip.text: root.tr("Reset settings")
@@ -298,283 +240,251 @@ Item {
                     onClicked: restoreConfirm.open()
                 }
             }
-
-            GroupCard {
-                SettingRow {
-                    title: root.tr("Display Style")
-                    QQC2.ComboBox {
-                        id: appearanceCombo
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        model: root.appearanceLabels
-                        Component.onCompleted: {
-                            var i = root.appearanceKeys.indexOf(cfg_MenuButtonAppearance || "icon");
-                            currentIndex = i >= 0 ? i : 0;
-                        }
-                        onActivated: root.applyAppearance(root.appearanceKeys[currentIndex])
-                    }
-                }
-                Kirigami.Separator {
-                    Layout.fillWidth: true; opacity: 0.2
-                    visible: root.appearanceShowsText
-                }
-                SettingRow {
-                    visible: root.appearanceShowsText
-                    title: root.tr("Text")
-                    QQC2.TextField {
-                        id: buttonTextField
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        text: cfg_ButtonLabelText
-                        onTextEdited: {
-                            cfg_ButtonLabelText = text;
-                            writeLive("buttonLabelText", text);
-                        }
-                    }
-                }
-                Kirigami.Separator {
-                    Layout.fillWidth: true; opacity: 0.2
-                    visible: root.appearanceShowsChrome
-                }
-                SettingRow {
-                    visible: root.appearanceShowsChrome
-                    title: root.tr("Padding")
-                    subtitle: root.tr("%1 Default Theme Value").replace("%1", "-1")
-                    QQC2.SpinBox {
-                        id: paddingSpin
-                        from: -1; to: 25
-                        value: cfg_PanelButtonPadding
-                        onValueModified: {
-                            cfg_PanelButtonPadding = value;
-                            writeLive("panelButtonPadding", value);
-                        }
-                    }
-                }
-                Kirigami.Separator {
-                    Layout.fillWidth: true; opacity: 0.2
-                    visible: root.appearanceShowsChrome
-                }
-                SettingRow {
-                    visible: root.appearanceShowsChrome
-                    title: root.tr("Position in Panel")
-                    QQC2.SpinBox {
-                        id: offsetSpin
-                        from: 0; to: 10
-                        value: cfg_PanelButtonPositionOffset
-                        onValueModified: {
-                            cfg_PanelButtonPositionOffset = value;
-                            writeLive("panelButtonPositionOffset", value);
-                        }
+            ConfigSep { visible: root.appearanceShowsText }
+            ConfigSettingRow {
+                visible: root.appearanceShowsText
+                title: root.tr("Text")
+                iconName: "draw-text"
+                accent: "purple"
+                QQC2.TextField {
+                    id: buttonTextField
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    text: cfg_ButtonLabelText
+                    onTextEdited: {
+                        cfg_ButtonLabelText = text;
+                        writeLive("buttonLabelText", text);
                     }
                 }
             }
-
-            // ---- Icon ----
-            QQC2.Label {
-                text: root.tr("Icon")
-                font.bold: true
-                visible: {
-                    var a = cfg_MenuButtonAppearance || "icon";
-                    return a === "icon" || a === "icon-text" || a === "text-icon";
-                }
-            }
-
-            GroupCard {
-                visible: {
-                    var a = cfg_MenuButtonAppearance || "icon";
-                    return a === "icon" || a === "icon-text" || a === "text-icon";
-                }
-                SettingRow {
-                    title: root.tr("Select a new icon")
-                    Kirigami.Icon {
-                        source: root.previewIconSource
-                        isMask: Distro.buttonIconIsMask(cfg_ButtonIcon || "auto-distro", cfg_CustomButtonIcon || "")
-                        color: Kirigami.Theme.textColor
-                        Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-                    }
-                    QQC2.Button {
-                        text: root.tr("Browse...")
-                        onClicked: iconChooser.openFor(cfg_ButtonIcon || "auto-distro")
-                    }
-                }
-                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
-                SettingRow {
-                    title: root.tr("Icon size")
-                    QQC2.SpinBox {
-                        from: 14; to: 64
-                        value: cfg_PanelButtonIconSize > 0 ? cfg_PanelButtonIconSize : 20
-                        onValueModified: {
-                            cfg_PanelButtonIconSize = value;
-                            writeLive("panelButtonIconSize", value);
-                        }
+            ConfigSep { visible: root.appearanceShowsChrome }
+            ConfigSettingRow {
+                visible: root.appearanceShowsChrome
+                title: root.tr("Padding")
+                subtitle: root.tr("%1 Default Theme Value").replace("%1", "-1")
+                iconName: "transform-move-horizontal"
+                accent: "teal"
+                QQC2.SpinBox {
+                    id: paddingSpin
+                    from: -1; to: 25
+                    value: cfg_PanelButtonPadding
+                    onValueModified: {
+                        cfg_PanelButtonPadding = value;
+                        writeLive("panelButtonPadding", value);
                     }
                 }
             }
-
-            // ---- Click options ----
-            QQC2.Label { text: root.tr("Click Options"); font.bold: true }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: clickCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: clickCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Left click"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: root.clickLabels
-                            Component.onCompleted: currentIndex = root.clickIndex(cfg_LeftClickAction)
-                            onActivated: {
-                                cfg_LeftClickAction = root.clickKeys[currentIndex];
-                                writeLive("leftClickAction", cfg_LeftClickAction);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Right click"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: root.clickLabels
-                            Component.onCompleted: currentIndex = root.clickIndex(cfg_RightClickAction)
-                            onActivated: {
-                                cfg_RightClickAction = root.clickKeys[currentIndex];
-                                writeLive("rightClickAction", cfg_RightClickAction);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Middle click"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: root.clickLabels
-                            Component.onCompleted: currentIndex = root.clickIndex(cfg_MiddleClickAction)
-                            onActivated: {
-                                cfg_MiddleClickAction = root.clickKeys[currentIndex];
-                                writeLive("middleClickAction", cfg_MiddleClickAction);
-                            }
-                        }
+            ConfigSep { visible: root.appearanceShowsChrome }
+            ConfigSettingRow {
+                visible: root.appearanceShowsChrome
+                title: root.tr("Position in Panel")
+                iconName: "align-horizontal-left"
+                accent: "orange"
+                QQC2.SpinBox {
+                    id: offsetSpin
+                    from: 0; to: 10
+                    value: cfg_PanelButtonPositionOffset
+                    onValueModified: {
+                        cfg_PanelButtonPositionOffset = value;
+                        writeLive("panelButtonPositionOffset", value);
                     }
                 }
             }
+        }
 
-            // ---- Style ----
-            QQC2.Label { text: root.tr("Style"); font.bold: true }
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.65
-                text: root.tr("Results may vary depending on third-party themes.")
+        ConfigGroup {
+            visible: root.appearanceShowsIcon
+            title: root.tr("Icon")
+            ConfigSettingRow {
+                title: root.tr("Select a new icon")
+                iconName: "preferences-desktop-icons"
+                accent: "indigo"
+                Kirigami.Icon {
+                    source: root.previewIconSource
+                    isMask: Distro.buttonIconIsMask(cfg_ButtonIcon || "auto-distro", cfg_CustomButtonIcon || "")
+                    color: Kirigami.Theme.textColor
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                }
+                QQC2.Button {
+                    text: root.tr("Browse...")
+                    onClicked: iconChooser.openFor(cfg_ButtonIcon || "auto-distro")
+                }
             }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: styleCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: styleCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    StyleColorRow {
-                        label: root.tr("Foreground color")
-                        enabledFlag: cfg_ButtonStyleFgEnabled
-                        colorValue: cfg_ButtonStyleFg
-                        enabledKey: "buttonStyleFgEnabled"
-                        colorKey: "buttonStyleFg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleFgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Background color")
-                        enabledFlag: cfg_ButtonStyleBgEnabled
-                        colorValue: cfg_ButtonStyleBg
-                        enabledKey: "buttonStyleBgEnabled"
-                        colorKey: "buttonStyleBg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleBgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Hover Background color")
-                        enabledFlag: cfg_ButtonStyleHoverBgEnabled
-                        colorValue: cfg_ButtonStyleHoverBg
-                        enabledKey: "buttonStyleHoverBgEnabled"
-                        colorKey: "buttonStyleHoverBg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverBgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Hover Foreground color")
-                        enabledFlag: cfg_ButtonStyleHoverFgEnabled
-                        colorValue: cfg_ButtonStyleHoverFg
-                        enabledKey: "buttonStyleHoverFgEnabled"
-                        colorKey: "buttonStyleHoverFg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverFgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Active Background color")
-                        enabledFlag: cfg_ButtonStyleActiveBgEnabled
-                        colorValue: cfg_ButtonStyleActiveBg
-                        enabledKey: "buttonStyleActiveBgEnabled"
-                        colorKey: "buttonStyleActiveBg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveBgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Active Foreground color")
-                        enabledFlag: cfg_ButtonStyleActiveFgEnabled
-                        colorValue: cfg_ButtonStyleActiveFg
-                        enabledKey: "buttonStyleActiveFgEnabled"
-                        colorKey: "buttonStyleActiveFg"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveFgEnabled = on
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleSpinRow {
-                        label: root.tr("Border radius")
-                        enabledFlag: cfg_ButtonStyleRadiusEnabled
-                        spinValue: cfg_ButtonStyleRadius
-                        enabledKey: "buttonStyleRadiusEnabled"
-                        valueKey: "buttonStyleRadius"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleRadiusEnabled = on
-                        onSpinEdited: (v) => cfg_ButtonStyleRadius = v
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleSpinRow {
-                        label: root.tr("Border width")
-                        hint: root.tr("If set to 0, a background color is required.")
-                        enabledFlag: cfg_ButtonStyleBorderWidthEnabled
-                        spinValue: cfg_ButtonStyleBorderWidth
-                        to: 12
-                        enabledKey: "buttonStyleBorderWidthEnabled"
-                        valueKey: "buttonStyleBorderWidth"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderWidthEnabled = on
-                        onSpinEdited: (v) => cfg_ButtonStyleBorderWidth = v
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    StyleColorRow {
-                        label: root.tr("Border color")
-                        enabledFlag: cfg_ButtonStyleBorderColorEnabled
-                        colorValue: cfg_ButtonStyleBorderColor
-                        enabledKey: "buttonStyleBorderColorEnabled"
-                        colorKey: "buttonStyleBorderColor"
-                        onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderColorEnabled = on
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Icon size")
+                iconName: "zoom-fit-best"
+                accent: "cyan"
+                QQC2.SpinBox {
+                    from: 14; to: 64
+                    value: cfg_PanelButtonIconSize > 0 ? cfg_PanelButtonIconSize : 20
+                    onValueModified: {
+                        cfg_PanelButtonIconSize = value;
+                        writeLive("panelButtonIconSize", value);
                     }
                 }
             }
+        }
 
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
+        ConfigGroup {
+            title: root.tr("Click Options")
+            ConfigSettingRow {
+                title: root.tr("Left click")
+                iconName: "input-mouse"
+                accent: "blue"
+                QQC2.ComboBox {
+                    model: root.clickLabels
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    Component.onCompleted: currentIndex = root.clickIndex(cfg_LeftClickAction)
+                    onActivated: {
+                        cfg_LeftClickAction = root.clickKeys[currentIndex];
+                        writeLive("leftClickAction", cfg_LeftClickAction);
+                    }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Right click")
+                iconName: "input-mouse-click-right"
+                accent: "purple"
+                QQC2.ComboBox {
+                    model: root.clickLabels
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    Component.onCompleted: currentIndex = root.clickIndex(cfg_RightClickAction)
+                    onActivated: {
+                        cfg_RightClickAction = root.clickKeys[currentIndex];
+                        writeLive("rightClickAction", cfg_RightClickAction);
+                    }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Middle click")
+                iconName: "input-mouse-click-middle"
+                accent: "teal"
+                QQC2.ComboBox {
+                    model: root.clickLabels
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    Component.onCompleted: currentIndex = root.clickIndex(cfg_MiddleClickAction)
+                    onActivated: {
+                        cfg_MiddleClickAction = root.clickKeys[currentIndex];
+                        writeLive("middleClickAction", cfg_MiddleClickAction);
+                    }
+                }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Style")
+            ConfigSettingRow {
+                title: root.tr("Theme note")
+                subtitle: root.tr("Results may vary depending on third-party themes.")
+                iconName: "dialog-information"
+                accent: "yellow"
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Foreground color")
+                iconName: "format-text-color"
+                accent: "blue"
+                enabledFlag: cfg_ButtonStyleFgEnabled
+                colorValue: cfg_ButtonStyleFg
+                enabledKey: "buttonStyleFgEnabled"
+                colorKey: "buttonStyleFg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleFgEnabled = on
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Background color")
+                iconName: "fill-color"
+                accent: "purple"
+                enabledFlag: cfg_ButtonStyleBgEnabled
+                colorValue: cfg_ButtonStyleBg
+                enabledKey: "buttonStyleBgEnabled"
+                colorKey: "buttonStyleBg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleBgEnabled = on
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Hover Background color")
+                iconName: "fill-color"
+                accent: "teal"
+                enabledFlag: cfg_ButtonStyleHoverBgEnabled
+                colorValue: cfg_ButtonStyleHoverBg
+                enabledKey: "buttonStyleHoverBgEnabled"
+                colorKey: "buttonStyleHoverBg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverBgEnabled = on
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Hover Foreground color")
+                iconName: "format-text-color"
+                accent: "cyan"
+                enabledFlag: cfg_ButtonStyleHoverFgEnabled
+                colorValue: cfg_ButtonStyleHoverFg
+                enabledKey: "buttonStyleHoverFgEnabled"
+                colorKey: "buttonStyleHoverFg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverFgEnabled = on
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Active Background color")
+                iconName: "fill-color"
+                accent: "orange"
+                enabledFlag: cfg_ButtonStyleActiveBgEnabled
+                colorValue: cfg_ButtonStyleActiveBg
+                enabledKey: "buttonStyleActiveBgEnabled"
+                colorKey: "buttonStyleActiveBg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveBgEnabled = on
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Active Foreground color")
+                iconName: "format-text-color"
+                accent: "pink"
+                enabledFlag: cfg_ButtonStyleActiveFgEnabled
+                colorValue: cfg_ButtonStyleActiveFg
+                enabledKey: "buttonStyleActiveFgEnabled"
+                colorKey: "buttonStyleActiveFg"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveFgEnabled = on
+            }
+            ConfigSep {}
+            StyleSpinRow {
+                title: root.tr("Border radius")
+                iconName: "draw-square-rounded"
+                accent: "indigo"
+                enabledFlag: cfg_ButtonStyleRadiusEnabled
+                spinValue: cfg_ButtonStyleRadius
+                enabledKey: "buttonStyleRadiusEnabled"
+                valueKey: "buttonStyleRadius"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleRadiusEnabled = on
+                onSpinEdited: (v) => cfg_ButtonStyleRadius = v
+            }
+            ConfigSep {}
+            StyleSpinRow {
+                title: root.tr("Border width")
+                hint: root.tr("If set to 0, a background color is required.")
+                iconName: "object-stroke-style"
+                accent: "green"
+                enabledFlag: cfg_ButtonStyleBorderWidthEnabled
+                spinValue: cfg_ButtonStyleBorderWidth
+                to: 12
+                enabledKey: "buttonStyleBorderWidthEnabled"
+                valueKey: "buttonStyleBorderWidth"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderWidthEnabled = on
+                onSpinEdited: (v) => cfg_ButtonStyleBorderWidth = v
+            }
+            ConfigSep {}
+            StyleColorRow {
+                title: root.tr("Border color")
+                iconName: "color-picker"
+                accent: "red"
+                enabledFlag: cfg_ButtonStyleBorderColorEnabled
+                colorValue: cfg_ButtonStyleBorderColor
+                enabledKey: "buttonStyleBorderColorEnabled"
+                colorKey: "buttonStyleBorderColor"
+                onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderColorEnabled = on
+            }
         }
     }
 

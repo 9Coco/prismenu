@@ -5,7 +5,6 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/AppsModel.js" as AppsModel
 import "../../code/Locale.js" as Locale
-import "../components" as Components
 
 Item {
     id: root
@@ -89,62 +88,40 @@ Item {
         return Locale.tr(cat.name, uiLang);
     }
 
-    QQC2.ScrollView {
-        id: scroll
-        anchors.fill: parent
-        contentWidth: availableWidth
-        clip: true
+    ConfigPage {
+        title: root.tr("Categories")
+        tip: root.tr("Category order, visibility, and recent apps")
 
-        ColumnLayout {
-            width: scroll.availableWidth
-            spacing: Kirigami.Units.largeSpacing
-
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-
-                QQC2.CheckBox {
-                    id: showEmpty
-                    Kirigami.FormData.label: root.tr("Categories")
-                    text: root.tr("Show empty categories")
-                }
+        ConfigGroup {
+            title: root.tr("Categories")
+            ConfigSettingRow {
+                title: root.tr("Show empty categories")
+                iconName: "view-list-details"
+                accent: "blue"
+                QQC2.Switch { id: showEmpty }
             }
-
-            // Category editor — Column of rows (ListView+RowLayout was collapsing to 0 height)
-            ColumnLayout {
-                Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
-
-                Repeater {
-                    model: root.orderedCategories
-
-                    delegate: RowLayout {
-                        id: catRow
-                        required property var modelData
-                        required property int index
-
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: Math.max(Kirigami.Units.gridUnit * 2,
-                                                         nameField.implicitHeight + Kirigami.Units.smallSpacing)
-                        spacing: Kirigami.Units.smallSpacing
-
+            ConfigSep {}
+            Repeater {
+                model: root.orderedCategories
+                ColumnLayout {
+                    id: catWrap
+                    required property var modelData
+                    required property int index
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: root.displayName(modelData)
+                        iconName: root.customIconsMap[modelData.id] || modelData.icon
+                        accent: index % 2 === 0 ? "purple" : "teal"
                         QQC2.CheckBox {
                             checked: !root.isHidden(modelData.id)
                             onToggled: root.toggleHidden(modelData.id, !checked)
                             QQC2.ToolTip.text: root.tr("Show category")
                             QQC2.ToolTip.visible: hovered
-                            QQC2.ToolTip.delay: Kirigami.Units.toolTipDelay
                         }
-
-                        Components.ResolvedIcon {
-                            iconName: root.customIconsMap[modelData.id] || modelData.icon
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                        }
-
                         QQC2.TextField {
                             id: nameField
-                            Layout.fillWidth: true
-                            Layout.minimumWidth: Kirigami.Units.gridUnit * 6
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 8
                             text: root.displayName(modelData)
                             onEditingFinished: {
                                 var map = Object.assign({}, root.customNamesMap);
@@ -153,9 +130,8 @@ Item {
                                 cfg_CustomNames = AppsModel.stringifyJsonMap(map);
                             }
                         }
-
                         QQC2.TextField {
-                            Layout.preferredWidth: Kirigami.Units.gridUnit * 7
+                            Layout.preferredWidth: Kirigami.Units.gridUnit * 6
                             placeholderText: root.tr("Icon name")
                             text: root.customIconsMap[modelData.id] || ""
                             onEditingFinished: {
@@ -168,61 +144,72 @@ Item {
                                 cfg_CustomIcons = AppsModel.stringifyJsonMap(map);
                             }
                         }
-
                         QQC2.Button {
                             icon.name: "go-up"
+                            flat: true
                             enabled: index > 0
                             onClicked: root.moveCategory(index, index - 1)
-                            Accessible.name: root.tr("Move up")
                         }
-
                         QQC2.Button {
                             icon.name: "go-down"
+                            flat: true
                             enabled: index < root.orderedCategories.length - 1
                             onClicked: root.moveCategory(index, index + 1)
-                            Accessible.name: root.tr("Move down")
                         }
                     }
+                    ConfigSep { visible: index < root.orderedCategories.length - 1 }
                 }
             }
+        }
 
-            Kirigami.Separator { Layout.fillWidth: true }
-
-            Kirigami.FormLayout {
-                Layout.fillWidth: true
-
+        ConfigGroup {
+            title: root.tr("Pinned Applications")
+            ConfigSettingRow {
+                title: root.tr("Pinned columns:")
+                subtitle: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
+                iconName: "view-grid"
+                accent: "orange"
                 QQC2.SpinBox {
                     id: pinnedColsSpin
                     from: 4
                     to: 8
-                    Kirigami.FormData.label: root.tr("Pinned columns:")
                 }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Sync favorites with Plasma global favorites")
+                iconName: "bookmarks"
+                accent: "green"
+                QQC2.Switch { id: syncPlasma }
+            }
+        }
 
-                QQC2.CheckBox {
-                    id: syncPlasma
-                    Kirigami.FormData.label: root.tr("Favorites")
-                    text: root.tr("Sync favorites with Plasma global favorites")
-                }
-
-                QQC2.Label {
-                    text: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
-                    opacity: 0.8
-                }
-
-                QQC2.CheckBox {
-                    id: recentEnabled
-                    Kirigami.FormData.label: root.tr("Recent applications")
-                    text: root.tr("Enable recent applications section")
-                }
-
+        ConfigGroup {
+            title: root.tr("Recent applications")
+            ConfigSettingRow {
+                title: root.tr("Enable recent applications section")
+                iconName: "view-history"
+                accent: "indigo"
+                QQC2.Switch { id: recentEnabled }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Maximum recent items:")
+                iconName: "view-list-details"
+                accent: "cyan"
+                opacity: recentEnabled.checked ? 1 : 0.45
                 QQC2.SpinBox {
                     id: recentMaxSpin
                     from: 1
                     to: 20
                     enabled: recentEnabled.checked
-                    Kirigami.FormData.label: root.tr("Maximum recent items:")
                 }
-
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Clear recent applications")
+                iconName: "edit-clear-history"
+                accent: "red"
                 QQC2.Button {
                     text: root.tr("Clear recent applications")
                     icon.name: "edit-clear-history"
