@@ -9,6 +9,7 @@ import "../code/IdList.js" as IdList
 import "../code/Locale.js" as Locale
 import "../code/CategoryIcons.js" as CategoryIcons
 import "../code/IconSizes.js" as IconSizes
+import "../code/ShortcutsConfig.js" as ShortcutsConfig
 
 QtObject {
     id: root
@@ -226,7 +227,13 @@ QtObject {
     readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))
     readonly property bool recentEnabled: cfgBool("enabled", true)
     readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))
-    readonly property bool showSearchDescription: cfgBool("showDescription", true)
+    readonly property bool showSearchDescription: cfgBool("showDescription", false)
+    readonly property bool hideSearchBar: cfgBool("hideSearchBar", false)
+    readonly property bool highlightSearchTerms: cfgBool("highlightSearchTerms", false)
+    readonly property bool searchBoxRadiusEnabled: cfgBool("searchBoxRadiusEnabled", true)
+    readonly property int searchBoxRadius: Math.max(0, cfgInt("searchBoxRadius", 25))
+    readonly property bool searchWindows: cfgBool("searchWindows", false)
+    readonly property bool searchRecentFiles: cfgBool("searchRecentFiles", false)
 
     // ---- Fine-tuning ----
     readonly property bool showCategorySubmenus: cfgBool("showCategorySubmenus", false)
@@ -246,14 +253,21 @@ QtObject {
     readonly property string shortcutIconType: cfgStr("shortcutIconType", "symbolic")
     readonly property bool categoryIconsSymbolic: categoryIconType !== "fullcolor"
     readonly property bool shortcutIconsSymbolic: shortcutIconType !== "fullcolor"
-    readonly property int maxSearchResults: Math.max(1, cfgInt("maxResults", 20))
+    readonly property int maxSearchResults: Math.max(1, cfgInt("maxResults", 5))
     readonly property var searchProviders: {
         var p = cfg("providers", ["applications"]);
         if (typeof p === "string")
             return p.length ? p.split(",") : ["applications"];
         if (!p || p.length === undefined)
             return ["applications"];
-        return p;
+        var list = [];
+        for (var i = 0; i < p.length; ++i)
+            list.push(p[i]);
+        if (root.searchWindows && list.indexOf("windows") < 0)
+            list.push("windows");
+        if (root.searchRecentFiles && list.indexOf("files") < 0)
+            list.push("files");
+        return list;
     }
     readonly property string searchPlaceholder: {
         var p = cfgStr("placeholder", "Search…");
@@ -261,8 +275,17 @@ QtObject {
             return root.tr("Search…");
         return root.tr(p);
     }
+    readonly property var powerOptionsOrder: {
+        var fallback = ["logout", "lock", "restart", "shutdown", "suspend", "hybridsleep", "hibernate", "switchuser"];
+        var opts = cfg("powerOptionsOrder", fallback);
+        if (typeof opts === "string")
+            return opts.length ? opts.split(",") : fallback;
+        if (!opts || !opts.length)
+            return fallback;
+        return opts;
+    }
     readonly property var powerOptions: {
-        var fallback = ["shutdown", "restart", "logout", "lock"];
+        var fallback = ["logout", "lock", "restart", "shutdown"];
         var opts = cfg("options", fallback);
         if (opts === undefined || opts === null)
             return fallback;
@@ -270,10 +293,22 @@ QtObject {
             return opts.length ? opts.split(",") : fallback;
         if (opts.length === 0)
             return fallback;
-        return opts;
+        // Stable order from powerOptionsOrder
+        var order = root.powerOptionsOrder;
+        var sorted = [];
+        for (var i = 0; i < order.length; ++i) {
+            if (opts.indexOf(order[i]) >= 0)
+                sorted.push(order[i]);
+        }
+        for (var j = 0; j < opts.length; ++j) {
+            if (sorted.indexOf(opts[j]) < 0)
+                sorted.push(opts[j]);
+        }
+        return sorted;
     }
     readonly property bool powerConfirm: cfgBool("confirm", true)
     readonly property string softwareCenterCmd: cfgStr("softwareCenterCmd", "auto-detect")
+    readonly property string powerDisplayStyle: cfgStr("powerDisplayStyle", "off")
     readonly property bool syncFavorites: cfgBool("syncWithPlasma", true)
     readonly property bool showEmptyCategories: cfgBool("showEmpty", true)
 
@@ -559,24 +594,113 @@ QtObject {
         }
     }
 
-    /**
-     * XDG user dirs + Plasma equivalents of ArcMenu Places / Extra Shortcuts.
-     */
-    readonly property var places: [
-        { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
-        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
-        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
-        { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC", categories: ["Places"], keywords: [], genericName: root.tr("Music"), noDisplay: false },
-        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES", categories: ["Places"], keywords: [], genericName: root.tr("Pictures"), noDisplay: false },
-        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS", categories: ["Places"], keywords: [], genericName: root.tr("Videos"), noDisplay: false }
-    ]
+    readonly property var directoryShortcutIds: {
+        return ShortcutsConfig.normalizeList(cfg("directoryShortcuts", ShortcutsConfig.DEFAULT_DIRS), ShortcutsConfig.DEFAULT_DIRS);
+    }
+    readonly property var applicationShortcutIds: {
+        return ShortcutsConfig.normalizeList(cfg("applicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
+    }
+    readonly property var extraCategoriesOrder: {
+        return ShortcutsConfig.normalizeList(cfg("extraCategoriesOrder", ShortcutsConfig.DEFAULT_EXTRA_ORDER), ShortcutsConfig.DEFAULT_EXTRA_ORDER);
+    }
+    readonly property var extraCategoriesEnabled: {
+        return ShortcutsConfig.normalizeList(cfg("extraCategoriesEnabled", ShortcutsConfig.DEFAULT_EXTRA_ON), ShortcutsConfig.DEFAULT_EXTRA_ON);
+    }
+    readonly property var contextMenuItems: {
+        return ShortcutsConfig.normalizeList(cfg("contextMenuItems", ShortcutsConfig.DEFAULT_CTX), ShortcutsConfig.DEFAULT_CTX);
+    }
 
-    // Extra shortcuts — Overview omitted (no useful KDE equivalent)
-    readonly property var systemShortcuts: [
-        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", exec: "", categories: ["System"], keywords: [], genericName: root.tr("Software Center"), noDisplay: false, action: "discover" },
-        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", exec: "", categories: ["System"], keywords: [], genericName: root.tr("System Settings"), noDisplay: false, action: "settings" },
-        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel", categories: ["System"], keywords: [], genericName: root.tr("Appearance"), noDisplay: false }
-    ]
+    function isExtraCategoryEnabled(id) {
+        return (extraCategoriesEnabled || []).indexOf(id) >= 0;
+    }
+
+    readonly property var enabledExtraCategories: {
+        var order = extraCategoriesOrder;
+        var out = [];
+        for (var i = 0; i < order.length; ++i) {
+            var id = order[i];
+            if (!root.isExtraCategoryEnabled(id))
+                continue;
+            var name = id;
+            var icon = "application-x-executable";
+            if (id === "favorites") { name = root.tr("Favorites"); icon = "bookmarks"; }
+            else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
+            else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
+            else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
+            else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
+            out.push({ id: id, name: name, icon: icon, extra: true });
+        }
+        return out;
+    }
+
+    /**
+     * Configurable directory shortcuts (sidebar places).
+     */
+    readonly property var places: {
+        var _ = root.uiLang;
+        var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
+        var out = [];
+        for (var i = 0; i < raw.length; ++i) {
+            var it = raw[i];
+            if (it.invalid)
+                continue;
+            out.push({
+                id: it.id,
+                name: it.name,
+                icon: it.icon,
+                place: it.place || "",
+                exec: it.exec || "",
+                path: it.path || "",
+                categories: ["Places"],
+                keywords: [],
+                genericName: it.name,
+                noDisplay: false
+            });
+        }
+        if (root.showBookmarks) {
+            out.push({
+                id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
+                exec: "kioclient exec bookmarks:/ || xdg-open bookmarks:/",
+                categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
+            });
+        }
+        if (root.showExternalDevices) {
+            out.push({
+                id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
+                exec: "kioclient exec computer:/ || dolphin computer:/ || xdg-open computer:/",
+                categories: ["Places"], keywords: [], genericName: root.tr("External devices"), noDisplay: false
+            });
+        }
+        return out;
+    }
+
+    readonly property var systemShortcuts: {
+        var _ = root.uiLang;
+        var findApp = function (id) {
+            return AppsModel.findAppById(root.allApps, id);
+        };
+        var raw = ShortcutsConfig.resolveApplications(applicationShortcutIds, function (m) { return root.tr(m); }, findApp);
+        var out = [];
+        for (var i = 0; i < raw.length; ++i) {
+            var it = raw[i];
+            if (it.invalid)
+                continue;
+            out.push({
+                id: it.id,
+                name: it.name,
+                icon: it.icon,
+                exec: it.exec || "",
+                action: it.action || "",
+                kickerUrl: it.kickerUrl,
+                entryPath: it.entryPath,
+                categories: ["System"],
+                keywords: [],
+                genericName: it.name,
+                noDisplay: false
+            });
+        }
+        return out;
+    }
 
     function isFavorite(appOrId) {
         var ids = root.effectivePinnedIds();

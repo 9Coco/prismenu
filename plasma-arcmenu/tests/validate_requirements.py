@@ -22,7 +22,7 @@ def check(cond: bool, msg: str) -> None:
 
 
 def main() -> int:
-    meta = json.loads((PKG / "metadata.json").read_text())
+    meta = json.loads((PKG / "metadata.json").read_text(encoding="utf-8"))
     check(meta["KPlugin"]["Id"] == "org.kde.plasma.arcmenu", "metadata id")
     check("org.kde.plasma.launchermenu" in meta.get("X-Plasma-Provides", []), "launcher provides")
     check(meta.get("X-Plasma-API-Minimum-Version", "").startswith("6"), "Plasma 6 API")
@@ -32,7 +32,7 @@ def main() -> int:
         "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "chromebook", "raven", "budgie",
         "kickoff", "kicker", "simple",
     ]
-    registry = (PKG / "contents/code/LayoutRegistry.js").read_text()
+    registry = (PKG / "contents/code/LayoutRegistry.js").read_text(encoding="utf-8")
     layout_files = {
         "arcmenu": "LayoutArcMenu.qml",
         "brisk": "LayoutBrisk.qml",
@@ -109,10 +109,14 @@ def main() -> int:
     check((PKG / "contents/ui/layouts/raven/README.md").exists(), "raven folder")
     check((PKG / "contents/ui/layouts/LayoutRaven.qml").exists(), "raven layout entry")
 
-    cfg = (PKG / "contents/config/main.xml").read_text()
+    cfg = (PKG / "contents/config/main.xml").read_text(encoding="utf-8")
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
+        "PanelButtonIconSize", "LeftClickAction", "RightClickAction", "MiddleClickAction",
+        "ButtonStyleFgEnabled", "ButtonStyleBgEnabled", "ButtonStyleHoverBgEnabled",
+        "ButtonStyleHoverFgEnabled", "ButtonStyleActiveBgEnabled", "ButtonStyleActiveFgEnabled",
+        "ButtonStyleRadiusEnabled", "ButtonStyleBorderWidthEnabled", "ButtonStyleBorderColorEnabled",
         "MenuLayoutId", "FlipHorizontal", "SearchbarLocation",
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
         "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
@@ -131,26 +135,34 @@ def main() -> int:
         "PinnedApps", "PinnedCols", "SyncWithPlasma",
         "Enabled", "MaxItems", "RecentApps",
         "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty",
+        "DirectoryShortcuts", "ApplicationShortcuts",
+        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ContextMenuItems",
         "Providers", "Placeholder", "ShowDescription", "MaxResults",
-        "Options", "Confirm", "SoftwareCenterCmd",
+        "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled",
+        "SearchBoxRadius", "SearchWindows", "SearchRecentFiles",
+        "Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle",
     ]
     for key in required_keys:
         check(f'name="{key}"' in cfg, f"config key: {key}")
 
     config_pages = [
-        "ConfigGeneral.qml", "ConfigLayout.qml", "ConfigArcLayout.qml", "ConfigPinned.qml",
+        "ConfigGeneral.qml", "ConfigMenuButton.qml", "ConfigLayout.qml", "ConfigArcLayout.qml", "ConfigPinned.qml",
+        "ConfigDirectoryShortcuts.qml", "ConfigAppShortcuts.qml", "ConfigExtraCategories.qml",
+        "ConfigContextMenu.qml",
         "LayoutPreview.qml", "ConfigTheme.qml", "ConfigVisual.qml", "ConfigFineTune.qml",
         "ConfigContent.qml", "ConfigSearch.qml", "ConfigPower.qml",
     ]
     for page in config_pages:
         check((PKG / "contents/ui/config" / page).exists(), f"settings page: {page}")
 
-    config_model = (PKG / "contents/config/config.qml").read_text()
+    config_model = (PKG / "contents/config/config.qml").read_text(encoding="utf-8")
     # "About" comes from Plasma metadata, not a custom ConfigCategory
     for label in [
-        "General", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
+        "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
+        "Directory Shortcuts", "Application Shortcuts", "Extra Categories",
         "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
-        "Menu Content", "Search", "System Actions",
+        "Menu Content", "Search Options", "Power Options",
+        "Modify ArcMenu Context Menu",
     ]:
         check(label in config_model, f"settings category: {label}")
 
@@ -177,11 +189,11 @@ def main() -> int:
     for core in ["main.qml", "MenuData.qml", "LayoutHost.qml", "AppsBackend.qml"]:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")
 
-    main_qml = (PKG / "contents/ui/main.qml").read_text()
+    main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     for needle in ["Keys.onPressed", "Plasmoid.onActivated", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
         check(needle in main_qml, f"main.qml contains {needle}")
 
-    ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text()
+    ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
     for item in ["Launch", "Favorites", "Desktop", "Panel", "Edit", "Details", "Uninstall", "Terminal"]:
         check(item.lower() in ctx.lower() or item in ctx, f"context menu: {item}")
 

@@ -1,17 +1,13 @@
 ﻿import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
-import QtQuick.Dialogs as Dialogs
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
-import "../../code/Distro.js" as Distro
 import "../../code/Locale.js" as Locale
 
 Item {
     id: root
 
-    property string cfg_ButtonIcon
-    property alias cfg_CustomButtonIcon: customIconField.text
     property alias cfg_ButtonLabelVisible: labelVisible.checked
     property alias cfg_ButtonLabelText: labelText.text
     property alias cfg_MenuHotkey: hotkeyField.text
@@ -60,39 +56,10 @@ Item {
             text: root.tr("UI language applies to the settings dialog and menu labels (categories, places, actions).")
         }
 
-        QQC2.ComboBox {
-            id: iconCombo
-            Kirigami.FormData.label: root.tr("Button icon:")
-            textRole: "name"
-            valueRole: "id"
-            model: Distro.builtinIcons()
-            Component.onCompleted: {
-                var ids = Distro.builtinIcons().map(function (i) { return i.id; });
-                var idx = ids.indexOf(cfg_ButtonIcon);
-                currentIndex = idx >= 0 ? idx : 0;
-            }
-            onActivated: cfg_ButtonIcon = currentValue
-        }
-
-        RowLayout {
-            Kirigami.FormData.label: root.tr("Custom icon path:")
-            enabled: iconCombo.currentValue === "custom"
-            QQC2.TextField {
-                id: customIconField
-                Layout.fillWidth: true
-                placeholderText: root.tr("/path/to/icon.svg")
-            }
-            QQC2.Button {
-                text: root.tr("Browse…")
-                onClicked: fileDialog.open()
-            }
-        }
-
         Kirigami.InlineMessage {
             Layout.fillWidth: true
-            visible: iconCombo.currentValue === "custom" && customIconField.text.length > 0 && !Distro.isLikelyImagePath(customIconField.text)
-            type: Kirigami.MessageType.Warning
-            text: root.tr("Custom icon path looks invalid or is not an image. The distribution logo will be used as fallback.")
+            type: Kirigami.MessageType.Information
+            text: root.tr("Panel icon, click actions and button style are under Menu Button.")
         }
 
         QQC2.CheckBox {
@@ -150,10 +117,4 @@ Item {
         }
     }
 
-    Dialogs.FileDialog {
-        id: fileDialog
-        title: root.tr("Choose custom icon")
-        nameFilters: [root.tr("Images (*.png *.svg *.jpg *.jpeg *.webp)"), root.tr("All files (*)")]
-        onAccepted: customIconField.text = selectedFile.toString().replace("file://", "")
-    }
 }

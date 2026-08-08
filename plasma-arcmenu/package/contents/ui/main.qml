@@ -13,6 +13,8 @@ import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
 import "../code/Favorites.js" as Favorites
 import "../code/CatalogBridge.js" as CatalogBridge
+import "../code/Locale.js" as Locale
+import "../code/ShortcutsConfig.js" as ShortcutsConfig
 import "components" as Components
 
 PlasmoidItem {
@@ -192,8 +194,47 @@ PlasmoidItem {
     compactRepresentation: MouseArea {
         id: compact
         readonly property bool isVertical: plasmoid.formFactor === PlasmaCore.Types.Vertical
-        implicitWidth: isVertical ? compactContent.implicitHeight : compactContent.implicitWidth
-        implicitHeight: isVertical ? compactContent.implicitWidth : compactContent.implicitHeight
+        readonly property int panelIconSize: {
+            var n = parseInt(plasmoid.configuration.panelButtonIconSize, 10);
+            return (!n || isNaN(n)) ? 20 : Math.max(12, Math.min(64, n));
+        }
+        readonly property string leftAction: plasmoid.configuration.leftClickAction || "arcmenu"
+        readonly property string rightAction: plasmoid.configuration.rightClickAction || "context"
+        readonly property string middleAction: plasmoid.configuration.middleClickAction || "arcmenu"
+
+        readonly property bool styleFgOn: !!plasmoid.configuration.buttonStyleFgEnabled
+        readonly property bool styleBgOn: !!plasmoid.configuration.buttonStyleBgEnabled
+        readonly property bool styleHoverBgOn: !!plasmoid.configuration.buttonStyleHoverBgEnabled
+        readonly property bool styleHoverFgOn: !!plasmoid.configuration.buttonStyleHoverFgEnabled
+        readonly property bool styleActiveBgOn: !!plasmoid.configuration.buttonStyleActiveBgEnabled
+        readonly property bool styleActiveFgOn: !!plasmoid.configuration.buttonStyleActiveFgEnabled
+        readonly property bool styleRadiusOn: !!plasmoid.configuration.buttonStyleRadiusEnabled
+        readonly property bool styleBorderWOn: !!plasmoid.configuration.buttonStyleBorderWidthEnabled
+        readonly property bool styleBorderCOn: !!plasmoid.configuration.buttonStyleBorderColorEnabled
+
+        readonly property color styleFg: {
+            try { return styleFgOn && plasmoid.configuration.buttonStyleFg
+                ? plasmoid.configuration.buttonStyleFg : Kirigami.Theme.textColor; } catch (e) { return Kirigami.Theme.textColor; }
+        }
+        readonly property color styleHoverFg: {
+            try { return styleHoverFgOn && plasmoid.configuration.buttonStyleHoverFg
+                ? plasmoid.configuration.buttonStyleHoverFg : styleFg; } catch (e) { return styleFg; }
+        }
+        readonly property color styleActiveFg: {
+            try { return styleActiveFgOn && plasmoid.configuration.buttonStyleActiveFg
+                ? plasmoid.configuration.buttonStyleActiveFg : styleFg; } catch (e) { return styleFg; }
+        }
+
+        implicitWidth: {
+            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
+            var base = isVertical ? compactContent.implicitHeight : compactContent.implicitWidth;
+            return base + Kirigami.Units.smallSpacing * 2 + pad;
+        }
+        implicitHeight: {
+            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
+            var base = isVertical ? compactContent.implicitWidth : compactContent.implicitHeight;
+            return base + Kirigami.Units.smallSpacing * 2 + pad;
+        }
         hoverEnabled: true
         // Swallow right-click so Plasma's applet menu (Configure / Remove / …) does not appear
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
@@ -204,6 +245,25 @@ PlasmoidItem {
         Accessible.role: Accessible.Button
         Accessible.onPressAction: root.toggleMenu()
 
+        function runClickAction(action, mouse) {
+            if (action === "nothing")
+                return;
+            if (action === "context") {
+                buttonContextMenu.popup(compact, mouse ? mouse.x : 0, mouse ? mouse.y : compact.height);
+                return;
+            }
+            if (action === "configure") {
+                try { plasmoid.internalAction("configure").trigger(); } catch (e) {}
+                return;
+            }
+            if (action === "overview" || action === "show-desktop") {
+                root.handlePower(action);
+                return;
+            }
+            // default: arcmenu
+            root.toggleMenu();
+        }
+
         property bool wasExpanded: false
         onPressed: (mouse) => {
             if (mouse.button === Qt.RightButton) {
@@ -213,12 +273,103 @@ PlasmoidItem {
             wasExpanded = root.expanded;
         }
         onClicked: (mouse) => {
+            mouse.accepted = true;
             if (mouse.button === Qt.RightButton) {
-                mouse.accepted = true;
+                compact.runClickAction(compact.rightAction, mouse);
                 return;
             }
-            if (mouse.button === Qt.LeftButton || mouse.button === Qt.MiddleButton) {
-                root.toggleMenu();
+            if (mouse.button === Qt.MiddleButton) {
+                compact.runClickAction(compact.middleAction, mouse);
+                return;
+            }
+            if (mouse.button === Qt.LeftButton) {
+                compact.runClickAction(compact.leftAction, mouse);
+            }
+        }
+
+        QQC2.Menu {
+            id: buttonContextMenu
+
+            function tr(msgid) {
+                return Locale.tr(msgid, menuData && menuData.uiLang ? menuData.uiLang : "zh_CN");
+            }
+
+            function activateItem(itemId) {
+                if (itemId === "configure" || itemId === "panel-settings") {
+                    try { plasmoid.internalAction("configure").trigger(); } catch (e) {}
+                    return;
+                }
+                if (itemId === "power") {
+                    root.handlePower("logout");
+                    return;
+                }
+                if (itemId === "overview" || itemId === "show-desktop") {
+                    root.handlePower(itemId);
+                    return;
+                }
+                if (String(itemId).indexOf("desktop:") === 0) {
+                    var did = String(itemId).substring(8);
+                    var apps = menuData.allApps || [];
+                    for (var a = 0; a < apps.length; ++a) {
+                        if (apps[a].id === did) {
+                            root.launchApp(apps[a]);
+                            return;
+                        }
+                    }
+                }
+            }
+
+            Instantiator {
+                model: {
+                    try {
+                        return ShortcutsConfig.normalizeList(
+                            plasmoid.configuration.contextMenuItems,
+                            ShortcutsConfig.DEFAULT_CTX);
+                    } catch (e) {
+                        return ShortcutsConfig.DEFAULT_CTX.slice();
+                    }
+                }
+                delegate: QQC2.MenuItem {
+                    required property var modelData
+                    readonly property string itemId: String(modelData || "")
+                    readonly property bool isSep: itemId === "separator"
+                    text: {
+                        if (isSep)
+                            return "────────";
+                        var defs = ShortcutsConfig.contextMenuDefs(buttonContextMenu.tr);
+                        for (var i = 0; i < defs.length; ++i) {
+                            if (defs[i].id === itemId)
+                                return defs[i].name;
+                        }
+                        if (itemId.indexOf("desktop:") === 0) {
+                            var did = itemId.substring(8);
+                            var apps = menuData.allApps || [];
+                            for (var a = 0; a < apps.length; ++a) {
+                                if (apps[a].id === did)
+                                    return apps[a].name;
+                            }
+                            return buttonContextMenu.tr("Invalid shortcut") + " - " + did;
+                        }
+                        return itemId;
+                    }
+                    icon.name: {
+                        if (isSep)
+                            return "";
+                        var defs = ShortcutsConfig.contextMenuDefs(buttonContextMenu.tr);
+                        for (var i = 0; i < defs.length; ++i) {
+                            if (defs[i].id === itemId)
+                                return defs[i].icon;
+                        }
+                        return "application-x-executable";
+                    }
+                    enabled: !isSep
+                    onTriggered: {
+                        if (!isSep)
+                            buttonContextMenu.activateItem(itemId);
+                    }
+                }
+                onObjectAdded: (index, object) => buttonContextMenu.insertItem(index, object)
+                onObjectRemoved: (index, object) => buttonContextMenu.removeItem(object)
             }
         }
 
@@ -228,16 +379,50 @@ PlasmoidItem {
             subText: i18n("Click to open application menu")
         }
 
+        Rectangle {
+            id: buttonChrome
+            anchors.fill: parent
+            z: 0
+            radius: compact.styleRadiusOn
+                ? Math.max(0, plasmoid.configuration.buttonStyleRadius)
+                : Kirigami.Units.smallSpacing
+            border.width: compact.styleBorderWOn
+                ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth)
+                : 0
+            border.color: {
+                if (compact.styleBorderCOn && plasmoid.configuration.buttonStyleBorderColor)
+                    return plasmoid.configuration.buttonStyleBorderColor;
+                return "transparent";
+            }
+            color: {
+                if (root.expanded && compact.styleActiveBgOn && plasmoid.configuration.buttonStyleActiveBg)
+                    return plasmoid.configuration.buttonStyleActiveBg;
+                if (compact.containsMouse && compact.styleHoverBgOn && plasmoid.configuration.buttonStyleHoverBg)
+                    return plasmoid.configuration.buttonStyleHoverBg;
+                if (compact.styleBgOn && plasmoid.configuration.buttonStyleBg)
+                    return plasmoid.configuration.buttonStyleBg;
+                if (root.expanded)
+                    return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.25);
+                if (compact.containsMouse)
+                    return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.12);
+                return "transparent";
+            }
+            Behavior on color { ColorAnimation { duration: Kirigami.Units.shortDuration } }
+        }
+
         RowLayout {
             id: compactContent
             anchors.centerIn: parent
+            z: 1
             spacing: Kirigami.Units.smallSpacing
 
             Kirigami.Icon {
                 id: buttonIcon
                 source: menuData.buttonIcon || "start-here-kde"
-                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                Layout.preferredWidth: compact.panelIconSize
+                Layout.preferredHeight: compact.panelIconSize
+                color: root.expanded ? compact.styleActiveFg
+                    : (compact.containsMouse ? compact.styleHoverFg : compact.styleFg)
                 opacity: {
                     try {
                         if (Distro.isLikelyImagePath(plasmoid.configuration.customButtonIcon)
@@ -253,15 +438,9 @@ PlasmoidItem {
                 visible: !!plasmoid.configuration.buttonLabelVisible
                 text: plasmoid.configuration.buttonLabelText || ""
                 Layout.alignment: Qt.AlignVCenter
+                color: root.expanded ? compact.styleActiveFg
+                    : (compact.containsMouse ? compact.styleHoverFg : compact.styleFg)
             }
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            radius: Kirigami.Units.smallSpacing
-            color: Kirigami.Theme.highlightColor
-            opacity: root.expanded ? 0.25 : (compact.containsMouse ? 0.12 : 0)
-            Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
         }
     }
 
