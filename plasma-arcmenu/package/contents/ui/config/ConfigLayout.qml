@@ -45,18 +45,19 @@ Item {
 
         var meta = LayoutRegistry.getLayout(id);
         if (meta) {
-            // Always restore this layout's defaults — do not keep Raven's tall height
-            // in the shared MenuHeight (Raven fills at runtime in main.qml).
-            var h = meta.defaultHeight;
-            if (h > 800)
-                h = 800;
             cfg_MenuWidth = meta.defaultWidth;
-            cfg_MenuHeight = h;
             cfg_SidebarWidth = 220;
             cfg_CategoryColumnWidth = 220;
             cfg_RightPanelWidth = 220;
             cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - 220 - 24);
             cfg_WidthOffset = 0;
+            // Raven fills height at runtime — do not pollute shared MenuHeight with 800/900.
+            if (id !== "raven") {
+                var h = meta.defaultHeight;
+                if (h > 800)
+                    h = 800;
+                cfg_MenuHeight = h;
+            }
 
             // Keep the selected layout's category expanded
             ensureCategoryExpanded(meta.category);
@@ -66,7 +67,8 @@ Item {
             plasmoid.configuration.menuLayoutId = id;
             if (meta) {
                 plasmoid.configuration.menuWidth = meta.defaultWidth;
-                plasmoid.configuration.menuHeight = cfg_MenuHeight;
+                if (id !== "raven")
+                    plasmoid.configuration.menuHeight = cfg_MenuHeight;
                 plasmoid.configuration.sidebarWidth = 220;
                 plasmoid.configuration.categoryColumnWidth = 220;
                 plasmoid.configuration.rightPanelWidth = 220;

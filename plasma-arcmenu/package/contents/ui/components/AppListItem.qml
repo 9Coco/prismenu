@@ -8,6 +8,8 @@ Item {
     id: root
 
     property var app: null
+    /** Optional — enables search-term highlight from MenuData when searching */
+    property var menuData: null
     property int iconSize: 24
     property bool showDescription: true
     property bool showGenericNames: false
@@ -23,6 +25,18 @@ Item {
     property color fg: Kirigami.Theme.textColor
 
     readonly property bool isSection: !!(app && app.isSection)
+    readonly property bool _doHighlight: {
+        if (root.isSection)
+            return false;
+        if (root.highlightTerms && root.highlightQuery.length)
+            return true;
+        return !!(menuData && menuData.highlightSearchTerms && menuData.isSearching
+                  && menuData.searchQuery && String(menuData.searchQuery).length);
+    }
+    readonly property string _highlightQ: root.highlightQuery.length
+        ? root.highlightQuery
+        : ((menuData && menuData.searchQuery) ? String(menuData.searchQuery) : "")
+
     readonly property bool hot: !root.isSection && (root.selected || mouse.containsMouse)
     readonly property color chipBg: root.selected ? root.selectedBg
         : (mouse.containsMouse ? root.hoverBg : "transparent")
@@ -100,10 +114,10 @@ Item {
             spacing: 0
 
             PlasmaComponents.Label {
-                text: (root.highlightTerms && root.highlightQuery.length)
-                    ? SearchExtras.highlightMarkup(root.primaryText, root.highlightQuery)
+                text: root._doHighlight
+                    ? SearchExtras.highlightMarkup(root.primaryText, root._highlightQ)
                     : root.primaryText
-                textFormat: (root.highlightTerms && root.highlightQuery.length) ? Text.RichText : Text.PlainText
+                textFormat: root._doHighlight ? Text.RichText : Text.PlainText
                 elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
                 wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
@@ -114,10 +128,10 @@ Item {
 
             PlasmaComponents.Label {
                 visible: root.secondaryText.length > 0
-                text: (root.highlightTerms && root.highlightQuery.length)
-                    ? SearchExtras.highlightMarkup(root.secondaryText, root.highlightQuery)
+                text: root._doHighlight
+                    ? SearchExtras.highlightMarkup(root.secondaryText, root._highlightQ)
                     : root.secondaryText
-                textFormat: (root.highlightTerms && root.highlightQuery.length) ? Text.RichText : Text.PlainText
+                textFormat: root._doHighlight ? Text.RichText : Text.PlainText
                 elide: Text.ElideRight
                 Layout.fillWidth: true
                 opacity: 0.7

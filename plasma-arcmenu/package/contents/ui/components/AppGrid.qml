@@ -13,6 +13,8 @@ GridView {
     property bool showGenericNames: false
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color hoverBg: selectedBg
+    property color hoverFg: selectedFg
 
     signal appActivated(var app)
     signal contextMenuRequested(var app, real x, real y)
@@ -35,7 +37,13 @@ GridView {
             anchors.fill: parent
             anchors.margins: Kirigami.Units.smallSpacing / 2
             radius: Kirigami.Units.smallSpacing
-            color: mouse.containsMouse || root.currentIndex === del.index ? root.selectedBg : "transparent"
+            color: {
+                if (root.currentIndex === del.index)
+                    return root.selectedBg;
+                if (mouse.containsMouse)
+                    return root.hoverBg;
+                return "transparent";
+            }
         }
 
         ColumnLayout {
@@ -61,7 +69,13 @@ GridView {
                 Layout.fillWidth: true
                 wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
-                color: mouse.containsMouse || root.currentIndex === del.index ? root.selectedFg : Kirigami.Theme.textColor
+                color: {
+                    if (root.currentIndex === del.index)
+                        return root.selectedFg;
+                    if (mouse.containsMouse)
+                        return root.hoverFg;
+                    return Kirigami.Theme.textColor;
+                }
             }
         }
 

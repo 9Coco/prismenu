@@ -66,7 +66,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -93,7 +94,7 @@ LayoutBase {
             Components.SearchField {
                 Layout.fillWidth: true
                 Layout.fillHeight: false
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);

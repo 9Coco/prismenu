@@ -44,6 +44,7 @@ LayoutBase {
                 clip: true
                 model: appModel
                 delegate: Components.AppListItem {
+                    menuData: menuData
                     width: appList.width
                     app: model
                     iconSize: root.appIconSize
