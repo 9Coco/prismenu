@@ -10,6 +10,16 @@ Item {
     property string userIcon: "user-identity"
     property color fallbackColor: Kirigami.Theme.textColor
     property bool showRing: true
+    /** circle | square | rounded */
+    property string shape: "circle"
+
+    readonly property real faceRadius: {
+        if (shape === "square")
+            return 0;
+        if (shape === "rounded")
+            return Math.min(width, height) * 0.22;
+        return width / 2;
+    }
 
     readonly property string faceSrc: {
         var s = String(root.userIcon || "");
@@ -25,7 +35,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         visible: root.showRing
-        radius: width / 2
+        radius: root.faceRadius
         color: "transparent"
         border.color: root.fallbackColor
         border.width: 1
@@ -35,7 +45,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         anchors.margins: root.showRing ? 1 : 0
-        radius: width / 2
+        radius: root.faceRadius
         clip: true
         color: "transparent"
 
