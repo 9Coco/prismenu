@@ -133,7 +133,7 @@ LayoutBase {
     property bool categoryPanelOpen: false
     // LayoutHost / main.qml widen the plasmoid when this is non-zero
     readonly property int sidePanelWidth: categoryPanelOpen
-            ? (Kirigami.Units.gridUnit * 12 + Kirigami.Units.smallSpacing)
+            ? (root.sidebarW + Kirigami.Units.smallSpacing * 2)
             : 0
 
     readonly property var footSession: [
@@ -534,11 +534,26 @@ LayoutBase {
         }
     } // end main ColumnLayout
 
+        Components.ColumnSplitHandle {
+            visible: root.categoryPanelOpen
+            Layout.fillHeight: true
+            Layout.preferredWidth: implicitWidth
+            z: 5
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: true
+            flipped: false
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
+        }
+
         // ---- Category side panel (hamburger) ----
         Rectangle {
             visible: root.categoryPanelOpen
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 12
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 12
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
             Layout.fillHeight: true
             Layout.fillWidth: false
             color: root.bg

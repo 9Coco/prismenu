@@ -51,8 +51,12 @@
         <entry name="MenuHeight" type="Int">
             <default>540</default>
         </entry>
-        <!-- Arc Menu right places column width (px); other layouts ignore -->
+        <!-- Side / places / categories column width (px) for multi-column layouts -->
         <entry name="SidebarWidth" type="Int">
+            <default>220</default>
+        </entry>
+        <!-- Zest (and similar) middle categories column -->
+        <entry name="CategoryColumnWidth" type="Int">
             <default>220</default>
         </entry>
     </group>

@@ -37,6 +37,22 @@ Item {
     readonly property bool searchOnTop: !menuData || menuData.searchbarLocation !== "bottom"
     readonly property bool searching: menuData ? menuData.isSearching : false
 
+    /** Shared column width (persisted SidebarWidth); used by multi-column layouts */
+    readonly property int sidebarW: (menuData && menuData.sidebarWidth) ? menuData.sidebarWidth : 220
+    readonly property int categoryColW: (menuData && menuData.categoryColumnWidth) ? menuData.categoryColumnWidth : 220
+    readonly property int sidebarMin: 160
+    readonly property int sidebarMax: 360
+
+    function setSidebarFromDrag(w) {
+        if (menuData && menuData.setSidebarWidth)
+            menuData.setSidebarWidth(w);
+    }
+
+    function setCategoryColumnFromDrag(w) {
+        if (menuData && menuData.setCategoryColumnWidth)
+            menuData.setCategoryColumnWidth(w);
+    }
+
     function tr(msgid) {
         return Locale.tr(msgid, root.uiLang);
     }

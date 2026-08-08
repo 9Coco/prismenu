@@ -57,10 +57,12 @@ LayoutBase {
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: Kirigami.Units.smallSpacing
+            spacing: 0
 
             ColumnLayout {
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                Layout.preferredWidth: root.sidebarW
+                Layout.minimumWidth: 120
+                Layout.maximumWidth: Math.min(root.sidebarMax, 280)
                 Layout.fillHeight: true
                 spacing: Kirigami.Units.smallSpacing / 2
 
@@ -84,6 +86,19 @@ LayoutBase {
                     }
                 }
                 Item { Layout.fillHeight: true }
+            }
+
+            Components.ColumnSplitHandle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: implicitWidth
+                z: 5
+                fg: root.fg
+                currentWidth: root.sidebarW
+                minWidth: 120
+                maxWidth: Math.min(root.sidebarMax, 280)
+                sidebarOnRight: false
+                flipped: false
+                onWidthDragged: (w) => root.setSidebarFromDrag(w)
             }
 
             ListView {

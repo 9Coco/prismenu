@@ -104,13 +104,14 @@ LayoutBase {
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: Kirigami.Units.largeSpacing
+            spacing: 0
             layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
             Flickable {
                 id: sideFlick
-                Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.34)
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 15
+                Layout.preferredWidth: root.sidebarW
+                Layout.minimumWidth: root.sidebarMin
+                Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
                 Layout.fillWidth: false
                 contentWidth: width
@@ -168,6 +169,19 @@ LayoutBase {
                         }
                     }
                 }
+            }
+
+            Components.ColumnSplitHandle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: implicitWidth
+                z: 5
+                fg: root.fg
+                currentWidth: root.sidebarW
+                minWidth: root.sidebarMin
+                maxWidth: root.sidebarMax
+                sidebarOnRight: false
+                flipped: root.flip
+                onWidthDragged: (w) => root.setSidebarFromDrag(w)
             }
 
             Item {

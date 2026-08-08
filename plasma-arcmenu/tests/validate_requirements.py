@@ -113,7 +113,7 @@ def main() -> int:
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
-        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth",
+        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth",
         "ThemeMode", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius",
         "Font", "FontSize", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize",
         "FollowColorScheme",
