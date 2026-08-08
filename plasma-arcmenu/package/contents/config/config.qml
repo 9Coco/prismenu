@@ -33,6 +33,16 @@ ConfigModel {
         source: "config/ConfigLayout.qml"
     }
     ConfigCategory {
+        name: configModel.tr("ArcMenu layout adjustment")
+        icon: "view-list-tree"
+        source: "config/ConfigArcLayout.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("Pinned Applications")
+        icon: "pin"
+        source: "config/ConfigPinned.qml"
+    }
+    ConfigCategory {
         name: configModel.tr("Menu Visual Appearance")
         icon: "preferences-desktop-display"
         source: "config/ConfigVisual.qml"

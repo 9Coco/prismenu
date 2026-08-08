@@ -17,7 +17,7 @@ var LAYOUTS = [
         hasUser: true,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 620,
         defaultHeight: 540,
         source: "layouts/LayoutArcMenu.qml"

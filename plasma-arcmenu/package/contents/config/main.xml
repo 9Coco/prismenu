@@ -43,7 +43,35 @@
             <default>false</default>
         </entry>
         <entry name="SearchbarLocation" type="String">
-            <default>top</default>
+            <default>bottom</default>
+        </entry>
+        <!-- ArcMenu layout adjustment -->
+        <entry name="AllAppsButtonAction" type="String">
+            <default>category-list</default>
+        </entry>
+        <entry name="ShowUserAvatar" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="AvatarShape" type="String">
+            <default>circle</default>
+        </entry>
+        <entry name="ShowVerticalSeparator" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowExternalDevices" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowBookmarks" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="QuickLinksOrder" type="StringList">
+            <default>favorites,frequent,all-apps,pinned,recent-files</default>
+        </entry>
+        <entry name="QuickLinksEnabled" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="QuickLinkPosition" type="String">
+            <default>bottom</default>
         </entry>
         <entry name="MenuWidth" type="Int">
             <default>620</default>

@@ -26,6 +26,8 @@ ColumnLayout {
     signal itemContextMenu(var item, real x, real y)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+    readonly property bool showAvatar: !menuData || menuData.showUserAvatar !== false
+    readonly property string avatarShape: (menuData && menuData.avatarShape) ? menuData.avatarShape : "circle"
 
     spacing: Kirigami.Units.smallSpacing / 2
 
@@ -35,8 +37,7 @@ ColumnLayout {
 
     readonly property var placeItems: {
         var _ = root.uiLang;
-        // place: XDG user-dir key — resolved by AppsBackend.openXdgUserDir (not xdg:Download)
-        return [
+        var items = [
             { id: "place-home", name: root.t("Home"), icon: "user-home", place: "HOME" },
             { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
             { id: "place-dl", name: root.t("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
@@ -44,9 +45,25 @@ ColumnLayout {
             { id: "place-pics", name: root.t("Pictures"), icon: "folder-pictures", place: "PICTURES" },
             { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", place: "VIDEOS" }
         ];
+        if (menuData && menuData.showBookmarks) {
+            items.push({
+                id: "place-bookmarks",
+                name: root.t("Bookmarks"),
+                icon: "bookmarks",
+                exec: "kioclient exec bookmarks:/ || xdg-open bookmarks:/"
+            });
+        }
+        if (menuData && menuData.showExternalDevices) {
+            items.push({
+                id: "place-devices",
+                name: root.t("External devices"),
+                icon: "drive-removable-media",
+                exec: "kioclient exec computer:/ || dolphin computer:/ || xdg-open computer:/"
+            });
+        }
+        return items;
     }
 
-    // Extra shortcuts (configurable later); Overview omitted — no KDE equivalent
     readonly property var shortcutItems: {
         var _ = root.uiLang;
         return [
@@ -56,7 +73,6 @@ ColumnLayout {
         ];
     }
 
-    // User row: circular face + login name (like GNOME ArcMenu / Plasma Users KCM)
     Item {
         id: userRow
         Layout.fillWidth: true
@@ -65,15 +81,6 @@ ColumnLayout {
         Accessible.name: userLabel.text
         Accessible.role: Accessible.Button
         Accessible.onPressAction: root.userClicked()
-
-        readonly property string faceSrc: {
-            var s = (menuData && menuData.userIcon) ? String(menuData.userIcon) : "";
-            if (!s || s === "user-identity")
-                return "";
-            if (s.indexOf("file:") === 0 || s.indexOf("/") === 0 || s.indexOf("image:") === 0)
-                return s.indexOf("/") === 0 ? ("file://" + s) : s;
-            return "";
-        }
 
         Rectangle {
             anchors.fill: parent
@@ -91,48 +98,19 @@ ColumnLayout {
             Item {
                 id: avatarBox
                 readonly property int avSize: Math.max(root.iconSize, Kirigami.Units.iconSizes.medium)
-                Layout.preferredWidth: avSize
+                Layout.preferredWidth: root.showAvatar ? avSize : 0
                 Layout.preferredHeight: avSize
-                width: avSize
+                width: root.showAvatar ? avSize : 0
                 height: avSize
+                visible: root.showAvatar
+                clip: true
 
-                Rectangle {
+                UserFace {
                     anchors.fill: parent
-                    radius: width / 2
-                    color: Kirigami.Theme.backgroundColor
-                    border.color: root.fg
-                    border.width: 1
-                    opacity: 0.35
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 1
-                    radius: width / 2
-                    clip: true
-                    color: "transparent"
-
-                    Image {
-                        id: faceImg
-                        anchors.fill: parent
-                        source: userRow.faceSrc
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        visible: status === Image.Ready
-                        cache: false
-                    }
-
-                    Kirigami.Icon {
-                        anchors.fill: parent
-                        anchors.margins: Kirigami.Units.smallSpacing / 2
-                        visible: !faceImg.visible
-                        source: (menuData && menuData.userIcon
-                                 && String(menuData.userIcon).indexOf("file:") !== 0
-                                 && String(menuData.userIcon).indexOf("/") !== 0)
-                            ? menuData.userIcon
-                            : "user-identity"
-                        color: userMouse.containsMouse ? root.hoverFg : root.fg
-                    }
+                    userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                    fallbackColor: userMouse.containsMouse ? root.hoverFg : root.fg
+                    shape: root.avatarShape
+                    showRing: true
                 }
             }
 
