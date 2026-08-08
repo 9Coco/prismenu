@@ -20,17 +20,6 @@ RowLayout {
     spacing: Kirigami.Units.smallSpacing
     Layout.fillWidth: true
 
-    readonly property string faceSrc: {
-        var s = String(root.userIcon || "");
-        if (!s || s === "user-identity")
-            return "";
-        if (s.indexOf("file:") === 0 || s.indexOf("image:") === 0)
-            return s;
-        if (s.indexOf("/") === 0)
-            return "file://" + s;
-        return "";
-    }
-
     function isEnabled(id) {
         return (enabledOptions || []).indexOf(id) >= 0;
     }
@@ -44,43 +33,14 @@ RowLayout {
             anchors.fill: parent
             spacing: Kirigami.Units.smallSpacing
 
-            Item {
+            // Kickoff-style avatar (no parent clip — layer effect)
+            UserFace {
                 Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
                 Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-
-                Rectangle {
-                    anchors.fill: parent
-                    radius: width / 2
-                    color: Kirigami.Theme.backgroundColor
-                    border.color: Kirigami.Theme.textColor
-                    border.width: 1
-                    opacity: 0.35
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 1
-                    radius: width / 2
-                    clip: true
-                    color: "transparent"
-
-                    Image {
-                        id: faceImg
-                        anchors.fill: parent
-                        source: root.faceSrc
-                        fillMode: Image.PreserveAspectCrop
-                        asynchronous: true
-                        visible: status === Image.Ready
-                        cache: false
-                    }
-
-                    Kirigami.Icon {
-                        anchors.fill: parent
-                        anchors.margins: 2
-                        visible: !faceImg.visible
-                        source: root.faceSrc.length ? "user-identity" : (root.userIcon || "user-identity")
-                    }
-                }
+                userIcon: root.userIcon
+                userName: root.userName
+                showRing: true
+                shape: "circle"
             }
 
             PlasmaComponents.Label {
@@ -94,7 +54,6 @@ RowLayout {
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
-            // ArcMenu / Kickoff: open Users KCM (parent maps userMenu → accountsettings)
             onClicked: root.userMenuRequested()
             Accessible.name: i18n("User account")
             Accessible.role: Accessible.Button

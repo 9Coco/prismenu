@@ -21,12 +21,31 @@ SHELL_LOG="$LOG_DIR/plasmashell-$STAMP.log"
 mkdir -p "$LOG_DIR"
 
 dump_journal() {
-    echo "---- journalctl ArcMenu (last 120) ----"
-    if journalctl --user -b --no-pager 2>/dev/null | grep -i ArcMenu | tail -120; then
-        return 0
+    # Prefer lines from the last 3 minutes so old plasmashell noise isn't mistaken for new errors
+    echo "---- journalctl ArcMenu (last 3 min) ----"
+    local out=""
+    out="$(journalctl --user -b --since '3 minutes ago' --no-pager 2>/dev/null | grep -iE 'ArcMenu|org.kde.plasma.arcmenu' | tail -80 || true)"
+    if [[ -z "$out" ]]; then
+        out="$(journalctl -b --since '3 minutes ago' --no-pager 2>/dev/null | grep -iE 'ArcMenu|org.kde.plasma.arcmenu' | tail -80 || true)"
     fi
-    journalctl -b --no-pager 2>/dev/null | grep -i ArcMenu | tail -120 \
-        || echo "(no ArcMenu journal lines yet — open the menu once, then: ./reload.sh journal)"
+    if [[ -n "$out" ]]; then
+        printf '%s\n' "$out"
+    else
+        echo "(no recent ArcMenu journal lines — open the menu once, then: ./reload.sh journal)"
+    fi
+    echo ""
+    echo "---- plasmashell log errors (latest file, if any) ----"
+    local newest
+    newest="$(ls -1t "$LOG_DIR"/plasmashell-*.log 2>/dev/null | head -n1 || true)"
+    if [[ -n "$newest" && -f "$newest" ]]; then
+        echo "file: $newest"
+        grep -iE 'error|warn|failed|unavailable|TypeError|Cannot |is not a type|not installed' "$newest" \
+            | grep -iE 'ArcMenu|arcmenu|SearchField|PlasmaNative|UserFace|SessionManagement|RunnerModel|kcm' \
+            | tail -40 \
+            || echo "(no ArcMenu error/warn lines in $newest)"
+    else
+        echo "(no plasmashell-*.log yet)"
+    fi
 }
 
 if [[ "${1:-}" == "journal" ]]; then

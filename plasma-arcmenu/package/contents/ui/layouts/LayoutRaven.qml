@@ -142,23 +142,13 @@ LayoutBase {
                         required property int index
                         readonly property var def: root.railTop[index]
                         readonly property bool isUser: def.id === "user"
-                        readonly property string faceSrc: {
-                            if (!isUser || !menuData || !menuData.userIcon)
-                                return "";
-                            var s = String(menuData.userIcon);
-                            if (s.indexOf("file:") === 0 || s.indexOf("image:") === 0)
-                                return s;
-                            if (s.indexOf("/") === 0)
-                                return "file://" + s;
-                            return "";
-                        }
                         Layout.alignment: Qt.AlignHCenter
                         Layout.preferredWidth: Kirigami.Units.gridUnit * 2.4
                         Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
                         flat: true
                         checkable: true
                         checked: root.railSelectedId === def.id
-                        icon.name: isUser && faceSrc.length ? "" : def.icon
+                        icon.name: isUser ? "" : def.icon
                         icon.width: Kirigami.Units.iconSizes.smallMedium
                         icon.height: Kirigami.Units.iconSizes.smallMedium
                         Accessible.name: isUser && menuData && menuData.userName
@@ -171,15 +161,15 @@ LayoutBase {
                         PlasmaComponents.ToolTip.visible: hovered
                         PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
 
-                        Image {
+                        Components.UserFace {
                             anchors.centerIn: parent
                             width: Kirigami.Units.iconSizes.smallMedium
                             height: width
-                            visible: parent.isUser && parent.faceSrc.length && status === Image.Ready
-                            source: parent.faceSrc
-                            fillMode: Image.PreserveAspectCrop
-                            asynchronous: true
-                            layer.enabled: true
+                            visible: parent.isUser
+                            userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
+                            showRing: false
+                            shape: "circle"
                         }
                     }
                 }

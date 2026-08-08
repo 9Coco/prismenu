@@ -1,66 +1,102 @@
 import QtQuick
-import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
-import org.kde.plasma.components as PlasmaComponents
+import org.kde.plasma.extras as PlasmaExtras
 
-PlasmaComponents.TextField {
+/**
+ * ArcMenu search entry — PlasmaExtras.SearchField like Kickoff Header.qml.
+ * Optional ArcMenu radius / hide-when-empty on top.
+ *
+ * Note: do not alias Item.focus (FINAL) — forward via forceActiveFocus / Component.onCompleted.
+ */
+Item {
     id: root
 
-    property string placeholder: i18n("Search applications…")
-    property bool searching: text.length > 0
+    property alias text: searchField.text
+    property alias placeholderText: searchField.placeholderText
+    property string placeholder: ""
+    property bool searching: searchField.text.length > 0
     property var menuData: null
-    /** When hideSearchBar is on, collapse until focused/typing */
     property bool forceVisible: false
+    /** When true, focus the inner PlasmaExtras.SearchField after create */
+    property bool autoFocus: true
 
     readonly property bool hideWhenEmpty: !!(menuData && menuData.hideSearchBar)
-    readonly property bool effectivelyVisible: !hideWhenEmpty || searching || forceVisible || activeFocus
+    readonly property bool effectivelyVisible: !hideWhenEmpty || searching || forceVisible || searchField.activeFocus
     readonly property int boxRadius: (menuData && menuData.searchBoxRadiusEnabled)
         ? Math.max(0, menuData.searchBoxRadius)
         : Kirigami.Units.smallSpacing
-
-    visible: effectivelyVisible
-    opacity: effectivelyVisible ? 1 : 0
-    Layout.preferredHeight: effectivelyVisible ? Kirigami.Units.gridUnit * 2.2 : 0
-
-    placeholderText: placeholder
-    clearButtonShown: true
-    Accessible.name: i18n("Search")
-    Accessible.role: Accessible.EditableText
-    focus: true
-
-    // Capsule / large radius clips glyphs without extra horizontal inset
+    readonly property bool useCustomRadius: !!(menuData && menuData.searchBoxRadiusEnabled)
     readonly property int sideInset: Math.max(
         Kirigami.Units.largeSpacing,
         Math.round(boxRadius * 0.65) + Kirigami.Units.smallSpacing
     )
-    leftPadding: sideInset
-    rightPadding: sideInset + (clearButtonShown ? Kirigami.Units.gridUnit : 0)
-    topPadding: Kirigami.Units.smallSpacing
-    bottomPadding: Kirigami.Units.smallSpacing
+    /** Inner field focus (Item.activeFocus is FINAL — do not override) */
+    readonly property bool fieldActiveFocus: searchField.activeFocus
 
-    // ArcMenu search-entry-border-radius
-    background: Rectangle {
-        implicitHeight: Kirigami.Units.gridUnit * 2.2
+    signal accepted()
+    signal textEdited()
+
+    function forceActiveFocus(reason) {
+        searchField.forceActiveFocus(reason !== undefined ? reason : Qt.OtherFocusReason);
+    }
+    function clear() { searchField.clear(); }
+
+    visible: effectivelyVisible
+    opacity: effectivelyVisible ? 1 : 0
+    Layout.fillWidth: true
+    Layout.preferredHeight: effectivelyVisible ? Kirigami.Units.gridUnit * 2.2 : 0
+    implicitHeight: Layout.preferredHeight
+    implicitWidth: Kirigami.Units.gridUnit * 12
+
+    Component.onCompleted: {
+        if (root.placeholder && root.placeholder.length)
+            searchField.placeholderText = root.placeholder;
+        if (root.autoFocus && root.effectivelyVisible)
+            Qt.callLater(function () { searchField.forceActiveFocus(); });
+    }
+    onPlaceholderChanged: {
+        if (root.placeholder && root.placeholder.length)
+            searchField.placeholderText = root.placeholder;
+    }
+
+    Rectangle {
+        anchors.fill: parent
+        visible: root.useCustomRadius
         radius: root.boxRadius
         color: Kirigami.Theme.backgroundColor
         border.width: 1
-        border.color: root.activeFocus
+        border.color: searchField.activeFocus
             ? Kirigami.Theme.highlightColor
             : Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.25)
         opacity: 0.95
+        z: 0
     }
 
-    Keys.onEscapePressed: (event) => {
-        if (text.length > 0) {
-            text = "";
-            event.accepted = true;
-        } else {
-            event.accepted = false;
+    PlasmaExtras.SearchField {
+        id: searchField
+        anchors.fill: parent
+        z: 1
+        Binding on leftPadding {
+            when: root.useCustomRadius
+            value: root.sideInset
         }
-    }
+        Binding on rightPadding {
+            when: root.useCustomRadius
+            value: root.sideInset + Kirigami.Units.gridUnit
+        }
 
-    Keys.onDownPressed: (event) => {
-        event.accepted = false;
+        onAccepted: root.accepted()
+        onTextEdited: root.textEdited()
+
+        Keys.onEscapePressed: (event) => {
+            if (text.length > 0) {
+                text = "";
+                event.accepted = true;
+            } else {
+                event.accepted = false;
+            }
+        }
+        Keys.onDownPressed: (event) => { event.accepted = false; }
     }
 }
