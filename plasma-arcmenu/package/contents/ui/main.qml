@@ -94,11 +94,27 @@ PlasmoidItem {
         id: menuData
         plasmoidConfig: plasmoid.configuration
         currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+        // Direct bindings — required for live Extra Categories toggles
+        extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
+        extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
             menuData.ensureArcMenuSettingsPinned();
             console.log("ArcMenu catalog registered on bridge");
         }
+    }
+
+    Connections {
+        target: plasmoid.configuration
+        ignoreUnknownSignals: true
+        function onValueChanged(key, value) {
+            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder") {
+                menuData.bumpStructure();
+                console.log("ArcMenu extras changed:", key, value);
+            }
+        }
+        function onExtraCategoriesEnabledChanged() { menuData.bumpStructure(); }
+        function onExtraCategoriesOrderChanged() { menuData.bumpStructure(); }
     }
 
     AppsBackend {

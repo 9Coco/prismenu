@@ -21,8 +21,15 @@ Item {
 
     function writeLive(key, value) {
         try {
-            plasmoid.configuration[key] = value;
-        } catch (e) {}
+            // Assign a fresh copy — Plasma StringList often ignores same-array mutations
+            var payload = (value && value.slice) ? value.slice() : value;
+            plasmoid.configuration[key] = payload;
+            try { plasmoid.configuration.writeConfig(); } catch (e2) {}
+            console.log("ArcMenu ExtraCategories writeLive", key, JSON.stringify(payload),
+                        "readback=", JSON.stringify(plasmoid.configuration[key]));
+        } catch (e) {
+            console.warn("ArcMenu ExtraCategories writeLive failed", key, e);
+        }
     }
 
     function rebuildModel() {
