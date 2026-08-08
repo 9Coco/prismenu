@@ -113,7 +113,8 @@ def main() -> int:
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
-        "PanelButtonIconSize", "LeftClickAction", "RightClickAction", "MiddleClickAction",
+        "PanelButtonIconSize", "PanelButtonPadding",
+        "LeftClickAction", "RightClickAction", "MiddleClickAction",
         "ButtonStyleFgEnabled", "ButtonStyleBgEnabled", "ButtonStyleHoverBgEnabled",
         "ButtonStyleHoverFgEnabled", "ButtonStyleActiveBgEnabled", "ButtonStyleActiveFgEnabled",
         "ButtonStyleRadiusEnabled", "ButtonStyleBorderWidthEnabled", "ButtonStyleBorderColorEnabled",

@@ -71,10 +71,24 @@ QQC2.Menu {
     // Places: no context actions (open only)
     // ---- Desktop apps + pinable shortcuts ----
     QQC2.MenuItem {
+        visible: root.isDesktopApp || root.isExtraShortcut
+        text: root.t("Launch")
+        icon.name: "media-playback-start"
+        onTriggered: root.launchRequested(root.app)
+    }
+
+    QQC2.MenuItem {
         visible: root.isDesktopApp
         text: root.t("New Window")
         icon.name: "window-new"
         onTriggered: root.newWindowRequested(root.app)
+    }
+
+    QQC2.MenuItem {
+        visible: root.isDesktopApp && !!(root.app && (root.app.exec || root.app.entryPath || root.app.kickerUrl))
+        text: root.t("Run in Terminal")
+        icon.name: "utilities-terminal"
+        onTriggered: root.runInTerminalRequested(root.app)
     }
 
     QQC2.MenuSeparator {

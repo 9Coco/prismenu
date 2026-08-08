@@ -20,10 +20,16 @@ Item {
     property int lastAppCount: 0
     property bool _rebuilding: false
     property int _rebuildToken: 0
+    /** Recent files from ~/.local/share/recently-used.xbel (ArcMenu search-provider-recent-files) */
+    property var recentFiles: []
+    /** Open windows from wmctrl (ArcMenu search-provider-open-windows) */
+    property var openWindows: []
 
     signal appsUpdated(var apps)
     signal metaUpdated(string userName, string userIcon, string osId, string osPretty)
     signal scanFailed(string message)
+    signal recentFilesUpdated(var files)
+    signal openWindowsUpdated(var windows)
 
     readonly property var nameToId: ({
         "Office": "Office", "办公": "Office",
@@ -73,8 +79,12 @@ Item {
                     console.log("ArcMenu user meta:", u, iconSrc);
                     metaUpdated(u, iconSrc, osId, osPretty);
                 }
+                if (out.indexOf("ARCMENU_RECENT|") >= 0)
+                    root._parseRecentFiles(out);
+                if (out.indexOf("ARCMENU_WIN|") >= 0)
+                    root._parseOpenWindows(out);
             } catch (e) {
-                console.warn("ArcMenu meta parse failed:", e);
+                console.warn("ArcMenu exec parse failed:", e);
             }
             disconnectSource(sourceName);
         }
@@ -679,8 +689,124 @@ Item {
         if (!app)
             return;
         var url = app.kickerUrl || app.entryPath || "";
+        var exe = String(app.exec || "").replace(/%[a-zA-Z]/g, "").trim();
         if (url)
             exec.connectSource("konsole -e bash -lc " + shellQuote("kioclient exec " + url));
+        else if (exe)
+            exec.connectSource("konsole -e bash -lc " + shellQuote(exe));
+    }
+
+    function refreshRecentFiles() {
+        // GTK recently-used.xbel — same source ArcMenu RecentFilesManager uses via Gio
+        var script = [
+            "python3 - <<'PY'",
+            "import os, xml.etree.ElementTree as ET, urllib.parse",
+            "path=os.path.expanduser('~/.local/share/recently-used.xbel')",
+            "if not os.path.isfile(path):",
+            "    raise SystemExit(0)",
+            "root=ET.parse(path).getroot()",
+            "ns={'x':'http://www.freedesktop.org/standards/desktop-bookmarks'}",
+            "count=0",
+            "for bm in root.findall('bookmark'):",
+            "    href=bm.get('href') or ''",
+            "    if not href.startswith('file:'):",
+            "        continue",
+            "    # skip hidden basenames unless caller wants them",
+            "    name=urllib.parse.unquote(href.rsplit('/',1)[-1])",
+            "    if not name:",
+            "        continue",
+            "    mime=''",
+            "    for info in bm.findall('{http://www.freedesktop.org/standards/desktop-bookmarks}info'):",
+            "        pass",
+            "    for meta in bm.iter():",
+            "        if meta.tag.endswith('mime-type') and meta.get('type'):",
+            "            mime=meta.get('type'); break",
+            "    print('ARCMENU_RECENT|%s|%s|%s' % (href.replace('|','%7C'), name.replace('|','-'), mime))",
+            "    count+=1",
+            "    if count>=40: break",
+            "PY"
+        ].join("\n");
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+    }
+
+    function refreshOpenWindows() {
+        // Best-effort: wmctrl (common on Kubuntu) — ArcMenu uses Shell WindowTracker
+        var script = "wmctrl -lx 2>/dev/null | while IFS= read -r line; do " +
+            "id=$(echo \"$line\" | awk '{print $1}'); " +
+            "cls=$(echo \"$line\" | awk '{print $3}'); " +
+            "title=$(echo \"$line\" | cut -d' ' -f5-); " +
+            "[ -n \"$id\" ] && echo \"ARCMENU_WIN|$id|$cls|$title\"; " +
+            "done | head -n 40";
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+    }
+
+    function _parseRecentFiles(out) {
+        var lines = String(out).split("\n");
+        var files = [];
+        var hideHidden = true;
+        try {
+            if (menuData && menuData.showHiddenRecentFiles)
+                hideHidden = false;
+        } catch (e) {}
+        for (var i = 0; i < lines.length; ++i) {
+            if (lines[i].indexOf("ARCMENU_RECENT|") !== 0)
+                continue;
+            var p = lines[i].split("|");
+            var uri = (p[1] || "").trim();
+            var name = (p[2] || "").trim();
+            var mime = (p[3] || "").trim();
+            if (!uri || !name)
+                continue;
+            if (hideHidden && name.charAt(0) === ".")
+                continue;
+            var path = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : uri;
+            files.push({
+                id: "recent-file:" + uri,
+                name: name,
+                icon: mime.indexOf("image/") === 0 ? "image-x-generic"
+                    : (mime.indexOf("audio/") === 0 ? "audio-x-generic"
+                    : (mime.indexOf("video/") === 0 ? "video-x-generic"
+                    : (mime.indexOf("text/") === 0 ? "text-x-generic" : "document-open-recent"))),
+                exec: "xdg-open " + path,
+                genericName: path,
+                description: path,
+                provider: "recent-files",
+                noDisplay: false
+            });
+        }
+        root.recentFiles = files;
+        recentFilesUpdated(files);
+        if (menuData)
+            menuData.recentFileResults = files;
+    }
+
+    function _parseOpenWindows(out) {
+        var lines = String(out).split("\n");
+        var wins = [];
+        for (var i = 0; i < lines.length; ++i) {
+            if (lines[i].indexOf("ARCMENU_WIN|") !== 0)
+                continue;
+            var p = lines[i].split("|");
+            var wid = (p[1] || "").trim();
+            var cls = (p[2] || "").trim();
+            var title = (p[3] || "").trim();
+            if (!wid || !title)
+                continue;
+            wins.push({
+                id: "window:" + wid,
+                name: title,
+                icon: "preferences-system-windows",
+                exec: "wmctrl -ia " + wid,
+                genericName: cls,
+                description: cls,
+                provider: "windows",
+                noDisplay: false
+            });
+        }
+        root.openWindows = wins;
+        openWindowsUpdated(wins);
+        if (menuData)
+            menuData.openWindowResults = wins;
     }
 
     function uninstall(app) {
