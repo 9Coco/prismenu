@@ -34,11 +34,10 @@ Item {
         delegate: Components.AppListItem {
             width: appList.width
             app: model
+            menuData: root.menuData
             iconSize: root.appIconSize
             showDescription: menuData ? menuData.showSearchDescription : true
-            highlightTerms: !!(menuData && menuData.highlightSearchTerms)
-            highlightQuery: menuData ? menuData.searchQuery : ""
-            selected: appList.currentIndex === index
+            selected: !(model && model.isSection) && appList.currentIndex === index
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             hoverBg: root.hoverBg

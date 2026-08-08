@@ -6,17 +6,17 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Zest layout (ArcMenu Zest) ï¿?three columns.
+ * Zest layout (ArcMenu Zest) ï¿½?three columns.
  *
  * Left:   avatar + places/software/settings + session
  * Middle: pinned / all / categories  (controls right)
- * Right:  apps for the middle selection (Aâ€“Z when â€œallï¿?
+ * Right:  apps for the middle selection (Aâ€“Z when â€œallï¿½?
  * Search spans middle + right at the bottom
  */
 LayoutBase {
     id: root
 
-    // Middle column selection ï¿?drives right column content
+    // Middle column selection ï¿½?drives right column content
     property string selectedId: "all"
 
     readonly property bool searching: menuData ? menuData.isSearching : false
@@ -105,7 +105,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -375,6 +376,7 @@ LayoutBase {
                                        ? root.flatItems.length : 0
                                 Components.AppListItem {
                                     required property int index
+                                    menuData: menuData
                                     width: rightCol.width
                                     app: root.flatItems[index]
                                     iconSize: Math.max(root.appIconSize, 28)
@@ -392,7 +394,7 @@ LayoutBase {
                                 }
                             }
 
-                            // All apps ï¿?Aâ€“Z sections
+                            // All apps ï¿½?Aâ€“Z sections
                             Repeater {
                                 model: (!root.searching && root.selectedId === "all")
                                        ? root.azSections.length : 0
@@ -426,6 +428,7 @@ LayoutBase {
                                         model: section.apps.length
                                         Components.AppListItem {
                                             required property int index
+                                            menuData: menuData
                                             width: rightCol.width
                                             app: section.apps[index]
                                             iconSize: Math.max(root.appIconSize, 28)
@@ -472,7 +475,7 @@ LayoutBase {
             // Search under middle + right only
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

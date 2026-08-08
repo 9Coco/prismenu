@@ -1,28 +1,30 @@
 import QtQuick
+import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
 
 /**
  * Edge / corner drag handles to resize the menu popup.
- * Writes menuWidth / menuHeight through the catalog (MenuData).
+ * Writes menuWidth / menuHeight through the catalog (MenuData),
+ * and applies the same delta to the AppletPopup Dialog window when safe.
  */
 Item {
     id: root
 
     property var menuData: null
+    /** Optional: host passes fullRep.Window.window */
+    property var window: null
     property int minWidth: 400
     property int maxWidth: 900
     property int minHeight: 400
     property int maxHeight: 800
     property int handleThickness: 6
-    /** When false (e.g. Raven fill height), only horizontal edges are shown */
     property bool resizeHeight: true
 
     readonly property int loc: {
         try { return plasmoid.location; } catch (e) { return PlasmaCore.Types.BottomEdge; }
     }
-    // Prefer growing away from the panel
     readonly property bool showTop: resizeHeight && (
         loc === PlasmaCore.Types.BottomEdge
         || loc === PlasmaCore.Types.Floating
@@ -56,13 +58,26 @@ Item {
             root.menuData.setMenuHeight(root.clampH(h));
     }
 
+    /** Dialog popup only — reject only when BOTH axes look like a desktop shell. */
+    function grabPopupWindow() {
+        var w = root.window ? root.window : Window.window;
+        if (!w)
+            return null;
+        if (w.width >= Screen.width - 8 && w.height >= Screen.height - 8)
+            return null;
+        return w;
+    }
+
     component EdgeHandle: MouseArea {
         id: edge
-        property string edgeRole: "e" // n,s,e,w,se,sw,ne,nw
+        property string edgeRole: "e"
         property real pressGlobalX: 0
         property real pressGlobalY: 0
         property int pressW: 0
         property int pressH: 0
+        property real pressWinW: 0
+        property real pressWinH: 0
+        property var pressWin: null
 
         z: 50
         hoverEnabled: true
@@ -85,6 +100,11 @@ Item {
             pressGlobalY = g.y;
             pressW = root.menuData ? root.menuData.menuWidth : 620;
             pressH = root.menuData ? root.menuData.menuHeight : 540;
+            pressWin = root.grabPopupWindow();
+            if (pressWin) {
+                pressWinW = pressWin.width;
+                pressWinH = pressWin.height;
+            }
         }
         onPositionChanged: (mouse) => {
             if (!pressed || !root.menuData)
@@ -97,7 +117,6 @@ Item {
             var role = edge.edgeRole;
             var changeW = false;
             var changeH = false;
-            // Match whole tokens so "ne" is east+north, not confused with lone letters
             if (role === "e" || role === "ne" || role === "se") {
                 w = pressW + dx;
                 changeW = true;
@@ -112,11 +131,20 @@ Item {
                 h = pressH - dy;
                 changeH = true;
             }
-            root.applySize(changeW ? w : undefined, changeH ? h : undefined);
+            var nw = changeW ? root.clampW(w) : pressW;
+            var nh = changeH ? root.clampH(h) : pressH;
+            root.applySize(changeW ? nw : undefined, changeH ? nh : undefined);
+
+            // Match content delta on the Dialog (grow and shrink). Skip if no safe window.
+            if (!pressWin)
+                return;
+            if (changeW)
+                pressWin.width = Math.max(root.minWidth, pressWinW + (nw - pressW));
+            if (changeH)
+                pressWin.height = Math.max(root.minHeight, pressWinH + (nh - pressH));
         }
     }
 
-    // Edges
     EdgeHandle {
         visible: root.showTop
         edgeRole: "n"
@@ -157,8 +185,6 @@ Item {
         anchors.topMargin: root.handleThickness
         anchors.bottomMargin: root.handleThickness
     }
-
-    // Corners
     EdgeHandle {
         visible: root.showTop && root.showRight
         edgeRole: "ne"
@@ -192,7 +218,6 @@ Item {
         height: root.handleThickness * 2
     }
 
-    // Subtle affordance on the primary grow corner (bottom panel → top-right)
     Rectangle {
         z: 49
         width: Kirigami.Units.smallSpacing * 2

@@ -42,7 +42,9 @@ LayoutBase {
     }
 
     function activateShortcut(item) {
-        if (item && item.action && String(item.action).indexOf("quicklink:") === 0) {
+        if (!item || item.isSection)
+            return;
+        if (item.action && String(item.action).indexOf("quicklink:") === 0) {
             root.handleQuickLink(String(item.action).substring(10));
             return;
         }

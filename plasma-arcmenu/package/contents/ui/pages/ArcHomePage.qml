@@ -36,6 +36,7 @@ Item {
         delegate: Components.AppListItem {
             width: pinnedList.width
             app: model
+            menuData: root.menuData
             iconSize: root.iconSize
             showDescription: false
             selected: pinnedList.currentIndex === index

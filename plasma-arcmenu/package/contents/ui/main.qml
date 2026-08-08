@@ -586,8 +586,9 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: fullRep
         readonly property int hostSideWidth: host.sidePanelWidth || 0
-        Layout.minimumWidth: root.catalog.menuWidth + hostSideWidth
-        Layout.minimumHeight: root.effectiveMenuHeight
+        // Prefer follows config; mins stay at floor so Plasma / drag can shrink
+        Layout.minimumWidth: 400 + hostSideWidth
+        Layout.minimumHeight: root.isRavenLayout ? root.effectiveMenuHeight : 400
         Layout.preferredWidth: root.catalog.menuWidth + hostSideWidth
         Layout.preferredHeight: root.effectiveMenuHeight
         Layout.maximumWidth: 900 + hostSideWidth
@@ -690,6 +691,7 @@ PlasmoidItem {
             anchors.fill: parent
             z: 40
             menuData: root.catalog
+            window: fullRep.Window.window
             maxHeight: root.isRavenLayout ? 1400 : 800
             // Raven fills the screen vertically — width only
             resizeHeight: !root.isRavenLayout
@@ -774,19 +776,18 @@ PlasmoidItem {
         }
     }
 
-    // No custom contextual actions — panel right-click is swallowed by compact MouseArea
+    // Panel-button right-click is swallowed by compactRepresentation; edit mode needs Remove.
     Plasmoid.contextualActions: []
 
     Component.onCompleted: {
-        // Hide from any residual Plasma applet menu; configure stays triggerable
-        var hide = ["configure", "remove", "alternatives"];
-        for (var i = 0; i < hide.length; ++i) {
+        // Keep Configure / Remove / Alternatives available in panel edit mode.
+        var restore = ["remove", "alternatives", "configure"];
+        for (var i = 0; i < restore.length; ++i) {
             try {
-                var a = plasmoid.internalAction(hide[i]);
+                var a = plasmoid.internalAction(restore[i]);
                 if (a) {
-                    a.visible = false;
-                    if (hide[i] !== "configure")
-                        a.enabled = false;
+                    a.visible = true;
+                    a.enabled = true;
                 }
             } catch (e) {}
         }

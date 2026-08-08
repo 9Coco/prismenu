@@ -146,14 +146,27 @@ QtObject {
         }
         return out;
     }
-    readonly property int leftPanelWidth: LayoutRegistry.clampSize(cfgInt("leftPanelWidth", 380), 180, 600, 380)
-    readonly property int rightPanelWidth: LayoutRegistry.clampSize(cfgInt("rightPanelWidth", 220), 160, 360, 220)
-    readonly property int widthOffset: LayoutRegistry.clampSize(cfgInt("widthOffset", 0), -200, 400, 0)
+    // Direct plasmoidConfig.* reads so QML tracks live drag-resize writes
+    readonly property int leftPanelWidth: LayoutRegistry.clampSize(
+        (plasmoidConfig && plasmoidConfig.leftPanelWidth !== undefined && plasmoidConfig.leftPanelWidth !== null)
+            ? plasmoidConfig.leftPanelWidth : 380,
+        180, 600, 380)
+    readonly property int rightPanelWidth: LayoutRegistry.clampSize(
+        (plasmoidConfig && plasmoidConfig.rightPanelWidth !== undefined && plasmoidConfig.rightPanelWidth !== null)
+            ? plasmoidConfig.rightPanelWidth : 220,
+        160, 360, 220)
+    readonly property int widthOffset: LayoutRegistry.clampSize(
+        (plasmoidConfig && plasmoidConfig.widthOffset !== undefined && plasmoidConfig.widthOffset !== null)
+            ? plasmoidConfig.widthOffset : 0,
+        -200, 400, 0)
     /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
     readonly property int menuWidth: LayoutRegistry.clampSize(
         leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, 900, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
-    readonly property int menuHeight: LayoutRegistry.clampSize(cfgInt("menuHeight", 540), 400, 800, 540)
+    readonly property int menuHeight: LayoutRegistry.clampSize(
+        (plasmoidConfig && plasmoidConfig.menuHeight !== undefined && plasmoidConfig.menuHeight !== null)
+            ? plasmoidConfig.menuHeight : 540,
+        400, 800, 540)
     /** Places / categories side column — synced with right panel for ArcMenu-style shells */
     readonly property int sidebarWidth: LayoutRegistry.clampSize(
         cfgInt("sidebarWidth", cfgInt("rightPanelWidth", 220)), 160, 360, 220)

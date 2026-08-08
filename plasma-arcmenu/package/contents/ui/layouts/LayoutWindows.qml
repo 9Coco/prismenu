@@ -119,7 +119,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -534,6 +535,7 @@ LayoutBase {
                             model: root.searching ? root.searchItems.length : 0
                             Components.AppListItem {
                                 required property int index
+                                menuData: menuData
                                 width: listCol.width
                                 app: root.searchItems[index]
                                 iconSize: Math.max(root.appIconSize, 24)
@@ -555,6 +557,7 @@ LayoutBase {
                             model: root.searching ? 0 : root.frequentItems.length
                             Components.AppListItem {
                                 required property int index
+                                menuData: menuData
                                 width: listCol.width
                                 app: root.frequentItems[index]
                                 iconSize: Math.max(root.appIconSize, 24)
@@ -604,6 +607,7 @@ LayoutBase {
                                     model: section.apps.length
                                     Components.AppListItem {
                                         required property int index
+                                        menuData: menuData
                                         width: listCol.width
                                         app: section.apps[index]
                                         iconSize: Math.max(root.appIconSize, 24)

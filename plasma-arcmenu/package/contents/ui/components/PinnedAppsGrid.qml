@@ -10,6 +10,8 @@ GridView {
     property int iconSize: 32
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color hoverBg: selectedBg
+    property color hoverFg: selectedFg
 
     signal appActivated(var app)
     signal contextMenuRequested(var app, real x, real y)
@@ -35,7 +37,7 @@ GridView {
             width: parent.width - Kirigami.Units.smallSpacing
             height: parent.height - Kirigami.Units.smallSpacing
             radius: Kirigami.Units.smallSpacing
-            color: mouse.containsMouse ? root.selectedBg : "transparent"
+            color: mouse.containsMouse ? root.hoverBg : "transparent"
         }
 
         ColumnLayout {
@@ -56,7 +58,7 @@ GridView {
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
-                color: mouse.containsMouse ? root.selectedFg : Kirigami.Theme.textColor
+                color: mouse.containsMouse ? root.hoverFg : Kirigami.Theme.textColor
             }
         }
 

@@ -73,7 +73,8 @@ LayoutBase {
     }
 
     function activateItem(item) {
-        if (!item) return;
+        if (!item || item.isSection)
+            return;
         if (item.action === "configure") {
             if (menuData) menuData.requestConfigure();
             return;
@@ -142,7 +143,7 @@ LayoutBase {
 
                 Components.SearchField {
                     Layout.fillWidth: true
-                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                     text: menuData ? menuData.searchQuery : ""
                     onTextChanged: if (menuData) menuData.setSearch(text)
                 }
@@ -155,7 +156,7 @@ LayoutBase {
             opacity: 0.35
         }
 
-        // Middle content â€?takes all leftover height
+        // Middle content ï¿½?takes all leftover height
         Flickable {
             id: listFlick
             Layout.fillWidth: true
@@ -175,6 +176,7 @@ LayoutBase {
                     model: root.contentItems.length
                     Components.AppListItem {
                         required property int index
+                        menuData: menuData
                         width: listCol.width
                         app: root.contentItems[index]
                         iconSize: Math.max(root.appIconSize, 28)
@@ -215,7 +217,7 @@ LayoutBase {
             opacity: 0.35
         }
 
-        // Compact footer tabs â€?fixed height, never stretch
+        // Compact footer tabs ï¿½?fixed height, never stretch
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: false

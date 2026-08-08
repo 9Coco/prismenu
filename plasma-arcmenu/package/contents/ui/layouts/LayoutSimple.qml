@@ -31,6 +31,7 @@ LayoutBase {
             model: appModel
             boundsBehavior: Flickable.StopAtBounds
             delegate: Components.AppListItem {
+                menuData: menuData
                 width: appList.width
                 app: model
                 iconSize: Math.max(28, root.appIconSize)
