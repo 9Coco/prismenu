@@ -287,7 +287,7 @@
             <default>pinned,all-apps,favorites,frequent,recent-files</default>
         </entry>
         <entry name="ExtraCategoriesEnabled" type="StringList">
-            <default>pinned,all-apps</default>
+            <default>pinned</default>
         </entry>
         <!-- Button context menu items: configure|panel-settings|separator|power|overview|show-desktop|desktop:…|custom:… -->
         <entry name="ContextMenuItems" type="StringList">

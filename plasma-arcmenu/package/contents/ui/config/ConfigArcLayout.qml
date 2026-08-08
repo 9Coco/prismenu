@@ -258,9 +258,11 @@ Item {
 
                     Repeater {
                         model: root.orderedQuickLinks
-                        RowLayout {
+                        delegate: RowLayout {
+                            id: qrow
                             required property var modelData
                             required property int index
+                            readonly property string linkId: modelData && modelData.id ? String(modelData.id) : ""
                             Layout.fillWidth: true
                             spacing: Kirigami.Units.smallSpacing
 
@@ -280,20 +282,20 @@ Item {
                                 Layout.fillWidth: true
                             }
                             QQC2.Switch {
-                                checked: root.isQuickEnabled(modelData.id)
-                                onToggled: root.setQuickEnabled(modelData.id, checked)
+                                checked: root.isQuickEnabled(qrow.linkId)
+                                onToggled: root.setQuickEnabled(qrow.linkId, checked)
                             }
                             QQC2.Button {
                                 icon.name: "go-up"
                                 flat: true
-                                enabled: index > 0
-                                onClicked: root.moveQuick(index, index - 1)
+                                enabled: qrow.index > 0
+                                onClicked: root.moveQuick(qrow.index, qrow.index - 1)
                             }
                             QQC2.Button {
                                 icon.name: "go-down"
                                 flat: true
-                                enabled: index < root.orderedQuickLinks.length - 1
-                                onClicked: root.moveQuick(index, index + 1)
+                                enabled: qrow.index < root.orderedQuickLinks.length - 1
+                                onClicked: root.moveQuick(qrow.index, qrow.index + 1)
                             }
                         }
                     }

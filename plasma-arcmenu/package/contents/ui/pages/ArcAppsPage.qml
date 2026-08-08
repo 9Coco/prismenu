@@ -69,11 +69,13 @@ Item {
         var out = [];
         var i;
 
-        // Extra categories (Pinned / All Apps / Favorites / …) first
+        // Extra categories (Pinned / Favorites / …) first.
+        // Skip all-apps: the page header already is “所有应用程序” and opens the full list.
         var extras = (host && host.enabledExtraCategories) ? host.enabledExtraCategories : [];
+        var extrasShown = 0;
         for (i = 0; i < extras.length; ++i) {
             var ex = extras[i];
-            if (!ex || !ex.id)
+            if (!ex || !ex.id || ex.id === "all-apps")
                 continue;
             out.push({
                 id: ex.id,
@@ -83,6 +85,7 @@ Item {
                 appCount: 0,
                 extra: true
             });
+            extrasShown++;
         }
 
         for (i = 0; i < fromData.length; ++i) {
@@ -104,7 +107,7 @@ Item {
             });
         }
 
-        if (out.length > extras.length)
+        if (out.length > extrasShown)
             return out;
 
         var preferred = [

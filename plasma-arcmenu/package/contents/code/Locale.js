@@ -166,6 +166,7 @@ var ZH_CN = {
     "Directory Shortcuts": "目录快捷方式",
     "Application Shortcuts": "应用程序快捷方式",
     "Extra Categories": "额外类别",
+    "“All Applications” is already available from the apps page header.": "“所有应用程序”已由应用页标题提供，列表中不再重复显示。",
     "Search Options": "搜索选项",
     "Power Options": "电源选项",
     "Modify ArcMenu Context Menu": "修改 ArcMenu 上下文菜单",
