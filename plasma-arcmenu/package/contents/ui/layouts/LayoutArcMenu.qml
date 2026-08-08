@@ -6,11 +6,10 @@ import "../components" as Components
 import "../../code/CatalogBridge.js" as CatalogBridge
 
 /**
- * Official ArcMenu shell.
+ * Official ArcMenu shell — true left/right columns to the bottom edge.
  *
- * Home:  pinned left + places right + "所有应用程序"
- * Apps:  categories left + places right + "返回"
- * Bottom: search + session
+ * Left:  content | 所有应用程序/返回 | search
+ * Right: places / shortcuts | session buttons
  */
 LayoutBase {
     id: root
@@ -116,107 +115,115 @@ LayoutBase {
         }
     }
 
-    ColumnLayout {
+    // Single RowLayout: columns run full height (search under left, power under right)
+    RowLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.smallSpacing
+        spacing: Kirigami.Units.largeSpacing
+        layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
-        RowLayout {
+        // ---- LEFT column ----
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            spacing: Kirigami.Units.largeSpacing
-            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 14
+            spacing: Kirigami.Units.smallSpacing
 
-            // ---- LEFT ----
-            ColumnLayout {
+            Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.minimumWidth: Kirigami.Units.gridUnit * 14
-                spacing: Kirigami.Units.smallSpacing
 
-                Item {
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                    Components.PinnedAppsList {
-                        anchors.fill: parent
-                        visible: root.activePageId === "home"
-                        enabled: visible
-                        z: visible ? 2 : 0
-                        menuData: root.menuData
-                        apps: menuData ? menuData.pinnedApps : []
-                        iconSize: Math.max(root.appIconSize, 28)
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        fg: root.fg
-                        onAppActivated: (app) => root.activateShortcut(app)
-                        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
-                    }
-
-                    // Always loaded so first click is instant / no import issues
-                    Loader {
-                        id: appsLoader
-                        anchors.fill: parent
-                        visible: root.activePageId === "apps"
-                        enabled: true
-                        z: visible ? 2 : 0
-                        active: true
-                        asynchronous: false
-                        source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
-                        onLoaded: root.wirePage(appsLoader)
-                        onStatusChanged: {
-                            if (status === Loader.Error)
-                                console.error("ArcMenu: failed to load ArcAppsPage", source);
-                        }
-                    }
-
-                    Loader {
-                        id: searchLoader
-                        anchors.fill: parent
-                        visible: root.activePageId === "search"
-                        enabled: visible
-                        z: visible ? 2 : 0
-                        active: true
-                        asynchronous: false
-                        source: Qt.resolvedUrl("../pages/ArcSearchPage.qml")
-                        onLoaded: root.wirePage(searchLoader)
-                    }
-                }
-
-                Kirigami.Separator {
-                    Layout.fillWidth: true
-                    opacity: 0.35
-                }
-
-                Components.AllAppsButton {
-                    id: allAppsBtn
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-                    z: 2
+                Components.PinnedAppsList {
+                    anchors.fill: parent
+                    visible: root.activePageId === "home"
+                    enabled: visible
+                    z: visible ? 2 : 0
                     menuData: root.menuData
-                    iconSize: Math.max(root.appIconSize, 24)
-                    showBack: root.activePageId === "apps" || root.activePageId === "search"
-                    highlighted: false
+                    apps: menuData ? menuData.pinnedApps : []
+                    iconSize: Math.max(root.appIconSize, 28)
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
                     fg: root.fg
-                    onClicked: {
-                        console.log("ArcMenu AllAppsButton click, page=", root.activePageId, "showingApps=", root.showingApps);
-                        if (root.activePageId === "home") {
-                            root.openAppsPage();
-                        } else {
-                            root.handleBack();
-                        }
+                    onAppActivated: (app) => root.activateShortcut(app)
+                    onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                }
+
+                Loader {
+                    id: appsLoader
+                    anchors.fill: parent
+                    visible: root.activePageId === "apps"
+                    enabled: true
+                    z: visible ? 2 : 0
+                    active: true
+                    asynchronous: false
+                    source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
+                    onLoaded: root.wirePage(appsLoader)
+                    onStatusChanged: {
+                        if (status === Loader.Error)
+                            console.error("ArcMenu: failed to load ArcAppsPage", source);
+                    }
+                }
+
+                Loader {
+                    id: searchLoader
+                    anchors.fill: parent
+                    visible: root.activePageId === "search"
+                    enabled: visible
+                    z: visible ? 2 : 0
+                    active: true
+                    asynchronous: false
+                    source: Qt.resolvedUrl("../pages/ArcSearchPage.qml")
+                    onLoaded: root.wirePage(searchLoader)
+                }
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                opacity: 0.35
+            }
+
+            Components.AllAppsButton {
+                id: allAppsBtn
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
+                z: 2
+                menuData: root.menuData
+                iconSize: Math.max(root.appIconSize, 24)
+                showBack: root.activePageId === "apps" || root.activePageId === "search"
+                highlighted: false
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                fg: root.fg
+                onClicked: {
+                    console.log("ArcMenu AllAppsButton click, page=", root.activePageId, "showingApps=", root.showingApps);
+                    if (root.activePageId === "home") {
+                        root.openAppsPage();
+                    } else {
+                        root.handleBack();
                     }
                 }
             }
 
-            // ---- RIGHT ----
+            Components.SearchField {
+                Layout.fillWidth: true
+                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+        }
+
+        // ---- RIGHT column ----
+        ColumnLayout {
+            Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.36)
+            Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+            Layout.fillHeight: true
+            Layout.fillWidth: false
+            spacing: Kirigami.Units.smallSpacing
+
             Components.PlacesSidebar {
-                Layout.preferredWidth: Math.max(Kirigami.Units.gridUnit * 11, parent.width * 0.36)
-                Layout.maximumWidth: Kirigami.Units.gridUnit * 16
+                Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.fillWidth: false
                 menuData: root.menuData
                 iconSize: root.categoryIconSize
                 selectedBg: root.selectedBg
@@ -226,21 +233,10 @@ LayoutBase {
                 onItemActivated: (item) => root.activateShortcut(item)
                 onItemContextMenu: (item, x, y) => root.appContextMenu(item, x, y)
             }
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            spacing: Kirigami.Units.largeSpacing
-            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
-
-            Components.SearchField {
-                Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
-            }
 
             Components.SessionButtons {
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
                 menuData: root.menuData
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)
