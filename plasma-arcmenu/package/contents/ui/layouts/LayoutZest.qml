@@ -132,15 +132,16 @@ LayoutBase {
     RowLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
-        spacing: Kirigami.Units.largeSpacing
+        spacing: 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
         // ---- 1. Left: avatar / places / session ----
         ColumnLayout {
             Layout.fillHeight: true
             Layout.fillWidth: false
-            Layout.preferredWidth: Kirigami.Units.gridUnit * 11
-            Layout.maximumWidth: Kirigami.Units.gridUnit * 13
+            Layout.preferredWidth: root.sidebarW
+            Layout.minimumWidth: root.sidebarMin
+            Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing
 
             ColumnLayout {
@@ -237,6 +238,19 @@ LayoutBase {
             }
         }
 
+        Components.ColumnSplitHandle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: implicitWidth
+            z: 5
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: false
+            flipped: root.flip
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
+        }
+
         // ---- Middle + right + shared search ----
         ColumnLayout {
             Layout.fillWidth: true
@@ -246,13 +260,15 @@ LayoutBase {
             RowLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                spacing: Kirigami.Units.largeSpacing
+                spacing: 0
+                layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
                 // ---- 2. Middle: controls right content ----
                 Flickable {
                     id: midFlick
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 12
-                    Layout.maximumWidth: Kirigami.Units.gridUnit * 14
+                    Layout.preferredWidth: root.categoryColW
+                    Layout.minimumWidth: root.sidebarMin
+                    Layout.maximumWidth: root.sidebarMax
                     Layout.fillHeight: true
                     Layout.fillWidth: false
                     contentWidth: width
@@ -310,6 +326,19 @@ LayoutBase {
                             }
                         }
                     }
+                }
+
+                Components.ColumnSplitHandle {
+                    Layout.fillHeight: true
+                    Layout.preferredWidth: implicitWidth
+                    z: 5
+                    fg: root.fg
+                    currentWidth: root.categoryColW
+                    minWidth: root.sidebarMin
+                    maxWidth: root.sidebarMax
+                    sidebarOnRight: false
+                    flipped: root.flip
+                    onWidthDragged: (w) => root.setCategoryColumnFromDrag(w)
                 }
 
                 // ---- 3. Right: content for middle selection ----

@@ -4,7 +4,6 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
 import "../../code/CatalogBridge.js" as CatalogBridge
-import "../../code/LayoutRegistry.js" as LayoutRegistry
 
 /**
  * Official ArcMenu shell — true left/right columns to the bottom edge.
@@ -38,14 +37,6 @@ LayoutBase {
         }
         return opts;
     }
-
-    readonly property int sidebarW: {
-        if (menuData && menuData.sidebarWidth)
-            return menuData.sidebarWidth;
-        return 220;
-    }
-    readonly property int sidebarMin: 160
-    readonly property int sidebarMax: 360
 
     function activateShortcut(item) {
         root.activateItem(item);
@@ -123,12 +114,6 @@ LayoutBase {
                     menuData.navigateTo("home");
             }
         }
-    }
-
-    function setSidebarFromDrag(w) {
-        var clamped = LayoutRegistry.clampSize(w, root.sidebarMin, root.sidebarMax, 220);
-        if (menuData && menuData.setSidebarWidth)
-            menuData.setSidebarWidth(clamped);
     }
 
     // Single RowLayout: columns run full height (search under left, power under right)
@@ -230,52 +215,17 @@ LayoutBase {
             }
         }
 
-        // ---- Drag handle between columns ----
-        Item {
-            id: splitHandle
+        Components.ColumnSplitHandle {
             Layout.fillHeight: true
-            Layout.preferredWidth: Kirigami.Units.smallSpacing * 2
-            Layout.minimumWidth: Kirigami.Units.smallSpacing * 2
+            Layout.preferredWidth: implicitWidth
             z: 5
-
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.verticalCenter: parent.verticalCenter
-                width: 2
-                height: Math.min(parent.height * 0.35, Kirigami.Units.gridUnit * 4)
-                radius: 1
-                color: root.fg
-                opacity: splitMouse.containsMouse || splitMouse.pressed ? 0.55 : 0.22
-                Behavior on opacity { NumberAnimation { duration: Kirigami.Units.shortDuration } }
-            }
-
-            MouseArea {
-                id: splitMouse
-                anchors.fill: parent
-                anchors.leftMargin: -2
-                anchors.rightMargin: -2
-                hoverEnabled: true
-                cursorShape: Qt.SplitHCursor
-                preventStealing: true
-                property real pressGlobalX: 0
-                property int pressSidebar: 220
-
-                onPressed: (mouse) => {
-                    var g = mapToGlobal(mouse.x, mouse.y);
-                    pressGlobalX = g.x;
-                    pressSidebar = root.sidebarW;
-                }
-                onPositionChanged: (mouse) => {
-                    if (!pressed)
-                        return;
-                    var g = mapToGlobal(mouse.x, mouse.y);
-                    var dx = g.x - pressGlobalX;
-                    // LTR: sidebar on the right → drag handle left grows sidebar
-                    // RTL (flip): sidebar on the left → drag handle right grows sidebar
-                    var next = root.flip ? (pressSidebar + dx) : (pressSidebar - dx);
-                    root.setSidebarFromDrag(next);
-                }
-            }
+            fg: root.fg
+            currentWidth: root.sidebarW
+            minWidth: root.sidebarMin
+            maxWidth: root.sidebarMax
+            sidebarOnRight: true
+            flipped: root.flip
+            onWidthDragged: (w) => root.setSidebarFromDrag(w)
         }
 
         // ---- RIGHT column ----
