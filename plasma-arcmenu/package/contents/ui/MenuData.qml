@@ -334,12 +334,12 @@ QtObject {
      * XDG user dirs + Plasma equivalents of ArcMenu Places / Extra Shortcuts.
      */
     readonly property var places: [
-        { id: "place-home", name: root.tr("Home"), icon: "user-home", exec: "xdg-open $HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
-        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", exec: "xdg-open xdg:Documents", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
-        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", exec: "xdg-open xdg:Download", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
-        { id: "place-music", name: root.tr("Music"), icon: "folder-music", exec: "xdg-open xdg:Music", categories: ["Places"], keywords: [], genericName: root.tr("Music"), noDisplay: false },
-        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", exec: "xdg-open xdg:Pictures", categories: ["Places"], keywords: [], genericName: root.tr("Pictures"), noDisplay: false },
-        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", exec: "xdg-open xdg:Videos", categories: ["Places"], keywords: [], genericName: root.tr("Videos"), noDisplay: false }
+        { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
+        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
+        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
+        { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC", categories: ["Places"], keywords: [], genericName: root.tr("Music"), noDisplay: false },
+        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES", categories: ["Places"], keywords: [], genericName: root.tr("Pictures"), noDisplay: false },
+        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS", categories: ["Places"], keywords: [], genericName: root.tr("Videos"), noDisplay: false }
     ]
 
     readonly property var systemShortcuts: [
