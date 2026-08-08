@@ -98,9 +98,9 @@ Item {
                     fg: root.fg
                     onActivated: root.appActivated(modelData)
                     onContextMenuRequested: (x, y) => {
-                        if (modelData && !modelData.action) {
+                        // Allow unpin / actions even for ArcMenu Settings (action: configure)
+                        if (modelData)
                             root.appContextMenu(modelData, x, y);
-                        }
                     }
                 }
             }

@@ -18,6 +18,7 @@ ColumnLayout {
 
     signal userClicked()
     signal itemActivated(var item)
+    signal itemContextMenu(var item, real x, real y)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
 
@@ -189,6 +190,7 @@ ColumnLayout {
             selectedFg: root.selectedFg
             fg: root.fg
             onActivated: root.itemActivated(modelData)
+            onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)
         }
     }
 
