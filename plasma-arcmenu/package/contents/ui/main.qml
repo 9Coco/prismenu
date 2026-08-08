@@ -7,6 +7,7 @@ import org.kde.plasma.core as PlasmaCore
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.extras as PlasmaExtras
 import org.kde.kirigami as Kirigami
+import org.kde.coreaddons as KCoreAddons
 import "../code/Distro.js" as Distro
 import "../code/LayoutRegistry.js" as LayoutRegistry
 import "../code/Theme.js" as ThemeHelper
@@ -26,6 +27,33 @@ PlasmoidItem {
 
     property bool menuOpen: false
     property string lastLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+
+    // Plasma Kickoff uses the same API for avatar + display name
+    KCoreAddons.KUser {
+        id: kuser
+    }
+
+    function applyKUserMeta() {
+        var name = kuser.loginName || kuser.fullName || "";
+        if (name)
+            menuData.userName = name;
+        var face = "";
+        try {
+            face = String(kuser.faceIconUrl || "");
+        } catch (e) {}
+        if (face.length > 8)
+            menuData.userIcon = face;
+        if (kuser.os)
+            menuData.osPrettyName = kuser.os;
+        console.log("ArcMenu KUser:", name, face);
+    }
+
+    onExpandedChanged: {
+        if (expanded) {
+            root.applyKUserMeta();
+            backend.refreshUserMeta();
+        }
+    }
 
     /**
      * fullRepresentation / compactRepresentation often cannot see sibling ids.
@@ -66,11 +94,17 @@ PlasmoidItem {
         onMetaUpdated: (userName, userIcon, osId, osPretty) => {
             if (userName)
                 menuData.userName = userName;
-            menuData.userIcon = userIcon || menuData.userIcon;
+            // Prefer resolved face file; don't wipe KUser face with bare fallback icon
+            if (userIcon && userIcon !== "user-identity")
+                menuData.userIcon = userIcon;
             if (osId)
                 menuData.osReleaseId = osId;
             if (osPretty)
                 menuData.osPrettyName = osPretty;
+        }
+        Component.onCompleted: {
+            root.applyKUserMeta();
+            refreshUserMeta();
         }
         onScanFailed: (message) => {
             console.warn("ArcMenu: Kicker catalog failed:", message);
@@ -262,7 +296,8 @@ PlasmoidItem {
                 contextMenu.popup();
             }
             onPowerAction: (id) => root.handlePower(id)
-            onUserMenu: root.handlePower("switchuser")
+            // ArcMenu "User" → System Settings → Users (not switch-user dialog)
+            onUserMenu: root.handlePower("accountsettings")
         }
 
         Components.AppContextMenu {
@@ -337,13 +372,8 @@ PlasmoidItem {
         }
     }
 
-    // Contextual actions (layout switching is only in Configure → Menu Layout)
+    // Plasma already provides "Configure…" — only add extras here
     Plasmoid.contextualActions: [
-        PlasmaCore.Action {
-            text: menuData.tr("Configure Arc Menu…")
-            icon.name: "configure"
-            onTriggered: plasmoid.internalAction("configure").trigger()
-        },
         PlasmaCore.Action {
             text: menuData.tr("Clear Recent Applications")
             icon.name: "edit-clear-history"

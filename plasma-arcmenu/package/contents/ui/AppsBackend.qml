@@ -48,12 +48,36 @@ Item {
         "Power / Session": true, "Leave": true, "会话": true
     })
 
-    // Launch / power only (not used for catalog)
+    // Launch / power / user-meta probes
     P5Support.DataSource {
         id: exec
         engine: "executable"
         connectedSources: []
-        onNewData: (sourceName, data) => { disconnectSource(sourceName); }
+        onNewData: (sourceName, data) => {
+            try {
+                var out = String((data && data.stdout) ? data.stdout : "");
+                var idx = out.indexOf("ARCMENU_META|");
+                if (idx >= 0) {
+                    var line = out.substring(idx).split("\n")[0];
+                    var p = line.split("|");
+                    var u = (p[1] || "").trim();
+                    var iconPath = (p[2] || "").trim();
+                    var osId = (p[3] || "").trim();
+                    var osPretty = (p[4] || "").trim();
+                    var iconSrc = "user-identity";
+                    if (iconPath.length) {
+                        iconSrc = iconPath.indexOf("file:") === 0
+                            ? iconPath
+                            : ("file://" + iconPath);
+                    }
+                    console.log("ArcMenu user meta:", u, iconSrc);
+                    metaUpdated(u, iconSrc, osId, osPretty);
+                }
+            } catch (e) {
+                console.warn("ArcMenu meta parse failed:", e);
+            }
+            disconnectSource(sourceName);
+        }
     }
 
     Kicker.RootModel {
@@ -371,10 +395,41 @@ Item {
             scanFailed(lastScanError);
             scheduleRebuild();
         }
-        // User meta (best-effort, independent of catalog)
-        try {
-            metaUpdated("", "user-identity", "", "");
-        } catch (e2) {}
+        refreshUserMeta();
+    }
+
+    /**
+     * Resolve login name + face image like Plasma Kickoff / System Settings → Users.
+     * Prefer ~/.face.icon (Qt-friendly); stage AccountsService icons as .png when needed
+     * (raw /var/lib/AccountsService/icons/$USER often fails QML Image decode).
+     */
+    function refreshUserMeta() {
+        // Delimiter | (tabs break under shellQuote single-quotes)
+        var script = [
+            'u=$(id -un 2>/dev/null || whoami)',
+            'icon=""',
+            'for f in "$HOME/.face.icon" "$HOME/.face" "/var/lib/AccountsService/icons/$u.png" "/var/lib/AccountsService/icons/$u.jpg" "/var/lib/AccountsService/icons/$u"; do',
+            '  if [ -f "$f" ] && [ -s "$f" ]; then icon="$f"; break; fi',
+            'done',
+            'if [ -n "$icon" ]; then',
+            '  base=$(basename "$icon")',
+            '  case "$base" in',
+            '    *.*) ;;',
+            '    *)',
+            '      cache="${XDG_CACHE_HOME:-$HOME/.cache}/plasma-arcmenu"',
+            '      mkdir -p "$cache"',
+            '      staged="$cache/face.png"',
+            '      if [ ! -f "$staged" ] || [ "$icon" -nt "$staged" ]; then cp -f "$icon" "$staged" 2>/dev/null || true; fi',
+            '      [ -s "$staged" ] && icon="$staged"',
+            '      ;;',
+            '  esac',
+            'fi',
+            'osid=""; osp="";',
+            'if [ -r /etc/os-release ]; then . /etc/os-release; osid="${ID:-}"; osp="${PRETTY_NAME:-}"; fi',
+            'printf "ARCMENU_META|%s|%s|%s|%s\\n" "$u" "$icon" "$osid" "$osp"'
+        ].join("\n");
+        console.log("ArcMenu refreshUserMeta");
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
     }
 
     /**
@@ -459,6 +514,12 @@ Item {
         }
     }
 
+    function runShell(cmd) {
+        // Executable data engine needs a single program; args / || / $VAR need bash
+        console.log("ArcMenu: shell", cmd);
+        exec.connectSource("/bin/bash -lc " + shellQuote(cmd));
+    }
+
     function runPower(actionId, softwareCenterCmd) {
         var discover = (softwareCenterCmd && softwareCenterCmd !== "auto-detect")
             ? softwareCenterCmd
@@ -473,12 +534,16 @@ Item {
             "settings": "systemsettings",
             "discover": discover,
             "switchuser": "qdbus org.kde.ksmserver /KSMServer openSwitchUserDialog || dm-tool switch-to-greeter",
-            "accountsettings": "systemsettings kcm_users",
+            // ArcMenu User button → System Settings → Users
+            "accountsettings": "systemsettings kcm_users || kcmshell6 kcm_users || plasma-open-settings kcm_users || systemsettings",
             "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview"
         };
         var cmd = map[actionId];
-        if (cmd)
-            exec.connectSource(cmd);
+        if (!cmd) {
+            console.warn("ArcMenu: unknown power action", actionId);
+            return;
+        }
+        runShell(cmd);
     }
 
     function addDesktopShortcut(app) {

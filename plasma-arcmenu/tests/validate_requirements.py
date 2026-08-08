@@ -128,13 +128,14 @@ def main() -> int:
 
     config_pages = [
         "ConfigGeneral.qml", "ConfigLayout.qml", "LayoutPreview.qml", "ConfigTheme.qml",
-        "ConfigContent.qml", "ConfigSearch.qml", "ConfigPower.qml", "ConfigAbout.qml",
+        "ConfigContent.qml", "ConfigSearch.qml", "ConfigPower.qml",
     ]
     for page in config_pages:
         check((PKG / "contents/ui/config" / page).exists(), f"settings page: {page}")
 
     config_model = (PKG / "contents/config/config.qml").read_text()
-    for label in ["General", "Menu Layout", "Theme & Appearance", "Menu Content", "Search", "System Actions", "About"]:
+    # "About" comes from Plasma metadata, not a custom ConfigCategory
+    for label in ["General", "Menu Layout", "Theme & Appearance", "Menu Content", "Search", "System Actions"]:
         check(label in config_model, f"settings category: {label}")
 
     components = [
