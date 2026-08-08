@@ -184,8 +184,6 @@ Item {
     }
 
     function categoryTitle() {
-        // Always keep "All Applications" as the clickable header label
-        // (category name is clear from the list context / back target)
         if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
             return Locale.tr("All Applications", root.uiLang);
         var cats = root.categoryItems;
@@ -196,28 +194,51 @@ Item {
         return Locale.tr("All Applications", root.uiLang);
     }
 
+    function categoryHeaderIcon() {
+        // Only the category-list / all-apps views use the grid "all apps" icon
+        if (root.showingCategories || root.drillCategoryId === "all" || root.drillCategoryId.length === 0)
+            return "view-app-grid-symbolic";
+        var cats = root.categoryItems;
+        for (var i = 0; i < cats.length; ++i) {
+            if (cats[i].id === root.drillCategoryId)
+                return cats[i].icon || "applications-other";
+        }
+        return "applications-other";
+    }
+
     ColumnLayout {
         anchors.fill: parent
         spacing: 0
 
-        // Header: click "所有应用程序" → list every app (GNOME ArcMenu)
+        // Header: category list → open all apps; drilled view → click title to go up.
         Item {
             id: appsHeader
             Layout.fillWidth: true
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-            Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
+            Layout.preferredHeight: Kirigami.Units.gridUnit * 2.0
+            Layout.bottomMargin: Kirigami.Units.smallSpacing
 
-            readonly property bool headerClickable: root.showingCategories
-                || root.drillCategoryId !== "all"
+            readonly property bool drilled: !root.showingCategories
+            readonly property bool inCategory: drilled
+                && root.drillCategoryId.length > 0
+                && root.drillCategoryId !== "all"
+            readonly property bool headerClickable: true
             readonly property bool headerActive: root.drillCategoryId === "all"
-            readonly property bool headerHot: headerMouse.containsMouse || headerActive
+            readonly property bool headerHot: headerMouse.containsMouse
+                || (!drilled && headerActive)
 
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
                 radius: Kirigami.Units.smallSpacing
-                color: appsHeader.headerHot ? root.selectedBg : "transparent"
-                opacity: appsHeader.headerHot ? 1 : 0
+                color: {
+                    if (appsHeader.headerHot)
+                        return root.selectedBg;
+                    // Soft band so drilled titles don't look like another app row
+                    if (appsHeader.drilled)
+                        return Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08);
+                    return "transparent";
+                }
+                opacity: 1
             }
 
             RowLayout {
@@ -227,17 +248,29 @@ Item {
                 spacing: Kirigami.Units.smallSpacing
 
                 Kirigami.Icon {
-                    source: "view-app-grid-symbolic"
-                    Layout.preferredWidth: Math.max(root.categoryIconSize, 24)
-                    Layout.preferredHeight: Math.max(root.categoryIconSize, 24)
+                    visible: appsHeader.drilled
+                    source: "go-previous-symbolic"
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
                     color: appsHeader.headerHot ? root.selectedFg : root.fg
+                    opacity: appsHeader.headerHot ? 1 : 0.75
+                }
+
+                Components.ResolvedIcon {
+                    iconName: root.categoryHeaderIcon()
+                    tintColor: appsHeader.headerHot ? root.selectedFg : root.fg
+                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                    opacity: appsHeader.headerHot ? 1 : (appsHeader.drilled ? 0.9 : 1)
                 }
 
                 PlasmaComponents.Label {
                     Layout.fillWidth: true
                     text: root.categoryTitle()
                     elide: Text.ElideRight
-                    font.weight: Font.Medium
+                    font.weight: Font.DemiBold
+                    font.pointSize: Kirigami.Theme.defaultFont.pointSize * 0.95
+                    opacity: appsHeader.headerHot ? 1 : (appsHeader.drilled ? 0.85 : 1)
                     color: appsHeader.headerHot ? root.selectedFg : root.fg
                 }
             }
@@ -246,12 +279,15 @@ Item {
                 id: headerMouse
                 anchors.fill: parent
                 hoverEnabled: true
-                cursorShape: appsHeader.headerClickable ? Qt.PointingHandCursor : Qt.ArrowCursor
-                enabled: appsHeader.headerClickable
-                Accessible.name: Locale.tr("All Applications", root.uiLang)
+                cursorShape: Qt.PointingHandCursor
+                Accessible.name: appsHeader.drilled
+                    ? (Locale.tr("Back", root.uiLang) + " — " + root.categoryTitle())
+                    : Locale.tr("All Applications", root.uiLang)
                 Accessible.role: Accessible.Button
                 onClicked: {
-                    if (root.drillCategoryId !== "all")
+                    if (appsHeader.drilled)
+                        root.goBackToCategories();
+                    else
                         root.openCategory("all");
                 }
             }
@@ -259,9 +295,8 @@ Item {
 
         Kirigami.Separator {
             Layout.fillWidth: true
-            visible: root.showingCategories
-            opacity: 0.35
-            Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
+            opacity: 0.4
+            Layout.bottomMargin: Kirigami.Units.smallSpacing
         }
 
         // Category list
