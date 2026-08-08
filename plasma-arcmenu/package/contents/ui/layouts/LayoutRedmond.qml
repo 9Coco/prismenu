@@ -56,7 +56,7 @@ LayoutBase {
 
     readonly property var gridItems: {
         if (root.searching) {
-            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
+            return (menuData && menuData.searchResultsFlat) ? menuData.searchResultsFlat : [];
         }
         if (root.showPinned) {
             var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];

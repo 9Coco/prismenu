@@ -639,27 +639,43 @@ QtObject {
         var _rf = recentFilesEpoch;
         var _rr = runnerResults;
         var q = searchQuery.trim();
+        var trFn = function (m) { return root.tr(m); };
         // Plasma Search (RunnerModel) first — Kickoff path
         var runners = runnerResults || [];
+        var merged;
         if (runners.length) {
             var extrasR = [];
             if (searchRecentFiles)
                 extrasR = extrasR.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
             if (searchWindows)
                 extrasR = extrasR.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
-            return SearchExtras.mergeSearchResults(runners, extrasR, maxSearchResults);
+            merged = SearchExtras.mergeSearchResults(runners, extrasR, maxSearchResults);
+        } else {
+            // Fallback: in-memory app filter
+            var appCap = Math.max(maxSearchResults * 2, maxSearchResults + 8);
+            var apps = AppsModel.searchApps(allApps, q, appCap);
+            var extras = [];
+            if (searchRecentFiles) {
+                extras = extras.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
+            }
+            if (searchWindows) {
+                extras = extras.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
+            }
+            merged = SearchExtras.mergeSearchResults(apps, extras, maxSearchResults);
         }
-        // Fallback: in-memory app filter
-        var appCap = Math.max(maxSearchResults * 2, maxSearchResults + 8);
-        var apps = AppsModel.searchApps(allApps, q, appCap);
-        var extras = [];
-        if (searchRecentFiles) {
-            extras = extras.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
+        // ArcMenu-style section headers (Applications / Files / Windows / …)
+        return SearchExtras.groupSearchResults(merged, maxSearchResults, trFn);
+    }
+
+    /** Same as searchResults but without section header rows (for AppGrid layouts). */
+    readonly property var searchResultsFlat: {
+        var g = root.searchResults || [];
+        var out = [];
+        for (var i = 0; i < g.length; ++i) {
+            if (g[i] && !g[i].isSection)
+                out.push(g[i]);
         }
-        if (searchWindows) {
-            extras = extras.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
-        }
-        return SearchExtras.mergeSearchResults(apps, extras, maxSearchResults);
+        return out;
     }
 
     readonly property string buttonIcon: {
