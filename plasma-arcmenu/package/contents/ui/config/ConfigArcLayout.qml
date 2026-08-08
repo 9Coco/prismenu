@@ -28,13 +28,8 @@ Item {
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
-    function tr(msgid) {
-        return Locale.tr(msgid, uiLang);
-    }
-
-    function writeLive(key, value) {
-        try { plasmoid.configuration[key] = value; } catch (e) {}
-    }
+    function tr(msgid) { return Locale.tr(msgid, uiLang); }
+    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
 
     readonly property var defaultQuickOrder: ["favorites", "frequent", "all-apps", "pinned", "recent-files"]
 
@@ -89,227 +84,125 @@ Item {
         writeLive("quickLinksOrder", order);
     }
 
-    component ToggleRow: RowLayout {
-        id: trow
-        property string label: ""
-        property bool checked: false
-        signal toggled(bool on)
-        Layout.fillWidth: true
-        QQC2.Label { text: trow.label; Layout.fillWidth: true }
-        QQC2.Switch {
-            checked: trow.checked
-            onToggled: trow.toggled(checked)
-        }
-    }
+    ConfigPage {
+        title: root.tr("ArcMenu layout adjustment")
+        tip: root.tr("Settings specific to the current menu layout")
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
-
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label {
-                text: root.tr("ArcMenu layout adjustment")
-                font.bold: true
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: mainCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: mainCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label {
-                            text: root.tr("“All Applications” button action")
-                            Layout.fillWidth: true
-                            wrapMode: Text.WordWrap
-                        }
-                        QQC2.ComboBox {
-                            model: [root.tr("Category list"), root.tr("All applications")]
-                            Component.onCompleted: currentIndex = cfg_AllAppsButtonAction === "all-apps" ? 1 : 0
-                            onActivated: {
-                                cfg_AllAppsButtonAction = currentIndex === 1 ? "all-apps" : "category-list";
-                                writeLive("allAppsButtonAction", cfg_AllAppsButtonAction);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    ToggleRow {
-                        label: root.tr("Show user avatar")
-                        checked: cfg_ShowUserAvatar
-                        onToggled: (on) => { cfg_ShowUserAvatar = on; writeLive("showUserAvatar", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Avatar shape"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: [root.tr("Circle"), root.tr("Square"), root.tr("Rounded square")]
-                            property var keys: ["circle", "square", "rounded"]
-                            Component.onCompleted: {
-                                var i = keys.indexOf(cfg_AvatarShape || "circle");
-                                currentIndex = i >= 0 ? i : 0;
-                            }
-                            onActivated: {
-                                cfg_AvatarShape = keys[currentIndex];
-                                writeLive("avatarShape", cfg_AvatarShape);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Search bar location"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            model: [root.tr("Top"), root.tr("Bottom")]
-                            Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
-                            onActivated: {
-                                cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
-                                writeLive("searchbarLocation", cfg_SearchbarLocation);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    ToggleRow {
-                        label: root.tr("Flip layout horizontally")
-                        checked: cfg_FlipHorizontal
-                        onToggled: (on) => { cfg_FlipHorizontal = on; writeLive("flipHorizontal", on); }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    ToggleRow {
-                        label: root.tr("Vertical separator")
-                        checked: cfg_ShowVerticalSeparator
-                        onToggled: (on) => { cfg_ShowVerticalSeparator = on; writeLive("showVerticalSeparator", on); }
+        ConfigGroup {
+            title: root.tr("Layout")
+            ConfigSettingRow {
+                title: root.tr("“All Applications” button action")
+                iconName: "view-app-grid-symbolic"
+                accent: "blue"
+                QQC2.ComboBox {
+                    model: [root.tr("Category list"), root.tr("All applications")]
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    Component.onCompleted: currentIndex = cfg_AllAppsButtonAction === "all-apps" ? 1 : 0
+                    onActivated: {
+                        cfg_AllAppsButtonAction = currentIndex === 1 ? "all-apps" : "category-list";
+                        writeLive("allAppsButtonAction", cfg_AllAppsButtonAction);
                     }
                 }
             }
-
-            QQC2.Label {
-                text: root.tr("Extra shortcuts")
-                font.bold: true
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Show user avatar")
+                iconName: "user-identity"
+                accent: "purple"
+                QQC2.Switch {
+                    checked: cfg_ShowUserAvatar
+                    onToggled: { cfg_ShowUserAvatar = checked; writeLive("showUserAvatar", checked); }
+                }
             }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: extraCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: extraCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    ToggleRow {
-                        label: root.tr("External devices")
-                        checked: cfg_ShowExternalDevices
-                        onToggled: (on) => { cfg_ShowExternalDevices = on; writeLive("showExternalDevices", on); }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Avatar shape")
+                iconName: "draw-circle"
+                accent: "teal"
+                QQC2.ComboBox {
+                    model: [root.tr("Circle"), root.tr("Square"), root.tr("Rounded square")]
+                    property var keys: ["circle", "square", "rounded"]
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    Component.onCompleted: {
+                        var i = keys.indexOf(cfg_AvatarShape || "circle");
+                        currentIndex = i >= 0 ? i : 0;
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    ToggleRow {
-                        label: root.tr("Bookmarks")
-                        checked: cfg_ShowBookmarks
-                        onToggled: (on) => { cfg_ShowBookmarks = on; writeLive("showBookmarks", on); }
+                    onActivated: {
+                        cfg_AvatarShape = keys[currentIndex];
+                        writeLive("avatarShape", cfg_AvatarShape);
                     }
                 }
             }
-
-            QQC2.Label {
-                text: root.tr("Category quick links")
-                font.bold: true
-            }
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.65
-                text: root.tr("Display a category on the default menu view.")
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: quickCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: quickCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: root.orderedQuickLinks
-                        delegate: RowLayout {
-                            id: qrow
-                            required property var modelData
-                            required property int index
-                            readonly property string linkId: modelData && modelData.id ? String(modelData.id) : ""
-                            Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Kirigami.Icon {
-                                source: "transform-move"
-                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                                opacity: 0.45
-                            }
-                            Kirigami.Icon {
-                                source: modelData.icon
-                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            }
-                            QQC2.Label {
-                                text: modelData.name
-                                Layout.fillWidth: true
-                            }
-                            QQC2.Switch {
-                                checked: root.isQuickEnabled(qrow.linkId)
-                                onToggled: root.setQuickEnabled(qrow.linkId, checked)
-                            }
-                            QQC2.Button {
-                                icon.name: "go-up"
-                                flat: true
-                                enabled: qrow.index > 0
-                                onClicked: root.moveQuick(qrow.index, qrow.index - 1)
-                            }
-                            QQC2.Button {
-                                icon.name: "go-down"
-                                flat: true
-                                enabled: qrow.index < root.orderedQuickLinks.length - 1
-                                onClicked: root.moveQuick(qrow.index, qrow.index + 1)
-                            }
-                        }
-                    }
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                QQC2.Label {
-                    text: root.tr("Quick link position")
-                    Layout.fillWidth: true
-                }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Search bar location")
+                iconName: "edit-find"
+                accent: "orange"
                 QQC2.ComboBox {
                     model: [root.tr("Top"), root.tr("Bottom")]
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                    Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
+                    onActivated: {
+                        cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
+                        writeLive("searchbarLocation", cfg_SearchbarLocation);
+                    }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Flip layout horizontally")
+                iconName: "object-flip-horizontal"
+                accent: "green"
+                QQC2.Switch {
+                    checked: cfg_FlipHorizontal
+                    onToggled: { cfg_FlipHorizontal = checked; writeLive("flipHorizontal", checked); }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Vertical separator")
+                iconName: "view-split-left-right"
+                accent: "cyan"
+                QQC2.Switch {
+                    checked: cfg_ShowVerticalSeparator
+                    onToggled: { cfg_ShowVerticalSeparator = checked; writeLive("showVerticalSeparator", checked); }
+                }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Extra shortcuts")
+            ConfigSettingRow {
+                title: root.tr("External devices")
+                iconName: "drive-removable-media"
+                accent: "indigo"
+                QQC2.Switch {
+                    checked: cfg_ShowExternalDevices
+                    onToggled: { cfg_ShowExternalDevices = checked; writeLive("showExternalDevices", checked); }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Bookmarks")
+                iconName: "bookmarks"
+                accent: "pink"
+                QQC2.Switch {
+                    checked: cfg_ShowBookmarks
+                    onToggled: { cfg_ShowBookmarks = checked; writeLive("showBookmarks", checked); }
+                }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Category quick links")
+            ConfigSettingRow {
+                title: root.tr("Quick link position")
+                subtitle: root.tr("Display a category on the default menu view.")
+                iconName: "go-up"
+                accent: "yellow"
+                QQC2.ComboBox {
+                    model: [root.tr("Top"), root.tr("Bottom")]
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
                     Component.onCompleted: currentIndex = cfg_QuickLinkPosition === "top" ? 0 : 1
                     onActivated: {
                         cfg_QuickLinkPosition = currentIndex === 0 ? "top" : "bottom";
@@ -317,8 +210,46 @@ Item {
                     }
                 }
             }
-
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
+            ConfigSep {}
+            Repeater {
+                model: root.orderedQuickLinks
+                ColumnLayout {
+                    id: qwrap
+                    required property var modelData
+                    required property int index
+                    readonly property string linkId: modelData && modelData.id ? String(modelData.id) : ""
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: modelData.name
+                        iconName: modelData.icon
+                        accent: index % 2 === 0 ? "blue" : "teal"
+                        Kirigami.Icon {
+                            source: "transform-move"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.45
+                        }
+                        QQC2.Switch {
+                            checked: root.isQuickEnabled(qwrap.linkId)
+                            onToggled: root.setQuickEnabled(qwrap.linkId, checked)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-up"
+                            flat: true
+                            enabled: qwrap.index > 0
+                            onClicked: root.moveQuick(qwrap.index, qwrap.index - 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            flat: true
+                            enabled: qwrap.index < root.orderedQuickLinks.length - 1
+                            onClicked: root.moveQuick(qwrap.index, qwrap.index + 1)
+                        }
+                    }
+                    ConfigSep { visible: qwrap.index < root.orderedQuickLinks.length - 1 }
+                }
+            }
         }
     }
 

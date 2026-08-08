@@ -45,85 +45,59 @@ Item {
     }
     function resetDefaults() { writeLive(SC.DEFAULT_DIRS.slice()); }
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
+    ConfigPage {
+        title: root.tr("Directory Shortcuts")
+        tip: root.tr("Folders shown in the places sidebar")
 
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label { text: root.tr("Directory Shortcuts"); font.bold: true }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: listCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
+        ConfigGroup {
+            title: root.tr("Directory Shortcuts")
+            Repeater {
+                model: root.items
                 ColumnLayout {
-                    id: listCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: root.items
-                        RowLayout {
-                            required property var modelData
-                            required property int index
-                            Layout.fillWidth: true
-                            Kirigami.Icon { source: "transform-move"; Layout.preferredWidth: Kirigami.Units.iconSizes.small; Layout.preferredHeight: Kirigami.Units.iconSizes.small; opacity: 0.4 }
-                            Kirigami.Icon { source: modelData.icon || "folder"; Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium; Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium }
-                            QQC2.Label {
-                                text: modelData.invalid ? (root.tr("Invalid shortcut") + " - " + modelData.id) : modelData.name
-                                color: modelData.invalid ? Kirigami.Theme.negativeTextColor : Kirigami.Theme.textColor
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-                            QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.move(index, index - 1) }
-                            QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < root.items.length - 1; onClicked: root.move(index, index + 1) }
-                            QQC2.Button { icon.name: "list-remove"; flat: true; onClicked: root.removeAt(index) }
+                    required property var modelData
+                    required property int index
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: modelData.invalid ? (root.tr("Invalid shortcut") + " - " + modelData.id) : modelData.name
+                        iconName: modelData.icon || "folder"
+                        accent: modelData.invalid ? "red" : (index % 2 === 0 ? "blue" : "teal")
+                        Kirigami.Icon {
+                            source: "transform-move"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.4
                         }
+                        QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.move(index, index - 1) }
+                        QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < root.items.length - 1; onClicked: root.move(index, index + 1) }
+                        QQC2.Button { icon.name: "list-remove"; flat: true; onClicked: root.removeAt(index) }
                     }
+                    ConfigSep { visible: index < root.items.length - 1 }
                 }
             }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: addCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: addCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Add default user directory"); Layout.fillWidth: true }
-                        QQC2.Button { icon.name: "list-add"; flat: true; onClicked: defaultDirDialog.open() }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Add custom shortcut"); Layout.fillWidth: true }
-                        QQC2.Button {
-                            icon.name: "list-add"; flat: true
-                            onClicked: { customName.text = ""; customIcon.text = "folder"; customPath.text = ""; customDialog.open(); }
-                        }
-                    }
-                }
-            }
-
-            QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
         }
+
+        ConfigGroup {
+            title: root.tr("Add")
+            ConfigSettingRow {
+                title: root.tr("Add default user directory")
+                iconName: "folder-add"
+                accent: "green"
+                QQC2.Button { icon.name: "list-add"; flat: true; onClicked: defaultDirDialog.open() }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Add custom shortcut")
+                iconName: "document-new"
+                accent: "orange"
+                QQC2.Button {
+                    icon.name: "list-add"; flat: true
+                    onClicked: { customName.text = ""; customIcon.text = "folder"; customPath.text = ""; customDialog.open(); }
+                }
+            }
+        }
+
+        QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
     }
 
     QQC2.Dialog {

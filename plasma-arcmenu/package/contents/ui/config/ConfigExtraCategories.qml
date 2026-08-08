@@ -122,89 +122,56 @@ Item {
 
     ListModel { id: listModel }
 
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
+    ConfigPage {
+        title: root.tr("Extra Categories")
+        tip: root.tr("Toggle which fixed categories appear above the normal category list.")
 
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label { text: root.tr("Extra Categories"); font.bold: true }
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.65
-                text: root.tr("Toggle which fixed categories appear above the normal category list.")
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: listCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
+        ConfigGroup {
+            title: root.tr("Extra Categories")
+            Repeater {
+                model: listModel
                 ColumnLayout {
-                    id: listCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: listModel
-
-                        delegate: RowLayout {
-                            id: row
-                            required property int index
-                            required property string catId
-                            required property string catName
-                            required property string catIcon
-                            required property bool catOn
-
-                            Layout.fillWidth: true
-
-                            Kirigami.Icon {
-                                source: "transform-move"
-                                Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                                Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                                opacity: 0.4
-                            }
-                            Kirigami.Icon {
-                                source: row.catIcon
-                                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                            }
-                            QQC2.Label {
-                                text: row.catName
-                                Layout.fillWidth: true
-                            }
-                            QQC2.Switch {
-                                checked: row.catOn
-                                onToggled: root.setRowOn(row.index, checked)
-                            }
-                            QQC2.Button {
-                                icon.name: "go-up"
-                                flat: true
-                                enabled: row.index > 0
-                                onClicked: root.move(row.index, row.index - 1)
-                            }
-                            QQC2.Button {
-                                icon.name: "go-down"
-                                flat: true
-                                enabled: row.index < listModel.count - 1
-                                onClicked: root.move(row.index, row.index + 1)
-                            }
+                    id: row
+                    required property int index
+                    required property string catId
+                    required property string catName
+                    required property string catIcon
+                    required property bool catOn
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: row.catName
+                        iconName: row.catIcon
+                        accent: index % 2 === 0 ? "blue" : "indigo"
+                        Kirigami.Icon {
+                            source: "transform-move"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.4
+                        }
+                        QQC2.Switch {
+                            checked: row.catOn
+                            onToggled: root.setRowOn(row.index, checked)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-up"
+                            flat: true
+                            enabled: row.index > 0
+                            onClicked: root.move(row.index, row.index - 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            flat: true
+                            enabled: row.index < listModel.count - 1
+                            onClicked: root.move(row.index, row.index + 1)
                         }
                     }
+                    ConfigSep { visible: row.index < listModel.count - 1 }
                 }
             }
-
-            QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
         }
+
+        QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
     }
 
     Component.onCompleted: {

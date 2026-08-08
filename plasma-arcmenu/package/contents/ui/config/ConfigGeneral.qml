@@ -9,7 +9,7 @@ import "../../code/Locale.js" as Locale
 import "../../code/ConfigBackup.js" as ConfigBackup
 
 /**
- * General settings — Adw.ActionRow style (title/subtitle left, control right).
+ * General settings — shared ConfigPage / ConfigGroup chrome.
  */
 Item {
     id: root
@@ -24,7 +24,7 @@ Item {
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
 
-    property string _ioMode: "" // export | import
+    property string _ioMode: ""
     property string _statusText: ""
     property bool _statusIsError: false
 
@@ -120,190 +120,132 @@ Item {
         }
     }
 
-    component SettingRow: RowLayout {
-        id: srow
-        property string title: ""
-        property string subtitle: ""
-        default property alias trailing: trail.data
+    ConfigPage {
+        title: root.tr("General")
+        tip: root.tr("Click Apply in the dialog footer to save changes. Some settings apply after reopening the menu.")
 
-        Layout.fillWidth: true
-        spacing: Kirigami.Units.largeSpacing
+        ConfigGroup {
+            title: root.tr("Language")
+            ConfigSettingRow {
+                title: root.tr("Menu language")
+                subtitle: root.tr("Applies to the settings dialog and menu labels.")
+                iconName: "preferences-desktop-locale"
+                accent: "blue"
+                QQC2.ComboBox {
+                    id: langCombo
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    textRole: "label"
+                    valueRole: "id"
+                    model: [
+                        { id: "zh_CN", label: root.tr("Chinese (Simplified)") },
+                        { id: "en", label: root.tr("English") },
+                        { id: "system", label: root.tr("Follow system") }
+                    ]
+                    Component.onCompleted: {
+                        var ids = ["zh_CN", "en", "system"];
+                        currentIndex = Math.max(0, ids.indexOf(cfg_UiLanguage || "zh_CN"));
+                    }
+                    onActivated: {
+                        cfg_UiLanguage = currentValue;
+                        try { plasmoid.configuration.uiLanguage = currentValue; } catch (e) {}
+                    }
+                }
+            }
+        }
 
-        ColumnLayout {
+        ConfigGroup {
+            title: root.tr("Behavior")
+            ConfigSettingRow {
+                title: root.tr("Menu hotkey")
+                subtitle: root.tr("Must not conflict with Plasma global shortcuts.")
+                iconName: "input-keyboard-symbolic"
+                accent: "purple"
+                QQC2.TextField {
+                    id: hotkeyField
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
+                    placeholderText: "Meta"
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Popup animation")
+                subtitle: root.tr("Animation when opening the menu")
+                iconName: "preferences-desktop-effects"
+                accent: "teal"
+                QQC2.ComboBox {
+                    id: animCombo
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                    textRole: "label"
+                    valueRole: "value"
+                    model: [
+                        { label: root.tr("Expand from button"), value: "expand" },
+                        { label: root.tr("Fade"), value: "fade" },
+                        { label: root.tr("Slide"), value: "slide" },
+                        { label: root.tr("None"), value: "none" }
+                    ]
+                    Component.onCompleted: {
+                        var values = ["expand", "fade", "slide", "none"];
+                        currentIndex = Math.max(0, values.indexOf(cfg_PopupAnimation));
+                    }
+                    onActivated: cfg_PopupAnimation = currentValue
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Multi-instance")
+                subtitle: root.tr("Share configuration across panel instances")
+                iconName: "window-duplicate"
+                accent: "green"
+                QQC2.Switch { id: shareConfig }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Activities")
+                subtitle: root.tr("Filter favorites/recent by Plasma Activity (optional)")
+                iconName: "preferences-desktop-activities"
+                accent: "orange"
+                QQC2.Switch { id: filterActivity }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Backup")
+            ConfigSettingRow {
+                title: root.tr("Export configuration")
+                subtitle: root.tr("Save all Arc Menu settings to a JSON file.")
+                iconName: "document-export"
+                accent: "cyan"
+                QQC2.Button {
+                    text: root.tr("Export…")
+                    onClicked: exportDialog.open()
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Import configuration")
+                subtitle: root.tr("Load settings from a JSON file. Existing values are overwritten.")
+                iconName: "document-import"
+                accent: "pink"
+                QQC2.Button {
+                    text: root.tr("Import…")
+                    onClicked: importDialog.open()
+                }
+            }
+        }
+
+        Kirigami.InlineMessage {
             Layout.fillWidth: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
-            Layout.alignment: Qt.AlignVCenter
-            spacing: 2
-            QQC2.Label {
-                text: srow.title
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                wrapMode: Text.WordWrap
-            }
-            QQC2.Label {
-                visible: srow.subtitle.length > 0
-                text: srow.subtitle
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.6
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-            }
+            visible: root._statusText.length > 0
+            type: root._statusIsError ? Kirigami.MessageType.Error : Kirigami.MessageType.Positive
+            text: root._statusText
         }
 
-        RowLayout {
-            id: trail
-            Layout.fillWidth: false
-            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-            spacing: Kirigami.Units.smallSpacing
-        }
-    }
-
-    component GroupCard: Rectangle {
-        id: card
-        default property alias content: inner.data
-        Layout.fillWidth: true
-        implicitHeight: inner.implicitHeight + Kirigami.Units.largeSpacing * 2
-        radius: Kirigami.Units.smallSpacing
-        color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-        ColumnLayout {
-            id: inner
-            anchors.fill: parent
-            anchors.margins: Kirigami.Units.largeSpacing
-            spacing: Kirigami.Units.smallSpacing
-        }
-    }
-
-    Flickable {
-        anchors.fill: parent
-        contentWidth: width
-        contentHeight: col.height
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-
-        ColumnLayout {
-            id: col
-            width: parent.width
-            spacing: Kirigami.Units.largeSpacing
-
-            QQC2.Label { text: root.tr("Language"); font.bold: true }
-
-            GroupCard {
-                SettingRow {
-                    title: root.tr("Menu language")
-                    subtitle: root.tr("Applies to the settings dialog and menu labels.")
-                    QQC2.ComboBox {
-                        id: langCombo
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        textRole: "label"
-                        valueRole: "id"
-                        model: [
-                            { id: "zh_CN", label: root.tr("Chinese (Simplified)") },
-                            { id: "en", label: root.tr("English") },
-                            { id: "system", label: root.tr("Follow system") }
-                        ]
-                        Component.onCompleted: {
-                            var ids = ["zh_CN", "en", "system"];
-                            var cur = cfg_UiLanguage || "zh_CN";
-                            currentIndex = Math.max(0, ids.indexOf(cur));
-                        }
-                        onActivated: {
-                            cfg_UiLanguage = currentValue;
-                            try { plasmoid.configuration.uiLanguage = currentValue; } catch (e) {}
-                        }
-                    }
-                }
-            }
-
-            QQC2.Label { text: root.tr("Behavior"); font.bold: true }
-
-            GroupCard {
-                SettingRow {
-                    title: root.tr("Menu hotkey")
-                    subtitle: root.tr("Must not conflict with Plasma global shortcuts.")
-                    QQC2.TextField {
-                        id: hotkeyField
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-                        placeholderText: "Meta"
-                    }
-                }
-                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
-                SettingRow {
-                    title: root.tr("Popup animation")
-                    QQC2.ComboBox {
-                        id: animCombo
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                        textRole: "label"
-                        valueRole: "value"
-                        model: [
-                            { label: root.tr("Expand from button"), value: "expand" },
-                            { label: root.tr("Fade"), value: "fade" },
-                            { label: root.tr("Slide"), value: "slide" },
-                            { label: root.tr("None"), value: "none" }
-                        ]
-                        Component.onCompleted: {
-                            var values = ["expand", "fade", "slide", "none"];
-                            currentIndex = Math.max(0, values.indexOf(cfg_PopupAnimation));
-                        }
-                        onActivated: cfg_PopupAnimation = currentValue
-                    }
-                }
-                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
-                SettingRow {
-                    title: root.tr("Multi-instance")
-                    subtitle: root.tr("Share configuration across panel instances")
-                    QQC2.Switch {
-                        id: shareConfig
-                    }
-                }
-                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
-                SettingRow {
-                    title: root.tr("Activities")
-                    subtitle: root.tr("Filter favorites/recent by Plasma Activity (optional)")
-                    QQC2.Switch {
-                        id: filterActivity
-                    }
-                }
-            }
-
-            QQC2.Label { text: root.tr("Backup"); font.bold: true }
-
-            GroupCard {
-                SettingRow {
-                    title: root.tr("Export configuration")
-                    subtitle: root.tr("Save all Arc Menu settings to a JSON file.")
-                    QQC2.Button {
-                        text: root.tr("Export…")
-                        onClicked: exportDialog.open()
-                    }
-                }
-                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
-                SettingRow {
-                    title: root.tr("Import configuration")
-                    subtitle: root.tr("Load settings from a JSON file. Existing values are overwritten.")
-                    QQC2.Button {
-                        text: root.tr("Import…")
-                        onClicked: importDialog.open()
-                    }
-                }
-            }
-
-            Kirigami.InlineMessage {
-                Layout.fillWidth: true
-                visible: root._statusText.length > 0
-                type: root._statusIsError ? Kirigami.MessageType.Error : Kirigami.MessageType.Positive
-                text: root._statusText
-            }
-
-            QQC2.Label {
-                Layout.fillWidth: true
-                wrapMode: Text.WordWrap
-                opacity: 0.55
-                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                text: root.tr("Display style, icon, click actions and button style are under Menu Button. Layout and content settings are under Menu.")
-            }
-
-            Item { Layout.preferredHeight: Kirigami.Units.largeSpacing }
+        QQC2.Label {
+            Layout.fillWidth: true
+            wrapMode: Text.WordWrap
+            opacity: 0.55
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            text: root.tr("Display style, icon, click actions and button style are under Menu Button. Layout and content settings are under Menu.")
         }
     }
 
