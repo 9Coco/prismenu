@@ -50,15 +50,102 @@ ColumnLayout {
         ];
     }
 
-    ShortcutRow {
+    // User row: circular face + login name (like GNOME ArcMenu / Plasma Users KCM)
+    Item {
+        id: userRow
         Layout.fillWidth: true
-        iconName: menuData ? menuData.userIcon : "user-identity"
-        label: (menuData && menuData.userName) ? menuData.userName : root.t("User")
-        iconSize: Math.max(root.iconSize, Kirigami.Units.iconSizes.medium)
-        selectedBg: root.selectedBg
-        selectedFg: root.selectedFg
-        fg: root.fg
-        onActivated: root.userClicked()
+        height: Math.max(avatarBox.height + Kirigami.Units.smallSpacing * 2,
+                         Kirigami.Units.gridUnit * 2.1)
+        Accessible.name: userLabel.text
+        Accessible.role: Accessible.Button
+        Accessible.onPressAction: root.userClicked()
+
+        readonly property string faceSrc: {
+            var s = (menuData && menuData.userIcon) ? String(menuData.userIcon) : "";
+            if (!s || s === "user-identity")
+                return "";
+            if (s.indexOf("file:") === 0 || s.indexOf("/") === 0 || s.indexOf("image:") === 0)
+                return s.indexOf("/") === 0 ? ("file://" + s) : s;
+            return "";
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Kirigami.Units.smallSpacing
+            color: userMouse.containsMouse ? root.selectedBg : "transparent"
+            opacity: userMouse.containsMouse ? 1 : 0
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            anchors.leftMargin: Kirigami.Units.smallSpacing
+            anchors.rightMargin: Kirigami.Units.smallSpacing
+            spacing: Kirigami.Units.smallSpacing
+
+            Item {
+                id: avatarBox
+                readonly property int avSize: Math.max(root.iconSize, Kirigami.Units.iconSizes.medium)
+                Layout.preferredWidth: avSize
+                Layout.preferredHeight: avSize
+                width: avSize
+                height: avSize
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: width / 2
+                    color: Kirigami.Theme.backgroundColor
+                    border.color: root.fg
+                    border.width: 1
+                    opacity: 0.35
+                }
+
+                Rectangle {
+                    anchors.fill: parent
+                    anchors.margins: 1
+                    radius: width / 2
+                    clip: true
+                    color: "transparent"
+
+                    Image {
+                        id: faceImg
+                        anchors.fill: parent
+                        source: userRow.faceSrc
+                        fillMode: Image.PreserveAspectCrop
+                        asynchronous: true
+                        visible: status === Image.Ready
+                        cache: false
+                    }
+
+                    Kirigami.Icon {
+                        anchors.fill: parent
+                        anchors.margins: Kirigami.Units.smallSpacing / 2
+                        visible: !faceImg.visible
+                        source: (menuData && menuData.userIcon
+                                 && String(menuData.userIcon).indexOf("file:") !== 0
+                                 && String(menuData.userIcon).indexOf("/") !== 0)
+                            ? menuData.userIcon
+                            : "user-identity"
+                        color: userMouse.containsMouse ? root.selectedFg : root.fg
+                    }
+                }
+            }
+
+            PlasmaComponents.Label {
+                id: userLabel
+                Layout.fillWidth: true
+                text: (menuData && menuData.userName) ? menuData.userName : root.t("User")
+                elide: Text.ElideRight
+                color: userMouse.containsMouse ? root.selectedFg : root.fg
+            }
+        }
+
+        MouseArea {
+            id: userMouse
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.userClicked()
+        }
     }
 
     Kirigami.Separator {
