@@ -17,12 +17,20 @@ LayoutBase {
         case 0: return menuData.pinnedApps;
         case 1: return menuData.recentApps;
         case 2: return menuData.categoryApps;
-        case 3: return [
-            { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME", categories: ["Places"], keywords: [], genericName: root.tr("Home folder"), noDisplay: false },
-            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS", categories: ["Places"], keywords: [], genericName: root.tr("Documents"), noDisplay: false },
-            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD", categories: ["Places"], keywords: [], genericName: root.tr("Downloads"), noDisplay: false },
-            { id: "place-root", name: root.tr("Root"), icon: "folder-root", exec: "xdg-open /", categories: ["Places"], keywords: [], genericName: root.tr("File system"), noDisplay: false }
-        ];
+        case 3: {
+            var places = (menuData.places || []).slice();
+            places.push({
+                id: "place-root",
+                name: root.tr("Root"),
+                icon: "folder-root",
+                exec: "xdg-open /",
+                categories: ["Places"],
+                keywords: [],
+                genericName: root.tr("File system"),
+                noDisplay: false
+            });
+            return places;
+        }
         case 4: return [
             { id: "leave-lock", name: root.tr("Lock"), icon: "system-lock-screen", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "lock" },
             { id: "leave-logout", name: root.tr("Log Out"), icon: "system-log-out", exec: "", categories: ["Leave"], keywords: [], genericName: "", noDisplay: false, action: "logout" },
@@ -93,15 +101,9 @@ LayoutBase {
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
                     fg: root.fg
-                    onActivated: {
-                        if (model.action) {
-                            root.powerAction(model.action);
-                        } else {
-                            root.appActivated(model);
-                        }
-                    }
+                    onActivated: root.activateItem(model)
                     onContextMenuRequested: (x, y) => {
-                        if (!model.action) {
+                        if (!model.action && !model.place) {
                             root.appContextMenu(model, x, y);
                         }
                     }

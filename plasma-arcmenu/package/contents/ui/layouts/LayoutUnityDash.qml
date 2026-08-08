@@ -37,7 +37,7 @@ LayoutBase {
             model: pinnedModel
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
-            onAppActivated: (app) => root.appActivated(app)
+            onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
 
@@ -55,7 +55,7 @@ LayoutBase {
             columns: 7
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
-            onAppActivated: (app) => root.appActivated(app)
+            onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
     }
