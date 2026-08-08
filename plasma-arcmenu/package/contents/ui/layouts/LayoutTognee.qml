@@ -8,7 +8,7 @@ import "../../code/AppsModel.js" as AppsModel
 /**
  * Tognee layout (ArcMenu Tognee).
  *
- * Left: icon rail (places â†?software/settings/tweaks â†?expand â†?power)
+ * Left: icon rail (places ï¿½?software/settings/tweaks ï¿½?expand ï¿½?power)
  * Right: category list (home) or app list (drill-in) + search at bottom
  */
 LayoutBase {
@@ -389,7 +389,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: {
                     if (menuData) menuData.setSearch(text);

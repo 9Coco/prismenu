@@ -119,7 +119,7 @@ LayoutBase {
             Layout.maximumWidth: Kirigami.Units.gridUnit * 3.5
             spacing: 0
 
-            // Equal flex spacers â†?whole icon stack is vertically centered
+            // Equal flex spacers ï¿½?whole icon stack is vertically centered
             Item { Layout.fillHeight: true }
 
             ColumnLayout {
@@ -195,7 +195,7 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

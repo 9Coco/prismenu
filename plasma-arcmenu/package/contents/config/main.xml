@@ -133,7 +133,7 @@
             <default>{}</default>
         </entry>
         <entry name="ShowEmpty" type="Bool">
-            <default>false</default>
+            <default>true</default>
         </entry>
     </group>
 

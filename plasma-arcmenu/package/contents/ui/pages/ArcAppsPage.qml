@@ -5,6 +5,7 @@ import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 import "../../code/Locale.js" as Locale
+import "../../code/CatalogBridge.js" as CatalogBridge
 
 /**
  * ArcMenu apps page (reference):
@@ -25,37 +26,141 @@ Item {
     readonly property bool showingCategories: drillCategoryId.length === 0
     readonly property bool canGoBackToCategories: drillCategoryId.length > 0
 
+    /** Always prefer live catalog (property or CatalogBridge) */
+    readonly property var dataHost: {
+        var local = root.menuData;
+        if (local && local.allApps && local.allApps.length)
+            return local;
+        var bridged = CatalogBridge.menuData();
+        if (bridged)
+            return bridged;
+        return local;
+    }
+
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
     readonly property color selectedBg: themeStyle.selectedBg || Kirigami.Theme.highlightColor
     readonly property color selectedFg: themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
-    readonly property int appIconSize: menuData ? menuData.appIconSize : 24
-    readonly property int categoryIconSize: menuData ? menuData.categoryIconSize : 24
-    readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
+    readonly property int appIconSize: {
+        var n = dataHost ? dataHost.appIconSize : 24;
+        n = parseInt(n, 10);
+        return (!n || isNaN(n)) ? 24 : Math.max(16, n);
+    }
+    readonly property int categoryIconSize: {
+        var n = dataHost ? dataHost.categoryIconSize : 24;
+        n = parseInt(n, 10);
+        return (!n || isNaN(n)) ? 24 : Math.max(16, n);
+    }
+    readonly property string uiLang: (dataHost && dataHost.uiLang) ? dataHost.uiLang : "zh_CN"
 
-    // Fixed ArcMenu category set (match reference screenshot — always visible)
+    // Prefer MenuData categories; fall back to a short fixed list while scanning.
     readonly property var categoryItems: {
+        var host = root.dataHost;
+        var epoch = host ? host.catalogEpoch : 0; // binding dependency
+        var tick = root.refreshTick;
         var _ = root.uiLang;
-        return [
+        var allApps = host && host.allApps ? host.allApps : [];
+        var allAppsLen = allApps.length;
+        var fromData = (host && host.categories) ? host.categories : [];
+        var out = [];
+        var i;
+
+        for (i = 0; i < fromData.length; ++i) {
+            var c = fromData[i];
+            if (!c || !c.id || c.id === "all")
+                continue;
+            var catName = String(c.name || "").trim();
+            if (!catName)
+                continue;
+            var apps = AppsModel.appsInCategory(allApps, c.id);
+            if (apps.length === 0 && allAppsLen > 0)
+                continue;
+            out.push({
+                id: c.id,
+                name: catName,
+                icon: c.icon || "arcmenu-cat-other-apps",
+                apps: apps,
+                appCount: apps.length
+            });
+        }
+
+        if (out.length > 0)
+            return out;
+
+        var preferred = [
             { id: "Office", name: Locale.tr("Office", _), icon: "arcmenu-cat-office-barchart" },
             { id: "Development", name: Locale.tr("Programming", _), icon: "arcmenu-cat-dev-brush" },
-            { id: "Accessories", name: Locale.tr("Accessories", _), icon: "arcmenu-cat-accessories-handyman" },
             { id: "Utility", name: Locale.tr("Tools", _), icon: "arcmenu-cat-tools-build" },
             { id: "Network", name: Locale.tr("Internet", _), icon: "arcmenu-cat-internet-public" },
             { id: "Graphics", name: Locale.tr("Graphics", _), icon: "arcmenu-cat-graphics-image" },
             { id: "System", name: Locale.tr("System Tools", _), icon: "arcmenu-cat-system-settings" }
         ];
+        for (i = 0; i < preferred.length; ++i) {
+            var def = preferred[i];
+            var list = AppsModel.appsInCategory(allApps, def.id);
+            if (allAppsLen > 0 && list.length === 0)
+                continue;
+            out.push({
+                id: def.id,
+                name: def.name,
+                icon: def.icon,
+                apps: list,
+                appCount: list.length
+            });
+        }
+        return out;
     }
 
     readonly property var drilledApps: {
-        if (!menuData || root.drillCategoryId.length === 0)
+        if (root.drillCategoryId.length === 0)
             return [];
-        return AppsModel.appsInCategory(menuData.allApps || [], root.drillCategoryId);
+        var host = root.dataHost;
+        var epoch = host ? host.catalogEpoch : 0;
+        var tick = root.refreshTick;
+        var _apps = host && host.allApps ? host.allApps : [];
+        var cats = root.categoryItems;
+        for (var i = 0; i < cats.length; ++i) {
+            if (cats[i].id === root.drillCategoryId) {
+                if (cats[i].apps && cats[i].apps.length)
+                    return cats[i].apps;
+                break;
+            }
+        }
+        if (root.drillCategoryId === "all")
+            return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps));
+        return AppsModel.appsInCategory(_apps, root.drillCategoryId);
+    }
+
+    property int refreshTick: 0
+
+    // Pragma-library bridge is not a QML notify source — poll until catalog arrives
+    Timer {
+        id: bridgePoll
+        interval: 250
+        repeat: true
+        running: true
+        property int lastEpoch: -1
+        onTriggered: {
+            var host = CatalogBridge.menuData();
+            var ep = host ? host.catalogEpoch : 0;
+            var n = host && host.allApps ? host.allApps.length : 0;
+            if (ep !== lastEpoch || (n > 0 && root.menuData !== host)) {
+                lastEpoch = ep;
+                if (host)
+                    root.menuData = host;
+                root.refreshTick++;
+            }
+            if (n > 0 && ep > 0) {
+                bridgePoll.stop();
+                console.log("ArcMenu ArcAppsPage catalog ready:", n, "epoch", ep);
+            }
+        }
     }
 
     function goBackToCategories() {
         drillCategoryId = "";
-        if (menuData)
-            menuData.currentCategoryId = "all";
+        var host = root.dataHost;
+        if (host)
+            host.currentCategoryId = "all";
     }
 
     function resetToCategories() {
@@ -65,9 +170,17 @@ Item {
     function openCategory(id) {
         if (!id)
             return;
+        // Ensure we hold the live catalog before filtering
+        var bridged = CatalogBridge.menuData();
+        if (bridged)
+            root.menuData = bridged;
         drillCategoryId = id;
-        if (menuData)
-            menuData.selectCategory(id);
+        var host = root.dataHost;
+        if (host && host.selectCategory)
+            host.selectCategory(id);
+        var n = root.drilledApps.length;
+        var total = (host && host.allApps) ? host.allApps.length : 0;
+        console.log("ArcMenu openCategory", id, "→", n, "apps (catalog", total, ")");
     }
 
     function categoryTitle() {
@@ -114,7 +227,7 @@ Item {
             Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
         }
 
-        // Categories (always the 7 defaults)
+        // Category list
         Flickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -131,14 +244,15 @@ Item {
                 spacing: 0
 
                 Repeater {
-                    model: 7
+                    model: root.categoryItems.length
 
                     Item {
                         id: catDel
                         required property int index
                         readonly property var cat: root.categoryItems[index]
+                        visible: !!(catDel.cat && catDel.cat.name)
                         width: catColumn.width
-                        height: Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1)
+                        height: visible ? Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1) : 0
 
                         Rectangle {
                             anchors.fill: parent
@@ -154,7 +268,7 @@ Item {
                             spacing: Kirigami.Units.smallSpacing
 
                             Components.ResolvedIcon {
-                                iconName: catDel.cat ? catDel.cat.icon : "arcmenu-cat-other-apps"
+                                iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
                                 tintColor: catMouse.containsMouse ? root.selectedFg : root.fg
                                 Layout.preferredWidth: root.categoryIconSize
                                 Layout.preferredHeight: root.categoryIconSize
@@ -162,7 +276,7 @@ Item {
 
                             PlasmaComponents.Label {
                                 Layout.fillWidth: true
-                                text: catDel.cat ? catDel.cat.name : ""
+                                text: (catDel.cat && catDel.cat.name) ? catDel.cat.name : ""
                                 elide: Text.ElideRight
                                 color: catMouse.containsMouse ? root.selectedFg : root.fg
                             }
@@ -173,6 +287,7 @@ Item {
                             anchors.fill: parent
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
+                            enabled: !!(catDel.cat && catDel.cat.id)
                             onClicked: root.openCategory(catDel.cat ? catDel.cat.id : "")
                         }
                     }

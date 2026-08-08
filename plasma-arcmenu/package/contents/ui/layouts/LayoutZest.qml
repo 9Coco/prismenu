@@ -6,17 +6,17 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Zest layout (ArcMenu Zest) â€?three columns.
+ * Zest layout (ArcMenu Zest) ï¿½?three columns.
  *
  * Left:   avatar + places/software/settings + session
  * Middle: pinned / all / categories  (controls right)
- * Right:  apps for the middle selection (Aâ€“Z when â€œallâ€?
+ * Right:  apps for the middle selection (Aâ€“Z when â€œallï¿½?
  * Search spans middle + right at the bottom
  */
 LayoutBase {
     id: root
 
-    // Middle column selection â€?drives right column content
+    // Middle column selection ï¿½?drives right column content
     property string selectedId: "all"
 
     readonly property bool searching: menuData ? menuData.isSearching : false
@@ -347,7 +347,7 @@ LayoutBase {
                                 }
                             }
 
-                            // All apps â€?Aâ€“Z sections
+                            // All apps ï¿½?Aâ€“Z sections
                             Repeater {
                                 model: (!root.searching && root.selectedId === "all")
                                        ? root.azSections.length : 0
@@ -425,7 +425,7 @@ LayoutBase {
             // Search under middle + right only
             Components.SearchField {
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€?)
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Searchâ€¦")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
             }

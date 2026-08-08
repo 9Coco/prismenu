@@ -32,12 +32,45 @@ Item {
 
     readonly property var categoryItems: {
         var _ = root.uiLang;
-        var raw = (menuData && menuData.categories) ? menuData.categories : [];
+        var allApps = (menuData && menuData.allApps) ? menuData.allApps : [];
+        var allAppsLen = allApps.length;
+        var fromData = (menuData && menuData.categories) ? menuData.categories : [];
         var out = [];
-        for (var i = 0; i < raw.length; ++i) {
-            if (!raw[i] || raw[i].id === "all")
+        var i;
+        for (i = 0; i < fromData.length; ++i) {
+            var c = fromData[i];
+            if (!c || !c.id || c.id === "all")
                 continue;
-            out.push(raw[i]);
+            var catName = String(c.name || "").trim();
+            if (!catName)
+                continue;
+            var apps = AppsModel.appsInCategory(allApps, c.id);
+            if (apps.length === 0 && allAppsLen > 0)
+                continue;
+            out.push({
+                id: c.id,
+                name: catName,
+                icon: c.icon || "arcmenu-cat-other-apps",
+                apps: apps,
+                appCount: apps.length
+            });
+        }
+        if (out.length > 0)
+            return out;
+        var preferred = [
+            { id: "Office", name: Locale.tr("Office", _), icon: "arcmenu-cat-office-barchart" },
+            { id: "Development", name: Locale.tr("Programming", _), icon: "arcmenu-cat-dev-brush" },
+            { id: "Utility", name: Locale.tr("Tools", _), icon: "arcmenu-cat-tools-build" },
+            { id: "Network", name: Locale.tr("Internet", _), icon: "arcmenu-cat-internet-public" },
+            { id: "Graphics", name: Locale.tr("Graphics", _), icon: "arcmenu-cat-graphics-image" },
+            { id: "System", name: Locale.tr("System Tools", _), icon: "arcmenu-cat-system-settings" }
+        ];
+        for (i = 0; i < preferred.length; ++i) {
+            var def = preferred[i];
+            var list = AppsModel.appsInCategory(allApps, def.id);
+            if (allAppsLen > 0 && list.length === 0)
+                continue;
+            out.push({ id: def.id, name: def.name, icon: def.icon, apps: list, appCount: list.length });
         }
         return out;
     }
@@ -45,7 +78,9 @@ Item {
     readonly property var drilledApps: {
         if (!menuData || root.drillCategoryId.length === 0)
             return [];
-        return AppsModel.appsInCategory(menuData.allApps || [], root.drillCategoryId);
+        var _apps = menuData.allApps || [];
+        var _n = _apps.length;
+        return AppsModel.appsInCategory(_apps, root.drillCategoryId);
     }
 
     function goBackToCategories() {
@@ -121,8 +156,9 @@ Item {
                         id: catDel
                         required property int index
                         readonly property var cat: root.categoryItems[index]
+                        visible: !!(catDel.cat && catDel.cat.name)
                         width: catColumn.width
-                        height: Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2)
+                        height: visible ? Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2) : 0
 
                         Rectangle {
                             anchors.fill: parent

@@ -334,7 +334,7 @@ Item {
 
                 QQC2.ComboBox {
                     id: searchLoc
-                    Kirigami.FormData.label: root.tr("Search bar location:")
+                    Kirigami.FormData.label: root.tr("Search…")
                     enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "searchbarLocation")
                     model: [root.tr("Top"), root.tr("Bottom")]
                     Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
