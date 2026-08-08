@@ -50,10 +50,27 @@ PlasmoidItem {
         console.log("ArcMenu KUser:", name, face);
     }
 
-    onExpandedChanged: {
+    onExpandedChanged: function (expanded) {
         if (expanded) {
             root.applyKUserMeta();
             backend.refreshUserMeta();
+            // ArcMenu search providers: refresh secondary indexes when menu opens
+            if (plasmoid.configuration.searchRecentFiles)
+                backend.refreshRecentFiles();
+            if (plasmoid.configuration.searchWindows)
+                backend.refreshOpenWindows();
+        }
+    }
+
+    Connections {
+        target: menuData
+        function onSearchQueryChanged() {
+            if (!menuData.isSearching)
+                return;
+            if (plasmoid.configuration.searchRecentFiles && (!menuData.recentFileResults || !menuData.recentFileResults.length))
+                backend.refreshRecentFiles();
+            if (plasmoid.configuration.searchWindows && (!menuData.openWindowResults || !menuData.openWindowResults.length))
+                backend.refreshOpenWindows();
         }
     }
 
@@ -198,6 +215,12 @@ PlasmoidItem {
             var n = parseInt(plasmoid.configuration.panelButtonIconSize, 10);
             return (!n || isNaN(n)) ? 20 : Math.max(12, Math.min(64, n));
         }
+        readonly property int panelPadding: {
+            var n = parseInt(plasmoid.configuration.panelButtonPadding, 10);
+            if (isNaN(n) || n < 0)
+                return 0;
+            return Math.min(32, n);
+        }
         readonly property string leftAction: plasmoid.configuration.leftClickAction || "arcmenu"
         readonly property string rightAction: plasmoid.configuration.rightClickAction || "context"
         readonly property string middleAction: plasmoid.configuration.middleClickAction || "arcmenu"
@@ -228,12 +251,12 @@ PlasmoidItem {
         implicitWidth: {
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitHeight : compactContent.implicitWidth;
-            return base + Kirigami.Units.smallSpacing * 2 + pad;
+            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2;
         }
         implicitHeight: {
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitWidth : compactContent.implicitHeight;
-            return base + Kirigami.Units.smallSpacing * 2 + pad;
+            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2;
         }
         hoverEnabled: true
         // Swallow right-click so Plasma's applet menu (Configure / Remove / …) does not appear

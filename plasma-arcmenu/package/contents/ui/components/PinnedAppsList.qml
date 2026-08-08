@@ -97,7 +97,6 @@ Item {
                     width: column.width
                     app: modelData
                     iconSize: root.iconSize
-                    showDescription: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
                     hoverBg: root.hoverBg

@@ -36,6 +36,8 @@ Item {
             app: model
             iconSize: root.appIconSize
             showDescription: menuData ? menuData.showSearchDescription : true
+            highlightTerms: !!(menuData && menuData.highlightSearchTerms)
+            highlightQuery: menuData ? menuData.searchQuery : ""
             selected: appList.currentIndex === index
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg

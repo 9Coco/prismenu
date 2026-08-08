@@ -369,13 +369,52 @@ LayoutBase {
                 onItemContextMenu: (item, x, y) => root.appContextMenu(item, x, y)
             }
 
+            // ArcMenu power-display-style: buttons (default) | list
             Components.SessionButtons {
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
+                visible: !menuData || menuData.powerDisplayStyle !== "list"
                 menuData: root.menuData
                 iconSize: root.buttonIconSize
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)
+            }
+
+            Column {
+                Layout.fillWidth: true
+                visible: !!(menuData && menuData.powerDisplayStyle === "list")
+                spacing: 0
+                Repeater {
+                    model: root.powerOptions
+                    Components.ShortcutRow {
+                        required property var modelData
+                        width: parent.width
+                        readonly property var def: {
+                            var map = {
+                                "logout": { name: root.tr("Log Out"), icon: "system-log-out" },
+                                "lock": { name: root.tr("Lock"), icon: "system-lock-screen" },
+                                "restart": { name: root.tr("Restart"), icon: "system-reboot" },
+                                "shutdown": { name: root.tr("Shut Down"), icon: "system-shutdown" },
+                                "suspend": { name: root.tr("Suspend"), icon: "system-suspend" },
+                                "hybridsleep": { name: root.tr("Hybrid Sleep"), icon: "system-suspend-hibernate" },
+                                "hibernate": { name: root.tr("Hibernate"), icon: "system-hibernate" },
+                                "switchuser": { name: root.tr("Switch User"), icon: "system-switch-user" }
+                            };
+                            return map[modelData] || { name: String(modelData), icon: "system-run" };
+                        }
+                        iconName: def.icon
+                        label: def.name
+                        iconSize: root.buttonIconSize
+                        selectedBg: root.selectedBg
+                        selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
+                        fg: root.fg
+                        preferSymbolic: root.shortcutIconsSymbolic
+                        showTooltips: root.showTooltips
+                        onActivated: root.powerAction(modelData)
+                    }
+                }
             }
         }
     }

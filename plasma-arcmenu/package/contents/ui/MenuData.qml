@@ -10,6 +10,7 @@ import "../code/Locale.js" as Locale
 import "../code/CategoryIcons.js" as CategoryIcons
 import "../code/IconSizes.js" as IconSizes
 import "../code/ShortcutsConfig.js" as ShortcutsConfig
+import "../code/SearchExtras.js" as SearchExtras
 
 QtObject {
     id: root
@@ -27,6 +28,9 @@ QtObject {
     property bool showAllApps: false // legacy toggle; prefer currentPage
     property string currentPage: "home" // home | apps | search
     property var focusedApp: null
+    /** Secondary search providers (filled by AppsBackend) */
+    property var recentFileResults: []
+    property var openWindowResults: []
 
     /**
      * Safe config read: plasmoid.configuration keys can be undefined when
@@ -506,21 +510,16 @@ QtObject {
         if (!isSearching) {
             return [];
         }
-        var apps = AppsModel.searchApps(allApps, searchQuery.trim(), maxSearchResults);
-        // Optionally include placeholder non-app runners when providers allow
-        var includeOthers = false;
-        var providers = searchProviders || [];
-        for (var i = 0; i < providers.length; ++i) {
-            if (providers[i] !== "applications") {
-                includeOthers = true;
-                break;
-            }
+        var q = searchQuery.trim();
+        var apps = AppsModel.searchApps(allApps, q, maxSearchResults);
+        var extras = [];
+        if (searchRecentFiles) {
+            extras = extras.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
         }
-        if (includeOthers && apps.length < maxSearchResults) {
-            // Soft secondary matches from genericName already covered;
-            // keep structure ready for Plasma Search runners.
+        if (searchWindows) {
+            extras = extras.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
         }
-        return apps;
+        return SearchExtras.mergeSearchResults(apps, extras, maxSearchResults);
     }
 
     readonly property string buttonIcon: Distro.resolveButtonIcon(

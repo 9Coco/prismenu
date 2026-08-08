@@ -64,6 +64,8 @@ var ZH_CN = {
     "Games": "游戏",
     "General": "通用",
     "Menu Button": "菜单按钮",
+    "Launch": "启动",
+    "Button padding": "按钮内边距",
     "Icon": "图标",
     "Select a new icon": "选择一个新图标",
     "Browse…": "浏览…",
