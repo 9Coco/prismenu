@@ -604,11 +604,27 @@ QtObject {
         return SearchExtras.mergeSearchResults(apps, extras, maxSearchResults);
     }
 
-    readonly property string buttonIcon: Distro.resolveButtonIcon(
+    readonly property string buttonIcon: {
+        var raw = Distro.resolveButtonIcon(
+            cfgStr("buttonIcon", "auto-distro"),
+            cfgStr("customButtonIcon", ""),
+            osReleaseId,
+            osPrettyName
+        );
+        if (String(raw).indexOf("preset:") === 0)
+            return Qt.resolvedUrl("../icons/menu-button/" + String(raw).slice(7) + ".svg");
+        if (Distro.isLikelyImagePath(raw)) {
+            if (String(raw).indexOf("file://") === 0)
+                return raw;
+            if (String(raw).indexOf("/") === 0)
+                return "file://" + raw;
+        }
+        return raw;
+    }
+
+    readonly property bool buttonIconIsMask: Distro.buttonIconIsMask(
         cfgStr("buttonIcon", "auto-distro"),
-        cfgStr("customButtonIcon", ""),
-        osReleaseId,
-        osPrettyName
+        cfgStr("customButtonIcon", "")
     )
 
     signal launchApp(var app)

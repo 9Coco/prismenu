@@ -15,8 +15,12 @@ Item {
 
     property string cfg_ButtonIcon
     property string cfg_CustomButtonIcon
+    property string cfg_MenuButtonAppearance
+    property string cfg_ButtonLabelText
+    property bool cfg_ButtonLabelVisible
     property int cfg_PanelButtonIconSize
     property int cfg_PanelButtonPadding
+    property int cfg_PanelButtonPositionOffset
     property string cfg_LeftClickAction
     property string cfg_RightClickAction
     property string cfg_MiddleClickAction
@@ -48,7 +52,65 @@ Item {
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
+
+    function resolveIconSource(iconId, customPath) {
+        var raw = Distro.resolveButtonIcon(iconId || "auto-distro", customPath || "", "", "");
+        if (String(raw).indexOf("preset:") === 0)
+            return Qt.resolvedUrl("../../icons/menu-button/" + String(raw).slice(7) + ".svg");
+        if (Distro.isLikelyImagePath(raw)) {
+            if (String(raw).indexOf("file://") === 0)
+                return raw;
+            if (String(raw).indexOf("/") === 0)
+                return "file://" + raw;
+        }
+        return raw;
+    }
+
+    readonly property string previewIconSource: resolveIconSource(cfg_ButtonIcon, cfg_CustomButtonIcon)
     function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
+
+    readonly property var appearanceKeys: ["icon", "text", "icon-text", "text-icon", "hidden"]
+    readonly property var appearanceLabels: [
+        tr("Icon"),
+        tr("Text"),
+        tr("Icon and Text"),
+        tr("Text and Icon"),
+        tr("Hidden")
+    ]
+
+    readonly property bool appearanceShowsText: {
+        var a = cfg_MenuButtonAppearance || "icon";
+        return a === "text" || a === "icon-text" || a === "text-icon";
+    }
+    readonly property bool appearanceShowsChrome: {
+        var a = cfg_MenuButtonAppearance || "icon";
+        return a !== "hidden";
+    }
+
+    function syncLabelVisibleFromAppearance() {
+        var a = cfg_MenuButtonAppearance || "icon";
+        cfg_ButtonLabelVisible = (a === "text" || a === "icon-text" || a === "text-icon");
+        writeLive("buttonLabelVisible", cfg_ButtonLabelVisible);
+    }
+
+    function applyAppearance(key) {
+        cfg_MenuButtonAppearance = key;
+        writeLive("menuButtonAppearance", key);
+        syncLabelVisibleFromAppearance();
+    }
+
+    function restoreAppearanceDefaults() {
+        applyAppearance("icon");
+        cfg_ButtonLabelText = "Applications";
+        writeLive("buttonLabelText", "Applications");
+        cfg_PanelButtonPadding = -1;
+        writeLive("panelButtonPadding", -1);
+        paddingSpin.value = -1;
+        cfg_PanelButtonPositionOffset = 0;
+        writeLive("panelButtonPositionOffset", 0);
+        offsetSpin.value = 0;
+        appearanceCombo.currentIndex = 0;
+    }
 
     readonly property var clickKeys: ["arcmenu", "context", "overview", "configure", "show-desktop", "nothing"]
     readonly property var clickLabels: [
@@ -63,6 +125,55 @@ Item {
     function clickIndex(key) {
         var i = clickKeys.indexOf(key || "arcmenu");
         return i >= 0 ? i : 0;
+    }
+
+    component SettingRow: RowLayout {
+        id: srow
+        property string title: ""
+        property string subtitle: ""
+        default property alias trailing: trail.data
+        Layout.fillWidth: true
+        spacing: Kirigami.Units.largeSpacing
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
+            Layout.alignment: Qt.AlignVCenter
+            spacing: 2
+            QQC2.Label {
+                text: srow.title
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+            }
+            QQC2.Label {
+                visible: srow.subtitle.length > 0
+                text: srow.subtitle
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                opacity: 0.6
+                font.pointSize: Kirigami.Theme.smallFont.pointSize
+            }
+        }
+        RowLayout {
+            id: trail
+            Layout.fillWidth: false
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
+            spacing: Kirigami.Units.smallSpacing
+        }
+    }
+
+    component GroupCard: Rectangle {
+        id: card
+        default property alias content: inner.data
+        Layout.fillWidth: true
+        implicitHeight: inner.implicitHeight + Kirigami.Units.largeSpacing * 2
+        radius: Kirigami.Units.smallSpacing
+        color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
+        ColumnLayout {
+            id: inner
+            anchors.fill: parent
+            anchors.margins: Kirigami.Units.largeSpacing
+            spacing: Kirigami.Units.smallSpacing
+        }
     }
 
     component StyleColorRow: RowLayout {
@@ -176,87 +287,124 @@ Item {
             width: parent.width
             spacing: Kirigami.Units.largeSpacing
 
-            QQC2.Label { text: root.tr("Menu Button"); font.bold: true }
+            // ---- Appearance ----
+            RowLayout {
+                Layout.fillWidth: true
+                QQC2.Label { text: root.tr("Appearance"); font.bold: true; Layout.fillWidth: true }
+                QQC2.ToolButton {
+                    icon.name: "view-refresh-symbolic"
+                    QQC2.ToolTip.text: root.tr("Reset settings")
+                    QQC2.ToolTip.visible: hovered
+                    onClicked: restoreConfirm.open()
+                }
+            }
+
+            GroupCard {
+                SettingRow {
+                    title: root.tr("Display Style")
+                    QQC2.ComboBox {
+                        id: appearanceCombo
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        model: root.appearanceLabels
+                        Component.onCompleted: {
+                            var i = root.appearanceKeys.indexOf(cfg_MenuButtonAppearance || "icon");
+                            currentIndex = i >= 0 ? i : 0;
+                        }
+                        onActivated: root.applyAppearance(root.appearanceKeys[currentIndex])
+                    }
+                }
+                Kirigami.Separator {
+                    Layout.fillWidth: true; opacity: 0.2
+                    visible: root.appearanceShowsText
+                }
+                SettingRow {
+                    visible: root.appearanceShowsText
+                    title: root.tr("Text")
+                    QQC2.TextField {
+                        id: buttonTextField
+                        Layout.preferredWidth: Kirigami.Units.gridUnit * 10
+                        text: cfg_ButtonLabelText
+                        onTextEdited: {
+                            cfg_ButtonLabelText = text;
+                            writeLive("buttonLabelText", text);
+                        }
+                    }
+                }
+                Kirigami.Separator {
+                    Layout.fillWidth: true; opacity: 0.2
+                    visible: root.appearanceShowsChrome
+                }
+                SettingRow {
+                    visible: root.appearanceShowsChrome
+                    title: root.tr("Padding")
+                    subtitle: root.tr("%1 Default Theme Value").replace("%1", "-1")
+                    QQC2.SpinBox {
+                        id: paddingSpin
+                        from: -1; to: 25
+                        value: cfg_PanelButtonPadding
+                        onValueModified: {
+                            cfg_PanelButtonPadding = value;
+                            writeLive("panelButtonPadding", value);
+                        }
+                    }
+                }
+                Kirigami.Separator {
+                    Layout.fillWidth: true; opacity: 0.2
+                    visible: root.appearanceShowsChrome
+                }
+                SettingRow {
+                    visible: root.appearanceShowsChrome
+                    title: root.tr("Position in Panel")
+                    QQC2.SpinBox {
+                        id: offsetSpin
+                        from: 0; to: 10
+                        value: cfg_PanelButtonPositionOffset
+                        onValueModified: {
+                            cfg_PanelButtonPositionOffset = value;
+                            writeLive("panelButtonPositionOffset", value);
+                        }
+                    }
+                }
+            }
 
             // ---- Icon ----
-            QQC2.Label { text: root.tr("Icon"); font.bold: true }
+            QQC2.Label {
+                text: root.tr("Icon")
+                font.bold: true
+                visible: {
+                    var a = cfg_MenuButtonAppearance || "icon";
+                    return a === "icon" || a === "icon-text" || a === "text-icon";
+                }
+            }
 
-            Rectangle {
-                Layout.fillWidth: true
-                Layout.preferredHeight: iconCol.implicitHeight + Kirigami.Units.largeSpacing * 2
-                radius: Kirigami.Units.smallSpacing
-                color: Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.06)
-
-                ColumnLayout {
-                    id: iconCol
-                    anchors.fill: parent
-                    anchors.margins: Kirigami.Units.largeSpacing
-                    spacing: Kirigami.Units.smallSpacing
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Select a new icon"); Layout.fillWidth: true }
-                        Kirigami.Icon {
-                            source: {
-                                if (cfg_ButtonIcon === "custom" && cfg_CustomButtonIcon)
-                                    return cfg_CustomButtonIcon.indexOf("/") === 0
-                                        ? ("file://" + cfg_CustomButtonIcon) : cfg_CustomButtonIcon;
-                                return Distro.resolveButtonIcon(cfg_ButtonIcon || "auto-distro", cfg_CustomButtonIcon || "", "", "");
-                            }
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
-                        }
-                        QQC2.Button {
-                            text: root.tr("Browse…")
-                            onClicked: iconFileDialog.open()
-                        }
+            GroupCard {
+                visible: {
+                    var a = cfg_MenuButtonAppearance || "icon";
+                    return a === "icon" || a === "icon-text" || a === "text-icon";
+                }
+                SettingRow {
+                    title: root.tr("Select a new icon")
+                    Kirigami.Icon {
+                        source: root.previewIconSource
+                        isMask: Distro.buttonIconIsMask(cfg_ButtonIcon || "auto-distro", cfg_CustomButtonIcon || "")
+                        color: Kirigami.Theme.textColor
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Preset icon"); Layout.fillWidth: true }
-                        QQC2.ComboBox {
-                            id: iconCombo
-                            textRole: "name"
-                            valueRole: "id"
-                            model: Distro.builtinIcons()
-                            Component.onCompleted: {
-                                var ids = Distro.builtinIcons().map(function (i) { return i.id; });
-                                var idx = ids.indexOf(cfg_ButtonIcon);
-                                currentIndex = idx >= 0 ? idx : 0;
-                            }
-                            onActivated: {
-                                cfg_ButtonIcon = currentValue;
-                                writeLive("buttonIcon", currentValue);
-                            }
-                        }
+                    QQC2.Button {
+                        text: root.tr("Browse...")
+                        onClicked: iconChooser.openFor(cfg_ButtonIcon || "auto-distro")
                     }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Icon size"); Layout.fillWidth: true }
-                        QQC2.SpinBox {
-                            from: 12; to: 64
-                            value: cfg_PanelButtonIconSize > 0 ? cfg_PanelButtonIconSize : 20
-                            onValueModified: {
-                                cfg_PanelButtonIconSize = value;
-                                writeLive("panelButtonIconSize", value);
-                            }
-                        }
-                    }
-                    Kirigami.Separator { Layout.fillWidth: true; opacity: 0.25 }
-                    RowLayout {
-                        Layout.fillWidth: true
-                        QQC2.Label { text: root.tr("Button padding"); Layout.fillWidth: true }
-                        QQC2.SpinBox {
-                            from: 0; to: 32
-                            value: cfg_PanelButtonPadding >= 0 ? cfg_PanelButtonPadding : 0
-                            onValueModified: {
-                                cfg_PanelButtonPadding = value;
-                                writeLive("panelButtonPadding", value);
-                            }
+                }
+                Kirigami.Separator { Layout.fillWidth: true; opacity: 0.2 }
+                SettingRow {
+                    title: root.tr("Icon size")
+                    QQC2.SpinBox {
+                        from: 14; to: 64
+                        value: cfg_PanelButtonIconSize > 0 ? cfg_PanelButtonIconSize : 20
+                        onValueModified: {
+                            cfg_PanelButtonIconSize = value;
+                            writeLive("panelButtonIconSize", value);
                         }
                     }
                 }
@@ -430,18 +578,19 @@ Item {
         }
     }
 
-    Dialogs.FileDialog {
-        id: iconFileDialog
-        title: root.tr("Choose custom icon")
-        nameFilters: [root.tr("Images (*.png *.svg *.jpg *.jpeg *.webp)"), root.tr("All files (*)")]
-        onAccepted: {
-            var path = selectedFile.toString().replace("file://", "");
-            cfg_CustomButtonIcon = path;
-            cfg_ButtonIcon = "custom";
-            writeLive("customButtonIcon", path);
-            writeLive("buttonIcon", "custom");
-            var ids = Distro.builtinIcons().map(function (i) { return i.id; });
-            iconCombo.currentIndex = Math.max(0, ids.indexOf("custom"));
+    IconChooserDialog {
+        id: iconChooser
+        uiLang: root.uiLang
+        onIconChosen: (iconId, kind, filePath) => {
+            if (kind === "file") {
+                cfg_CustomButtonIcon = filePath;
+                cfg_ButtonIcon = "custom";
+                writeLive("customButtonIcon", filePath);
+                writeLive("buttonIcon", "custom");
+                return;
+            }
+            cfg_ButtonIcon = iconId;
+            writeLive("buttonIcon", iconId);
         }
     }
 
@@ -463,10 +612,35 @@ Item {
         }
     }
 
+    QQC2.Dialog {
+        id: restoreConfirm
+        title: root.tr("Reset settings")
+        modal: true
+        standardButtons: QQC2.Dialog.Yes | QQC2.Dialog.No
+        QQC2.Label {
+            text: root.tr("Reset Appearance settings to defaults?")
+            wrapMode: Text.WordWrap
+            width: restoreConfirm.availableWidth
+        }
+        onAccepted: root.restoreAppearanceDefaults()
+    }
+
     Component.onCompleted: {
+        if (!cfg_MenuButtonAppearance) {
+            if (cfg_ButtonLabelVisible)
+                applyAppearance("icon-text");
+            else
+                applyAppearance("icon");
+        }
         if (!cfg_PanelButtonIconSize) cfg_PanelButtonIconSize = 20;
         if (cfg_PanelButtonPadding === undefined || cfg_PanelButtonPadding === null)
-            cfg_PanelButtonPadding = 0;
+            cfg_PanelButtonPadding = -1;
+        if (cfg_PanelButtonPositionOffset === undefined || cfg_PanelButtonPositionOffset === null)
+            cfg_PanelButtonPositionOffset = 0;
+        paddingSpin.value = cfg_PanelButtonPadding;
+        offsetSpin.value = cfg_PanelButtonPositionOffset;
+        if (!cfg_ButtonLabelText) cfg_ButtonLabelText = "Applications";
+        buttonTextField.text = cfg_ButtonLabelText;
         if (!cfg_LeftClickAction) cfg_LeftClickAction = "arcmenu";
         if (!cfg_RightClickAction) cfg_RightClickAction = "context";
         if (!cfg_MiddleClickAction) cfg_MiddleClickAction = "arcmenu";

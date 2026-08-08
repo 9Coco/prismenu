@@ -18,6 +18,13 @@
         <entry name="ButtonLabelText" type="String">
             <default>Applications</default>
         </entry>
+        <!-- icon | text | icon-text | text-icon | hidden -->
+        <entry name="MenuButtonAppearance" type="String">
+            <default>icon</default>
+        </entry>
+        <entry name="PanelButtonPositionOffset" type="Int">
+            <default>0</default>
+        </entry>
         <entry name="MenuHotkey" type="String">
             <default>Meta</default>
         </entry>
@@ -37,8 +44,9 @@
         <entry name="PanelButtonIconSize" type="Int">
             <default>20</default>
         </entry>
+        <!-- -1 = theme default (ArcMenu) -->
         <entry name="PanelButtonPadding" type="Int">
-            <default>0</default>
+            <default>-1</default>
         </entry>
         <!-- arcmenu | context | overview | configure | show-desktop | nothing -->
         <entry name="LeftClickAction" type="String">

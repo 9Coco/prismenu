@@ -433,36 +433,80 @@ Item {
 
     /**
      * Resolve login name + face image like Plasma Kickoff / System Settings → Users.
-     * Prefer ~/.face.icon (Qt-friendly); stage AccountsService icons as .png when needed
-     * (raw /var/lib/AccountsService/icons/$USER often fails QML Image decode).
+     * Always stage the face to ~/.cache/plasma-arcmenu/face-<mtime>.png so QML can
+     * decode AccountsService icons that have no file extension.
      */
     function refreshUserMeta() {
-        // Delimiter | (tabs break under shellQuote single-quotes)
-        var script = [
-            'u=$(id -un 2>/dev/null || whoami)',
-            'icon=""',
-            'for f in "$HOME/.face.icon" "$HOME/.face" "/var/lib/AccountsService/icons/$u.png" "/var/lib/AccountsService/icons/$u.jpg" "/var/lib/AccountsService/icons/$u"; do',
-            '  if [ -f "$f" ] && [ -s "$f" ]; then icon="$f"; break; fi',
-            'done',
-            'if [ -n "$icon" ]; then',
-            '  base=$(basename "$icon")',
-            '  case "$base" in',
-            '    *.*) ;;',
-            '    *)',
-            '      cache="${XDG_CACHE_HOME:-$HOME/.cache}/plasma-arcmenu"',
-            '      mkdir -p "$cache"',
-            '      staged="$cache/face.png"',
-            '      if [ ! -f "$staged" ] || [ "$icon" -nt "$staged" ]; then cp -f "$icon" "$staged" 2>/dev/null || true; fi',
-            '      [ -s "$staged" ] && icon="$staged"',
-            '      ;;',
-            '  esac',
-            'fi',
-            'osid=""; osp="";',
-            'if [ -r /etc/os-release ]; then . /etc/os-release; osid="${ID:-}"; osp="${PRETTY_NAME:-}"; fi',
-            'printf "ARCMENU_META|%s|%s|%s|%s\\n" "$u" "$icon" "$osid" "$osp"'
+        var py = [
+            "import os, pathlib, shutil, sys",
+            "u = os.environ.get('USER') or os.environ.get('LOGNAME') or ''",
+            "try:",
+            "    import pwd",
+            "    u = u or pwd.getpwuid(os.getuid()).pw_name",
+            "except Exception:",
+            "    pass",
+            "home = pathlib.Path.home()",
+            "cands = []",
+            "uf = pathlib.Path('/var/lib/AccountsService/users') / u",
+            "if uf.is_file():",
+            "    try:",
+            "        for line in uf.read_text(errors='ignore').splitlines():",
+            "            if line.startswith('Icon='):",
+            "                p = pathlib.Path(line.split('=', 1)[1].strip())",
+            "                if p.is_file() and p.stat().st_size > 0:",
+            "                    cands.append(p)",
+            "                break",
+            "    except Exception:",
+            "        pass",
+            "for p in [home / '.face.icon', home / '.face',",
+            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.png'),",
+            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.jpg'),",
+            "          pathlib.Path('/var/lib/AccountsService/icons') / (u + '.jpeg'),",
+            "          pathlib.Path('/var/lib/AccountsService/icons') / u,",
+            "          home / '.local/share/faces' / (u + '.png'),",
+            "          home / '.face.png']:",
+            "    if p.is_file() and p.stat().st_size > 0 and p not in cands:",
+            "        cands.append(p)",
+            "icon = ''",
+            "src = next(iter(cands), None)",
+            "if src is not None:",
+            "    cache = pathlib.Path(os.environ.get('XDG_CACHE_HOME', str(home / '.cache'))) / 'plasma-arcmenu'",
+            "    cache.mkdir(parents=True, exist_ok=True)",
+            "    mtime = int(src.stat().st_mtime)",
+            "    staged = cache / ('face-%s-%d.png' % (u, mtime))",
+            "    try:",
+            "        if (not staged.is_file()) or staged.stat().st_size == 0:",
+            "            # Drop older face-*.png to avoid unbounded cache",
+            "            for old in cache.glob('face-%s-*.png' % u):",
+            "                try: old.unlink()",
+            "                except Exception: pass",
+            "            wrote = False",
+            "            try:",
+            "                from PIL import Image",
+            "                Image.open(src).convert('RGBA').save(staged, 'PNG')",
+            "                wrote = staged.is_file() and staged.stat().st_size > 0",
+            "            except Exception:",
+            "                wrote = False",
+            "            if not wrote:",
+            "                shutil.copyfile(src, staged)",
+            "        if staged.is_file() and staged.stat().st_size > 0:",
+            "            icon = str(staged)",
+            "        else:",
+            "            icon = str(src)",
+            "    except Exception:",
+            "        icon = str(src)",
+            "osid = ''; osp = ''",
+            "try:",
+            "    text = pathlib.Path('/etc/os-release').read_text(errors='ignore')",
+            "    data = dict(line.split('=', 1) for line in text.splitlines() if '=' in line and not line.startswith('#'))",
+            "    osid = data.get('ID', '').strip().strip('\"')",
+            "    osp = data.get('PRETTY_NAME', '').strip().strip('\"')",
+            "except Exception:",
+            "    pass",
+            "sys.stdout.write('ARCMENU_META|%s|%s|%s|%s\\n' % (u, icon, osid, osp))",
         ].join("\n");
         console.log("ArcMenu refreshUserMeta");
-        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+        exec.connectSource("/bin/bash -lc " + shellQuote("python3 -c " + shellQuote(py)));
     }
 
     /**
