@@ -55,6 +55,8 @@ ColumnLayout {
         iconSize: Math.max(root.iconSize, Kirigami.Units.iconSizes.medium)
         selectedBg: root.selectedBg
         selectedFg: root.selectedFg
+        hoverBg: root.hoverBg
+        hoverFg: root.hoverFg
         fg: root.fg
         onActivated: root.userClicked()
     }
@@ -76,6 +78,8 @@ ColumnLayout {
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.itemActivated(modelData)
         }
@@ -98,6 +102,8 @@ ColumnLayout {
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.itemActivated(modelData)
         }

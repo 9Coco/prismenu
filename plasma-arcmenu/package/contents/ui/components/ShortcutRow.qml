@@ -15,7 +15,15 @@ Item {
     property bool selected: false
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color hoverBg: selectedBg
+    property color hoverFg: selectedFg
     property color fg: Kirigami.Theme.textColor
+
+    readonly property bool hot: root.selected || mouse.containsMouse
+    readonly property color chipBg: root.selected ? root.selectedBg
+        : (mouse.containsMouse ? root.hoverBg : "transparent")
+    readonly property color chipFg: root.selected ? root.selectedFg
+        : (mouse.containsMouse ? root.hoverFg : root.fg)
 
     signal activated()
     signal contextMenuRequested(real x, real y)
@@ -28,8 +36,8 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: Kirigami.Units.smallSpacing
-        color: root.selected || mouse.containsMouse ? root.selectedBg : "transparent"
-        opacity: root.selected || mouse.containsMouse ? 1 : 0
+        color: root.chipBg
+        opacity: root.hot ? 1 : 0
     }
 
     RowLayout {
@@ -40,7 +48,7 @@ Item {
 
         ResolvedIcon {
             iconName: root.iconName
-            tintColor: root.selected || mouse.containsMouse ? root.selectedFg : root.fg
+            tintColor: root.chipFg
             Layout.preferredWidth: root.iconSize
             Layout.preferredHeight: root.iconSize
         }
@@ -49,7 +57,7 @@ Item {
             Layout.fillWidth: true
             text: root.label
             elide: Text.ElideRight
-            color: root.selected || mouse.containsMouse ? root.selectedFg : root.fg
+            color: root.chipFg
         }
     }
 

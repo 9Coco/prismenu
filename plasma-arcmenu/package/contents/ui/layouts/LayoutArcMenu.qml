@@ -145,6 +145,8 @@ LayoutBase {
                     iconSize: Math.max(root.appIconSize, 28)
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
                     fg: root.fg
                     onAppActivated: (app) => root.activateShortcut(app)
                     onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
@@ -244,6 +246,9 @@ LayoutBase {
                 iconSize: root.categoryIconSize
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                separatorColor: root.separatorColor
                 fg: root.fg
                 onUserClicked: root.userMenu()
                 onItemActivated: (item) => root.activateShortcut(item)

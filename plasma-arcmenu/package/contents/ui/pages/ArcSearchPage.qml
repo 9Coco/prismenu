@@ -17,8 +17,10 @@ Item {
     signal appContextMenu(var app, real x, real y)
 
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
-    readonly property color selectedBg: themeStyle.selectedBg || Kirigami.Theme.highlightColor
-    readonly property color selectedFg: themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color selectedBg: themeStyle.activeBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
+    readonly property color selectedFg: themeStyle.activeFg || themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color hoverBg: themeStyle.hoverBg || root.selectedBg
+    readonly property color hoverFg: themeStyle.hoverFg || root.selectedFg
     readonly property int appIconSize: menuData ? menuData.appIconSize : 24
 
     ListView {
@@ -37,6 +39,8 @@ Item {
             selected: appList.currentIndex === index
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.appActivated(model)
             onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)

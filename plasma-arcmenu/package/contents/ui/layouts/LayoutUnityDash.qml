@@ -37,6 +37,8 @@ LayoutBase {
             model: pinnedModel
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
@@ -55,6 +57,8 @@ LayoutBase {
             columns: 7
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }

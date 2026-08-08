@@ -180,6 +180,8 @@ LayoutBase {
                             selected: !root.searching && root.enterpriseSelectedId === "pinned"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectEnterprise("pinned")
                         }
@@ -192,6 +194,8 @@ LayoutBase {
                             selected: !root.searching && root.enterpriseSelectedId === "all"
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectEnterprise("all")
                         }
@@ -212,6 +216,8 @@ LayoutBase {
                                 selected: !root.searching && root.enterpriseSelectedId === root.categories[index].id
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.selectEnterprise(root.categories[index].id)
                             }
@@ -341,6 +347,8 @@ LayoutBase {
                                 showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.activateItem(root.contentItems[index])
                                 onContextMenuRequested: (x, y) => {

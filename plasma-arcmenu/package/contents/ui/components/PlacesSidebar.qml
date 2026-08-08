@@ -14,6 +14,9 @@ ColumnLayout {
     property int iconSize: 22
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
+    property color hoverBg: selectedBg
+    property color hoverFg: selectedFg
+    property color separatorColor: Kirigami.Theme.disabledTextColor
     property color fg: Kirigami.Theme.textColor
 
     signal userClicked()
@@ -73,7 +76,7 @@ ColumnLayout {
         Rectangle {
             anchors.fill: parent
             radius: Kirigami.Units.smallSpacing
-            color: userMouse.containsMouse ? root.selectedBg : "transparent"
+            color: userMouse.containsMouse ? root.hoverBg : "transparent"
             opacity: userMouse.containsMouse ? 1 : 0
         }
 
@@ -126,7 +129,7 @@ ColumnLayout {
                                  && String(menuData.userIcon).indexOf("/") !== 0)
                             ? menuData.userIcon
                             : "user-identity"
-                        color: userMouse.containsMouse ? root.selectedFg : root.fg
+                        color: userMouse.containsMouse ? root.hoverFg : root.fg
                     }
                 }
             }
@@ -136,7 +139,7 @@ ColumnLayout {
                 Layout.fillWidth: true
                 text: (menuData && menuData.userName) ? menuData.userName : root.t("User")
                 elide: Text.ElideRight
-                color: userMouse.containsMouse ? root.selectedFg : root.fg
+                color: userMouse.containsMouse ? root.hoverFg : root.fg
             }
         }
 
@@ -153,7 +156,8 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing / 2
         Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
-        opacity: 0.4
+        color: root.separatorColor
+        opacity: 1
     }
 
     Repeater {
@@ -166,6 +170,8 @@ ColumnLayout {
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.itemActivated(modelData)
         }
@@ -175,7 +181,8 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.topMargin: Kirigami.Units.smallSpacing / 2
         Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
-        opacity: 0.4
+        color: root.separatorColor
+        opacity: 1
     }
 
     Repeater {
@@ -188,6 +195,8 @@ ColumnLayout {
             iconSize: root.iconSize
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
+            hoverBg: root.hoverBg
+            hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.itemActivated(modelData)
             onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)

@@ -29,8 +29,18 @@ Item {
     readonly property color borderColor: themeStyle.border || Kirigami.Theme.disabledTextColor
     readonly property int borderWidth: themeStyle.borderWidth !== undefined ? themeStyle.borderWidth : 1
     readonly property real radius: themeStyle.radius !== undefined ? themeStyle.radius : Kirigami.Units.cornerRadius
-    readonly property color selectedBg: themeStyle.selectedBg || Kirigami.Theme.highlightColor
-    readonly property color selectedFg: themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color separatorColor: themeStyle.separator || Kirigami.Theme.disabledTextColor
+    readonly property color hoverBg: themeStyle.hoverBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
+    readonly property color hoverFg: themeStyle.hoverFg || themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    readonly property color activeBg: themeStyle.activeBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
+    readonly property color activeFg: themeStyle.activeFg || themeStyle.selectedFg || Kirigami.Theme.highlightedTextColor
+    /** selected* kept as aliases of active* for existing layout bindings */
+    readonly property color selectedBg: root.activeBg
+    readonly property color selectedFg: root.activeFg
+    readonly property int menuFontSize: {
+        var n = themeStyle.fontSize;
+        return (n !== undefined && n > 0) ? n : Kirigami.Theme.defaultFont.pointSize;
+    }
     readonly property int appIconSize: menuData ? menuData.appIconSize : 24
     readonly property int categoryIconSize: menuData ? menuData.categoryIconSize : 24
     readonly property bool flip: menuData ? menuData.flipHorizontal : false

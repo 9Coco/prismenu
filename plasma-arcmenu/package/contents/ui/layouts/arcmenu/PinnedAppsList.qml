@@ -71,6 +71,8 @@ Item {
                     showDescription: false
                     selectedBg: root.selectedBg
                     selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
                     fg: root.fg
                     onActivated: root.appActivated(root.items[index])
                     onContextMenuRequested: (x, y) => {

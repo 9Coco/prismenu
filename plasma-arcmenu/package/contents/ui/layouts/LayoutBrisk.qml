@@ -146,6 +146,8 @@ LayoutBase {
                         selected: !root.searching && root.briskSelectedId === "pinned"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectBrisk("pinned")
                     }
@@ -158,6 +160,8 @@ LayoutBase {
                         selected: !root.searching && root.briskSelectedId === "all"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.selectBrisk("all")
                     }
@@ -178,6 +182,8 @@ LayoutBase {
                             selected: !root.searching && root.briskSelectedId === root.categories[index].id
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.selectBrisk(root.categories[index].id)
                         }
@@ -198,6 +204,8 @@ LayoutBase {
                             iconSize: root.categoryIconSize
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
                             fg: root.fg
                             onActivated: root.activateItem(root.extras[index])
                         }
@@ -251,6 +259,8 @@ LayoutBase {
                                 showDescription: false
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
                                 fg: root.fg
                                 onActivated: root.activateItem(root.contentItems[index])
                                 onContextMenuRequested: (x, y) => {
