@@ -236,6 +236,9 @@ LayoutBase {
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                // Never paint pages outside this box when the menu is
+                // dragged shorter than their natural height.
+                clip: true
 
                 ColumnLayout {
                     anchors.fill: parent
