@@ -447,6 +447,7 @@ Item {
                 exec: "",
                 place: "",
                 path: uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : "",
+                isDevice: !!obj.isDevice,
                 categories: ["Places"],
                 keywords: [],
                 genericName: name,

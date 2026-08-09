@@ -25,6 +25,9 @@ Item {
     property var recentFiles: []
     /** GTK bookmarks (~/.config/gtk-3.0/bookmarks) — Places sidebar */
     property var bookmarks: []
+    /** Removable devices mounted under /media & /run/media (fallback source
+     *  for "External devices" when KFilePlacesModel QML is unavailable) */
+    property var devices: []
     /** Open windows via TaskManager.TasksModel */
     property var openWindows: []
 
@@ -33,6 +36,7 @@ Item {
     signal scanFailed(string message)
     signal recentFilesUpdated(var files)
     signal bookmarksUpdated(var bookmarks)
+    signal devicesUpdated(var devices)
     signal openWindowsUpdated(var windows)
 
     SearchNativeProviders {
@@ -101,6 +105,8 @@ Item {
                 }
                 if (out.indexOf("ARCMENU_BOOKMARK|") >= 0)
                     root._parseBookmarks(out);
+                if (out.indexOf("ARCMENU_DEVICE|") >= 0)
+                    root._parseDevices(out);
             } catch (e) {
                 console.warn("ArcMenu exec parse failed:", e);
             }
@@ -523,6 +529,16 @@ Item {
             return;
         }
 
+        // Special drill-down row clicked from a layout without an apps page
+        // (no in-menu list available): open the mount root directly instead
+        // of doing nothing. computer:/ no longer exists on Plasma 5/6.
+        if (app.special === "devices") {
+            exec.connectSource("/bin/bash -lc " + shellQuote(
+                'p="/media/$USER"; [ -d "$p" ] || p="$HOME"; '
+                + 'kioclient exec "file://$p" || dolphin "$p" || xdg-open "$p"'));
+            return;
+        }
+
         // KFilePlaces / file URL
         if (app.provider === "kfileplaces" && app.kickerUrl) {
             if (plasmaNative.openPlaceUrl(app.kickerUrl))
@@ -866,6 +882,67 @@ Item {
         bookmarksUpdated(items);
         if (menuData)
             menuData.bookmarkResults = items;
+    }
+
+    function refreshDevices() {
+        // computer:/ (KDE4 KIO slave) is gone on Plasma 5/6 — enumerate the
+        // mounted removable media instead (/media/$USER, /run/media/$USER).
+        var script = [
+            "python3 - <<'PY'",
+            "import os",
+            "u=os.environ.get('USER','')",
+            "roots=['/media/'+u if u else '', '/run/media/'+u if u else '']",
+            "count=0",
+            "for r in roots:",
+            "  if not r or not os.path.isdir(r):",
+            "    continue",
+            "  try:",
+            "    names=sorted(os.listdir(r))",
+            "  except OSError:",
+            "    continue",
+            "  for n in names:",
+            "    p=os.path.join(r,n)",
+            "    if not os.path.isdir(p) or os.path.islink(p):",
+            "      continue",
+            "    print('ARCMENU_DEVICE|%s|%s' % (p.replace('|','%7C'), n.replace('|','-')))",
+            "    count+=1",
+            "    if count>=40: break",
+            "  if count>=40: break",
+            "PY"
+        ].join("\n");
+        exec.connectSource("/bin/bash -lc " + shellQuote(script));
+    }
+
+    function _parseDevices(out) {
+        var lines = String(out).split("\n");
+        var items = [];
+        for (var i = 0; i < lines.length; ++i) {
+            if (lines[i].indexOf("ARCMENU_DEVICE|") !== 0)
+                continue;
+            var p = lines[i].split("|");
+            var path = (p[1] || "").trim();
+            var name = (p[2] || "").trim();
+            if (!path)
+                continue;
+            if (!name)
+                name = path.substring(path.lastIndexOf("/") + 1) || path;
+            items.push({
+                id: "device:" + path,
+                name: name,
+                icon: "drive-removable-media",
+                exec: "kioclient exec " + shellQuote("file://" + path)
+                    + " || xdg-open " + shellQuote(path),
+                path: path,
+                genericName: path,
+                description: path,
+                provider: "devices",
+                noDisplay: false
+            });
+        }
+        root.devices = items;
+        devicesUpdated(items);
+        if (menuData)
+            menuData.deviceResults = items;
     }
 
     function uninstall(app) {
