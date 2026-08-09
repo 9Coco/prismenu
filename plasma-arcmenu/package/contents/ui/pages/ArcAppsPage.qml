@@ -192,6 +192,10 @@ Item {
             var _bm = host ? host.bookmarksEpoch : 0;
             return (host && host.bookmarkResults) ? host.bookmarkResults : [];
         }
+        if (root.specialListId === "devices") {
+            var _dv = host ? host.devicesEpoch : 0;
+            return (host && host.deviceEntries) ? host.deviceEntries : [];
+        }
         if (root.drillCategoryId.length === 0)
             return [];
         var _apps = host && host.allApps ? host.allApps : [];
@@ -298,6 +302,14 @@ Item {
             root.openSpecialList("bookmarks");
             return;
         }
+        if (id === "devices" || id === "place-devices") {
+            // computer:/ does not exist on Plasma 5/6 — drill into the
+            // live device list (KFilePlacesModel devices or /media scan)
+            if (bridged && bridged.requestDevicesRefresh)
+                bridged.requestDevicesRefresh();
+            root.openSpecialList("devices");
+            return;
+        }
 
         specialListId = "";
         drillCategoryId = id;
@@ -320,6 +332,8 @@ Item {
             return Locale.tr("Recent Files", root.uiLang);
         if (root.specialListId === "bookmarks")
             return Locale.tr("Bookmarks", root.uiLang);
+        if (root.specialListId === "devices")
+            return Locale.tr("External devices", root.uiLang);
         if (root.drillCategoryId === "all")
             return Locale.tr("All Applications", root.uiLang);
         if (root.showingCategories)
@@ -343,6 +357,8 @@ Item {
             return "document-open-recent";
         if (root.specialListId === "bookmarks")
             return "bookmarks";
+        if (root.specialListId === "devices")
+            return "drive-removable-media";
         if (root.drillCategoryId === "all")
             return "view-app-grid-symbolic";
         if (root.showingCategories)

@@ -111,11 +111,13 @@ LayoutBase {
     }
 
     function openComputer() {
+        // computer:/ (KDE4 KIO slave) no longer exists on Plasma 5/6 — open
+        // the filesystem root; Dolphin's Places sidebar lists the devices.
         root.activateItem({
             id: "place-computer",
             name: root.deviceLabel,
             icon: "drive-harddisk",
-            exec: "dolphin computer:/"
+            exec: "kioclient exec file:/// || dolphin / || xdg-open /"
         });
     }
 
