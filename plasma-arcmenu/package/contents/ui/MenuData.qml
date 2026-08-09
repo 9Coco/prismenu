@@ -29,6 +29,9 @@ QtObject {
     property var extraCategoriesEnabledRaw
     property var extraCategoriesOrderRaw
     property bool extraCategoriesUserSetRaw: false
+    property var quickLinksEnabledRaw
+    property var quickLinksOrderRaw
+    property var quickLinkPositionRaw
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -136,18 +139,26 @@ QtObject {
     readonly property bool showExternalDevices: cfgBool("showExternalDevices", false)
     readonly property bool showBookmarks: cfgBool("showBookmarks", true)
     readonly property var quickLinksOrder: {
-        var o = cfg("quickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
+        var o = (quickLinksOrderRaw !== undefined && quickLinksOrderRaw !== null)
+            ? quickLinksOrderRaw
+            : cfg("quickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
         if (typeof o === "string")
             return o.length ? o.split(",") : [];
         return o || [];
     }
     readonly property var quickLinksEnabled: {
-        var o = cfg("quickLinksEnabled", []);
+        var o = (quickLinksEnabledRaw !== undefined && quickLinksEnabledRaw !== null)
+            ? quickLinksEnabledRaw
+            : cfg("quickLinksEnabled", []);
         if (typeof o === "string")
             return o.length ? o.split(",") : [];
         return o || [];
     }
-    readonly property string quickLinkPosition: cfgStr("quickLinkPosition", "bottom")
+    readonly property string quickLinkPosition: {
+        if (quickLinkPositionRaw !== undefined && quickLinkPositionRaw !== null && String(quickLinkPositionRaw).length)
+            return String(quickLinkPositionRaw);
+        return cfgStr("quickLinkPosition", "bottom");
+    }
 
     function isQuickLinkEnabled(id) {
         return (quickLinksEnabled || []).indexOf(id) >= 0;
@@ -160,6 +171,10 @@ QtObject {
         var out = [];
         for (var i = 0; i < order.length; ++i) {
             var id = order[i];
+            // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
+            // so a duplicate quick link only confused the menu (removed 2026-08).
+            if (id === "all-apps")
+                continue;
             if (!root.isQuickLinkEnabled(id))
                 continue;
             var name = id;

@@ -130,6 +130,107 @@ Item {
     property int cfg_MaxItems
     property var cfg_RecentApps: []
 
+    // ---- camelCase compatibility aliases ---------------------------------
+    // Plasma hosts inject and read cfg_<key> using the lowercase-first names
+    // from KConfigPropertyMap. Without these, injection silently fails and
+    // a save-time read-back can wipe live-edited values back to defaults.
+    property alias cfg_menuLayoutId: root.cfg_MenuLayoutId
+    property alias cfg_flipHorizontal: root.cfg_FlipHorizontal
+    property alias cfg_searchbarLocation: root.cfg_SearchbarLocation
+    property alias cfg_menuWidth: root.cfg_MenuWidth
+    property alias cfg_menuHeight: root.cfg_MenuHeight
+    property alias cfg_sidebarWidth: root.cfg_SidebarWidth
+    property alias cfg_categoryColumnWidth: root.cfg_CategoryColumnWidth
+    property alias cfg_leftPanelWidth: root.cfg_LeftPanelWidth
+    property alias cfg_rightPanelWidth: root.cfg_RightPanelWidth
+    property alias cfg_widthOffset: root.cfg_WidthOffset
+    property alias cfg_themeMode: root.cfg_ThemeMode
+    property alias cfg_overrideMenuTheme: root.cfg_OverrideMenuTheme
+    property alias cfg_menuThemeName: root.cfg_MenuThemeName
+    property alias cfg_customThemes: root.cfg_CustomThemes
+    property alias cfg_bgColor: root.cfg_BgColor
+    property alias cfg_fgColor: root.cfg_FgColor
+    property alias cfg_borderColor: root.cfg_BorderColor
+    property alias cfg_borderWidth: root.cfg_BorderWidth
+    property alias cfg_cornerRadius: root.cfg_CornerRadius
+    property alias cfg_font: root.cfg_Font
+    property alias cfg_fontSize: root.cfg_FontSize
+    property alias cfg_separatorColor: root.cfg_SeparatorColor
+    property alias cfg_hoverBg: root.cfg_HoverBg
+    property alias cfg_hoverFg: root.cfg_HoverFg
+    property alias cfg_activeBg: root.cfg_ActiveBg
+    property alias cfg_activeFg: root.cfg_ActiveFg
+    property alias cfg_selectedBg: root.cfg_SelectedBg
+    property alias cfg_selectedFg: root.cfg_SelectedFg
+    property alias cfg_categoryIconSize: root.cfg_CategoryIconSize
+    property alias cfg_appIconSize: root.cfg_AppIconSize
+    property alias cfg_followColorScheme: root.cfg_FollowColorScheme
+    property alias cfg_overrideMenuPosition: root.cfg_OverrideMenuPosition
+    property alias cfg_overrideMenuRise: root.cfg_OverrideMenuRise
+    property alias cfg_menuRiseDistance: root.cfg_MenuRiseDistance
+    property alias cfg_iconSizeGrid: root.cfg_IconSizeGrid
+    property alias cfg_iconSizeApps: root.cfg_IconSizeApps
+    property alias cfg_iconSizeShortcuts: root.cfg_IconSizeShortcuts
+    property alias cfg_iconSizeCategories: root.cfg_IconSizeCategories
+    property alias cfg_iconSizeButtons: root.cfg_IconSizeButtons
+    property alias cfg_iconSizeOther: root.cfg_IconSizeOther
+    property alias cfg_showCategorySubmenus: root.cfg_ShowCategorySubmenus
+    property alias cfg_showAppDescriptions: root.cfg_ShowAppDescriptions
+    property alias cfg_showGenericNames: root.cfg_ShowGenericNames
+    property alias cfg_showHiddenRecentFiles: root.cfg_ShowHiddenRecentFiles
+    property alias cfg_multiLineLabels: root.cfg_MultiLineLabels
+    property alias cfg_showTooltips: root.cfg_ShowTooltips
+    property alias cfg_groupAppsAlphabeticallyList: root.cfg_GroupAppsAlphabeticallyList
+    property alias cfg_groupAppsAlphabeticallyGrid: root.cfg_GroupAppsAlphabeticallyGrid
+    property alias cfg_activateExistingWindow: root.cfg_ActivateExistingWindow
+    property alias cfg_keepOpenOnCtrlClick: root.cfg_KeepOpenOnCtrlClick
+    property alias cfg_scrollviewFadeEffects: root.cfg_ScrollviewFadeEffects
+    property alias cfg_showScrollbars: root.cfg_ShowScrollbars
+    property alias cfg_overlayScrollbars: root.cfg_OverlayScrollbars
+    property alias cfg_categoryIconType: root.cfg_CategoryIconType
+    property alias cfg_shortcutIconType: root.cfg_ShortcutIconType
+    property alias cfg_allAppsButtonAction: root.cfg_AllAppsButtonAction
+    property alias cfg_showUserAvatar: root.cfg_ShowUserAvatar
+    property alias cfg_avatarShape: root.cfg_AvatarShape
+    property alias cfg_showVerticalSeparator: root.cfg_ShowVerticalSeparator
+    property alias cfg_showExternalDevices: root.cfg_ShowExternalDevices
+    property alias cfg_showBookmarks: root.cfg_ShowBookmarks
+    property alias cfg_quickLinksOrder: root.cfg_QuickLinksOrder
+    property alias cfg_quickLinksEnabled: root.cfg_QuickLinksEnabled
+    property alias cfg_quickLinkPosition: root.cfg_QuickLinkPosition
+    property alias cfg_pinnedApps: root.cfg_PinnedApps
+    property alias cfg_directoryShortcuts: root.cfg_DirectoryShortcuts
+    property alias cfg_applicationShortcuts: root.cfg_ApplicationShortcuts
+    property alias cfg_extraCategoriesOrder: root.cfg_ExtraCategoriesOrder
+    property alias cfg_extraCategoriesEnabled: root.cfg_ExtraCategoriesEnabled
+    property alias cfg_extraCategoriesUserSet: root.cfg_ExtraCategoriesUserSet
+    property alias cfg_contextMenuItems: root.cfg_ContextMenuItems
+    property alias cfg_providers: root.cfg_Providers
+    property alias cfg_placeholder: root.cfg_Placeholder
+    property alias cfg_showDescription: root.cfg_ShowDescription
+    property alias cfg_maxResults: root.cfg_MaxResults
+    property alias cfg_hideSearchBar: root.cfg_HideSearchBar
+    property alias cfg_highlightSearchTerms: root.cfg_HighlightSearchTerms
+    property alias cfg_searchBoxRadiusEnabled: root.cfg_SearchBoxRadiusEnabled
+    property alias cfg_searchBoxRadius: root.cfg_SearchBoxRadius
+    property alias cfg_searchWindows: root.cfg_SearchWindows
+    property alias cfg_searchRecentFiles: root.cfg_SearchRecentFiles
+    property alias cfg_options: root.cfg_Options
+    property alias cfg_powerOptionsOrder: root.cfg_PowerOptionsOrder
+    property alias cfg_confirm: root.cfg_Confirm
+    property alias cfg_softwareCenterCmd: root.cfg_SoftwareCenterCmd
+    property alias cfg_powerDisplayStyle: root.cfg_PowerDisplayStyle
+    property alias cfg_order: root.cfg_Order
+    property alias cfg_hidden: root.cfg_Hidden
+    property alias cfg_customNames: root.cfg_CustomNames
+    property alias cfg_customIcons: root.cfg_CustomIcons
+    property alias cfg_showEmpty: root.cfg_ShowEmpty
+    property alias cfg_pinnedCols: root.cfg_PinnedCols
+    property alias cfg_syncWithPlasma: root.cfg_SyncWithPlasma
+    property alias cfg_enabled: root.cfg_Enabled
+    property alias cfg_maxItems: root.cfg_MaxItems
+    property alias cfg_recentApps: root.cfg_RecentApps
+
     readonly property var cfgKeys: [
         "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight",
         "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset",
@@ -198,19 +299,59 @@ Item {
      *  cfg->config write-back becomes a value-identical no-op, and the root
      *  cfg_* mirrors never change while the page is open (no dirty re-eval). */
     function saveConfig() {
+        console.log("ArcMenu saveConfig: re-syncing root mirrors from live config (no stale write-back)");
         syncFromLive(root);
+    }
+
+    /** Keys each subpage actually declares (auto-scanned at patch time).
+     *  Only these get pushed as initial properties; pushing all 96 keys
+     *  spammed "Cannot assign to non-existent property" errors per open. */
+    readonly property var subPageKeys: ({
+        "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset"],
+        "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
+        "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
+        "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
+        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition"],
+        "ConfigPinned": ["PinnedApps"],
+        "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
+        "ConfigAppShortcuts": ["ApplicationShortcuts"],
+        "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
+        "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet"],
+        "ConfigContent": ["Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "PinnedApps", "PinnedCols", "SyncWithPlasma", "Enabled", "MaxItems", "RecentApps"],
+        "ConfigContextMenu": ["ContextMenuItems"]
+    })
+
+    function subPageKeyFor(component) {
+        if (component === pageLayout) return "ConfigLayout";
+        if (component === pageTheme) return "ConfigTheme";
+        if (component === pageVisual) return "ConfigVisual";
+        if (component === pageFineTune) return "ConfigFineTune";
+        if (component === pageArcLayout) return "ConfigArcLayout";
+        if (component === pagePinned) return "ConfigPinned";
+        if (component === pageDirs) return "ConfigDirectoryShortcuts";
+        if (component === pageApps) return "ConfigAppShortcuts";
+        if (component === pageSearch) return "ConfigSearch";
+        if (component === pagePower) return "ConfigPower";
+        if (component === pageExtra) return "ConfigExtraCategories";
+        if (component === pageContent) return "ConfigContent";
+        if (component === pageContext) return "ConfigContextMenu";
+        return "";
     }
 
     function openSubPage(component, title) {
         subpageTitle = title || "";
         // Initialize the subpage straight from the live config -- the root
         // mirrors are not the source of truth anymore (they must stay frozen).
+        var key = subPageKeyFor(component);
+        var allowed = subPageKeys[key] || cfgKeys;
         var props = {};
-        for (var i = 0; i < cfgKeys.length; ++i) {
-            var v = liveValue(cfgKeys[i]);
+        for (var i = 0; i < allowed.length; ++i) {
+            var v = liveValue(allowed[i]);
             if (v !== undefined)
-                props[cfgName(cfgKeys[i])] = v;
+                props[cfgName(allowed[i])] = v;
         }
+        console.log("ArcMenu openSubPage", key || "<unknown>", "injecting", Object.keys(props).length, "props");
         var page = stack.push(component, props);
         if (page) {
             page.width = Qt.binding(function () { return stack.width; });
