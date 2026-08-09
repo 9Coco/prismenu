@@ -215,7 +215,7 @@ Item {
 
     ConfigPage {
         title: root.tr("Menu Button")
-        tip: root.tr("Customize the panel button appearance, click actions, and colors. Click Apply in the dialog footer to save.")
+        tip: root.tr("Customize the panel button appearance, click actions, and colors. Changes are applied immediately.")
 
         ConfigGroup {
             title: root.tr("Appearance")

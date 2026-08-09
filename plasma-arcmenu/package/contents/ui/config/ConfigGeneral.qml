@@ -24,6 +24,10 @@ Item {
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
 
+    // Live apply: every cfg_* write must also land in plasmoid.configuration,
+    // otherwise Plasma's cfg-vs-config diff flags the page as "unsaved".
+    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
+
     property string _ioMode: ""
     property string _statusText: ""
     property bool _statusIsError: false
@@ -82,7 +86,7 @@ Item {
         var n = ConfigBackup.applySettings(plasmoid.configuration, parsed.settings);
         syncLocalCfgFromConfig();
         _statusIsError = false;
-        _statusText = root.tr("Imported %1 settings. Click Apply to save.").replace("%1", String(n));
+        _statusText = root.tr("Imported %1 settings. Changes are applied immediately.").replace("%1", String(n));
     }
 
     P5Support.DataSource {
@@ -122,7 +126,7 @@ Item {
 
     ConfigPage {
         title: root.tr("General")
-        tip: root.tr("Click Apply in the dialog footer to save changes. Some settings apply after reopening the menu.")
+        tip: root.tr("Changes are applied immediately. Some settings take effect after reopening the menu.")
 
         ConfigGroup {
             title: root.tr("Language")
@@ -164,6 +168,7 @@ Item {
                     id: hotkeyField
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
                     placeholderText: "Meta"
+                    onEditingFinished: root.writeLive("menuHotkey", text)
                 }
             }
             ConfigSep {}
@@ -187,7 +192,10 @@ Item {
                         var values = ["expand", "fade", "slide", "none"];
                         currentIndex = Math.max(0, values.indexOf(cfg_PopupAnimation));
                     }
-                    onActivated: cfg_PopupAnimation = currentValue
+                    onActivated: {
+                        cfg_PopupAnimation = currentValue;
+                        root.writeLive("popupAnimation", currentValue);
+                    }
                 }
             }
             ConfigSep {}
@@ -196,7 +204,10 @@ Item {
                 subtitle: root.tr("Share configuration across panel instances")
                 iconName: "window-duplicate"
                 accent: "green"
-                QQC2.Switch { id: shareConfig }
+                QQC2.Switch {
+                    id: shareConfig
+                    onToggled: root.writeLive("shareConfigAcrossInstances", checked)
+                }
             }
             ConfigSep {}
             ConfigSettingRow {
@@ -204,7 +215,10 @@ Item {
                 subtitle: root.tr("Filter favorites/recent by Plasma Activity (optional)")
                 iconName: "preferences-desktop-activities"
                 accent: "orange"
-                QQC2.Switch { id: filterActivity }
+                QQC2.Switch {
+                    id: filterActivity
+                    onToggled: root.writeLive("filterByActivity", checked)
+                }
             }
         }
 

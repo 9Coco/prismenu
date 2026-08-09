@@ -190,6 +190,24 @@ Item {
         catIconSpin.value = 24;
         appIconSpin.value = 24;
         themeCombo.currentIndex = Math.max(0, root.presetNames.indexOf("ArcMenu Style"));
+        writeLive("menuThemeName", cfg_MenuThemeName);
+        writeLive("bgColor", cfg_BgColor);
+        writeLive("fgColor", cfg_FgColor);
+        writeLive("borderColor", cfg_BorderColor);
+        writeLive("borderWidth", cfg_BorderWidth);
+        writeLive("cornerRadius", cfg_CornerRadius);
+        writeLive("font", cfg_Font);
+        writeLive("fontSize", cfg_FontSize);
+        writeLive("separatorColor", cfg_SeparatorColor);
+        writeLive("hoverBg", cfg_HoverBg);
+        writeLive("hoverFg", cfg_HoverFg);
+        writeLive("activeBg", cfg_ActiveBg);
+        writeLive("activeFg", cfg_ActiveFg);
+        writeLive("selectedBg", cfg_SelectedBg);
+        writeLive("selectedFg", cfg_SelectedFg);
+        writeLive("categoryIconSize", cfg_CategoryIconSize);
+        writeLive("appIconSize", cfg_AppIconSize);
+        writeLive("followColorScheme", cfg_FollowColorScheme);
     }
 
     component ColorRow: ConfigSettingRow {
@@ -611,9 +629,13 @@ Item {
         fontSizeSpin.value = cfg_FontSize;
         catIconSpin.value = cfg_CategoryIconSize || 24;
         appIconSpin.value = cfg_AppIconSize || 24;
-        if ((!cfg_ActiveBg || cfg_ActiveBg === "") && cfg_SelectedBg)
+        if ((!cfg_ActiveBg || cfg_ActiveBg === "") && cfg_SelectedBg) {
             cfg_ActiveBg = cfg_SelectedBg;
-        if ((!cfg_ActiveFg || cfg_ActiveFg === "") && cfg_SelectedFg)
+            writeLive("activeBg", cfg_ActiveBg);
+        }
+        if ((!cfg_ActiveFg || cfg_ActiveFg === "") && cfg_SelectedFg) {
             cfg_ActiveFg = cfg_SelectedFg;
+            writeLive("activeFg", cfg_ActiveFg);
+        }
     }
 }
