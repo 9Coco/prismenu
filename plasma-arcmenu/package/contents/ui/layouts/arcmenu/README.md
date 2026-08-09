@@ -1,9 +1,9 @@
 # ArcMenu Official Layout (layout 1)
 
-Self-contained snapshot of the official ArcMenu layout.
-Shared widgets still live in `ui/components/` at runtime; this folder
-keeps the layout shell + pages together for later menu integration.
+The self-contained snapshot that used to live here was merged into the
+live sources and removed:
 
-Entry used by the plasmoid: `../LayoutArcMenu.qml` (or point
-LayoutRegistry at `layouts/arcmenu/LayoutArcMenu.qml` after import paths
-are adjusted).
+- Layout shell: `../LayoutArcMenu.qml` (registered in `LayoutRegistry.js`)
+- Shared widgets: `../../components/` (PlacesSidebar, ShortcutRow,
+  SessionButtons, AllAppsButton, PinnedAppsList, …)
+- Pages: `../../pages/` (ArcHomePage, ArcAppsPage, ArcSearchPage, PageHost)

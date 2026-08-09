@@ -63,30 +63,32 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 
 | Layout | Style |
 |--------|-------|
-| `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) — sources in `layouts/arcmenu/` |
-| `brisk` | Solus Brisk (search top, category sidebar left, apps right, session bottom) — sources in `layouts/brisk/` |
-| `budgie` | Budgie style (search top, pinned/all/categories left, apps right) — sources in `layouts/budgie/` |
-| `gnome` | GNOME style (like Budgie + bottom Activities Overview) — sources in `layouts/gnome/` |
-| `mint` | Linux Mint (left icon rail + categories + pinned) — sources in `layouts/mint/` |
-| `whisker` | XFCE Whisker (user bar + categories + pinned) — sources in `layouts/whisker/` |
-| `eleven` | Windows 11 (pinned grid + recommended + footer) — sources in `layouts/eleven/` |
-| `az` | A-Z compact (pinned + alphabetical all apps) — sources in `layouts/az/` |
-| `enterprise` | Enterprise (user+search header, category sidebar, pinned grid) — sources in `layouts/enterprise/` |
-| `insider` | Insider (centered avatar + 5-col grid + utility rail) — sources in `layouts/insider/` |
-| `windows` | Windows (rail + frequent/A–Z list + pinned grid) — sources in `layouts/windows/` |
-| `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） — sources in `layouts/zest/` |
-| `chromebook` | Chromebook（竖长：顶部搜索 + 四列网格） — sources in `layouts/chromebook/` |
-| `raven` | Raven（全高左侧栏 + 固定/快捷方式侧板） — sources in `layouts/raven/` |
-| `elementary` | Elementary（顶部搜索 + 六列应用网格） — sources in `layouts/elementary/` |
-| `plasma` | Plasma (user+search header, list, bottom tabs) — sources in `layouts/plasma/` |
-| `pop` | Pop!_OS (search + 6-col grid + category tabs) — sources in `layouts/pop/` |
-| `redmond` | Windows-style (4-col grid + places sidebar) — sources in `layouts/redmond/` |
-| `sleek` | Sleek (pinned grid + avatar sidebar + single power) — sources in `layouts/sleek/` |
-| `tognee` | Tognee (icon rail + categories + bottom search) — sources in `layouts/tognee/` |
+| `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
+| `brisk` | Solus Brisk (search top, category sidebar left, apps right, session bottom) |
+| `budgie` | Budgie style (search top, pinned/all/categories left, apps right) |
+| `gnome` | GNOME style (like Budgie + bottom Activities Overview) |
+| `mint` | Linux Mint (left icon rail + categories + pinned) |
+| `whisker` | XFCE Whisker (user bar + categories + pinned) |
+| `eleven` | Windows 11 (pinned grid + recommended + footer) |
+| `az` | A-Z compact (pinned + alphabetical all apps) |
+| `enterprise` | Enterprise (user+search header, category sidebar, pinned grid) |
+| `insider` | Insider (centered avatar + 5-col grid + utility rail) |
+| `windows` | Windows (rail + frequent/A–Z list + pinned grid) |
+| `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） |
+| `chromebook` | Chromebook（竖长：顶部搜索 + 四列网格） |
+| `raven` | Raven（全高左侧栏 + 固定/快捷方式侧板） |
+| `elementary` | Elementary（顶部搜索 + 六列应用网格） |
+| `plasma` | Plasma (user+search header, list, bottom tabs) |
+| `pop` | Pop!_OS (search + 6-col grid + category tabs) |
+| `redmond` | Windows-style (4-col grid + places sidebar) |
+| `sleek` | Sleek (pinned grid + avatar sidebar + single power) |
+| `tognee` | Tognee (icon rail + categories + bottom search) |
 | `kickoff` / `kicker` | Plasma native styles |
 | `whisker` / `mint` / `brisk` / `budgie` / `gnome` | Traditional Linux menus |
 | `chromebook` / `elementary` / `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |
-| `unity` | Unity compact (pinned + shortcuts + bottom places/session) — sources in `layouts/unity/` |
+| `unity` | Unity compact (pinned + shortcuts + bottom places/session) |
+
+All layout sources live in single files contents/ui/layouts/Layout<Name>.qml; the per-layout folders only keep design notes.
 
 Unsupported options for a layout are disabled in settings with an explanatory note.
 
