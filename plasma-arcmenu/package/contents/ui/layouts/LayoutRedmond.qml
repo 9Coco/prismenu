@@ -245,7 +245,7 @@ LayoutBase {
             Layout.fillHeight: true
             Layout.fillWidth: false
             Layout.preferredWidth: root.sidebarW
-            Layout.minimumWidth: root.sidebarMin
+            Layout.minimumWidth: root.elasticColumnMin
             Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing / 2
 

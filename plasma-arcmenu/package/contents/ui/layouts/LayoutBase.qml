@@ -66,6 +66,10 @@ Item {
     readonly property int categoryColW: (menuData && menuData.categoryColumnWidth) ? menuData.categoryColumnWidth : 220
     readonly property int sidebarMin: 160
     readonly property int sidebarMax: 360
+    /** Elastic column floor: sidebarMin clamped to ~30% of the menu width so
+     * multi-column layouts always fit side by side at any dragged width
+     * (fixed 160 minimums pushed columns outside the menu when narrowed). */
+    readonly property int elasticColumnMin: Math.min(sidebarMin, Math.max(96, Math.round(root.width * 0.3)))
 
     function setSidebarFromDrag(w) {
         if (menuData && menuData.setSidebarWidth)
