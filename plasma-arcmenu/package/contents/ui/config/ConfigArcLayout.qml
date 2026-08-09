@@ -4,6 +4,9 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
+import "../../code/CatalogBridge.js" as CatalogBridge
+import "../../code/PresetIcons.js" as PresetIcons
+import ".." as Ui
 
 /**
  * ArcMenu Layout Adjustment — avatar, search, flip, shortcuts, category quick links.
@@ -22,6 +25,8 @@ Item {
     property var cfg_QuickLinksOrder: []
     property var cfg_QuickLinksEnabled: []
     property string cfg_QuickLinkPosition
+    property var cfg_CustomQuickLinks: []
+    property string cfg_CustomGroupApps: "{}"
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -36,6 +41,117 @@ Item {
         } catch (e) {
             console.log("ArcMenu writeLive FAILED", key, e);
         }
+    }
+    
+    // ---- App catalog for the group management dialogs (same source as ConfigPinned) ----
+    property var localApps: []
+    Ui.AppsBackend {
+        id: grpBackend
+        onAppsUpdated: (apps) => { root.localApps = apps || []; }
+    }
+    readonly property var catalogApps: {
+        if (root.localApps && root.localApps.length)
+            return root.localApps;
+        try {
+            var md = CatalogBridge.menuData();
+            if (md && md.allApps)
+                return md.allApps;
+        } catch (e) {}
+        return [];
+    }
+    
+    // ---- Custom quick link groups ----
+    readonly property var customLinkDefs: {
+        var raw = cfg_CustomQuickLinks || [];
+        if (typeof raw === "string")
+            raw = raw.length ? raw.split(",") : [];
+        var out = [];
+        for (var i = 0; i < raw.length; ++i) {
+            var parts = String(raw[i] || "").split("|");
+            if (!parts[0])
+                continue;
+            out.push({ id: parts[0], name: parts[1] || parts[0], icon: parts[2] || "folder-favorites" });
+        }
+        return out;
+    }
+    
+    function customGroupMap() {
+        try {
+            var obj = JSON.parse(String(cfg_CustomGroupApps || "{}"));
+            return (obj && typeof obj === "object") ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+    
+    function groupContains(gid, appId) {
+        var ids = customGroupMap()[gid];
+        return Array.isArray(ids) && ids.indexOf(appId) >= 0;
+    }
+    
+    function writeCustomLinks(list) {
+        cfg_CustomQuickLinks = list;
+        writeLive("customQuickLinks", list);
+    }
+    
+    function writeCustomGroupApps(map) {
+        var s = JSON.stringify(map);
+        cfg_CustomGroupApps = s;
+        writeLive("customGroupApps", s);
+    }
+    
+    function createGroup(name, icon) {
+        name = String(name || "").replace(/[|,]/g, " ").trim();
+        if (!name)
+            return;
+        icon = String(icon || "folder-favorites").replace(/[|,]/g, "-").trim() || "folder-favorites";
+        var gid = "qgrp-" + Math.random().toString(36).slice(2, 10);
+        var list = (cfg_CustomQuickLinks || []).slice();
+        if (typeof list === "string")
+            list = list.length ? list.split(",") : [];
+        list.push(gid + "|" + name + "|" + icon);
+        writeCustomLinks(list);
+        // New groups start enabled and ordered last
+        var enabled = (cfg_QuickLinksEnabled || []).slice();
+        if (enabled.indexOf(gid) < 0)
+            enabled.push(gid);
+        cfg_QuickLinksEnabled = enabled;
+        writeLive("quickLinksEnabled", enabled);
+        var order = (cfg_QuickLinksOrder || []).slice();
+        if (order.indexOf(gid) < 0)
+            order.push(gid);
+        cfg_QuickLinksOrder = order;
+        writeLive("quickLinksOrder", order);
+    }
+    
+    function deleteGroup(gid) {
+        var list = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
+            return String(s).split("|")[0] !== gid;
+        });
+        writeCustomLinks(list);
+        var map = customGroupMap();
+        delete map[gid];
+        writeCustomGroupApps(map);
+        var enabled = (cfg_QuickLinksEnabled || []).slice().filter(function (x) { return x !== gid; });
+        cfg_QuickLinksEnabled = enabled;
+        writeLive("quickLinksEnabled", enabled);
+        var order = (cfg_QuickLinksOrder || []).slice().filter(function (x) { return x !== gid; });
+        cfg_QuickLinksOrder = order;
+        writeLive("quickLinksOrder", order);
+    }
+    
+    function toggleGroupApp(gid, appId, on) {
+        if (!gid || !appId)
+            return;
+        var map = customGroupMap();
+        var ids = Array.isArray(map[gid]) ? map[gid].slice() : [];
+        var idx = ids.indexOf(appId);
+        if (on && idx < 0)
+            ids.push(appId);
+        if (!on && idx >= 0)
+            ids.splice(idx, 1);
+        map[gid] = ids;
+        writeCustomGroupApps(map);
     }
 
     readonly property var defaultQuickOrder: ["favorites", "frequent", "pinned", "recent-files"]
@@ -52,17 +168,18 @@ Item {
     readonly property var orderedQuickLinks: {
         var order = (cfg_QuickLinksOrder && cfg_QuickLinksOrder.length)
             ? cfg_QuickLinksOrder : defaultQuickOrder;
+        var all = quickLinkDefs.concat(root.customLinkDefs);
         var byId = {};
-        for (var i = 0; i < quickLinkDefs.length; ++i)
-            byId[quickLinkDefs[i].id] = quickLinkDefs[i];
+        for (var i = 0; i < all.length; ++i)
+            byId[all[i].id] = all[i];
         var out = [];
         for (var o = 0; o < order.length; ++o) {
             if (byId[order[o]])
                 out.push(byId[order[o]]);
         }
-        for (var k = 0; k < quickLinkDefs.length; ++k) {
-            if (order.indexOf(quickLinkDefs[k].id) < 0)
-                out.push(quickLinkDefs[k]);
+        for (var k = 0; k < all.length; ++k) {
+            if (order.indexOf(all[k].id) < 0)
+                out.push(all[k]);
         }
         return out;
     }
@@ -255,10 +372,166 @@ Item {
                             enabled: qwrap.index < root.orderedQuickLinks.length - 1
                             onClicked: root.moveQuick(qwrap.index, qwrap.index + 1)
                         }
+                        QQC2.Button {
+                            visible: qwrap.linkId.indexOf("qgrp-") === 0
+                            icon.name: "document-edit"
+                            flat: true
+                            onClicked: {
+                                manageDialog.groupId = qwrap.linkId;
+                                manageFilter.text = "";
+                                manageDialog.open();
+                            }
+                        }
+                        QQC2.Button {
+                            visible: qwrap.linkId.indexOf("qgrp-") === 0
+                            icon.name: "list-remove"
+                            flat: true
+                            onClicked: {
+                                deleteDialog.groupId = qwrap.linkId;
+                                deleteDialog.open();
+                            }
+                        }
                     }
                     ConfigSep { visible: qwrap.index < root.orderedQuickLinks.length - 1 }
                 }
             }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("New custom group…")
+                subtitle: root.tr("Create your own quick link with a personal app collection")
+                iconName: "list-add"
+                accent: "green"
+                QQC2.Button {
+                    icon.name: "list-add"
+                    flat: true
+                    onClicked: {
+                        groupNameField.text = "";
+                        newGroupDialog.groupIcon = "folder-favorites";
+                        newGroupDialog.open();
+                    }
+                }
+            }
+        }
+    }
+    
+    QQC2.Dialog {
+        id: newGroupDialog
+        property string groupIcon: "folder-favorites"
+        title: root.tr("New custom group…")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        width: Kirigami.Units.gridUnit * 24
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
+                QQC2.TextField {
+                    id: groupNameField
+                    Layout.fillWidth: true
+                    implicitWidth: Kirigami.Units.gridUnit * 14
+                    Kirigami.FormData.label: root.tr("Group name")
+                }
+                RowLayout {
+                    Kirigami.FormData.label: root.tr("Group icon")
+                    spacing: Kirigami.Units.smallSpacing
+                    Kirigami.Icon {
+                        source: root.groupIconSource(newGroupDialog.groupIcon)
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                    }
+                    QQC2.Button {
+                        text: root.tr("Browse...")
+                        onClicked: iconChooser.openFor(newGroupDialog.groupIcon || "folder-favorites")
+                    }
+                }
+            }
+        }
+
+        onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon)
+    }
+    
+    QQC2.Dialog {
+        id: deleteDialog
+        property string groupId: ""
+        title: root.tr("Delete group…")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        width: Kirigami.Units.gridUnit * 22
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+
+        contentItem: QQC2.Label {
+            text: root.tr("Are you sure you want to delete this group?")
+            wrapMode: Text.WordWrap
+        }
+
+        onAccepted: root.deleteGroup(deleteDialog.groupId)
+    }
+    
+    QQC2.Dialog {
+        id: manageDialog
+        property string groupId: ""
+        title: root.tr("Manage applications…")
+        modal: true
+        standardButtons: QQC2.Dialog.Close
+        width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
+        height: Math.min((parent ? parent.height : Kirigami.Units.gridUnit * 24) * 0.8, Kirigami.Units.gridUnit * 24)
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+    
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+            QQC2.TextField {
+                id: manageFilter
+                Layout.fillWidth: true
+                placeholderText: root.tr("Search…")
+            }
+            ListView {
+                id: manageList
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: {
+                    var q = String(manageFilter.text || "").toLowerCase();
+                    var apps = root.catalogApps || [];
+                    var out = [];
+                    for (var i = 0; i < apps.length; ++i) {
+                        var a = apps[i];
+                        if (!a || !a.id)
+                            continue;
+                        if (q && String(a.name || "").toLowerCase().indexOf(q) < 0
+                            && String(a.id).toLowerCase().indexOf(q) < 0)
+                            continue;
+                        out.push(a);
+                    }
+                    return out;
+                }
+                delegate: QQC2.CheckDelegate {
+                    required property var modelData
+                    width: manageList.width
+                    text: modelData.name
+                    icon.name: modelData.icon || "application-x-executable"
+                    checked: root.groupContains(manageDialog.groupId, modelData.id)
+                    onToggled: root.toggleGroupApp(manageDialog.groupId, modelData.id, checked)
+                }
+            }
+            QQC2.Label {
+                visible: manageList.count === 0
+                text: root.tr("No applications")
+                opacity: 0.55
+                Layout.alignment: Qt.AlignHCenter
+            }
+        }
+    }
+
+    IconChooserDialog {
+        id: iconChooser
+        uiLang: root.uiLang
+        onIconChosen: (iconId, kind, filePath) => {
+            newGroupDialog.groupIcon = kind === "file" ? filePath : iconId;
         }
     }
 

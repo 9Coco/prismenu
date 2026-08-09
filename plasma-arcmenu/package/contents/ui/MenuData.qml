@@ -32,6 +32,8 @@ QtObject {
     property var quickLinksEnabledRaw
     property var quickLinksOrderRaw
     property var quickLinkPositionRaw
+    property var customQuickLinksRaw
+    property var customGroupAppsRaw
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -163,7 +165,83 @@ QtObject {
     function isQuickLinkEnabled(id) {
         return (quickLinksEnabled || []).indexOf(id) >= 0;
     }
-
+    
+    // ---- Custom quick link groups (user-defined app collections) ----
+    readonly property var customQuickLinkDefs: {
+        var raw = (customQuickLinksRaw !== undefined && customQuickLinksRaw !== null)
+            ? customQuickLinksRaw : cfg("customQuickLinks", []);
+        if (typeof raw === "string")
+            raw = raw.length ? raw.split(",") : [];
+        var out = [];
+        for (var i = 0; i < (raw || []).length; ++i) {
+            var parts = String(raw[i] || "").split("|");
+            var gid = parts[0] || "";
+            if (!gid)
+                continue;
+            out.push({ id: gid, name: parts[1] || gid, icon: parts[2] || "folder-favorites" });
+        }
+        return out;
+    }
+    
+    readonly property var customGroupMap: {
+        var raw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)
+            ? customGroupAppsRaw : cfg("customGroupApps", "{}");
+        try {
+            var obj = JSON.parse(String(raw || "{}"));
+            return (obj && typeof obj === "object") ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+    
+    function customGroupAppIds(groupId) {
+        var list = root.customGroupMap[groupId];
+        return Array.isArray(list) ? list : [];
+    }
+    
+    function isAppInCustomGroup(groupId, appId) {
+        return root.customGroupAppIds(groupId).indexOf(appId) >= 0;
+    }
+    
+    function setCustomGroupApps(groupId, ids) {
+        if (!groupId || !plasmoidConfig)
+            return;
+        var map = JSON.parse(JSON.stringify(root.customGroupMap));
+        map[groupId] = ids || [];
+        plasmoidConfig.customGroupApps = JSON.stringify(map);
+    }
+    
+    function addToCustomGroup(groupId, appId) {
+        if (!appId)
+            return;
+        var ids = root.customGroupAppIds(groupId).slice();
+        if (ids.indexOf(appId) >= 0)
+            return;
+        ids.push(appId);
+        root.setCustomGroupApps(groupId, ids);
+    }
+    
+    function removeFromCustomGroup(groupId, appId) {
+        var ids = root.customGroupAppIds(groupId).slice();
+        var idx = ids.indexOf(appId);
+        if (idx < 0)
+            return;
+        ids.splice(idx, 1);
+        root.setCustomGroupApps(groupId, ids);
+    }
+    
+    /** Resolve a group's app ids to real app objects (unknown ids skipped). */
+    function customGroupApps(groupId) {
+        var ids = root.customGroupAppIds(groupId);
+        var out = [];
+        for (var i = 0; i < ids.length; ++i) {
+            var app = AppsModel.findAppById(root.allApps, ids[i]);
+            if (app)
+                out.push(app);
+        }
+        return out;
+    }
+    
     readonly property var enabledQuickLinks: {
         var order = quickLinksOrder.length
             ? quickLinksOrder
@@ -185,6 +263,14 @@ QtObject {
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
             else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
             out.push({ id: "quick-" + id, quickId: id, name: name, icon: icon, action: "quicklink:" + id });
+        }
+        // Custom user-defined groups (created in Layout Adjustment settings)
+        var defs = root.customQuickLinkDefs;
+        for (var c = 0; c < defs.length; ++c) {
+            if (!root.isQuickLinkEnabled(defs[c].id))
+                continue;
+            out.push({ id: "quick-" + defs[c].id, quickId: defs[c].id, name: defs[c].name,
+                icon: defs[c].icon, action: "quicklink:" + defs[c].id });
         }
         return out;
     }

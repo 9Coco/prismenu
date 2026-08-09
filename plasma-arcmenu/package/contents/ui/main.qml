@@ -126,6 +126,8 @@ PlasmoidItem {
         quickLinksEnabledRaw: plasmoid.configuration.quickLinksEnabled
         quickLinksOrderRaw: plasmoid.configuration.quickLinksOrder
         quickLinkPositionRaw: plasmoid.configuration.quickLinkPosition
+        customQuickLinksRaw: plasmoid.configuration.customQuickLinks
+        customGroupAppsRaw: plasmoid.configuration.customGroupApps
         showDescriptionRaw: plasmoid.configuration.showDescription
         hideSearchBarRaw: plasmoid.configuration.hideSearchBar
         highlightSearchTermsRaw: plasmoid.configuration.highlightSearchTerms
@@ -732,6 +734,15 @@ PlasmoidItem {
                 root.closeMenu();
             }
             onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
+            onToggleCustomGroupRequested: (app, groupId) => {
+                var pid = root.catalog.resolvePinId(app) || (app ? String(app.id || "") : "");
+                if (!pid)
+                    return;
+                if (root.catalog.isAppInCustomGroup(groupId, pid))
+                    root.catalog.removeFromCustomGroup(groupId, pid);
+                else
+                    root.catalog.addToCustomGroup(groupId, pid);
+            }
             onAddToDesktopRequested: (app) => {
                 backend.addDesktopShortcut(app);
                 root.closeMenu();

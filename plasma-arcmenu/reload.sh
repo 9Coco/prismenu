@@ -46,6 +46,23 @@ dump_journal() {
     else
         echo "(no plasmashell-*.log yet)"
     fi
+    echo ""
+    echo "---- KCrash / coredumps (latest crash, if any) ----"
+    journalctl --user -b --no-pager 2>/dev/null | grep -iE 'kcrash|drkonqi|core-dump|segfault' | tail -30 || true
+    if command -v coredumpctl >/dev/null 2>&1; then
+        coredumpctl list --no-pager 2>/dev/null | tail -6 || true
+        echo "---- coredumpctl info (crashed thread stack) ----"
+        coredumpctl info --no-pager 2>/dev/null \
+            | awk '/Stack trace of thread/{p=1} p' | head -70 || true
+    else
+        echo "(coredumpctl not available)"
+    fi
+    local newest_ini
+    newest_ini="$(ls -1t "$HOME/.cache/kcrash-metadata/"*.ini 2>/dev/null | head -n1 || true)"
+    if [[ -n "$newest_ini" ]]; then
+        echo "---- KCrash metadata backtrace: $newest_ini ----"
+        tail -80 "$newest_ini"
+    fi
 }
 
 if [[ "${1:-}" == "journal" ]]; then

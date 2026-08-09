@@ -253,6 +253,8 @@ var CONFIG_DEFAULTS = {
     extraCategoriesEnabled: ["pinned", "all-apps"],
     extraCategoriesUserSet: false,
     contextMenuItems: ["configure", "separator", "power", "overview", "show-desktop"],
+    customQuickLinks: [],
+    customGroupApps: "{}",
     // Search
     providers: ["applications"],
     placeholder: "Search…",
