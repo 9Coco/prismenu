@@ -18,7 +18,6 @@ LayoutBase {
     /** Local UI mode — avoids flaky QtObject currentPage bindings */
     property bool showingApps: false
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property string activePageId: {
         if (root.searching)
             return "search";

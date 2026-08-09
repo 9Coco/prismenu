@@ -16,10 +16,11 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
+    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+
     // "" / "home" = pinned+shortcuts home; "all" / category id = app list
     property string selectedId: "home"
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property bool onHome: !root.searching && (selectedId === "" || selectedId === "home")
     readonly property bool onApps: root.searching || !root.onHome
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
@@ -27,33 +28,7 @@ LayoutBase {
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 1.8
     readonly property int footIcon: Kirigami.Units.iconSizes.smallMedium
 
-    readonly property var categories: [
-        { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
-        { id: "Development", name: root.tr("Programming"), icon: "arcmenu-cat-dev-brush" },
-        { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
-        { id: "Utility", name: root.tr("Tools"), icon: "arcmenu-cat-tools-build" },
-        { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
-        { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
-        { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
-    ]
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var shortcutItems: [
         { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
@@ -99,19 +74,6 @@ LayoutBase {
         return [];
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function selectNav(id) {
         selectedId = id;

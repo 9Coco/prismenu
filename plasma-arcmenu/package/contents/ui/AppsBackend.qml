@@ -2,6 +2,7 @@ import QtQuick
 import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.private.kicker as Kicker
+import "../code/AppsModel.js" as AppsModel
 
 /**
  * Application catalog via Plasma Kicker — same stack as Kickoff / XDG menus on KDE:
@@ -608,6 +609,22 @@ Item {
             if (plasmaNative.runSessionAction(actionId, confirmationMode || "default"))
                 return;
             console.warn("ArcMenu: SessionManagement unavailable, shell fallback for", actionId);
+        }
+
+        // Settings / software center: prefer launching the resolved catalog
+        // entry (KService path) instead of a bare shell exec.
+        if (actionId === "settings"
+            || (actionId === "discover" && (!softwareCenterCmd || softwareCenterCmd === "auto-detect"))) {
+            var candidates = actionId === "settings"
+                ? ["systemsettings.desktop", "org.kde.systemsettings.desktop"]
+                : ["org.kde.discover.desktop", "plasma-discover.desktop"];
+            for (var i = 0; i < candidates.length; ++i) {
+                var found = AppsModel.findAppById(menuData ? menuData.allApps : [], candidates[i]);
+                if (found) {
+                    root.launch(found, {});
+                    return;
+                }
+            }
         }
 
         var discover = (softwareCenterCmd && softwareCenterCmd !== "auto-detect")

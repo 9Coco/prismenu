@@ -15,73 +15,19 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    property string enterpriseSelectedId: "pinned"
+    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
+    property string enterpriseSelectedId: "pinned"
+    activeNavId: enterpriseSelectedId
+
     readonly property bool showPinnedGrid: !root.searching && enterpriseSelectedId === "pinned"
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellWidth: Kirigami.Units.gridUnit * 5.5
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 1.8
 
-    readonly property var categories: [
-        { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
-        { id: "Development", name: root.tr("Development"), icon: "arcmenu-cat-dev-brush" },
-        { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
-        { id: "Utility", name: root.tr("Utilities"), icon: "arcmenu-cat-tools-build" },
-        { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
-        { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
-        { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
-    ]
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
-    readonly property var contentItems: {
-        if (root.searching) {
-            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
-        }
-        if (enterpriseSelectedId === "pinned") {
-            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
-            return pinned.length ? pinned : root.defaultPinned;
-        }
-        if (enterpriseSelectedId === "all") {
-            if (menuData && menuData.allApps && menuData.allApps.length)
-                return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
-            return [];
-        }
-        if (menuData && menuData.allApps)
-            return AppsModel.appsInCategory(menuData.allApps, enterpriseSelectedId);
-        return [];
-    }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function selectEnterprise(id) {
         enterpriseSelectedId = id;

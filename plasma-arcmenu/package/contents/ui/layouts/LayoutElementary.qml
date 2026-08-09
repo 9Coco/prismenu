@@ -13,7 +13,6 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int gridColumns: 6
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(48, root.appIconSize + 20)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2.2
@@ -27,19 +26,6 @@ LayoutBase {
         return [];
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     ColumnLayout {
         anchors.fill: parent
