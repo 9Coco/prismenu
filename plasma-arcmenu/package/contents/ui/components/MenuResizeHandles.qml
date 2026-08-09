@@ -48,6 +48,9 @@ Item {
 
     /** Desktop AppletContainer found on press (null in panel/popup hosts). */
     property var dragContainer: null
+    property real lastGeomLog: 0
+    /** Scene-space bottom edge captured on press — the fixed anchor. */
+    property real pressBottom: 0
 
     /**
      * Walk up to find the desktop AppletContainer (an ItemContainer managed
@@ -85,13 +88,78 @@ Item {
         var h = Math.round((root.liveHeight > 0 ? root.liveHeight : root.height) + chromeH);
         if (lay && typeof lay.releaseSpace === "function")
             lay.releaseSpace(container);
-        // Keep the opposite edge fixed when dragging the w/n edges.
-        if (role === "w" || role === "nw" || role === "sw")
-            container.x += container.width - w;
-        if (role === "n" || role === "ne" || role === "nw")
-            container.y += container.height - h;
+        // Launcher semantics: the bottom-left corner is the fixed origin.
+        // Left edge never moves; bottom edge never moves — height changes
+        // always grow/shrink upward (like a menu anchored to a taskbar
+        // button), regardless of which edge handle is being dragged.
+        //
+        // The containment animates container y (ShortDropBehavior) but
+        // applies height instantly, so writing both independently makes the
+        // bottom edge sweep while y catches up. Instead we write the y
+        // target here and let the yChanged pin below derive height from the
+        // ACTUAL (mid-animation) y every frame — bottom stays nailed to
+        // pressBottom even while y glides, and regardless of who else moves
+        // the container.
+        var oldX = container.x, oldY = container.y;
+        var oldW = container.width, oldH = container.height;
         container.width = w;
-        container.height = h;
+        container.y = root.pressBottom - h;
+        var now = Date.now();
+        if (now - root.lastGeomLog > 400) {
+            root.lastGeomLog = now;
+            console.log("ArcMenu container geom:",
+                        "old", Math.round(oldX), Math.round(oldY), Math.round(oldW), Math.round(oldH),
+                        "->", Math.round(container.x), Math.round(container.y),
+                        Math.round(container.width), Math.round(container.height),
+                        "sceneY", Math.round(container.mapToItem(null, 0, 0).y));
+        }
+    }
+
+    /**
+     * Bottom-edge pin: derive container height from its ACTUAL y (which
+     * trails behind our writes because of the containment's y animation)
+     * so bottom = pressBottom holds every frame of the glide.
+     */
+    Connections {
+        target: root.dragContainer
+        ignoreUnknownSignals: true
+        function onYChanged() {
+            if (!root.dragContainer)
+                return;
+            var nh = Math.round(root.pressBottom - root.dragContainer.y);
+            if (nh > 0 && Math.abs(nh - root.dragContainer.height) >= 1)
+                root.dragContainer.height = nh;
+        }
+    }
+
+    /**
+     * Deferred grid re-registration, two passes:
+     * 1st pass — the y glide may not have settled at release; wait for it,
+     *            then positionItem() (snaps to the cell grid + persists).
+     * 2nd pass — the snap itself glides y a bit (Behavior); keep the
+     *            bottom-edge pin active through it, then detach.
+     */
+    property bool commitSnapped: false
+    Timer {
+        id: commitTimer
+        interval: 250
+        repeat: false
+        onTriggered: {
+            var c = root.dragContainer;
+            if (!c) {
+                root.commitSnapped = false;
+                return;
+            }
+            if (!root.commitSnapped) {
+                root.commitSnapped = true;
+                if (c.layout && typeof c.layout.positionItem === "function")
+                    c.layout.positionItem(c);
+                commitTimer.restart();
+                return;
+            }
+            root.commitSnapped = false;
+            root.dragContainer = null;
+        }
     }
 
     /** One-shot environment dump on first press (host window identity). */
@@ -147,11 +215,13 @@ Item {
             if (root.liveHeight > 0 && root.menuData.setMenuHeight)
                 root.menuData.setMenuHeight(root.liveHeight);
         }
-        // Desktop inline host: re-register with the grid layout (snaps to
-        // the cell grid and schedules an ItemGeometries save).
-        if (root.dragContainer && root.dragContainer.layout
-                && typeof root.dragContainer.layout.positionItem === "function")
-            root.dragContainer.layout.positionItem(root.dragContainer);
+        // Desktop inline host: freeze the bottom edge at its current spot,
+        // then re-register with the grid layout once the y glide settles
+        // (snaps to the cell grid and schedules an ItemGeometries save).
+        if (root.dragContainer) {
+            root.dragContainer.y = root.pressBottom - root.dragContainer.height;
+            commitTimer.restart();
+        }
         console.log("ArcMenu resize commit:", root.liveWidth, "x", root.liveHeight,
                     "rep", Math.round(root.width), "x", Math.round(root.height));
         root.liveWidth = -1;
@@ -216,6 +286,8 @@ Item {
         onPressed: (mouse) => {
             root.logEnvOnce();
             root.dragContainer = root.appletContainer();
+            if (root.dragContainer)
+                root.pressBottom = root.dragContainer.y + root.dragContainer.height;
             var g = mapToGlobal(mouse.x, mouse.y);
             pressGlobalX = g.x;
             pressGlobalY = g.y;
