@@ -17,7 +17,6 @@ LayoutBase {
     property string railSelectedId: "desktop"
     property bool showAllApps: false
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int railWidth: Kirigami.Units.gridUnit * 3.2
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellWidth: Kirigami.Units.gridUnit * 5.5
@@ -35,23 +34,6 @@ LayoutBase {
         { id: "pictures", icon: "folder-pictures", tip: root.tr("Pictures"), place: "PICTURES" }
     ]
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var shortcutItems: [
         { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
@@ -75,19 +57,6 @@ LayoutBase {
 
     readonly property bool onHome: !root.searching && !root.showAllApps
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function activateRail(def) {
         if (!def) return;

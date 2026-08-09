@@ -429,9 +429,25 @@ QtObject {
     property var plasmaPlaces: []
     property var appsBackend: null
 
+    /** Visible apps sorted once — shared by every layout's "all" view */
+    readonly property var sortedVisibleApps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps))
+
     readonly property var categories: {
         var _apps = allApps || [];
         var base = (rawCategories && rawCategories.length) ? rawCategories : AppsModel.defaultCategories();
+        // single pass: bucket each visible app into every matching category
+        var buckets = {};
+        for (var b = 0; b < base.length; ++b)
+            buckets[base[b].id] = [];
+        for (var a = 0; a < _apps.length; ++a) {
+            var app = _apps[a];
+            if (!app || app.noDisplay)
+                continue;
+            for (var m = 0; m < base.length; ++m) {
+                if (AppsModel.categoryMatches(app.categories, base[m].id))
+                    buckets[base[m].id].push(app);
+            }
+        }
         // attach counts + translate default English names (keep already-localized Kickoff names)
         var withCounts = [];
         for (var i = 0; i < base.length; ++i) {
@@ -441,7 +457,7 @@ QtObject {
             c.name = translated || originalName || c.id;
             if (!CategoryIcons.isBundled(c.icon))
                 c.icon = CategoryIcons.defaultIcon(c.id);
-            c.apps = AppsModel.appsInCategory(_apps, c.id);
+            c.apps = AppsModel.sortAppsByName(buckets[c.id]);
             c.appCount = c.apps.length;
             withCounts.push(c);
         }
@@ -450,7 +466,7 @@ QtObject {
             id: "all",
             name: root.tr("All Applications"),
             icon: "arcmenu-cat-other-apps",
-            apps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps)),
+            apps: root.sortedVisibleApps,
             appCount: _apps.length
         };
         var customized = AppsModel.applyCategoryCustomization(

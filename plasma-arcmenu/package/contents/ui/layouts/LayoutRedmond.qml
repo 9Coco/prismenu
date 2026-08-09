@@ -16,28 +16,10 @@ LayoutBase {
 
     property bool showPinned: false
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int gridColumns: 4
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(36, root.appIconSize + 8)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var placeItems: [
         { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },

@@ -15,7 +15,6 @@ LayoutBase {
 
     property int popTab: 0 // 0 home, 1 system, 2 utilities
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int gridColumns: 6
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2.2
@@ -40,19 +39,6 @@ LayoutBase {
         return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function selectTab(id) {
         popTab = id;
