@@ -141,6 +141,169 @@ var CONFIG_KEYS = [
     "widthOffset"
 ];
 
+/**
+ * Schema defaults mirrored from contents/config/main.xml
+ * (camelCase plasmoid.configuration keys).
+ */
+var CONFIG_DEFAULTS = {
+    // General
+    buttonIcon: "auto-distro",
+    customButtonIcon: "",
+    buttonLabelVisible: false,
+    buttonLabelText: "Applications",
+    menuButtonAppearance: "icon",
+    panelButtonPositionOffset: 0,
+    menuHotkey: "Meta",
+    popupAnimation: "expand",
+    shareConfigAcrossInstances: true,
+    filterByActivity: false,
+    uiLanguage: "zh_CN",
+    panelButtonIconSize: 20,
+    panelButtonPadding: -1,
+    leftClickAction: "arcmenu",
+    rightClickAction: "context",
+    middleClickAction: "arcmenu",
+    buttonStyleFgEnabled: false,
+    buttonStyleFg: "",
+    buttonStyleBgEnabled: false,
+    buttonStyleBg: "",
+    buttonStyleHoverBgEnabled: false,
+    buttonStyleHoverBg: "",
+    buttonStyleHoverFgEnabled: false,
+    buttonStyleHoverFg: "",
+    buttonStyleActiveBgEnabled: false,
+    buttonStyleActiveBg: "",
+    buttonStyleActiveFgEnabled: false,
+    buttonStyleActiveFg: "",
+    buttonStyleRadiusEnabled: false,
+    buttonStyleRadius: 20,
+    buttonStyleBorderWidthEnabled: false,
+    buttonStyleBorderWidth: 3,
+    buttonStyleBorderColorEnabled: false,
+    buttonStyleBorderColor: "",
+    // Layout
+    menuLayoutId: "arcmenu",
+    flipHorizontal: false,
+    searchbarLocation: "bottom",
+    allAppsButtonAction: "category-list",
+    showUserAvatar: true,
+    avatarShape: "circle",
+    showVerticalSeparator: false,
+    showExternalDevices: false,
+    showBookmarks: true,
+    quickLinksOrder: ["favorites", "frequent", "all-apps", "pinned", "recent-files"],
+    quickLinksEnabled: [],
+    quickLinkPosition: "bottom",
+    menuWidth: 620,
+    menuHeight: 540,
+    sidebarWidth: 220,
+    categoryColumnWidth: 220,
+    leftPanelWidth: 380,
+    rightPanelWidth: 220,
+    widthOffset: 0,
+    overrideMenuPosition: "off",
+    overrideMenuRise: false,
+    menuRiseDistance: 6,
+    iconSizeGrid: -1,
+    iconSizeApps: -1,
+    iconSizeShortcuts: -1,
+    iconSizeCategories: -1,
+    iconSizeButtons: -1,
+    iconSizeOther: -1,
+    // Theme
+    themeMode: "system",
+    overrideMenuTheme: false,
+    menuThemeName: "ArcMenu Style",
+    customThemes: "[]",
+    bgColor: "",
+    fgColor: "",
+    borderColor: "",
+    borderWidth: 1,
+    cornerRadius: -1,
+    font: "",
+    fontSize: -1,
+    separatorColor: "",
+    hoverBg: "",
+    hoverFg: "",
+    activeBg: "",
+    activeFg: "",
+    selectedBg: "",
+    selectedFg: "",
+    categoryIconSize: 24,
+    appIconSize: 24,
+    followColorScheme: true,
+    // Favorites
+    pinnedApps: ["org.kde.dolphin.desktop", "arcmenu-settings"],
+    pinnedCols: 6,
+    syncWithPlasma: true,
+    // Recent
+    enabled: true,
+    maxItems: 5,
+    recentApps: [],
+    // Categories
+    order: [],
+    hidden: [],
+    customNames: "{}",
+    customIcons: "{}",
+    showEmpty: true,
+    // Shortcuts
+    directoryShortcuts: ["HOME", "DOCUMENTS", "DOWNLOAD", "MUSIC", "PICTURES", "VIDEOS"],
+    applicationShortcuts: ["discover", "settings", "tweaks"],
+    extraCategoriesOrder: ["pinned", "all-apps", "favorites", "frequent", "recent-files"],
+    extraCategoriesEnabled: ["pinned", "all-apps"],
+    extraCategoriesUserSet: false,
+    contextMenuItems: ["configure", "separator", "power", "overview", "show-desktop"],
+    // Search
+    providers: ["applications"],
+    placeholder: "Search…",
+    showDescription: true,
+    maxResults: 5,
+    hideSearchBar: false,
+    highlightSearchTerms: true,
+    searchBoxRadiusEnabled: true,
+    searchBoxRadius: 25,
+    searchWindows: false,
+    searchRecentFiles: false,
+    // FineTune
+    showCategorySubmenus: false,
+    showAppDescriptions: false,
+    showGenericNames: false,
+    showHiddenRecentFiles: false,
+    multiLineLabels: true,
+    showTooltips: true,
+    groupAppsAlphabeticallyList: true,
+    groupAppsAlphabeticallyGrid: false,
+    activateExistingWindow: false,
+    keepOpenOnCtrlClick: true,
+    scrollviewFadeEffects: true,
+    showScrollbars: true,
+    overlayScrollbars: true,
+    categoryIconType: "symbolic",
+    shortcutIconType: "symbolic",
+    // Power
+    options: ["logout", "lock", "restart", "shutdown"],
+    powerOptionsOrder: ["logout", "lock", "restart", "shutdown", "suspend", "hybridsleep", "hibernate", "switchuser"],
+    confirm: true,
+    softwareCenterCmd: "auto-detect",
+    powerDisplayStyle: "off"
+};
+
+/** Restore every known setting to its main.xml default. Returns count. */
+function resetToDefaults(config) {
+    if (!config)
+        return 0;
+    var applied = 0;
+    for (var key in CONFIG_DEFAULTS) {
+        if (!Object.prototype.hasOwnProperty.call(CONFIG_DEFAULTS, key))
+            continue;
+        try {
+            config[key] = cloneValue(CONFIG_DEFAULTS[key]);
+            applied++;
+        } catch (e) {}
+    }
+    return applied;
+}
+
 function cloneValue(v) {
     if (v === undefined || v === null)
         return v;
