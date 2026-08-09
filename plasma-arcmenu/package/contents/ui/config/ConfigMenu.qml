@@ -11,7 +11,15 @@ import "../../code/ShortcutsConfig.js" as SC
  * section groups → secondary pages (not a flat Plasma sidebar list).
  *
  * Plasma Apply only reads cfg_* on this root item, so we declare the union of
- * subpage keys and sync them when entering/leaving a subpage / on saveConfig().
+ * subpage keys -- but after the page is created these mirrors MUST NOT change:
+ * Plasma 6 re-evaluates "dirty" on every root cfg_*Changed signal (and older
+ * Plasma treats any cfg_* change as dirty outright), which kept popping the
+ * "Apply Settings" prompt even though everything is applied live.
+ *
+ * Architecture: subpages write through to plasmoid.configuration on every
+ * edit; subpage instances are initialized from the live config (push props);
+ * saveConfig() re-pulls the live config into the root mirrors right before
+ * Plasma writes them back, making that write-back a no-op.
  */
 Item {
     id: root
@@ -149,8 +157,6 @@ Item {
     ]
 
     property string subpageTitle: ""
-    property bool unsavedChanges: false
-    signal configurationChanged()
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -161,94 +167,66 @@ Item {
 
     function cfgName(key) { return "cfg_" + key; }
 
-    function syncCfg(fromItem, toItem) {
-        if (!fromItem || !toItem)
+    /** kcfg entries are PascalCase in main.xml but plasmoid.configuration
+     *  exposes camelCase properties; try camelCase first, then the raw key. */
+    function liveValue(key) {
+        try {
+            var camel = key.charAt(0).toLowerCase() + key.slice(1);
+            var v = plasmoid.configuration[camel];
+            if (v !== undefined && v !== null)
+                return v;
+        } catch (e) {}
+        try { return plasmoid.configuration[key]; } catch (e) { return undefined; }
+    }
+
+    /** Pull the live config into the cfg_* mirrors of an item. */
+    function syncFromLive(toItem) {
+        if (!toItem)
             return;
         for (var i = 0; i < cfgKeys.length; ++i) {
             var ck = cfgName(cfgKeys[i]);
-            if (!(ck in fromItem) || !(ck in toItem))
+            if (!(ck in toItem))
                 continue;
-            try {
-                var v = fromItem[ck];
-                if (toItem[ck] !== v)
-                    toItem[ck] = v;
-            } catch (e) {}
+            var v = liveValue(cfgKeys[i]);
+            if (v !== undefined)
+                toItem[ck] = v;
         }
     }
 
-    function pageDiffersFromConfig(page) {
-        if (!page)
-            return false;
-        var config = plasmoid.configuration;
-        for (var i = 0; i < cfgKeys.length; ++i) {
-            var key = cfgKeys[i];
-            var ck = cfgName(key);
-            if (!(ck in page))
-                continue;
-            try {
-                var a = page[ck];
-                var b = config[key];
-                if (a === b)
-                    continue;
-                if (String(a) !== String(b))
-                    return true;
-            } catch (e) {}
-        }
-        return false;
-    }
-
-    function refreshUnsaved() {
-        var dirty = false;
-        if (stack.depth > 1)
-            dirty = pageDiffersFromConfig(stack.currentItem);
-        else
-            dirty = pageDiffersFromConfig(root);
-        if (unsavedChanges !== dirty)
-            unsavedChanges = dirty;
-        if (dirty)
-            configurationChanged();
-    }
-
-    /** Called by Plasma AppletConfiguration before reading root cfg_*. */
+    /** Called by Plasma AppletConfiguration before reading root cfg_*. All edits
+     *  are already live-written, so just re-pull the live config: the following
+     *  cfg->config write-back becomes a value-identical no-op, and the root
+     *  cfg_* mirrors never change while the page is open (no dirty re-eval). */
     function saveConfig() {
-        if (stack.depth > 1)
-            syncCfg(stack.currentItem, root);
+        syncFromLive(root);
     }
 
     function openSubPage(component, title) {
-        if (stack.depth > 1)
-            syncCfg(stack.currentItem, root);
         subpageTitle = title || "";
-        var page = stack.push(component);
+        // Initialize the subpage straight from the live config -- the root
+        // mirrors are not the source of truth anymore (they must stay frozen).
+        var props = {};
+        for (var i = 0; i < cfgKeys.length; ++i) {
+            var v = liveValue(cfgKeys[i]);
+            if (v !== undefined)
+                props[cfgName(cfgKeys[i])] = v;
+        }
+        var page = stack.push(component, props);
         if (page) {
             page.width = Qt.binding(function () { return stack.width; });
             page.height = Qt.binding(function () { return stack.height; });
-            syncCfg(root, page);
             if (typeof page.rebuildModel === "function")
                 page.rebuildModel();
         }
-        refreshUnsaved();
     }
 
     function goBack() {
         if (stack.depth <= 1)
             return;
-        syncCfg(stack.currentItem, root);
+        // Subpage edits are live-written to plasmoid.configuration already --
+        // nothing to propagate back into the root cfg_* mirrors.
         stack.pop();
         subpageTitle = "";
-        refreshUnsaved();
-    }
-
-    Timer {
-        id: dirtyPoll
-        interval: 280
-        repeat: true
-        running: stack.depth > 1
-        onTriggered: {
-            if (stack.depth > 1)
-                syncCfg(stack.currentItem, root);
-            refreshUnsaved();
-        }
     }
 
     /**
@@ -505,7 +483,7 @@ Item {
                         QQC2.Label {
                             Layout.fillWidth: true
                             wrapMode: Text.WordWrap
-                            text: root.tr("Open a section to edit settings. Click Apply in the dialog footer to save.")
+                            text: root.tr("Open a section to edit settings. Changes are applied immediately.")
                             opacity: 0.9
                             font.pointSize: Kirigami.Theme.smallFont.pointSize
                         }

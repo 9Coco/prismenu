@@ -57,6 +57,10 @@ Item {
         return Locale.trf(msgid, uiLang, arg1);
     }
 
+    // Live apply: every cfg_* write must also land in plasmoid.configuration,
+    // otherwise Plasma's cfg-vs-config diff flags the page as "unsaved".
+    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
+
     function isHidden(id) {
         return (cfg_Hidden || []).indexOf(id) >= 0;
     }
@@ -69,6 +73,7 @@ Item {
         if (!hide && idx >= 0)
             list.splice(idx, 1);
         cfg_Hidden = list;
+        writeLive("hidden", list);
     }
 
     function moveCategory(from, to) {
@@ -80,6 +85,7 @@ Item {
         var item = order.splice(from, 1)[0];
         order.splice(to, 0, item);
         cfg_Order = order;
+        writeLive("order", order);
     }
 
     function displayName(cat) {
@@ -98,7 +104,10 @@ Item {
                 title: root.tr("Show empty categories")
                 iconName: "view-list-details"
                 accent: "blue"
-                QQC2.Switch { id: showEmpty }
+                QQC2.Switch {
+                    id: showEmpty
+                    onToggled: root.writeLive("showEmpty", checked)
+                }
             }
             ConfigSep {}
             Repeater {
@@ -128,6 +137,7 @@ Item {
                                 map[modelData.id] = text;
                                 root.customNamesMap = map;
                                 cfg_CustomNames = AppsModel.stringifyJsonMap(map);
+                                root.writeLive("customNames", cfg_CustomNames);
                             }
                         }
                         QQC2.TextField {
@@ -142,6 +152,7 @@ Item {
                                     delete map[modelData.id];
                                 root.customIconsMap = map;
                                 cfg_CustomIcons = AppsModel.stringifyJsonMap(map);
+                                root.writeLive("customIcons", cfg_CustomIcons);
                             }
                         }
                         QQC2.Button {
@@ -173,6 +184,7 @@ Item {
                     id: pinnedColsSpin
                     from: 4
                     to: 8
+                    onValueModified: root.writeLive("pinnedCols", value)
                 }
             }
             ConfigSep {}
@@ -180,7 +192,10 @@ Item {
                 title: root.tr("Sync favorites with Plasma global favorites")
                 iconName: "bookmarks"
                 accent: "green"
-                QQC2.Switch { id: syncPlasma }
+                QQC2.Switch {
+                    id: syncPlasma
+                    onToggled: root.writeLive("syncWithPlasma", checked)
+                }
             }
         }
 
@@ -190,7 +205,10 @@ Item {
                 title: root.tr("Enable recent applications section")
                 iconName: "view-history"
                 accent: "indigo"
-                QQC2.Switch { id: recentEnabled }
+                QQC2.Switch {
+                    id: recentEnabled
+                    onToggled: root.writeLive("enabled", checked)
+                }
             }
             ConfigSep {}
             ConfigSettingRow {
@@ -203,6 +221,7 @@ Item {
                     from: 1
                     to: 20
                     enabled: recentEnabled.checked
+                    onValueModified: root.writeLive("maxItems", value)
                 }
             }
             ConfigSep {}
@@ -213,7 +232,10 @@ Item {
                 QQC2.Button {
                     text: root.tr("Clear recent applications")
                     icon.name: "edit-clear-history"
-                    onClicked: cfg_RecentApps = []
+                    onClicked: {
+                        cfg_RecentApps = [];
+                        root.writeLive("recentApps", []);
+                    }
                 }
             }
         }
