@@ -9,6 +9,10 @@ import "../../code/Locale.js" as Locale
 Item {
     id: root
 
+    // Safety net: when the menu is dragged narrower than the columns'
+    // combined minimums, never paint content outside the menu surface.
+    clip: true
+
     property var menuData: null
     property var themeStyle: ({})
 

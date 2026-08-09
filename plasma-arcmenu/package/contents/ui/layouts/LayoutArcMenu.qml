@@ -221,7 +221,11 @@ LayoutBase {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+            // Kept small so narrowing the menu shrinks this column instead
+            // of pushing the right column outside the menu surface (its old
+            // 12-gridUnit minimum made the combined column minimums exceed
+            // the 400px menu minimum → overflow).
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
             spacing: Kirigami.Units.smallSpacing
 
             Components.SearchField {
@@ -365,7 +369,9 @@ LayoutBase {
         // ---- RIGHT column ----
         ColumnLayout {
             Layout.preferredWidth: root.sidebarW
-            Layout.minimumWidth: root.sidebarMin
+            // Responsive floor: never demand more than ~30% of the menu so
+            // the two columns always fit side by side at any dragged width.
+            Layout.minimumWidth: Math.min(root.sidebarMin, Math.max(96, Math.round(root.width * 0.3)))
             Layout.maximumWidth: root.sidebarMax
             Layout.fillHeight: true
             Layout.fillWidth: false
