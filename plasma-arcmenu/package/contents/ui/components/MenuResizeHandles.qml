@@ -35,7 +35,9 @@ Item {
     /** Extra popup width outside menuWidth (layout side panel). */
     property int sideWidth: 0
     property int minWidth: 400
-    property int maxWidth: 900
+    /** Soft cap only — effectiveMaxWidth below raises it to screen fit (the
+     *  fixed 900 used to stop the horizontal drag mid-screen). */
+    property int maxWidth: 1200
     property int minHeight: 400
     /** Hard ceiling only for popup hosts; desktop inline gets a screen-fit
      *  ceiling via effectiveMaxHeight below (the old fixed 800 made the
@@ -45,6 +47,12 @@ Item {
         if (root.dragContainer)
             return Math.max(root.maxHeight, Screen.height - 80);
         return root.maxHeight;
+    }
+    /** Screen-fit ceiling for the content width: never wider than the screen
+     *  minus the layout's side panel and a safety margin. */
+    readonly property int effectiveMaxWidth: {
+        var cap = Screen.width - root.sideWidth - 80;
+        return Math.max(root.maxWidth, cap);
     }
     property int handleThickness: 6
     property bool resizeHeight: true
@@ -275,7 +283,7 @@ Item {
         || loc === PlasmaCore.Types.TopEdge
 
     function clampW(w) {
-        return Math.max(root.minWidth, Math.min(root.maxWidth, Math.round(w)));
+        return Math.max(root.minWidth, Math.min(root.effectiveMaxWidth, Math.round(w)));
     }
     function clampH(h) {
         return Math.max(root.minHeight, Math.min(root.effectiveMaxHeight, Math.round(h)));
@@ -492,18 +500,5 @@ Item {
         anchors.left: parent.left
         width: root.handleThickness * 2
         height: root.handleThickness * 2
-    }
-
-    Rectangle {
-        z: 49
-        width: Kirigami.Units.smallSpacing * 2
-        height: width
-        radius: 1
-        opacity: 0.35
-        color: Kirigami.Theme.textColor
-        visible: root.showTop && root.showRight
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.margins: 2
     }
 }
