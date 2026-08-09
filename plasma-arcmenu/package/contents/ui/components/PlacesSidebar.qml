@@ -129,52 +129,73 @@ ColumnLayout {
         opacity: 1
     }
 
-    Repeater {
-        model: root.placeItems
-        ShortcutRow {
-            required property var modelData
-            Layout.fillWidth: true
-            iconName: modelData.icon
-            label: modelData.name
-            iconSize: root.iconSize
-            selectedBg: root.selectedBg
-            selectedFg: root.selectedFg
-            hoverBg: root.hoverBg
-            hoverFg: root.hoverFg
-            fg: root.fg
-            preferSymbolic: root.preferSymbolic
-            showTooltips: root.showTooltips
-            onActivated: root.itemActivated(modelData)
-        }
-    }
-
-    Kirigami.Separator {
+    // Scrollable middle: places + shortcuts must never push the fixed chrome
+    // (avatar row above, session buttons below) out of the column. When the
+    // menu is resized shorter than the full list, this region scrolls
+    // instead of overflowing (fixed rows used to overlap and break the
+    // layout once the drag went below the list's natural height).
+    Flickable {
+        id: listFlick
         Layout.fillWidth: true
-        Layout.topMargin: Kirigami.Units.smallSpacing / 2
-        Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
-        color: root.separatorColor
-        opacity: 1
-    }
+        Layout.fillHeight: true
+        Layout.minimumHeight: 0
+        clip: true
+        boundsBehavior: Flickable.StopAtBounds
+        flickableDirection: Flickable.VerticalFlick
+        contentWidth: width
+        contentHeight: listCol.height
 
-    Repeater {
-        model: root.shortcutItems
-        ShortcutRow {
-            required property var modelData
-            Layout.fillWidth: true
-            iconName: modelData.icon
-            label: modelData.name
-            iconSize: root.iconSize
-            selectedBg: root.selectedBg
-            selectedFg: root.selectedFg
-            hoverBg: root.hoverBg
-            hoverFg: root.hoverFg
-            fg: root.fg
-            preferSymbolic: root.preferSymbolic
-            showTooltips: root.showTooltips
-            onActivated: root.itemActivated(modelData)
-            onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)
+        Column {
+            id: listCol
+            width: listFlick.width
+            spacing: root.spacing
+
+            Repeater {
+                model: root.placeItems
+                ShortcutRow {
+                    required property var modelData
+                    width: listCol.width
+                    iconName: modelData.icon
+                    label: modelData.name
+                    iconSize: root.iconSize
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    preferSymbolic: root.preferSymbolic
+                    showTooltips: root.showTooltips
+                    onActivated: root.itemActivated(modelData)
+                }
+            }
+
+            Kirigami.Separator {
+                width: listCol.width
+                Layout.topMargin: Kirigami.Units.smallSpacing / 2
+                Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
+                color: root.separatorColor
+                opacity: 1
+            }
+
+            Repeater {
+                model: root.shortcutItems
+                ShortcutRow {
+                    required property var modelData
+                    width: listCol.width
+                    iconName: modelData.icon
+                    label: modelData.name
+                    iconSize: root.iconSize
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    preferSymbolic: root.preferSymbolic
+                    showTooltips: root.showTooltips
+                    onActivated: root.itemActivated(modelData)
+                    onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)
+                }
+            }
         }
     }
-
-    Item { Layout.fillHeight: true }
 }
