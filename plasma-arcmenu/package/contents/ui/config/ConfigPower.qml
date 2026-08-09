@@ -143,7 +143,10 @@ Item {
                 title: root.tr("Confirm shut down / restart / log out")
                 iconName: "dialog-warning"
                 accent: "orange"
-                QQC2.Switch { id: confirmSwitch }
+                QQC2.Switch {
+                    id: confirmSwitch
+                    onToggled: root.writeLive("confirm", checked)
+                }
             }
             ConfigSep {}
             ConfigSettingRow {
@@ -155,6 +158,7 @@ Item {
                     id: softwareCmd
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 12
                     placeholderText: "auto-detect"
+                    onEditingFinished: root.writeLive("softwareCenterCmd", text)
                 }
             }
         }

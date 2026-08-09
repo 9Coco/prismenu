@@ -1,0 +1,10 @@
+ * Plasma Apply only reads cfg_* on this root item, so we declare the union of
+ * subpage keys -- but after the page is created these mirrors MUST NOT change:
+ * Plasma 6 re-evaluates @dirty@ on every root cfg_*Changed signal (and older
+ * Plasma treats any cfg_* change as dirty outright), which kept popping the
+ * @Apply Settings@ prompt even though everything is applied live.
+ *
+ * Architecture: subpages write through to plasmoid.configuration on every
+ * edit; subpage instances are initialized from the live config (push props);
+ * saveConfig() re-pulls the live config into the root mirrors right before
+ * Plasma writes them back, making that write-back a no-op.
