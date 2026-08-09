@@ -42,18 +42,42 @@ QtObject {
     property var recentFileResults: []
     property var openWindowResults: []
     property var bookmarkResults: []
+    /** Removable devices scanned from /media (fallback when KFilePlacesModel
+     *  QML is unavailable) — filled by AppsBackend.refreshDevices() */
+    property var deviceResults: []
     /** Bumped when recent-file list is refreshed — forces UI list bindings */
     property int recentFilesEpoch: 0
     property int bookmarksEpoch: 0
+    property int devicesEpoch: 0
     /** Increment to ask AppsBackend to re-read recently-used.xbel */
     property int recentFilesRequest: 0
     property int bookmarksRequest: 0
+    property int devicesRequest: 0
 
     function requestRecentFilesRefresh() {
         recentFilesRequest++;
     }
     function requestBookmarksRefresh() {
         bookmarksRequest++;
+    }
+    function requestDevicesRefresh() {
+        devicesRequest++;
+    }
+
+    /** Device list for the "External devices" drill-down: prefer live
+     *  KFilePlacesModel device entries, fall back to the /media scan. */
+    readonly property var deviceEntries: {
+        var _e = root.devicesEpoch; // refresh tick
+        if (plasmaPlaces && plasmaPlaces.length) {
+            var out = [];
+            for (var i = 0; i < plasmaPlaces.length; ++i) {
+                if (plasmaPlaces[i].isDevice)
+                    out.push(plasmaPlaces[i]);
+            }
+            if (out.length)
+                return out;
+        }
+        return deviceResults || [];
     }
 
     /**
@@ -884,6 +908,13 @@ QtObject {
                     categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
                 });
             }
+            if (root.showExternalDevices) {
+                kp.push({
+                    id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
+                    special: "devices",
+                    categories: ["Places"], keywords: [], genericName: root.tr("External devices"), noDisplay: false
+                });
+            }
             return kp;
         }
         var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
@@ -915,7 +946,7 @@ QtObject {
         if (root.showExternalDevices) {
             out.push({
                 id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
-                exec: "kioclient exec computer:/ || dolphin computer:/ || xdg-open computer:/",
+                special: "devices",
                 categories: ["Places"], keywords: [], genericName: root.tr("External devices"), noDisplay: false
             });
         }

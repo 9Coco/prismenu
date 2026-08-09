@@ -79,6 +79,9 @@ PlasmoidItem {
         function onBookmarksRequestChanged() {
             backend.refreshBookmarks();
         }
+        function onDevicesRequestChanged() {
+            backend.refreshDevices();
+        }
     }
 
     Connections {
@@ -88,6 +91,9 @@ PlasmoidItem {
         }
         function onBookmarksUpdated() {
             menuData.bookmarksEpoch++;
+        }
+        function onDevicesUpdated() {
+            menuData.devicesEpoch++;
         }
     }
 

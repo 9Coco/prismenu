@@ -61,6 +61,21 @@ LayoutBase {
             });
             return;
         }
+        // External devices → in-menu device list (computer:/ does not exist
+        // on Plasma 5/6, so never launch it as a URL)
+        if (item && (item.special === "devices" || item.id === "place-devices")) {
+            root.showingApps = true;
+            if (menuData) {
+                menuData.navigateTo("apps");
+                if (menuData.requestDevicesRefresh)
+                    menuData.requestDevicesRefresh();
+            }
+            Qt.callLater(function () {
+                if (appsLoader.item)
+                    appsLoader.item.openCategory("devices");
+            });
+            return;
+        }
         root.activateItem(item);
     }
 
