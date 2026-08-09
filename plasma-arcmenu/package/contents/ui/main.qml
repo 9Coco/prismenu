@@ -123,6 +123,9 @@ PlasmoidItem {
         extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
         extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
         extraCategoriesUserSetRaw: !!plasmoid.configuration.extraCategoriesUserSet
+        quickLinksEnabledRaw: plasmoid.configuration.quickLinksEnabled
+        quickLinksOrderRaw: plasmoid.configuration.quickLinksOrder
+        quickLinkPositionRaw: plasmoid.configuration.quickLinkPosition
         showDescriptionRaw: plasmoid.configuration.showDescription
         hideSearchBarRaw: plasmoid.configuration.hideSearchBar
         highlightSearchTermsRaw: plasmoid.configuration.highlightSearchTerms
