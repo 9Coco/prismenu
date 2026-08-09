@@ -177,14 +177,21 @@ Item {
         var tick = root.refreshTick;
         if (root.specialListId === "favorites" || root.specialListId === "pinned") {
             // Same pin list for now (Plasma favorites sync); labels differ by specialListId
-            return (host && host.pinnedApps) ? host.pinnedApps : [];
+            var _pl = (host && host.pinnedApps) ? host.pinnedApps : [];
+            var _ids = [];
+            for (var pi = 0; pi < _pl.length; ++pi)
+                _ids.push(_pl[pi] ? _pl[pi].id : "?");
+            console.log("ArcMenu drilled", root.specialListId, "→", _pl.length, "pinned:", _ids.join(","));
+            return _pl;
         }
         if (root.specialListId === "frequent") {
             return (host && host.recentApps) ? host.recentApps : [];
         }
         if (root.specialListId.indexOf("qgrp-") === 0) {
             // Custom quick link group — resolve member ids via the live catalog
-            return (host && host.customGroupApps) ? host.customGroupApps(root.specialListId) : [];
+            var _gl = (host && host.customGroupApps) ? host.customGroupApps(root.specialListId) : [];
+            console.log("ArcMenu drilled", root.specialListId, "→", _gl.length, "group apps");
+            return _gl;
         }
         if (root.specialListId === "recent-files") {
             var _rf = host ? host.recentFilesEpoch : 0;

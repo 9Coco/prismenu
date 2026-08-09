@@ -738,7 +738,9 @@ PlasmoidItem {
                 var pid = root.catalog.resolvePinId(app) || (app ? String(app.id || "") : "");
                 if (!pid)
                     return;
-                if (root.catalog.isAppInCustomGroup(groupId, pid))
+                var wasIn = root.catalog.isAppInCustomGroup(groupId, pid);
+                console.log("ArcMenu toggleCustomGroup", groupId, "pin:", pid, "wasIn:", wasIn);
+                if (wasIn)
                     root.catalog.removeFromCustomGroup(groupId, pid);
                 else
                     root.catalog.addToCustomGroup(groupId, pid);
