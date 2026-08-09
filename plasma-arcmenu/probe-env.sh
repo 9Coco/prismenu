@@ -17,6 +17,12 @@ mkdir -p "$ROOT/logs"
     xrandr 2>/dev/null | head -12 || true
     echo
 
+    echo "---- plasma versions ----"
+    plasmashell --version 2>/dev/null || true
+    dpkg -l 2>/dev/null | grep -E "plasma-workspace|libplasma|plasma-desktop|kwin " | head -10 || true
+    rpm -qa 2>/dev/null | grep -E "plasma-workspace|libplasma|plasma-desktop" | head -10 || true
+    echo
+
     echo "---- arcmenu appletsrc sections (where is the applet? popupWidth?) ----"
     awk '/^\[Containments\]\[[0-9]+\]\[Applets\]\[[0-9]+\]$/{keep=0} /plugin=org.kde.plasma.arcmenu/{keep=1} keep' \
         "$HOME/.config/plasma-org.kde.plasma.desktop-appletsrc" 2>/dev/null | head -40
@@ -53,23 +59,33 @@ mkdir -p "$ROOT/logs"
 
     echo "---- dump desktop containment applet-related qml ----"
     for f in /usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/main.qml \
-             /usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/FolderViewLayer.qml \
-             /usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/FolderView.qml; do
+             /usr/share/plasma/plasmoids/org.kde.plasma.folder/contents/ui/main.qml \
+             /usr/share/plasma/plasmoids/org.kde.plasma.folder/contents/ui/FolderViewLayer.qml \
+             /usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ui/FolderViewLayer.qml; do
         [ -f "$f" ] || continue
         echo "==== $f ===="
         cat "$f"
         echo
     done
+    echo "-- folder containment dir listing --"
+    ls -la /usr/share/plasma/plasmoids/org.kde.plasma.folder/contents/ui/ 2>/dev/null
+    echo
 
     echo "---- containmentlayoutmanager qml module ----"
     LM_DIR="$(find /usr/lib /usr/lib64 /usr/local/lib /opt -type d -name "containmentlayoutmanager" 2>/dev/null | head -1)"
     echo "dir: $LM_DIR"
-    for f in "$LM_DIR"/*.qml "$LM_DIR"/qmldir; do
+    while IFS= read -r f; do
         [ -f "$f" ] || continue
         echo "==== $f ===="
         cat "$f"
         echo
-    done
+    done < <(find "$LM_DIR" -maxdepth 3 \( -name "*.qml" -o -name "qmldir" \) 2>/dev/null)
+
+    echo "---- grep Behavior/Animation in desktop containment + layout manager ----"
+    grep -rn "Behavior on\|NumberAnimation\|SmoothedAnimation\|PropertyAnimation" \
+        /usr/share/plasma/plasmoids/org.kde.desktopcontainment/contents/ \
+        /usr/share/plasma/plasmoids/org.kde.plasma.folder/contents/ "$LM_DIR" 2>/dev/null | head -80
+    echo
 
     echo "---- containment[1] full section of appletsrc ----"
     sed -n '/^\[Containments\]\[1\]$/,/^\[Containments\]\[2\]/p' \
