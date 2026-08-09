@@ -98,6 +98,11 @@ var ZH_CN = {
     "Import failed.": "导入失败。",
     "Imported %1 settings. Click Apply to save.": "已导入 %1 项设置。请点击「应用」保存。",
     "Import settings from this file? Current values will be overwritten.": "要从该文件导入设置吗？当前值将被覆盖。",
+    "Reset": "重置",
+    "Reset…": "重置…",
+    "Restore all Arc Menu settings to their default values.": "将全部 Arc Menu 设置恢复为默认值。",
+    "Reset all Arc Menu settings to their default values? This cannot be undone.": "要将全部 Arc Menu 设置恢复为默认值吗？此操作无法撤销。",
+    "Restored %1 settings to defaults.": "已将 %1 项设置恢复为默认值。",
 
     "Search icons…": "搜索图标…",
     "Filter": "筛选",
