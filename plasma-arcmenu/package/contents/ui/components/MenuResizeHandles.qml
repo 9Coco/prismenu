@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import org.kde.plasma.core as PlasmaCore
@@ -7,12 +8,22 @@ import org.kde.plasma.core as PlasmaCore
  * Edge / corner drag handles to resize the menu popup.
  *
  * While dragging, only liveWidth / liveHeight change (one cheap property
- * write per mouse move — no config writes, no direct window manipulation).
- * The host (main.qml) binds the popup's Layout.minimumWidth/maximumWidth
- * (and height) to these values; libplasma's AppletPopup always applies
- * min/max size changes to the window, in BOTH directions, even when it
- * ignores Layout.preferredWidth (which happens as soon as a popup size has
- * been remembered in the applet config). This is what makes shrinking work.
+ * write per mouse move — no config writes). The host (main.qml) binds the
+ * popup's Layout min/max/preferred to these values; this file then applies
+ * the size to whichever host is in use:
+ *
+ * 1. Desktop (inline expansion, formFactor Planar): the menu lives inside
+ *    the containment's AppletContainer. The containment's GridLayoutManager
+ *    applies Layout hints one-way only — it grows containers but never
+ *    shrinks them (its maximum branch is disabled upstream) — which is why
+ *    dragging smaller used to do nothing. We resize the container directly,
+ *    the same flow Plasma's own edit-mode resize handles use: releaseSpace()
+ *    while dragging, positionItem() on release (snaps to grid + persists).
+ *
+ * 2. Panel (AppletPopup window): libplasma converts Layout min/max changes
+ *    into window resizes; growing via updateMinSize() is reliable, but
+ *    shrinking via updateMaxSize() can be reverted by a Wayland race, so
+ *    syncWindowSize() ALSO resizes the popup window directly on every move.
  *
  * The final size is persisted once, through the catalog (MenuData), when
  * the drag ends.
@@ -34,6 +45,72 @@ Item {
     property int liveWidth: -1
     property int liveHeight: -1
     readonly property bool dragging: liveWidth > 0 || liveHeight > 0
+
+    /** Desktop AppletContainer found on press (null in panel/popup hosts). */
+    property var dragContainer: null
+
+    /**
+     * Walk up to find the desktop AppletContainer (an ItemContainer managed
+     * by AppletsLayout). Present only when the applet is expanded inline on
+     * the desktop; panel applets expand into an AppletPopup window instead.
+     */
+    function appletContainer() {
+        var p = root.parent;
+        while (p) {
+            if (p.layout !== undefined && p.layout !== null
+                    && typeof p.layout.positionItem === "function")
+                return p;
+            p = p.parent;
+        }
+        return null;
+    }
+
+    /**
+     * Resize the desktop AppletContainer directly.
+     * GridLayoutManager::adjustToItemSizeHints() only grows containers from
+     * Layout hints, never shrinks them — so shrinking must set the geometry
+     * explicitly, like Plasma's own ResizeHandle: releaseSpace() per move,
+     * positionItem() on release (re-registers the grid cells, snaps to the
+     * cell grid and persists ItemGeometries via layoutNeedsSaving).
+     */
+    function syncContainerSize(role) {
+        var container = root.dragContainer;
+        if (!container)
+            return;
+        var lay = container.layout;
+        // Container = content + background margins; keep the delta.
+        var chromeW = container.width - root.width;
+        var chromeH = container.height - root.height;
+        var w = Math.round((root.liveWidth > 0 ? root.liveWidth + root.sideWidth : root.width) + chromeW);
+        var h = Math.round((root.liveHeight > 0 ? root.liveHeight : root.height) + chromeH);
+        if (lay && typeof lay.releaseSpace === "function")
+            lay.releaseSpace(container);
+        // Keep the opposite edge fixed when dragging the w/n edges.
+        if (role === "w" || role === "nw" || role === "sw")
+            container.x += container.width - w;
+        if (role === "n" || role === "ne" || role === "nw")
+            container.y += container.height - h;
+        container.width = w;
+        container.height = h;
+    }
+
+    /** One-shot environment dump on first press (host window identity). */
+    property bool envLogged: false
+    function logEnvOnce() {
+        if (root.envLogged)
+            return;
+        root.envLogged = true;
+        var w = root.Window.window;
+        var ff = -1, loc = -1, exp = false;
+        try { ff = plasmoid.formFactor; loc = plasmoid.location; exp = plasmoid.expanded; } catch (e) {}
+        console.log("ArcMenu env:",
+                    "formFactor", ff, "(0=Planar/desktop 1=Horizontal 2=Vertical)",
+                    "location", loc, "expanded", exp,
+                    "screen", Screen.width, "x", Screen.height,
+                    "rep", Math.round(root.width), "x", Math.round(root.height),
+                    "win", w ? (Math.round(w.width) + "x" + Math.round(w.height)
+                                + " flags=" + w.flags + " name='" + w.objectName + "'") : "null");
+    }
 
     readonly property int loc: {
         try { return plasmoid.location; } catch (e) { return PlasmaCore.Types.BottomEdge; }
@@ -70,8 +147,45 @@ Item {
             if (root.liveHeight > 0 && root.menuData.setMenuHeight)
                 root.menuData.setMenuHeight(root.liveHeight);
         }
+        // Desktop inline host: re-register with the grid layout (snaps to
+        // the cell grid and schedules an ItemGeometries save).
+        if (root.dragContainer && root.dragContainer.layout
+                && typeof root.dragContainer.layout.positionItem === "function")
+            root.dragContainer.layout.positionItem(root.dragContainer);
+        console.log("ArcMenu resize commit:", root.liveWidth, "x", root.liveHeight,
+                    "rep", Math.round(root.width), "x", Math.round(root.height));
         root.liveWidth = -1;
         root.liveHeight = -1;
+        root.dragContainer = null;
+    }
+
+    /**
+     * Resize the popup window directly to the live drag size.
+     * Runs after the liveWidth/liveHeight writes, so AppletPopup has already
+     * applied the Layout min/max pin (window constraints match the target);
+     * this final resize() overrides any stale grow request issued by
+     * AppletPopup::updateMinSize() on Wayland — the case where shrinking
+     * used to bounce straight back.
+     */
+    function syncWindowSize(role) {
+        // Desktop inline host: resize the AppletContainer, not the window
+        // (the "window" here is the whole desktop and must not be touched).
+        if (root.dragContainer) {
+            root.syncContainerSize(role);
+            return;
+        }
+        var win = root.Window.window;
+        if (!win)
+            return;
+        // Never touch desktop-filling shells (Raven on small screens etc.)
+        if (win.width >= Screen.width - 8 && win.height >= Screen.height - 8)
+            return;
+        // Window = content + theme chrome (padding/arrows); keep the delta.
+        var chromeW = win.width - root.width;
+        var chromeH = win.height - root.height;
+        var w = (root.liveWidth > 0 ? root.liveWidth + root.sideWidth : root.width) + chromeW;
+        var h = (root.liveHeight > 0 ? root.liveHeight : root.height) + chromeH;
+        win.resize(Math.round(w), Math.round(h));
     }
 
     component EdgeHandle: MouseArea {
@@ -81,6 +195,7 @@ Item {
         property real pressGlobalY: 0
         property int pressW: 0
         property int pressH: 0
+        property real lastLogTime: 0
 
         z: 50
         hoverEnabled: true
@@ -99,6 +214,8 @@ Item {
         }
 
         onPressed: (mouse) => {
+            root.logEnvOnce();
+            root.dragContainer = root.appletContainer();
             var g = mapToGlobal(mouse.x, mouse.y);
             pressGlobalX = g.x;
             pressGlobalY = g.y;
@@ -107,6 +224,10 @@ Item {
             // used to make the first drag appear to do nothing.
             pressW = root.clampW(root.width - root.sideWidth);
             pressH = root.clampH(root.height);
+            var win = root.Window.window;
+            console.log("ArcMenu resize press:", edgeRole, "seed", pressW, "x", pressH,
+                        "rep", Math.round(root.width), "x", Math.round(root.height),
+                        "win", win ? Math.round(win.width) + "x" + Math.round(win.height) : "null");
         }
         onPositionChanged: (mouse) => {
             if (!pressed)
@@ -123,6 +244,16 @@ Item {
                 root.liveHeight = root.clampH(pressH + dy);
             else if (role === "n" || role === "ne" || role === "nw")
                 root.liveHeight = root.clampH(pressH - dy);
+            root.syncWindowSize(role);
+            var now = Date.now();
+            if (now - edge.lastLogTime > 400) {
+                edge.lastLogTime = now;
+                var lw = root.Window.window;
+                console.log("ArcMenu resize drag:", role,
+                            "live", root.liveWidth, "x", root.liveHeight,
+                            "rep", Math.round(root.width), "x", Math.round(root.height),
+                            "win", lw ? Math.round(lw.width) + "x" + Math.round(lw.height) : "null");
+            }
         }
         onReleased: root.commitDrag()
         onCanceled: root.commitDrag()

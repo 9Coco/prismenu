@@ -590,10 +590,11 @@ PlasmoidItem {
          * Popup size is pinned with min == max == preferred: libplasma's
          * AppletPopup ignores Layout.preferredWidth/Height changes once a
          * popup size was remembered (popupWidth/popupHeight in the applet
-         * config), but it always applies min/max size changes to the window
-         * — in both directions. This makes config-driven sizing and the
-         * drag-resize handles (which publish liveWidth/liveHeight while
-         * dragging) work reliably for growing AND shrinking.
+         * config), but it always applies min/max size changes to the window.
+         * Growing works through updateMinSize(); for shrinking the drag
+         * handles additionally resize the window directly (syncWindowSize in
+         * MenuResizeHandles), because AppletPopup's updateMinSize() can
+         * re-issue a stale grow request on Wayland that reverts the shrink.
          */
         readonly property int targetPopupWidth:
             (resizeHandles.liveWidth > 0 ? resizeHandles.liveWidth : root.catalog.menuWidth)
