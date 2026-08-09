@@ -586,13 +586,26 @@ PlasmoidItem {
     fullRepresentation: Item {
         id: fullRep
         readonly property int hostSideWidth: host.sidePanelWidth || 0
-        // Prefer follows config; mins stay at floor so Plasma / drag can shrink
-        Layout.minimumWidth: 400 + hostSideWidth
-        Layout.minimumHeight: root.isRavenLayout ? root.effectiveMenuHeight : 400
-        Layout.preferredWidth: root.catalog.menuWidth + hostSideWidth
-        Layout.preferredHeight: root.effectiveMenuHeight
-        Layout.maximumWidth: 900 + hostSideWidth
-        Layout.maximumHeight: root.isRavenLayout ? 1400 : 800
+        /**
+         * Popup size is pinned with min == max == preferred: libplasma's
+         * AppletPopup ignores Layout.preferredWidth/Height changes once a
+         * popup size was remembered (popupWidth/popupHeight in the applet
+         * config), but it always applies min/max size changes to the window
+         * — in both directions. This makes config-driven sizing and the
+         * drag-resize handles (which publish liveWidth/liveHeight while
+         * dragging) work reliably for growing AND shrinking.
+         */
+        readonly property int targetPopupWidth:
+            (resizeHandles.liveWidth > 0 ? resizeHandles.liveWidth : root.catalog.menuWidth)
+            + hostSideWidth
+        readonly property int targetPopupHeight:
+            resizeHandles.liveHeight > 0 ? resizeHandles.liveHeight : root.effectiveMenuHeight
+        Layout.minimumWidth: targetPopupWidth
+        Layout.maximumWidth: targetPopupWidth
+        Layout.preferredWidth: targetPopupWidth
+        Layout.minimumHeight: targetPopupHeight
+        Layout.maximumHeight: targetPopupHeight
+        Layout.preferredHeight: targetPopupHeight
 
         focus: true
 
@@ -688,10 +701,11 @@ PlasmoidItem {
 
         // Drag edges/corners to resize popup (persists MenuWidth / MenuHeight)
         Components.MenuResizeHandles {
+            id: resizeHandles
             anchors.fill: parent
             z: 40
             menuData: root.catalog
-            window: fullRep.Window.window
+            sideWidth: fullRep.hostSideWidth
             maxHeight: root.isRavenLayout ? 1400 : 800
             // Raven fills the screen vertically — width only
             resizeHeight: !root.isRavenLayout
