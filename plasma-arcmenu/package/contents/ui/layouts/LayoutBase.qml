@@ -5,6 +5,7 @@ import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
 import ".." as Ui
 import "../../code/Locale.js" as Locale
+import "../../code/AppsModel.js" as AppsModel
 
 Item {
     id: root
@@ -83,6 +84,65 @@ Item {
 
     function tr(msgid) {
         return Locale.tr(msgid, root.uiLang);
+    }
+
+    /** Fallback pinned list shown until the catalog / user pins are ready */
+    property var defaultPinned: [
+        {
+            id: "org.kde.dolphin.desktop",
+            name: root.tr("Files"),
+            icon: "system-file-manager",
+            exec: "dolphin",
+            noDisplay: false
+        },
+        {
+            id: "arcmenu-settings",
+            name: root.tr("ArcMenu Settings"),
+            icon: "preferences-system-windows",
+            exec: "",
+            action: "configure",
+            noDisplay: false
+        }
+    ]
+
+    /** Nav id the shared contentItems binding follows (layouts bind their own
+     * selection property here; layouts with custom panes may ignore it). */
+    property string activeNavId: ""
+
+    /** Standard content pane model: search > pinned > all > category */
+    readonly property var contentItems: root.computeContentItems(root.activeNavId)
+
+    function computeContentItems(navId) {
+        if (root.searching)
+            return (menuData && menuData.searchResults) ? menuData.searchResults : [];
+        if (navId === "pinned") {
+            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
+            return pinned.length ? pinned : root.defaultPinned;
+        }
+        if (navId === "all")
+            return (menuData && menuData.sortedVisibleApps) ? menuData.sortedVisibleApps : [];
+        if (menuData && menuData.allApps)
+            return AppsModel.appsInCategory(menuData.allApps, navId);
+        return [];
+    }
+
+    /** menuData.categories (user order/hidden/renames applied) restricted to
+     * the ids a layout wants; pass [] for everything except "all". */
+    function categorySubset(allowedIds) {
+        if (!menuData || !menuData.categories)
+            return [];
+        var allowed = {};
+        for (var i = 0; i < (allowedIds || []).length; ++i)
+            allowed[allowedIds[i]] = true;
+        var out = [];
+        for (var j = 0; j < menuData.categories.length; ++j) {
+            var c = menuData.categories[j];
+            if (c.id === "all")
+                continue;
+            if (!(allowedIds || []).length || allowed[c.id])
+                out.push(c);
+        }
+        return out;
     }
 
     function appsModel() {

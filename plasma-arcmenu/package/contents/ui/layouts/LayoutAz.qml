@@ -16,28 +16,10 @@ LayoutBase {
 
     property bool showAllApps: false
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int pinnedIconSize: Math.max(32, root.appIconSize + 4)
     readonly property int pinnedCellWidth: Kirigami.Units.gridUnit * 5
     readonly property int pinnedCellHeight: pinnedIconSize + Kirigami.Units.gridUnit * 1.6
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var pinnedItems: {
         if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
@@ -59,19 +41,6 @@ LayoutBase {
         return (menuData && menuData.searchResults) ? menuData.searchResults : [];
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function openFiles() {
         root.appActivated({

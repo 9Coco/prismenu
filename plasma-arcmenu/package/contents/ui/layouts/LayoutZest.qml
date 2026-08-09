@@ -16,10 +16,11 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
+    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+
     // Middle column selection �?drives right column content
     property string selectedId: "all"
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
     readonly property var sideItems: {
@@ -35,39 +36,7 @@ LayoutBase {
         ];
     }
 
-    readonly property var categories: {
-        var _ = root.uiLang;
-        return [
-            { id: "Office", name: root.tr("Office"), icon: "arcmenu-cat-office-barchart" },
-            { id: "Development", name: root.tr("Programming"), icon: "arcmenu-cat-dev-brush" },
-            { id: "Accessories", name: root.tr("Accessories"), icon: "arcmenu-cat-accessories-handyman" },
-            { id: "Utility", name: root.tr("Tools"), icon: "arcmenu-cat-tools-build" },
-            { id: "Network", name: root.tr("Internet"), icon: "arcmenu-cat-internet-public" },
-            { id: "Graphics", name: root.tr("Graphics"), icon: "arcmenu-cat-graphics-image" },
-            { id: "System", name: root.tr("System Tools"), icon: "arcmenu-cat-system-settings" }
-        ];
-    }
 
-    readonly property var defaultPinned: {
-        var _ = root.uiLang;
-        return [
-            {
-                id: "org.kde.dolphin.desktop",
-                name: root.tr("Files"),
-                icon: "system-file-manager",
-                exec: "dolphin",
-                noDisplay: false
-            },
-            {
-                id: "arcmenu-settings",
-                name: root.tr("ArcMenu Settings"),
-                icon: "preferences-system-windows",
-                exec: "",
-                action: "configure",
-                noDisplay: false
-            }
-        ];
-    }
 
     readonly property var pinnedItems: {
         if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
@@ -104,19 +73,6 @@ LayoutBase {
         return flatItems.length === 0;
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function selectNav(id) {
         selectedId = id;

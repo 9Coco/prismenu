@@ -16,7 +16,6 @@ LayoutBase {
 
     property bool showSideMenu: false
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property bool onHome: !showSideMenu
     readonly property int railWidth: Kirigami.Units.gridUnit * 2.8
     readonly property int pinIconSize: Math.max(40, root.appIconSize + 12)
@@ -25,23 +24,6 @@ LayoutBase {
     readonly property int frequentMax: 6
     readonly property int sideWidth: root.sidebarW
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var defaultFrequent: [
         {
@@ -118,19 +100,6 @@ LayoutBase {
         return [];
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function openFiles() {
         root.activateItem({

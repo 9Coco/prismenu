@@ -17,26 +17,8 @@ LayoutBase {
 
     property int plasmaTab: 0 // 0 pinned, 1 apps, 2 computer, 3 leave
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int footerHeight: Kirigami.Units.gridUnit * 3.8
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     readonly property var leaveItems: [
         { id: "leave-lock", name: root.tr("Lock"), icon: "system-lock-screen", action: "lock", noDisplay: false },
@@ -72,19 +54,6 @@ LayoutBase {
         return root.leaveItems;
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     function selectTab(id) {
         plasmaTab = id;
@@ -157,59 +126,34 @@ LayoutBase {
         }
 
         // Middle content �?takes all leftover height
-        Flickable {
+        ListView {
             id: listFlick
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: Kirigami.Units.gridUnit * 8
-            contentWidth: width
-            contentHeight: Math.max(height, listCol.height)
+            model: root.contentItems
+            spacing: Kirigami.Units.smallSpacing / 2
             clip: true
             boundsBehavior: Flickable.StopAtBounds
-
-            Column {
-                id: listCol
-                width: listFlick.width
-                spacing: Kirigami.Units.smallSpacing / 2
-
-                Repeater {
-                    model: root.contentItems.length
-                    Components.AppListItem {
-                        required property int index
-                        menuData: menuData
-                        width: listCol.width
-                        app: root.contentItems[index]
-                        iconSize: Math.max(root.appIconSize, 28)
-                        showDescription: root.showAppDescriptions
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.activateItem(root.contentItems[index])
-                        onContextMenuRequested: (x, y) => {
-                            var a = root.contentItems[index];
-                            if (a && !a.action) root.appContextMenu(a, x, y);
+            delegate: Components.AppListItem {
+                            required property int index
+                            menuData: menuData
+                            width: listFlick.width
+                            app: root.contentItems[index]
+                            iconSize: Math.max(root.appIconSize, 28)
+                            showDescription: root.showAppDescriptions
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
+                            fg: root.fg
+                            onActivated: root.activateItem(root.contentItems[index])
+                            onContextMenuRequested: (x, y) => {
+                                var a = root.contentItems[index];
+                                if (a && !a.action) root.appContextMenu(a, x, y);
+                            }
                         }
-                    }
-                }
-            }
-
-            PlasmaComponents.Label {
-                anchors.centerIn: parent
-                visible: root.contentItems.length === 0
-                text: root.searching
-                      ? root.tr("No matching applications found")
-                      : (root.plasmaTab === 0
-                         ? root.tr("Pin applications from the context menu")
-                         : root.tr("No applications"))
-                opacity: 0.45
-                color: root.fg
-                width: parent.width * 0.8
-                wrapMode: Text.WordWrap
-                horizontalAlignment: Text.AlignHCenter
-            }
-        }
+}
 
         Kirigami.Separator {
             Layout.fillWidth: true

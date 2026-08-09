@@ -17,29 +17,11 @@ LayoutBase {
     // Sleek home view starts on pinned apps (matches reference screenshot)
     property bool showPinned: true
 
-    readonly property bool searching: menuData ? menuData.isSearching : false
     readonly property int gridColumns: 4
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
-    readonly property var defaultPinned: [
-        {
-            id: "org.kde.dolphin.desktop",
-            name: root.tr("Files"),
-            icon: "system-file-manager",
-            exec: "dolphin",
-            noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        }
-    ]
 
     // Continuous sidebar list matching Sleek reference (no Videos / Tweaks / Overview)
     readonly property var sideItems: [
@@ -65,19 +47,6 @@ LayoutBase {
         return [];
     }
 
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     RowLayout {
         anchors.fill: parent
