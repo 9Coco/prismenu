@@ -209,6 +209,7 @@ QtObject {
         var map = JSON.parse(JSON.stringify(root.customGroupMap));
         map[groupId] = ids || [];
         plasmoidConfig.customGroupApps = JSON.stringify(map);
+        console.log("ArcMenu setCustomGroupApps", groupId, "->", JSON.stringify(ids || []));
     }
     
     function addToCustomGroup(groupId, appId) {
@@ -252,6 +253,10 @@ QtObject {
             // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
             // so a duplicate quick link only confused the menu (removed 2026-08).
             if (id === "all-apps")
+                continue;
+            // Custom groups are appended by the defs loop below — skip them here,
+            // otherwise a raw "qgrp-…" ghost row appears next to the real entry.
+            if (String(id).indexOf("qgrp-") === 0)
                 continue;
             if (!root.isQuickLinkEnabled(id))
                 continue;

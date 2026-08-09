@@ -146,11 +146,34 @@ QQC2.Menu {
         onTriggered: root.toggleFavoriteRequested(root.app)
     }
     
+    QQC2.MenuSeparator {
+        visible: root.isDesktopApp && (root.canEditDesktop || root.canUninstall)
+    }
+
+    QQC2.MenuItem {
+        visible: root.isDesktopApp && root.canEditDesktop
+        text: root.t("Edit Application…")
+        icon.name: "document-edit"
+        onTriggered: root.editRequested(root.app)
+    }
+    QQC2.MenuItem {
+        visible: root.isDesktopApp
+        text: root.t("Show Details")
+        icon.name: "dialog-information"
+        onTriggered: root.detailsRequested(root.app)
+    }
+    QQC2.MenuItem {
+        visible: root.isDesktopApp && root.canUninstall
+        text: root.t("Uninstall…")
+        icon.name: "edit-delete"
+        onTriggered: root.uninstallRequested(root.app)
+    }
+
     // "Add to…" — quick add the app to favorites or a custom quick link group.
-    // Flattened into the top-level menu: a nested QQC2.Menu whose `visible` is
-    // driven by bindings crashes plasmashell in QQuickMenu::setVisible (2026-08).
-    // Items are built only while this menu is open: inserting into a closed
-    // QQC2.Menu from a live model change also crashed.
+    // Kept at the END of the menu so group items can be appended with addItem():
+    // this Qt build's QQuickMenu has no indexOf(), and a nested QQC2.Menu whose
+    // `visible` is binding-driven crashes plasmashell (2026-08). Items are built
+    // only while this menu is open (inserting into a closed menu also crashed).
     QQC2.MenuSeparator {
         visible: root.hasAddTargets
     }
@@ -174,34 +197,7 @@ QQC2.Menu {
                 : false
             onTriggered: root.toggleCustomGroupRequested(root.app, modelData.id)
         }
-        onObjectAdded: (index, object) => root.insertItem(root.indexOf(addToSep) + 1 + index, object)
+        onObjectAdded: (index, object) => root.addItem(object)
         onObjectRemoved: (index, object) => root.removeItem(object)
-    }
-    QQC2.MenuSeparator {
-        id: addToSep
-        visible: root.hasAddTargets
-    }
-
-    QQC2.MenuSeparator {
-        visible: root.isDesktopApp && (root.canEditDesktop || root.canUninstall)
-    }
-
-    QQC2.MenuItem {
-        visible: root.isDesktopApp && root.canEditDesktop
-        text: root.t("Edit Application…")
-        icon.name: "document-edit"
-        onTriggered: root.editRequested(root.app)
-    }
-    QQC2.MenuItem {
-        visible: root.isDesktopApp
-        text: root.t("Show Details")
-        icon.name: "dialog-information"
-        onTriggered: root.detailsRequested(root.app)
-    }
-    QQC2.MenuItem {
-        visible: root.isDesktopApp && root.canUninstall
-        text: root.t("Uninstall…")
-        icon.name: "edit-delete"
-        onTriggered: root.uninstallRequested(root.app)
     }
 }
