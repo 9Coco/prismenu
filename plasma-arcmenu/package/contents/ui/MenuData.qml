@@ -17,6 +17,9 @@ QtObject {
 
     // ---- Config bindings (set from main.qml) ----
     property var plasmoidConfig: null
+    /** Width ceiling, bound from main.qml to a screen-fit value (MenuData is
+     *  a QtObject without a window, so it cannot read Screen itself). */
+    property int maxMenuWidth: 900
     // Bound directly from main.qml → plasmoid.configuration.menuLayoutId
     property string currentLayoutId: "arcmenu"
     /**
@@ -150,7 +153,7 @@ QtObject {
     readonly property int leftPanelWidth: LayoutRegistry.clampSize(
         (plasmoidConfig && plasmoidConfig.leftPanelWidth !== undefined && plasmoidConfig.leftPanelWidth !== null)
             ? plasmoidConfig.leftPanelWidth : 380,
-        180, 600, 380)
+        180, 1600, 380)
     readonly property int rightPanelWidth: LayoutRegistry.clampSize(
         (plasmoidConfig && plasmoidConfig.rightPanelWidth !== undefined && plasmoidConfig.rightPanelWidth !== null)
             ? plasmoidConfig.rightPanelWidth : 220,
@@ -161,7 +164,7 @@ QtObject {
         -200, 400, 0)
     /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
     readonly property int menuWidth: LayoutRegistry.clampSize(
-        leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, 900, 620)
+        leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, root.maxMenuWidth, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
     readonly property int menuHeight: LayoutRegistry.clampSize(
         (plasmoidConfig && plasmoidConfig.menuHeight !== undefined && plasmoidConfig.menuHeight !== null)
@@ -190,12 +193,12 @@ QtObject {
     function setMenuWidth(w) {
         if (!plasmoidConfig)
             return;
-        var c = LayoutRegistry.clampSize(w, 400, 900, 620);
+        var c = LayoutRegistry.clampSize(w, 400, root.maxMenuWidth, 620);
         plasmoidConfig.menuWidth = c;
         // Keep right panel; adjust left so panels stay consistent with drag-resize
-        var left = LayoutRegistry.clampSize(c - rightPanelWidth - 24 - widthOffset, 180, 600, 380);
+        var left = LayoutRegistry.clampSize(c - rightPanelWidth - 24 - widthOffset, 180, 1600, 380);
         plasmoidConfig.leftPanelWidth = left;
-        // The left-panel clamp (180–600) can leave the derived menuWidth short
+        // The left-panel clamp (180–1600) can leave the derived menuWidth short
         // of / beyond the requested width — absorb the remainder in widthOffset
         // so the persisted menuWidth lands exactly on the dragged size.
         var residual = c - (left + rightPanelWidth + 24 + widthOffset);
@@ -229,7 +232,7 @@ QtObject {
         var c = LayoutRegistry.clampSize(w, 180, 600, 290);
         plasmoidConfig.leftPanelWidth = c;
         plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
-            c + rightPanelWidth + 24, 400, 900, 620);
+            c + rightPanelWidth + 24, 400, root.maxMenuWidth, 620);
     }
 
     function setRightPanelWidth(w) {
@@ -239,7 +242,7 @@ QtObject {
         plasmoidConfig.rightPanelWidth = c;
         plasmoidConfig.sidebarWidth = c;
         plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
-            leftPanelWidth + c + 24, 400, 900, 620);
+            leftPanelWidth + c + 24, 400, root.maxMenuWidth, 620);
     }
 
     function resetLayoutSizesToDefaults() {
