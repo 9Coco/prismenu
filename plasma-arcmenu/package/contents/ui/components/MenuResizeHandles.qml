@@ -37,7 +37,15 @@ Item {
     property int minWidth: 400
     property int maxWidth: 900
     property int minHeight: 400
+    /** Hard ceiling only for popup hosts; desktop inline gets a screen-fit
+     *  ceiling via effectiveMaxHeight below (the old fixed 800 made the
+     *  vertical drag "lock" on tall screens). */
     property int maxHeight: 800
+    readonly property int effectiveMaxHeight: {
+        if (root.dragContainer)
+            return Math.max(root.maxHeight, Screen.height - 80);
+        return root.maxHeight;
+    }
     property int handleThickness: 6
     property bool resizeHeight: true
 
@@ -48,9 +56,64 @@ Item {
 
     /** Desktop AppletContainer found on press (null in panel/popup hosts). */
     property var dragContainer: null
-    property real lastGeomLog: 0
     /** Scene-space bottom edge captured on press — the fixed anchor. */
     property real pressBottom: 0
+    /** Container-y target of the current drag frame (bottom-left anchor). */
+    property real targetY: 0
+    /** Reused Translate that cancels the containment's y-glide lag. */
+    property var compTranslate: null
+    /** Container transforms saved before compensation (restored on release). */
+    property var origTransforms: null
+    /** True while this file writes container geometry (suppresses ext logs). */
+    property bool writingGeom: false
+
+    Component {
+        id: translateComp
+        Translate {}
+    }
+
+    /**
+     * The containment glides every container-y write (~100 ms, retargeted on
+     * each move — the ease-in restarts every frame, so the edge crawls far
+     * behind the mouse instead of merely trailing 100 ms). The animator
+     * lives in the containment internals where we cannot see or disable it
+     * (runtime scans find no Behavior on the container). Size writes apply
+     * instantly; only y glides.
+     *
+     * So instead of fighting the animation we cancel its lag visually, every
+     * frame: transform ty = targetY - actual y. Painted geometry then equals
+     * the target exactly — the resized edge tracks the mouse 1:1 like a
+     * native window, no matter who animates y.
+     */
+    function compensate() {
+        var c = root.dragContainer;
+        if (!c)
+            return;
+        var off = root.targetY - c.y;
+        if (Math.abs(off) < 0.5) {
+            if (root.compTranslate)
+                root.compTranslate.y = 0;
+            return;
+        }
+        if (!root.compTranslate) {
+            root.origTransforms = c.transform;
+            root.compTranslate = translateComp.createObject(root);
+            c.transform = root.compTranslate;
+        }
+        root.compTranslate.y = off;
+    }
+
+    function clearCompensation() {
+        var c = root.dragContainer;
+        if (root.compTranslate) {
+            root.compTranslate.y = 0;
+            root.compTranslate.destroy();
+            root.compTranslate = null;
+        }
+        if (c)
+            c.transform = root.origTransforms;
+        root.origTransforms = null;
+    }
 
     /**
      * Walk up to find the desktop AppletContainer (an ItemContainer managed
@@ -93,32 +156,25 @@ Item {
         // always grow/shrink upward (like a menu anchored to a taskbar
         // button), regardless of which edge handle is being dragged.
         //
-        // The containment animates container y (ShortDropBehavior) but
-        // applies height instantly, so writing both independently makes the
-        // bottom edge sweep while y catches up. Instead we write the y
-        // target here and let the yChanged pin below derive height from the
-        // ACTUAL (mid-animation) y every frame — bottom stays nailed to
-        // pressBottom even while y glides, and regardless of who else moves
-        // the container.
-        var oldX = container.x, oldY = container.y;
-        var oldW = container.width, oldH = container.height;
+        // The containment glides container y while size writes apply
+        // instantly. Write the full target geometry at once and cancel the
+        // glide lag visually with a transform (compensate): painted pos =
+        // targetY, painted size = w x h, so the painted bottom edge sits at
+        // pressBottom every frame — no height feedback from the gliding y
+        // (that coupling made the content height oscillate/jump).
+        root.writingGeom = true;
         container.width = w;
+        container.height = h;
         container.y = root.pressBottom - h;
-        var now = Date.now();
-        if (now - root.lastGeomLog > 400) {
-            root.lastGeomLog = now;
-            console.log("ArcMenu container geom:",
-                        "old", Math.round(oldX), Math.round(oldY), Math.round(oldW), Math.round(oldH),
-                        "->", Math.round(container.x), Math.round(container.y),
-                        Math.round(container.width), Math.round(container.height),
-                        "sceneY", Math.round(container.mapToItem(null, 0, 0).y));
-        }
+        root.writingGeom = false;
+        root.targetY = root.pressBottom - h;
+        root.compensate();
     }
 
     /**
-     * Bottom-edge pin: derive container height from its ACTUAL y (which
-     * trails behind our writes because of the containment's y animation)
-     * so bottom = pressBottom holds every frame of the glide.
+     * Geometry watchdogs: the transform compensation keeps visuals nailed
+     * to the target; if anything external rewrites the geometry anyway,
+     * re-assert the target (guarded by writingGeom to ignore our writes).
      */
     Connections {
         target: root.dragContainer
@@ -126,9 +182,26 @@ Item {
         function onYChanged() {
             if (!root.dragContainer)
                 return;
-            var nh = Math.round(root.pressBottom - root.dragContainer.y);
-            if (nh > 0 && Math.abs(nh - root.dragContainer.height) >= 1)
-                root.dragContainer.height = nh;
+            // Glide moved the container: refresh the lag compensation so
+            // the painted position stays nailed to targetY.
+            if (root.compTranslate)
+                root.compensate();
+        }
+        function onHeightChanged() {
+            if (root.dragContainer && !root.writingGeom)
+                console.log("ArcMenu ext h:", Date.now() % 100000,
+                            "h", Math.round(root.dragContainer.height),
+                            "y", Math.round(root.dragContainer.y));
+        }
+        function onWidthChanged() {
+            if (root.dragContainer && !root.writingGeom)
+                console.log("ArcMenu ext w:", Date.now() % 100000,
+                            "w", Math.round(root.dragContainer.width));
+        }
+        function onXChanged() {
+            if (root.dragContainer && !root.writingGeom)
+                console.log("ArcMenu ext x:", Date.now() % 100000,
+                            "x", Math.round(root.dragContainer.x));
         }
     }
 
@@ -136,13 +209,13 @@ Item {
      * Deferred grid re-registration, two passes:
      * 1st pass — the y glide may not have settled at release; wait for it,
      *            then positionItem() (snaps to the cell grid + persists).
-     * 2nd pass — the snap itself glides y a bit (Behavior); keep the
-     *            bottom-edge pin active through it, then detach.
+     * 2nd pass — the snap itself glides y a bit; the compensation kept the
+     *            visuals exact through it — drop it now and detach.
      */
     property bool commitSnapped: false
     Timer {
         id: commitTimer
-        interval: 250
+        interval: 120
         repeat: false
         onTriggered: {
             var c = root.dragContainer;
@@ -158,6 +231,7 @@ Item {
                 return;
             }
             root.commitSnapped = false;
+            root.clearCompensation();
             root.dragContainer = null;
         }
     }
@@ -204,7 +278,7 @@ Item {
         return Math.max(root.minWidth, Math.min(root.maxWidth, Math.round(w)));
     }
     function clampH(h) {
-        return Math.max(root.minHeight, Math.min(root.maxHeight, Math.round(h)));
+        return Math.max(root.minHeight, Math.min(root.effectiveMaxHeight, Math.round(h)));
     }
 
     /** Persist the dragged size once, then leave live-drag mode. */
@@ -219,14 +293,24 @@ Item {
         // then re-register with the grid layout once the y glide settles
         // (snaps to the cell grid and schedules an ItemGeometries save).
         if (root.dragContainer) {
-            root.dragContainer.y = root.pressBottom - root.dragContainer.height;
+            // The write below is intercepted by the glide (reads back the
+            // mid-animation value), so pin targetY to the INTENDED spot.
+            root.targetY = root.pressBottom - root.dragContainer.height;
+            root.writingGeom = true;
+            root.dragContainer.y = root.targetY;
+            root.writingGeom = false;
+            // Keep the visual exactly where the user released while the
+            // glide + grid snap settle; commitTimer drops it afterwards.
+            root.compensate();
             commitTimer.restart();
         }
         console.log("ArcMenu resize commit:", root.liveWidth, "x", root.liveHeight,
                     "rep", Math.round(root.width), "x", Math.round(root.height));
         root.liveWidth = -1;
         root.liveHeight = -1;
-        root.dragContainer = null;
+        // dragContainer is cleared by commitTimer's 2nd pass (desktop host,
+        // after glide + grid snap settle) — keep it alive until then so the
+        // bottom-edge pin and compensation stay effective.
     }
 
     /**
@@ -286,8 +370,13 @@ Item {
         onPressed: (mouse) => {
             root.logEnvOnce();
             root.dragContainer = root.appletContainer();
-            if (root.dragContainer)
+            if (root.dragContainer) {
+                // A pending settle from the previous drag must not clear
+                // the container we are about to drive.
+                commitTimer.stop();
+                root.commitSnapped = false;
                 root.pressBottom = root.dragContainer.y + root.dragContainer.height;
+            }
             var g = mapToGlobal(mouse.x, mouse.y);
             pressGlobalX = g.x;
             pressGlobalY = g.y;
@@ -299,6 +388,7 @@ Item {
             var win = root.Window.window;
             console.log("ArcMenu resize press:", edgeRole, "seed", pressW, "x", pressH,
                         "rep", Math.round(root.width), "x", Math.round(root.height),
+                        "maxH", root.effectiveMaxHeight,
                         "win", win ? Math.round(win.width) + "x" + Math.round(win.height) : "null");
         }
         onPositionChanged: (mouse) => {
