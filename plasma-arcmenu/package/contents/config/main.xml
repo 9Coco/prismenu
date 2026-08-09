@@ -116,6 +116,14 @@
         <entry name="QuickLinkPosition" type="String">
             <default>bottom</default>
         </entry>
+        <!-- Custom quick link groups: entries are "id|name|icon" -->
+        <entry name="CustomQuickLinks" type="StringList">
+            <default></default>
+        </entry>
+        <!-- JSON map: { "qgrp-xxx": ["app.desktop", ...] } -->
+        <entry name="CustomGroupApps" type="String">
+            <default>{}</default>
+        </entry>
         <entry name="MenuWidth" type="Int">
             <default>620</default>
         </entry>

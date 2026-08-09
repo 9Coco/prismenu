@@ -101,6 +101,8 @@ Item {
     property var cfg_ExtraCategoriesEnabled
     property bool cfg_ExtraCategoriesUserSet: false
     property var cfg_ContextMenuItems: []
+    property var cfg_CustomQuickLinks: []
+    property string cfg_CustomGroupApps: "{}"
 
     property var cfg_Providers: ["applications"]
     property string cfg_Placeholder
@@ -205,6 +207,8 @@ Item {
     property alias cfg_extraCategoriesEnabled: root.cfg_ExtraCategoriesEnabled
     property alias cfg_extraCategoriesUserSet: root.cfg_ExtraCategoriesUserSet
     property alias cfg_contextMenuItems: root.cfg_ContextMenuItems
+    property alias cfg_customQuickLinks: root.cfg_CustomQuickLinks
+    property alias cfg_customGroupApps: root.cfg_CustomGroupApps
     property alias cfg_providers: root.cfg_Providers
     property alias cfg_placeholder: root.cfg_Placeholder
     property alias cfg_showDescription: root.cfg_ShowDescription
@@ -249,6 +253,7 @@ Item {
         "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
         "PinnedApps", "DirectoryShortcuts", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "ContextMenuItems",
+        "CustomQuickLinks", "CustomGroupApps",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
         "SearchWindows", "SearchRecentFiles",
@@ -311,7 +316,7 @@ Item {
         "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
         "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
-        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition"],
+        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
         "ConfigPinned": ["PinnedApps"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],

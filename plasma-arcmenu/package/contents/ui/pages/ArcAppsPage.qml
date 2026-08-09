@@ -182,6 +182,10 @@ Item {
         if (root.specialListId === "frequent") {
             return (host && host.recentApps) ? host.recentApps : [];
         }
+        if (root.specialListId.indexOf("qgrp-") === 0) {
+            // Custom quick link group — resolve member ids via the live catalog
+            return (host && host.customGroupApps) ? host.customGroupApps(root.specialListId) : [];
+        }
         if (root.specialListId === "recent-files") {
             var _rf = host ? host.recentFilesEpoch : 0;
             // Prefer MenuData cache; also ask backend refresh via request on open
@@ -334,6 +338,16 @@ Item {
             return Locale.tr("Bookmarks", root.uiLang);
         if (root.specialListId === "devices")
             return Locale.tr("External devices", root.uiLang);
+        if (root.specialListId.indexOf("qgrp-") === 0) {
+            var qHost = root.dataHost;
+            if (qHost && qHost.customQuickLinkDefs) {
+                for (var qi = 0; qi < qHost.customQuickLinkDefs.length; ++qi) {
+                    if (qHost.customQuickLinkDefs[qi].id === root.specialListId)
+                        return qHost.customQuickLinkDefs[qi].name;
+                }
+            }
+            return "";
+        }
         if (root.drillCategoryId === "all")
             return Locale.tr("All Applications", root.uiLang);
         if (root.showingCategories)
@@ -359,6 +373,16 @@ Item {
             return "bookmarks";
         if (root.specialListId === "devices")
             return "drive-removable-media";
+        if (root.specialListId.indexOf("qgrp-") === 0) {
+            var iHost = root.dataHost;
+            if (iHost && iHost.customQuickLinkDefs) {
+                for (var ii = 0; ii < iHost.customQuickLinkDefs.length; ++ii) {
+                    if (iHost.customQuickLinkDefs[ii].id === root.specialListId)
+                        return iHost.customQuickLinkDefs[ii].icon || "folder-favorites";
+                }
+            }
+            return "folder-favorites";
+        }
         if (root.drillCategoryId === "all")
             return "view-app-grid-symbolic";
         if (root.showingCategories)
