@@ -108,7 +108,7 @@
             <default>true</default>
         </entry>
         <entry name="QuickLinksOrder" type="StringList">
-            <default>favorites,frequent,all-apps,pinned,recent-files</default>
+            <default>favorites,frequent,pinned,recent-files</default>
         </entry>
         <entry name="QuickLinksEnabled" type="StringList">
             <default></default>

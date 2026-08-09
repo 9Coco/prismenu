@@ -44,6 +44,40 @@ Item {
     property bool cfg_ButtonStyleBorderColorEnabled
     property string cfg_ButtonStyleBorderColor
 
+    // ---- camelCase compatibility aliases ---------------------------------
+    // Plasma hosts inject and read cfg_<key> using the lowercase-first names
+    // from KConfigPropertyMap. Without these, injection silently fails and
+    // a save-time read-back can wipe live-edited values back to defaults.
+    property alias cfg_buttonIcon: root.cfg_ButtonIcon
+    property alias cfg_customButtonIcon: root.cfg_CustomButtonIcon
+    property alias cfg_menuButtonAppearance: root.cfg_MenuButtonAppearance
+    property alias cfg_buttonLabelText: root.cfg_ButtonLabelText
+    property alias cfg_buttonLabelVisible: root.cfg_ButtonLabelVisible
+    property alias cfg_panelButtonIconSize: root.cfg_PanelButtonIconSize
+    property alias cfg_panelButtonPadding: root.cfg_PanelButtonPadding
+    property alias cfg_panelButtonPositionOffset: root.cfg_PanelButtonPositionOffset
+    property alias cfg_leftClickAction: root.cfg_LeftClickAction
+    property alias cfg_rightClickAction: root.cfg_RightClickAction
+    property alias cfg_middleClickAction: root.cfg_MiddleClickAction
+    property alias cfg_buttonStyleFgEnabled: root.cfg_ButtonStyleFgEnabled
+    property alias cfg_buttonStyleFg: root.cfg_ButtonStyleFg
+    property alias cfg_buttonStyleBgEnabled: root.cfg_ButtonStyleBgEnabled
+    property alias cfg_buttonStyleBg: root.cfg_ButtonStyleBg
+    property alias cfg_buttonStyleHoverBgEnabled: root.cfg_ButtonStyleHoverBgEnabled
+    property alias cfg_buttonStyleHoverBg: root.cfg_ButtonStyleHoverBg
+    property alias cfg_buttonStyleHoverFgEnabled: root.cfg_ButtonStyleHoverFgEnabled
+    property alias cfg_buttonStyleHoverFg: root.cfg_ButtonStyleHoverFg
+    property alias cfg_buttonStyleActiveBgEnabled: root.cfg_ButtonStyleActiveBgEnabled
+    property alias cfg_buttonStyleActiveBg: root.cfg_ButtonStyleActiveBg
+    property alias cfg_buttonStyleActiveFgEnabled: root.cfg_ButtonStyleActiveFgEnabled
+    property alias cfg_buttonStyleActiveFg: root.cfg_ButtonStyleActiveFg
+    property alias cfg_buttonStyleRadiusEnabled: root.cfg_ButtonStyleRadiusEnabled
+    property alias cfg_buttonStyleRadius: root.cfg_ButtonStyleRadius
+    property alias cfg_buttonStyleBorderWidthEnabled: root.cfg_ButtonStyleBorderWidthEnabled
+    property alias cfg_buttonStyleBorderWidth: root.cfg_ButtonStyleBorderWidth
+    property alias cfg_buttonStyleBorderColorEnabled: root.cfg_ButtonStyleBorderColorEnabled
+    property alias cfg_buttonStyleBorderColor: root.cfg_ButtonStyleBorderColor
+
     property string _colorTarget: ""
 
     readonly property string uiLanguagePref: {

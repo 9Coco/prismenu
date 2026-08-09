@@ -29,14 +29,22 @@ Item {
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
-    function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
+    function writeLive(key, value) {
+        try {
+            plasmoid.configuration[key] = value;
+            console.log("ArcMenu writeLive", key, "->", JSON.stringify(value));
+        } catch (e) {
+            console.log("ArcMenu writeLive FAILED", key, e);
+        }
+    }
 
-    readonly property var defaultQuickOrder: ["favorites", "frequent", "all-apps", "pinned", "recent-files"]
+    readonly property var defaultQuickOrder: ["favorites", "frequent", "pinned", "recent-files"]
 
     readonly property var quickLinkDefs: [
         { id: "favorites", name: root.tr("Favorites"), icon: "bookmarks" },
         { id: "frequent", name: root.tr("Frequent Apps"), icon: "view-calendar" },
-        { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" },
+        // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
+        // so a duplicate quick link only confused the menu (removed 2026-08).
         { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
         { id: "recent-files", name: root.tr("Recent Files"), icon: "document-open-recent" }
     ]
@@ -71,6 +79,7 @@ Item {
         if (!on && idx >= 0)
             list.splice(idx, 1);
         cfg_QuickLinksEnabled = list;
+        console.log("ArcMenu setQuickEnabled", id, on, "list:", JSON.stringify(list));
         writeLive("quickLinksEnabled", list);
     }
 
@@ -254,6 +263,12 @@ Item {
     }
 
     Component.onCompleted: {
+        // Migrate away legacy "all-apps" quick link (now served by AllAppsButton)
+        if ((cfg_QuickLinksEnabled || []).indexOf("all-apps") >= 0) {
+            var cleaned = (cfg_QuickLinksEnabled || []).filter(function (id) { return id !== "all-apps"; });
+            cfg_QuickLinksEnabled = cleaned;
+            writeLive("quickLinksEnabled", cleaned);
+        }
         if (!cfg_QuickLinksOrder || !cfg_QuickLinksOrder.length)
             cfg_QuickLinksOrder = defaultQuickOrder.slice();
         if (!cfg_AllAppsButtonAction)

@@ -20,6 +20,16 @@ Item {
     property alias cfg_FilterByActivity: filterActivity.checked
     property string cfg_UiLanguage
 
+    // ---- camelCase compatibility aliases ---------------------------------
+    // Plasma hosts inject and read cfg_<key> using the lowercase-first names
+    // from KConfigPropertyMap. Without these, injection silently fails and
+    // a save-time read-back can wipe live-edited values back to defaults.
+    property alias cfg_menuHotkey: root.cfg_MenuHotkey
+    property alias cfg_popupAnimation: root.cfg_PopupAnimation
+    property alias cfg_shareConfigAcrossInstances: root.cfg_ShareConfigAcrossInstances
+    property alias cfg_filterByActivity: root.cfg_FilterByActivity
+    property alias cfg_uiLanguage: root.cfg_UiLanguage
+
     readonly property string uiLang: Locale.resolveLanguage(cfg_UiLanguage || "zh_CN", Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
