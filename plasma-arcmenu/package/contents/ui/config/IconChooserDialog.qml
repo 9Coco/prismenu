@@ -32,7 +32,8 @@ QQC2.Dialog {
     height: 620
     closePolicy: QQC2.Popup.CloseOnEscape
     padding: Kirigami.Units.largeSpacing
-    parent: QQC2.Overlay.overlay
+    // Overlay is null in QWidget-hosted config windows; fall back to the
+    // default parent (window contentItem) instead of crashing (2026-08).
     x: parent ? Math.round((parent.width - width) / 2) : 0
     y: parent ? Math.round((parent.height - height) / 2) : 0
 
@@ -144,7 +145,11 @@ QQC2.Dialog {
         open();
     }
 
-    Component.onCompleted: allEntries = buildAllEntries()
+    Component.onCompleted: {
+        allEntries = buildAllEntries();
+        if (QQC2.Overlay.overlay)
+            parent = QQC2.Overlay.overlay;
+    }
     onOpened: rebuildModel()
 
     ListModel { id: filteredModel }

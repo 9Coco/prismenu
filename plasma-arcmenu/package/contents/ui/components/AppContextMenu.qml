@@ -24,6 +24,7 @@ QQC2.Menu {
     signal detailsRequested(var app)
     signal uninstallRequested(var app)
     signal runInTerminalRequested(var app)
+    signal toggleCustomGroupRequested(var app, string groupId)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
 
@@ -55,6 +56,24 @@ QQC2.Menu {
     readonly property bool canDesktopActions: isDesktopApp
         || (isExtraShortcut && (app.action === "discover" || app.action === "settings"
             || appId === "shortcut-software" || appId === "shortcut-settings"))
+    
+    /** Pin id used for group-membership checks (matches MenuData.resolvePinId) */
+    readonly property string contextPinId: {
+        if (!root.app)
+            return "";
+        if (root.menuData && root.menuData.resolvePinId) {
+            var pid = root.menuData.resolvePinId(root.app);
+            if (pid)
+                return pid;
+        }
+        return root.appId;
+    }
+
+    readonly property int customGroupCount: (root.menuData && root.menuData.customQuickLinkDefs)
+        ? root.menuData.customQuickLinkDefs.length : 0
+    /** "Add to" section only makes sense when there is at least one target */
+    readonly property bool hasAddTargets: root.canPinToMenu
+        && (!root.isFavorite || root.customGroupCount > 0)
 
     function t(msgid) {
         return Locale.tr(msgid, root.uiLang);
@@ -125,6 +144,42 @@ QQC2.Menu {
         text: root.t("Unpin from ArcMenu")
         icon.name: "unpin"
         onTriggered: root.toggleFavoriteRequested(root.app)
+    }
+    
+    // "Add to…" — quick add the app to favorites or a custom quick link group.
+    // Flattened into the top-level menu: a nested QQC2.Menu whose `visible` is
+    // driven by bindings crashes plasmashell in QQuickMenu::setVisible (2026-08).
+    // Items are built only while this menu is open: inserting into a closed
+    // QQC2.Menu from a live model change also crashed.
+    QQC2.MenuSeparator {
+        visible: root.hasAddTargets
+    }
+    QQC2.MenuItem {
+        visible: root.hasAddTargets && !root.isFavorite
+        text: root.t("Add to Favorites")
+        icon.name: "emblem-favorite"
+        onTriggered: root.toggleFavoriteRequested(root.app)
+    }
+    Instantiator {
+        active: root.visible && root.customGroupCount > 0
+        model: active && root.menuData && root.menuData.customQuickLinkDefs
+            ? root.menuData.customQuickLinkDefs : []
+        delegate: QQC2.MenuItem {
+            required property var modelData
+            text: root.t("Add to") + " \"" + modelData.name + "\""
+            icon.name: modelData.icon || "folder-favorites"
+            checkable: true
+            checked: root.menuData
+                ? root.menuData.isAppInCustomGroup(modelData.id, root.contextPinId)
+                : false
+            onTriggered: root.toggleCustomGroupRequested(root.app, modelData.id)
+        }
+        onObjectAdded: (index, object) => root.insertItem(root.indexOf(addToSep) + 1 + index, object)
+        onObjectRemoved: (index, object) => root.removeItem(object)
+    }
+    QQC2.MenuSeparator {
+        id: addToSep
+        visible: root.hasAddTargets
     }
 
     QQC2.MenuSeparator {

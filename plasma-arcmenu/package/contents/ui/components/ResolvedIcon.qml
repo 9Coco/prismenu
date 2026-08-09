@@ -1,6 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import "../../code/CategoryIcons.js" as CategoryIcons
+import "../../code/PresetIcons.js" as PresetIcons
 
 /**
  * Kirigami.Icon that resolves bundled arcmenu-cat-* SVGs from contents/icons/categories/.
@@ -15,12 +16,16 @@ Kirigami.Icon {
     property bool preferSymbolic: true
 
     readonly property bool bundled: CategoryIcons.isBundled(iconName)
-
+    readonly property bool preset: PresetIcons.isPreset(iconName)
+    
     source: {
         if (!iconName)
             return "application-x-executable";
         if (bundled)
             return Qt.resolvedUrl("../../icons/categories/" + iconName + ".svg");
+        // Bundled menu-button presets (distro logos, arcmenu icons)
+        if (preset)
+            return Qt.resolvedUrl("../../icons/menu-button/" + iconName + ".svg");
         // Face / custom paths (Kickoff-style user icons)
         if (iconName.indexOf("/") === 0)
             return "file://" + iconName;
@@ -32,6 +37,6 @@ Kirigami.Icon {
         return iconName;
     }
 
-    isMask: bundled || root.preferSymbolic
+    isMask: bundled || (preset && PresetIcons.isSymbolic(iconName)) || root.preferSymbolic
     color: tintColor
 }

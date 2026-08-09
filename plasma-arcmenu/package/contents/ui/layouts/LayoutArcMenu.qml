@@ -96,6 +96,17 @@ LayoutBase {
                 menuData.navigateTo("home");
             return;
         }
+        // Custom quick link group → in-menu app list from the group's member ids
+        if (String(id).indexOf("qgrp-") === 0) {
+            root.showingApps = true;
+            if (menuData)
+                menuData.navigateTo("apps");
+            Qt.callLater(function () {
+                if (appsLoader.item)
+                    appsLoader.item.openSpecialList(id);
+            });
+            return;
+        }
         // favorites / frequent / all-apps → apps page
         root.showingApps = true;
         if (menuData)
