@@ -76,8 +76,11 @@ Item {
     }
     
     function customGroupMap() {
+        // Read the LIVE config, not the frozen cfg_CustomGroupApps mirror:
+        // the menu right-click "Add to <group>" writes live while this page is
+        // open, and writing the stale mirror back would silently drop them.
         try {
-            var obj = JSON.parse(String(cfg_CustomGroupApps || "{}"));
+            var obj = JSON.parse(String(plasmoid.configuration.customGroupApps || "{}"));
             return (obj && typeof obj === "object") ? obj : {};
         } catch (e) {
             return {};
@@ -100,6 +103,17 @@ Item {
         writeLive("customGroupApps", s);
     }
     
+    /** Resolve a group icon id to a renderable source (theme name, bundled
+     *  preset SVG, or absolute image path). */
+    function groupIconSource(g) {
+        g = g || "folder-favorites";
+        if (PresetIcons.isPreset(g))
+            return Qt.resolvedUrl("../../icons/menu-button/" + g + ".svg");
+        if (String(g).indexOf("/") === 0)
+            return "file://" + g;
+        return g;
+    }
+
     function createGroup(name, icon) {
         name = String(name || "").replace(/[|,]/g, " ").trim();
         if (!name)
