@@ -111,6 +111,8 @@ PlasmoidItem {
         id: menuData
         plasmoidConfig: plasmoid.configuration
         currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+        // Width ceiling follows the screen (drag handles cap at the same fit)
+        maxMenuWidth: Math.max(900, Screen.width - 80)
         // Direct bindings — required for live Extra Categories / Search Options toggles
         extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
         extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
