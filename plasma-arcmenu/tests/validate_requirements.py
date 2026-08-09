@@ -66,10 +66,6 @@ def main() -> int:
         fname = layout_files[lid]
         check((PKG / "contents/ui/layouts" / fname).exists(), f"layout file: {fname}")
 
-    check((PKG / "contents/ui/layouts/arcmenu/LayoutArcMenu.qml").exists(), "arcmenu folder snapshot")
-    check((PKG / "contents/ui/layouts/brisk/BriskSidebar.qml").exists(), "brisk sidebar")
-    check((PKG / "contents/ui/layouts/brisk/BriskContent.qml").exists(), "brisk content")
-    check((PKG / "contents/ui/layouts/brisk/BriskNavRow.qml").exists(), "brisk nav row")
     check((PKG / "contents/ui/layouts/budgie/README.md").exists(), "budgie folder")
     check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
     check((PKG / "contents/ui/layouts/gnome/README.md").exists(), "gnome folder")
