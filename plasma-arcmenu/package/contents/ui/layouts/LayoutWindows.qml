@@ -275,7 +275,7 @@ LayoutBase {
             Flickable {
                 id: sideFlick
                 Layout.preferredWidth: root.sideWidth
-                Layout.minimumWidth: root.sidebarMin
+                Layout.minimumWidth: root.elasticColumnMin
                 Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
                 Layout.fillWidth: false
@@ -503,7 +503,7 @@ LayoutBase {
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+            Layout.minimumWidth: Kirigami.Units.gridUnit * 8
             spacing: Kirigami.Units.smallSpacing
 
             PlasmaComponents.Label {
@@ -670,7 +670,7 @@ LayoutBase {
             Layout.fillHeight: true
             Layout.fillWidth: false
             Layout.preferredWidth: root.sidebarW
-            Layout.minimumWidth: root.sidebarMin
+            Layout.minimumWidth: root.elasticColumnMin
             Layout.maximumWidth: root.sidebarMax
         }
     }

@@ -371,7 +371,7 @@ LayoutBase {
             Layout.preferredWidth: root.sidebarW
             // Responsive floor: never demand more than ~30% of the menu so
             // the two columns always fit side by side at any dragged width.
-            Layout.minimumWidth: Math.min(root.sidebarMin, Math.max(96, Math.round(root.width * 0.3)))
+            Layout.minimumWidth: root.elasticColumnMin
             Layout.maximumWidth: root.sidebarMax
             Layout.fillHeight: true
             Layout.fillWidth: false

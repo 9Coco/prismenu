@@ -141,7 +141,7 @@ LayoutBase {
             Layout.fillHeight: true
             Layout.fillWidth: false
             Layout.preferredWidth: root.sidebarW
-            Layout.minimumWidth: root.sidebarMin
+            Layout.minimumWidth: root.elasticColumnMin
             Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing
 
@@ -271,7 +271,7 @@ LayoutBase {
                 Flickable {
                     id: midFlick
                     Layout.preferredWidth: root.categoryColW
-                    Layout.minimumWidth: root.sidebarMin
+                    Layout.minimumWidth: root.elasticColumnMin
                     Layout.maximumWidth: root.sidebarMax
                     Layout.fillHeight: true
                     Layout.fillWidth: false
@@ -355,7 +355,7 @@ LayoutBase {
                 Item {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
-                    Layout.minimumWidth: Kirigami.Units.gridUnit * 12
+                    Layout.minimumWidth: Kirigami.Units.gridUnit * 8
 
                     Flickable {
                         id: rightFlick
