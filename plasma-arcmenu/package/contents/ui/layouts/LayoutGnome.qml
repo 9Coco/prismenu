@@ -9,7 +9,6 @@ import "../../code/AppsModel.js" as AppsModel
  * GNOME Menu layout (ArcMenu GNOME style).
  *
  * Search top | Sidebar (pinned / all / categories) | Content
- * Bottom: Activities Overview
  */
 LayoutBase {
     id: root
@@ -183,21 +182,6 @@ LayoutBase {
                     horizontalAlignment: Text.AlignHCenter
                 }
             }
-        }
-
-        // Bottom: Activities Overview (GNOME hallmark)
-        Components.ShortcutRow {
-            Layout.fillWidth: true
-            Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-            iconName: "overview"
-            label: root.tr("Activities Overview")
-            iconSize: Math.max(root.categoryIconSize, 24)
-            selectedBg: root.selectedBg
-            selectedFg: root.selectedFg
-            hoverBg: root.hoverBg
-            hoverFg: root.hoverFg
-            fg: root.fg
-            onActivated: root.powerAction("overview")
         }
     }
 }

@@ -66,7 +66,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
 | `brisk` | Solus Brisk (search top, category sidebar left, apps right, session bottom) |
 | `budgie` | Budgie style (search top, pinned/all/categories left, apps right) |
-| `gnome` | GNOME style (like Budgie + bottom Activities Overview) |
+| `gnome` | GNOME style (like Budgie: search top, category sidebar left, apps right) |
 | `mint` | Linux Mint (left icon rail + categories + pinned) |
 | `whisker` | XFCE Whisker (user bar + categories + pinned) |
 | `eleven` | Windows 11 (pinned grid + recommended + footer) |

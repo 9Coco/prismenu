@@ -10,7 +10,7 @@ import "../../code/AppsModel.js" as AppsModel
  *
  * Search + hamburger �?category flyout
  * 已固�?| pinned icon grid
- * 快捷方式 | software / settings / tweaks / overview
+ * 快捷方式 | software / settings / tweaks
  * Bottom: places + session (centered darker strip)
  */
 LayoutBase {

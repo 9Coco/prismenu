@@ -11,7 +11,7 @@ ArcMenu Tognee style.
 └─────────────┴────────────────────────┘
 ```
 
-- Left: places → software/settings/tweaks → overview → power
+- Left: places → software/settings/tweaks → power
 - Right home: pinned / all apps / categories; click to drill into app list
 - Search at bottom of main column
 
