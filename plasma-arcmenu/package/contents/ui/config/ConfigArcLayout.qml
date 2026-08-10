@@ -18,6 +18,7 @@ Item {
     property bool cfg_ShowUserAvatar
     property string cfg_AvatarShape
     property string cfg_SearchbarLocation
+    property bool cfg_SearchbarLocationUserSet: false
     property bool cfg_FlipHorizontal
     property bool cfg_ShowVerticalSeparator
     property bool cfg_ShowExternalDevices
@@ -284,7 +285,9 @@ Item {
                     Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
                     onActivated: {
                         cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
+                        cfg_SearchbarLocationUserSet = true;
                         writeLive("SearchbarLocation", cfg_SearchbarLocation);
+                        writeLive("SearchbarLocationUserSet", true);
                     }
                 }
             }

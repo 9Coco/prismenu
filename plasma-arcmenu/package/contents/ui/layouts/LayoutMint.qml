@@ -7,8 +7,8 @@ import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Mint Menu layout (Linux Mint / ArcMenu Mint style).
- *
- * Far-left icon rail | Search + (categories | content)
+ * Upstream mint.js: icon rail (mint-layout-extra-shortcuts, configurable) |
+ * search top/bottom + (extra-categories + categories, hover activation) | content
  */
 LayoutBase {
     id: root
@@ -17,14 +17,22 @@ LayoutBase {
 
     property string mintSelectedId: "pinned"
     activeNavId: mintSelectedId
+    defaultSearchOnTop: true
 
 
-    // Top group: places / shortcuts
-    readonly property var railTopActions: [
-        { id: "settings", icon: "preferences-system", tip: root.tr("Settings"), action: "settings" },
-        { id: "software", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
-        { id: "files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
-    ]
+    // Top group: places / shortcuts — upstream mint-layout-extra-shortcuts
+    // is user configurable; fall back to the standard set when empty.
+    readonly property var railTopActions: (menuData && menuData.systemShortcuts
+        && menuData.systemShortcuts.length)
+        ? menuData.systemShortcuts.map(function (s) {
+            return { id: s.id, icon: s.icon, tip: s.name, exec: s.exec, action: s.action,
+                     kickerUrl: s.kickerUrl, entryPath: s.entryPath };
+        })
+        : [
+            { id: "settings", icon: "preferences-system", tip: root.tr("Settings"), action: "settings" },
+            { id: "software", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
+            { id: "files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
+        ]
 
     // Bottom group: session (separated from folder by a larger gap)
     readonly property var railSessionActions: [
@@ -54,16 +62,24 @@ LayoutBase {
         root.appActivated(item);
     }
 
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
+
     function selectMint(id) {
         mintSelectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     RowLayout {
@@ -155,9 +171,16 @@ LayoutBase {
 
             Components.SearchField {
                 Layout.fillWidth: true
+                visible: root.searchOnTop
                 placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
                 text: menuData ? menuData.searchQuery : ""
                 onTextChanged: if (menuData) menuData.setSearch(text)
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                visible: root.searchOnTop
+                opacity: 0.5
             }
 
             RowLayout {
@@ -183,32 +206,25 @@ LayoutBase {
                         width: sideFlick.width
                         spacing: Kirigami.Units.smallSpacing / 2
 
-                        Components.ShortcutRow {
-                            width: sideCol.width
-                            iconName: "pin"
-                            label: root.tr("Pinned Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.mintSelectedId === "pinned"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectMint("pinned")
-                        }
-
-                        Components.ShortcutRow {
-                            width: sideCol.width
-                            iconName: "view-app-grid-symbolic"
-                            label: root.tr("All Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.mintSelectedId === "all"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectMint("all")
+                        // Extra categories (pinned / all-apps / favorites /
+                        // frequent / recent-files) — user configurable, same
+                        // as upstream "extra-categories" setting
+                        Repeater {
+                            model: root.extraCategories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: sideCol.width
+                                iconName: root.extraCategories[index].icon
+                                label: root.extraCategories[index].name
+                                iconSize: root.categoryIconSize
+                                selected: !root.searching && root.mintSelectedId === root.extraCategories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.selectMint(root.extraCategories[index].id)
+                            }
                         }
 
                         Kirigami.Separator {
@@ -224,6 +240,7 @@ LayoutBase {
                                 iconName: root.categories[index].icon
                                 label: root.categories[index].name
                                 iconSize: root.categoryIconSize
+                                activateOnHover: true
                                 selected: !root.searching && root.mintSelectedId === root.categories[index].id
                                 selectedBg: root.selectedBg
                                 selectedFg: root.selectedFg
@@ -287,7 +304,9 @@ LayoutBase {
                               ? root.tr("No matching applications found")
                               : (root.mintSelectedId === "pinned"
                                  ? root.tr("Pin applications from the context menu")
-                                 : root.tr("No applications"))
+                                 : (root.mintSelectedId === "recent-files"
+                                    ? root.tr("No recent files")
+                                    : root.tr("No applications")))
                         opacity: 0.45
                         color: root.fg
                         width: parent.width * 0.8
@@ -295,6 +314,20 @@ LayoutBase {
                         horizontalAlignment: Text.AlignHCenter
                     }
                 }
+            }
+
+            Kirigami.Separator {
+                Layout.fillWidth: true
+                visible: !root.searchOnTop
+                opacity: 0.5
+            }
+
+            Components.SearchField {
+                Layout.fillWidth: true
+                visible: !root.searchOnTop
+                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+                text: menuData ? menuData.searchQuery : ""
+                onTextChanged: if (menuData) menuData.setSearch(text)
             }
         }
     }

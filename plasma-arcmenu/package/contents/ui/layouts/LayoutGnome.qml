@@ -7,8 +7,10 @@ import "../../code/AppsModel.js" as AppsModel
 
 /**
  * GNOME Menu layout (ArcMenu GNOME style).
- *
- * Search top | Sidebar (pinned / all / categories) | Content
+ * Upstream gnomemenu.js: search top/bottom | sidebar (extra-categories +
+ * categories, category icons hidden, hover activation) | content.
+ * (Upstream also has an Activities item at the sidebar bottom — deliberately
+ * omitted here.)
  */
 LayoutBase {
     id: root
@@ -17,6 +19,22 @@ LayoutBase {
 
     property string gnomeSelectedId: "pinned"
     activeNavId: gnomeSelectedId
+    defaultSearchOnTop: true
+
+
+
+
+
+
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
 
 
 
@@ -27,12 +45,10 @@ LayoutBase {
         gnomeSelectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     ColumnLayout {
@@ -42,9 +58,16 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
+            visible: root.searchOnTop
             placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
+        }
+
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            visible: root.searchOnTop
+            opacity: 0.5
         }
 
         RowLayout {
@@ -70,32 +93,26 @@ LayoutBase {
                     width: sideFlick.width
                     spacing: Kirigami.Units.smallSpacing / 2
 
-                    Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "pin"
-                        label: root.tr("Pinned Applications")
-                        iconSize: root.categoryIconSize
-                        selected: !root.searching && root.gnomeSelectedId === "pinned"
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.selectGnome("pinned")
-                    }
-
-                    Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "view-app-grid-symbolic"
-                        label: root.tr("All Applications")
-                        iconSize: root.categoryIconSize
-                        selected: !root.searching && root.gnomeSelectedId === "all"
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.selectGnome("all")
+                    // Extra categories (pinned / all-apps / favorites /
+                    // frequent / recent-files) — user configurable, same
+                    // as upstream "extra-categories" setting.
+                    // Upstream hides category icons (iconSizeCategories=HIDDEN).
+                    Repeater {
+                        model: root.extraCategories.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.extraCategories[index].icon
+                            label: root.extraCategories[index].name
+                            iconSize: 0
+                            selected: !root.searching && root.gnomeSelectedId === root.extraCategories[index].id
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
+                            fg: root.fg
+                            onActivated: root.selectGnome(root.extraCategories[index].id)
+                        }
                     }
 
                     Kirigami.Separator {
@@ -110,7 +127,8 @@ LayoutBase {
                             width: sideCol.width
                             iconName: root.categories[index].icon
                             label: root.categories[index].name
-                            iconSize: root.categoryIconSize
+                            iconSize: 0
+                            activateOnHover: true
                             selected: !root.searching && root.gnomeSelectedId === root.categories[index].id
                             selectedBg: root.selectedBg
                             selectedFg: root.selectedFg
@@ -174,7 +192,9 @@ LayoutBase {
                           ? root.tr("No matching applications found")
                           : (root.gnomeSelectedId === "pinned"
                              ? root.tr("Pin applications from the context menu")
-                             : root.tr("No applications"))
+                             : (root.gnomeSelectedId === "recent-files"
+                                ? root.tr("No recent files")
+                                : root.tr("No applications")))
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8
@@ -182,6 +202,20 @@ LayoutBase {
                     horizontalAlignment: Text.AlignHCenter
                 }
             }
+        }
+
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            visible: !root.searchOnTop
+            opacity: 0.5
+        }
+
+        Components.SearchField {
+            Layout.fillWidth: true
+            visible: !root.searchOnTop
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+            text: menuData ? menuData.searchQuery : ""
+            onTextChanged: if (menuData) menuData.setSearch(text)
         }
     }
 }

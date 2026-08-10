@@ -134,6 +134,7 @@ QtObject {
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
     readonly property bool flipHorizontal: cfgBool("FlipHorizontal", false)
     readonly property string searchbarLocation: cfgStr("SearchbarLocation", "bottom")
+    readonly property bool searchbarLocationUserSet: cfgBool("SearchbarLocationUserSet", false)
     readonly property string allAppsButtonAction: cfgStr("AllAppsButtonAction", "category-list")
     readonly property bool showUserAvatar: cfgBool("ShowUserAvatar", true)
     readonly property string avatarShape: cfgStr("AvatarShape", "circle")

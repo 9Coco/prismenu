@@ -6,8 +6,10 @@ import "../components" as Components
 import "../../code/AppsModel.js" as AppsModel
 
 /**
- * Brisk Menu �?matches ArcMenu Brisk reference:
- *   Search top | Sidebar (pinned / all / categories / software / settings) | Content | Session bottom
+ * Brisk Menu — matches ArcMenu Brisk reference (upstream brisk.js):
+ *   Search top/bottom | Sidebar: extra-categories + categories (scroll, hover
+ *   activation) then configurable shortcuts + power row pinned to the bottom
+ *   of the sidebar (not a full-width session row)
  */
 LayoutBase {
     id: root
@@ -16,6 +18,7 @@ LayoutBase {
 
     property string briskSelectedId: "pinned"
     activeNavId: briskSelectedId
+    defaultSearchOnTop: true
 
 
     readonly property var powerOptions: {
@@ -28,10 +31,25 @@ LayoutBase {
 
     // Always show the standard category set (do not hide empty ones)
 
-    readonly property var extras: [
-        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
-    ]
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
+
+    /** Upstream brisk-layout-extra-shortcuts — configurable application
+     * shortcuts above the power row (fallback: Software / Settings). */
+    readonly property var briskShortcuts: (menuData && menuData.systemShortcuts
+        && menuData.systemShortcuts.length)
+        ? menuData.systemShortcuts
+        : [
+            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
+        ]
 
 
 
@@ -40,12 +58,10 @@ LayoutBase {
         briskSelectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     ColumnLayout {
@@ -55,9 +71,16 @@ LayoutBase {
 
         Components.SearchField {
             Layout.fillWidth: true
+            visible: root.searchOnTop
             placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
             text: menuData ? menuData.searchQuery : ""
             onTextChanged: if (menuData) menuData.setSearch(text)
+        }
+
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            visible: root.searchOnTop
+            opacity: 0.5
         }
 
         RowLayout {
@@ -67,100 +90,111 @@ LayoutBase {
             layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
             // ---- Left sidebar ----
-            Flickable {
-                id: sideFlick
+            ColumnLayout {
                 Layout.preferredWidth: root.sidebarW
                 Layout.minimumWidth: root.elasticColumnMin
                 Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
-                Layout.fillWidth: false
-                contentWidth: width
-                contentHeight: sideCol.height
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
+                spacing: Kirigami.Units.smallSpacing / 2
 
-                Column {
-                    id: sideCol
-                    width: sideFlick.width
-                    spacing: Kirigami.Units.smallSpacing / 2
+                Flickable {
+                    id: sideFlick
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    contentWidth: width
+                    contentHeight: sideCol.height
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
 
+                    Column {
+                        id: sideCol
+                        width: sideFlick.width
+                        spacing: Kirigami.Units.smallSpacing / 2
+
+                        // Extra categories (pinned / all-apps / favorites /
+                        // frequent / recent-files) — user configurable, same
+                        // as upstream "extra-categories" setting
+                        Repeater {
+                            model: root.extraCategories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: sideCol.width
+                                iconName: root.extraCategories[index].icon
+                                label: root.extraCategories[index].name
+                                iconSize: root.categoryIconSize
+                                selected: !root.searching && root.briskSelectedId === root.extraCategories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.selectBrisk(root.extraCategories[index].id)
+                            }
+                        }
+
+                        Kirigami.Separator {
+                            width: sideCol.width
+                            opacity: 0.4
+                        }
+
+                        Repeater {
+                            model: root.categories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: sideCol.width
+                                iconName: root.categories[index].icon
+                                label: root.categories[index].name
+                                iconSize: root.categoryIconSize
+                                activateOnHover: true
+                                selected: !root.searching && root.briskSelectedId === root.categories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.selectBrisk(root.categories[index].id)
+                            }
+                        }
+                    }
+                }
+
+                // Pinned shortcuts + power row at the sidebar bottom
+                // (upstream actionsBox + powerOptionsItem, y_align END)
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    opacity: 0.4
+                }
+
+                Repeater {
+                    model: root.briskShortcuts.length
                     Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "pin"
-                        label: root.tr("Pinned Applications")
+                        required property int index
+                        Layout.fillWidth: true
+                        iconName: root.briskShortcuts[index].icon
+                        label: root.briskShortcuts[index].name
                         iconSize: root.categoryIconSize
-                        selected: !root.searching && root.briskSelectedId === "pinned"
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
                         hoverBg: root.hoverBg
                         hoverFg: root.hoverFg
                         fg: root.fg
-                        onActivated: root.selectBrisk("pinned")
+                        onActivated: root.activateItem(root.briskShortcuts[index])
                     }
+                }
 
-                    Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "view-app-grid-symbolic"
-                        label: root.tr("All Applications")
-                        iconSize: root.categoryIconSize
-                        selected: !root.searching && root.briskSelectedId === "all"
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.selectBrisk("all")
-                    }
+                Kirigami.Separator {
+                    Layout.fillWidth: true
+                    opacity: 0.4
+                }
 
-                    Kirigami.Separator {
-                        width: sideCol.width
-                        opacity: 0.4
+                RowLayout {
+                    Layout.fillWidth: true
+                    Components.SessionButtons {
+                        menuData: root.menuData
+                        enabledOptions: root.powerOptions
+                        onActionRequested: (id) => root.powerAction(id)
                     }
-
-                    Repeater {
-                        model: root.categories.length
-                        Components.ShortcutRow {
-                            required property int index
-                            width: sideCol.width
-                            iconName: root.categories[index].icon
-                            label: root.categories[index].name
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.briskSelectedId === root.categories[index].id
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectBrisk(root.categories[index].id)
-                        }
-                    }
-
-                    Kirigami.Separator {
-                        width: sideCol.width
-                        opacity: 0.4
-                    }
-
-                    Repeater {
-                        model: root.extras.length
-                        Components.ShortcutRow {
-                            required property int index
-                            width: sideCol.width
-                            iconName: root.extras[index].icon
-                            label: root.extras[index].name
-                            iconSize: root.categoryIconSize
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.activateItem(root.extras[index])
-                        }
-                    }
-
-                    Kirigami.Separator {
-                        width: sideCol.width
-                        opacity: 0.4
-                    }
+                    Item { Layout.fillWidth: true }
                 }
             }
 
@@ -216,7 +250,9 @@ LayoutBase {
                           ? root.tr("No matching applications found")
                           : (root.briskSelectedId === "pinned"
                              ? root.tr("Pin applications from the context menu")
-                             : root.tr("No applications"))
+                             : (root.briskSelectedId === "recent-files"
+                                ? root.tr("No recent files")
+                                : root.tr("No applications")))
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8
@@ -226,14 +262,12 @@ LayoutBase {
             }
         }
 
-        RowLayout {
+        Components.SearchField {
             Layout.fillWidth: true
-            Components.SessionButtons {
-                menuData: root.menuData
-                enabledOptions: root.powerOptions
-                onActionRequested: (id) => root.powerAction(id)
-            }
-            Item { Layout.fillWidth: true }
+            visible: !root.searchOnTop
+            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
+            text: menuData ? menuData.searchQuery : ""
+            onTextChanged: if (menuData) menuData.setSearch(text)
         }
     }
 }
