@@ -7,10 +7,9 @@ import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Whisker Menu layout (XFCE Whisker / ArcMenu Whisker style).
- *
- * Search top
- * User row (avatar + name | settings + session buttons)
- * Categories | Content
+ * Upstream whisker.js: search + user header (avatar + session buttons) with a
+ * separator below it, then categories (extra-categories, user configurable) |
+ * content.
  */
 LayoutBase {
     id: root
@@ -19,6 +18,7 @@ LayoutBase {
 
     property string whiskerSelectedId: "pinned"
     activeNavId: whiskerSelectedId
+    defaultSearchOnTop: true
 
 
     readonly property var sessionActions: [
@@ -33,16 +33,28 @@ LayoutBase {
 
 
 
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
+
+
+
+
+
     function selectWhisker(id) {
         whiskerSelectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     ColumnLayout {
@@ -118,6 +130,12 @@ LayoutBase {
             }
         }
 
+        // Upstream: separator below the user header row
+        Kirigami.Separator {
+            Layout.fillWidth: true
+            opacity: 0.5
+        }
+
         RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -141,32 +159,25 @@ LayoutBase {
                     width: sideFlick.width
                     spacing: Kirigami.Units.smallSpacing / 2
 
-                    Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "pin"
-                        label: root.tr("Pinned Applications")
-                        iconSize: root.categoryIconSize
-                        selected: !root.searching && root.whiskerSelectedId === "pinned"
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.selectWhisker("pinned")
-                    }
-
-                    Components.ShortcutRow {
-                        width: sideCol.width
-                        iconName: "view-app-grid-symbolic"
-                        label: root.tr("All Applications")
-                        iconSize: root.categoryIconSize
-                        selected: !root.searching && root.whiskerSelectedId === "all"
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: root.selectWhisker("all")
+                    // Extra categories (pinned / all-apps / favorites /
+                    // frequent / recent-files) — user configurable, same
+                    // as upstream "extra-categories" setting
+                    Repeater {
+                        model: root.extraCategories.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.extraCategories[index].icon
+                            label: root.extraCategories[index].name
+                            iconSize: root.categoryIconSize
+                            selected: !root.searching && root.whiskerSelectedId === root.extraCategories[index].id
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
+                            fg: root.fg
+                            onActivated: root.selectWhisker(root.extraCategories[index].id)
+                        }
                     }
 
                     Kirigami.Separator {
@@ -245,7 +256,9 @@ LayoutBase {
                           ? root.tr("No matching applications found")
                           : (root.whiskerSelectedId === "pinned"
                              ? root.tr("Pin applications from the context menu")
-                             : root.tr("No applications"))
+                             : (root.whiskerSelectedId === "recent-files"
+                                ? root.tr("No recent files")
+                                : root.tr("No applications")))
                     opacity: 0.45
                     color: root.fg
                     width: parent.width * 0.8

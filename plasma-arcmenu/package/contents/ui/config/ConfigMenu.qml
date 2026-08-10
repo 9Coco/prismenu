@@ -28,6 +28,7 @@ Item {
     property string cfg_MenuLayoutId
     property bool cfg_FlipHorizontal
     property string cfg_SearchbarLocation
+    property bool cfg_SearchbarLocationUserSet: false
     property int cfg_MenuWidth
     property int cfg_MenuHeight
     property int cfg_SidebarWidth
@@ -139,6 +140,7 @@ Item {
     property alias cfg_menuLayoutId: root.cfg_MenuLayoutId
     property alias cfg_flipHorizontal: root.cfg_FlipHorizontal
     property alias cfg_searchbarLocation: root.cfg_SearchbarLocation
+    property alias cfg_searchbarLocationUserSet: root.cfg_SearchbarLocationUserSet
     property alias cfg_menuWidth: root.cfg_MenuWidth
     property alias cfg_menuHeight: root.cfg_MenuHeight
     property alias cfg_sidebarWidth: root.cfg_SidebarWidth
@@ -236,7 +238,7 @@ Item {
     property alias cfg_recentApps: root.cfg_RecentApps
 
     readonly property var cfgKeys: [
-        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight",
+        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight",
         "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset",
         "ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes",
         "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize",
@@ -312,11 +314,11 @@ Item {
      *  Only these get pushed as initial properties; pushing all 96 keys
      *  spammed "Cannot assign to non-existent property" errors per open. */
     readonly property var subPageKeys: ({
-        "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset"],
+        "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset"],
         "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
         "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
-        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
+        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
         "ConfigPinned": ["PinnedApps"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],

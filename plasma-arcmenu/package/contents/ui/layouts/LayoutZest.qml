@@ -74,16 +74,24 @@ LayoutBase {
     }
 
 
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
+
     function selectNav(id) {
         selectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     RowLayout {
@@ -241,32 +249,25 @@ LayoutBase {
                         width: midFlick.width
                         spacing: Kirigami.Units.smallSpacing / 2
 
-                        Components.ShortcutRow {
-                            width: midCol.width
-                            iconName: "pin"
-                            label: root.tr("Pinned Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.selectedId === "pinned"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectNav("pinned")
-                        }
-
-                        Components.ShortcutRow {
-                            width: midCol.width
-                            iconName: "view-app-grid-symbolic"
-                            label: root.tr("All Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.selectedId === "all"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectNav("all")
+                        // Extra categories (pinned / all-apps / favorites /
+                        // frequent / recent-files) — user configurable, same
+                        // as upstream "extra-categories" setting
+                        Repeater {
+                            model: root.extraCategories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: midCol.width
+                                iconName: root.extraCategories[index].icon
+                                label: root.extraCategories[index].name
+                                iconSize: root.categoryIconSize
+                                selected: !root.searching && root.selectedId === root.extraCategories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.selectNav(root.extraCategories[index].id)
+                            }
                         }
 
                         Kirigami.Separator {

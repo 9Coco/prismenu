@@ -33,7 +33,7 @@ var LAYOUTS = [
         hasUser: false,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 580,
         defaultHeight: 560,
         source: "layouts/LayoutBrisk.qml"
@@ -49,7 +49,7 @@ var LAYOUTS = [
         hasUser: false,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 640,
         defaultHeight: 540,
         source: "layouts/LayoutMint.qml"
@@ -65,7 +65,7 @@ var LAYOUTS = [
         hasUser: true,
         hasPower: true,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 560,
         defaultHeight: 520,
         source: "layouts/LayoutWhisker.qml"
@@ -97,7 +97,7 @@ var LAYOUTS = [
         hasUser: false,
         hasPower: false,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 560,
         defaultHeight: 540,
         source: "layouts/LayoutGnome.qml"
@@ -369,7 +369,7 @@ var LAYOUTS = [
         hasUser: false,
         hasPower: false,
         supportsFlip: true,
-        supportsSearchbarLocation: false,
+        supportsSearchbarLocation: true,
         defaultWidth: 560,
         defaultHeight: 520,
         source: "layouts/LayoutBudgie.qml"
@@ -477,6 +477,22 @@ function supportsOption(layoutId, option) {
         return !!layout.hasPinned;
     }
     return true;
+}
+
+/** Layouts whose search bar defaults to the top (upstream schema default is
+ * "Top" for them). The global config default is "bottom" (ArcMenu layout), so
+ * an untouched value must fall back to the per-layout default. */
+function searchbarDefaultsToTop(layoutId) {
+    switch (layoutId) {
+    case "brisk":
+    case "mint":
+    case "whisker":
+    case "gnome":
+    case "budgie":
+        return true;
+    default:
+        return false;
+    }
 }
 
 function clampSize(value, min, max, fallback) {

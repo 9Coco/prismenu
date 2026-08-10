@@ -20,6 +20,8 @@ Item {
     property color fg: Kirigami.Theme.textColor
     property bool preferSymbolic: true
     property bool showTooltips: true
+    /** Brisk-style hover activation: select the row as the pointer enters */
+    property bool activateOnHover: false
 
     readonly property bool hot: root.selected || mouse.containsMouse
     readonly property color chipBg: root.selected ? root.selectedBg
@@ -31,6 +33,7 @@ Item {
     signal contextMenuRequested(real x, real y)
 
     height: Math.max(iconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 1.85)
+    /** iconSize <= 0 hides the icon (upstream iconSizeCategories = HIDDEN) */
     Accessible.name: label
     Accessible.role: Accessible.Button
     Accessible.onPressAction: root.activated()
@@ -49,6 +52,7 @@ Item {
         spacing: Kirigami.Units.smallSpacing
 
         ResolvedIcon {
+            visible: root.iconSize > 0
             iconName: root.iconName
             tintColor: root.chipFg
             preferSymbolic: root.preferSymbolic
@@ -73,6 +77,10 @@ Item {
             if (mouse.button === Qt.RightButton)
                 root.contextMenuRequested(mouse.x, mouse.y);
             else
+                root.activated();
+        }
+        onContainsMouseChanged: {
+            if (mouse.containsMouse && root.activateOnHover)
                 root.activated();
         }
     }

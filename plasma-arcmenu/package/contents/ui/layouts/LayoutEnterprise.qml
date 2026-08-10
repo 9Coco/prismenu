@@ -20,10 +20,25 @@ LayoutBase {
     property string enterpriseSelectedId: "pinned"
     activeNavId: enterpriseSelectedId
 
-    readonly property bool showPinnedGrid: !root.searching && enterpriseSelectedId === "pinned"
+    readonly property bool showPinnedGrid: !root.searching
+        && (enterpriseSelectedId === "pinned" || enterpriseSelectedId === "favorites")
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellWidth: Kirigami.Units.gridUnit * 5.5
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 1.8
+
+
+
+
+
+    /** Upstream extra-categories: user-configurable sidebar entries
+     * (pinned / all-apps / favorites / frequent / recent-files). */
+    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
+        && menuData.enabledExtraCategories.length)
+        ? menuData.enabledExtraCategories
+        : [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ]
 
 
 
@@ -33,12 +48,10 @@ LayoutBase {
         enterpriseSelectedId = id;
         if (!menuData) return;
         menuData.setSearch("");
-        if (id === "pinned") return;
-        if (id === "all") {
-            menuData.currentCategoryId = "all";
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
             return;
-        }
-        menuData.currentCategoryId = id;
+        menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }
 
     ColumnLayout {
@@ -120,32 +133,25 @@ LayoutBase {
                         width: sideFlick.width
                         spacing: Kirigami.Units.smallSpacing / 2
 
-                        Components.ShortcutRow {
-                            width: sideCol.width
-                            iconName: "pin"
-                            label: root.tr("Pinned Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.enterpriseSelectedId === "pinned"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectEnterprise("pinned")
-                        }
-
-                        Components.ShortcutRow {
-                            width: sideCol.width
-                            iconName: "view-app-grid-symbolic"
-                            label: root.tr("All Applications")
-                            iconSize: root.categoryIconSize
-                            selected: !root.searching && root.enterpriseSelectedId === "all"
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.selectEnterprise("all")
+                        // Extra categories (pinned / all-apps / favorites /
+                        // frequent / recent-files) — user configurable, same
+                        // as upstream "extra-categories" setting
+                        Repeater {
+                            model: root.extraCategories.length
+                            Components.ShortcutRow {
+                                required property int index
+                                width: sideCol.width
+                                iconName: root.extraCategories[index].icon
+                                label: root.extraCategories[index].name
+                                iconSize: root.categoryIconSize
+                                selected: !root.searching && root.enterpriseSelectedId === root.extraCategories[index].id
+                                selectedBg: root.selectedBg
+                                selectedFg: root.selectedFg
+                                hoverBg: root.hoverBg
+                                hoverFg: root.hoverFg
+                                fg: root.fg
+                                onActivated: root.selectEnterprise(root.extraCategories[index].id)
+                            }
                         }
 
                         Kirigami.Separator {
