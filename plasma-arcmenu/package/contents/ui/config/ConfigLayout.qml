@@ -13,6 +13,7 @@ Item {
     property string cfg_MenuLayoutId
     property bool cfg_FlipHorizontal
     property string cfg_SearchbarLocation
+    property bool cfg_SearchbarLocationUserSet: false
     property int cfg_MenuWidth
     property int cfg_MenuHeight
     property int cfg_SidebarWidth
@@ -364,10 +365,21 @@ Item {
                     Kirigami.FormData.label: root.tr("Search…")
                     enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "searchbarLocation")
                     model: [root.tr("Top"), root.tr("Bottom")]
-                    Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
+                    Component.onCompleted: {
+                        // Never changed → the layout's own default (upstream:
+                        // brisk/gnome/budgie/mint/whisker search on top)
+                        var onTop = cfg_SearchbarLocationUserSet
+                            ? cfg_SearchbarLocation !== "bottom"
+                            : LayoutRegistry.searchbarDefaultsToTop(cfg_MenuLayoutId);
+                        currentIndex = onTop ? 0 : 1;
+                    }
                     onActivated: {
                         cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
-                        try { plasmoid.configuration.SearchbarLocation = cfg_SearchbarLocation; } catch (e) {}
+                        cfg_SearchbarLocationUserSet = true;
+                        try {
+                            plasmoid.configuration.SearchbarLocation = cfg_SearchbarLocation;
+                            plasmoid.configuration.SearchbarLocationUserSet = true;
+                        } catch (e) {}
                     }
                 }
 

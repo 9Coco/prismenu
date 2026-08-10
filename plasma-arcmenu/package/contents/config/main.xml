@@ -88,6 +88,11 @@
         <entry name="SearchbarLocation" type="String">
             <default>bottom</default>
         </entry>
+        <!-- false until the user changes SearchbarLocation; lets layouts fall
+             back to their own default (upstream: brisk/gnome/… search on top) -->
+        <entry name="SearchbarLocationUserSet" type="Bool">
+            <default>false</default>
+        </entry>
         <!-- ArcMenu layout adjustment -->
         <entry name="AllAppsButtonAction" type="String">
             <default>category-list</default>

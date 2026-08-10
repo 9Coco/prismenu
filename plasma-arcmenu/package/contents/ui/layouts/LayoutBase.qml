@@ -59,7 +59,16 @@ Item {
     readonly property bool categoryIconsSymbolic: !menuData || menuData.categoryIconsSymbolic
     readonly property bool shortcutIconsSymbolic: !menuData || menuData.shortcutIconsSymbolic
     readonly property bool flip: menuData ? menuData.flipHorizontal : false
-    readonly property bool searchOnTop: !menuData || menuData.searchbarLocation !== "bottom"
+    /** Layout default when SearchbarLocation was never changed (global config
+     * default is "bottom"): upstream brisk/budgie/gnome/mint/whisker show the
+     * search bar on top. Layouts override this to true. */
+    property bool defaultSearchOnTop: false
+    readonly property bool searchOnTop: {
+        if (menuData && menuData.searchbarLocationUserSet)
+            return menuData.searchbarLocation !== "bottom";
+        // Never touched — fall back to the layout's own default
+        return root.defaultSearchOnTop;
+    }
     readonly property bool searching: menuData ? menuData.isSearching : false
 
     /** Shared column width (persisted SidebarWidth); used by multi-column layouts */
@@ -109,21 +118,33 @@ Item {
      * selection property here; layouts with custom panes may ignore it). */
     property string activeNavId: ""
 
-    /** Standard content pane model: search > pinned > all > category */
+    /** Standard content pane model: search > pinned > all > extra > category */
     readonly property var contentItems: root.computeContentItems(root.activeNavId)
 
     function computeContentItems(navId) {
         if (root.searching)
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
-        if (navId === "pinned") {
+        if (navId === "pinned" || navId === "favorites") {
+            // Same pin list (Plasma favorites sync); labels differ upstream
             var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
             return pinned.length ? pinned : root.defaultPinned;
         }
-        if (navId === "all")
+        if (navId === "all" || navId === "all-apps")
             return (menuData && menuData.sortedVisibleApps) ? menuData.sortedVisibleApps : [];
+        if (navId === "frequent")
+            return (menuData && menuData.recentApps) ? menuData.recentApps : [];
+        if (navId === "recent-files")
+            return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
         if (menuData && menuData.allApps)
             return AppsModel.appsInCategory(menuData.allApps, navId);
         return [];
+    }
+
+    /** Call when a layout switches to a nav id — asks the backend for fresh
+     * recent-file data (side effect kept out of bindings on purpose). */
+    function refreshNavData(navId) {
+        if (navId === "recent-files" && menuData && menuData.requestRecentFilesRefresh)
+            menuData.requestRecentFilesRefresh();
     }
 
     /** menuData.categories (user order/hidden/renames applied) restricted to

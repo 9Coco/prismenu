@@ -183,6 +183,7 @@ var ZH_CN = {
     "Music": "音乐",
     "No applications": "暂无应用",
     "No matching applications found": "未找到匹配的应用",
+    "No recent files": "暂无最近文件",
     "Office": "办公",
     "Overview": "概览",
     "Pictures": "图片",
