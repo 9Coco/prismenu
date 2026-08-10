@@ -74,6 +74,8 @@ Item {
     property var origTransforms: null
     /** True while this file writes container geometry (suppresses ext logs). */
     property bool writingGeom: false
+    /** Wallpaper-blur layer behind the applet (see killBackdropBlur). */
+    property var backdropBg: null
 
     Component {
         id: translateComp
@@ -94,6 +96,43 @@ Item {
      * transform keeps the visuals exact through that single glide until the
      * grid snap settles.
      */
+    /**
+     * The desktop container paints a blurred-wallpaper backdrop behind the
+     * applet (BasicAppletContainer's maskItem, an Effects.MultiEffect
+     * re-parented to the containment root, positioned from ScenePosition —
+     * which ignores transforms, so it also leaked a smeared band above the
+     * top edge during vertical drags). The menu paints its own opaque
+     * background and never uses this layer, so hide it outright — also
+     * re-hides it if the containment recreates it (blurEnabledChanged).
+     */
+    function killBackdropBlur() {
+        if (!root.backdropBg) {
+            var c = root.appletContainer();
+            if (!c || !c.background)
+                return;
+            root.backdropBg = c.background;
+        }
+        if (root.backdropBg.maskItem)
+            root.backdropBg.maskItem.visible = false;
+    }
+
+    Timer {
+        id: killBlurTimer
+        interval: 400
+        onTriggered: root.killBackdropBlur()
+    }
+
+    Connections {
+        target: root.backdropBg
+        ignoreUnknownSignals: true
+        function onBlurEnabledChanged() {
+            if (root.backdropBg && root.backdropBg.maskItem)
+                root.backdropBg.maskItem.visible = false;
+        }
+    }
+
+    Component.onCompleted: killBlurTimer.start()
+
     function compensate() {
         var c = root.dragContainer;
         if (!c)
