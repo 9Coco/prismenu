@@ -81,7 +81,7 @@ Item {
     property string _colorTarget: ""
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -128,24 +128,24 @@ Item {
     function syncLabelVisibleFromAppearance() {
         var a = cfg_MenuButtonAppearance || "icon";
         cfg_ButtonLabelVisible = (a === "text" || a === "icon-text" || a === "text-icon");
-        writeLive("buttonLabelVisible", cfg_ButtonLabelVisible);
+        writeLive("ButtonLabelVisible", cfg_ButtonLabelVisible);
     }
 
     function applyAppearance(key) {
         cfg_MenuButtonAppearance = key;
-        writeLive("menuButtonAppearance", key);
+        writeLive("MenuButtonAppearance", key);
         syncLabelVisibleFromAppearance();
     }
 
     function restoreAppearanceDefaults() {
         applyAppearance("icon");
         cfg_ButtonLabelText = "Applications";
-        writeLive("buttonLabelText", "Applications");
+        writeLive("ButtonLabelText", "Applications");
         cfg_PanelButtonPadding = -1;
-        writeLive("panelButtonPadding", -1);
+        writeLive("PanelButtonPadding", -1);
         paddingSpin.value = -1;
         cfg_PanelButtonPositionOffset = 0;
-        writeLive("panelButtonPositionOffset", 0);
+        writeLive("PanelButtonPositionOffset", 0);
         offsetSpin.value = 0;
         appearanceCombo.currentIndex = 0;
     }
@@ -286,7 +286,7 @@ Item {
                     text: cfg_ButtonLabelText
                     onTextEdited: {
                         cfg_ButtonLabelText = text;
-                        writeLive("buttonLabelText", text);
+                        writeLive("ButtonLabelText", text);
                     }
                 }
             }
@@ -303,7 +303,7 @@ Item {
                     value: cfg_PanelButtonPadding
                     onValueModified: {
                         cfg_PanelButtonPadding = value;
-                        writeLive("panelButtonPadding", value);
+                        writeLive("PanelButtonPadding", value);
                     }
                 }
             }
@@ -319,7 +319,7 @@ Item {
                     value: cfg_PanelButtonPositionOffset
                     onValueModified: {
                         cfg_PanelButtonPositionOffset = value;
-                        writeLive("panelButtonPositionOffset", value);
+                        writeLive("PanelButtonPositionOffset", value);
                     }
                 }
             }
@@ -354,7 +354,7 @@ Item {
                     value: cfg_PanelButtonIconSize > 0 ? cfg_PanelButtonIconSize : 20
                     onValueModified: {
                         cfg_PanelButtonIconSize = value;
-                        writeLive("panelButtonIconSize", value);
+                        writeLive("PanelButtonIconSize", value);
                     }
                 }
             }
@@ -372,7 +372,7 @@ Item {
                     Component.onCompleted: currentIndex = root.clickIndex(cfg_LeftClickAction)
                     onActivated: {
                         cfg_LeftClickAction = root.clickKeys[currentIndex];
-                        writeLive("leftClickAction", cfg_LeftClickAction);
+                        writeLive("LeftClickAction", cfg_LeftClickAction);
                     }
                 }
             }
@@ -387,7 +387,7 @@ Item {
                     Component.onCompleted: currentIndex = root.clickIndex(cfg_RightClickAction)
                     onActivated: {
                         cfg_RightClickAction = root.clickKeys[currentIndex];
-                        writeLive("rightClickAction", cfg_RightClickAction);
+                        writeLive("RightClickAction", cfg_RightClickAction);
                     }
                 }
             }
@@ -402,7 +402,7 @@ Item {
                     Component.onCompleted: currentIndex = root.clickIndex(cfg_MiddleClickAction)
                     onActivated: {
                         cfg_MiddleClickAction = root.clickKeys[currentIndex];
-                        writeLive("middleClickAction", cfg_MiddleClickAction);
+                        writeLive("MiddleClickAction", cfg_MiddleClickAction);
                     }
                 }
             }
@@ -423,8 +423,8 @@ Item {
                 accent: "blue"
                 enabledFlag: cfg_ButtonStyleFgEnabled
                 colorValue: cfg_ButtonStyleFg
-                enabledKey: "buttonStyleFgEnabled"
-                colorKey: "buttonStyleFg"
+                enabledKey: "ButtonStyleFgEnabled"
+                colorKey: "ButtonStyleFg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleFgEnabled = on
             }
             ConfigSep {}
@@ -434,8 +434,8 @@ Item {
                 accent: "purple"
                 enabledFlag: cfg_ButtonStyleBgEnabled
                 colorValue: cfg_ButtonStyleBg
-                enabledKey: "buttonStyleBgEnabled"
-                colorKey: "buttonStyleBg"
+                enabledKey: "ButtonStyleBgEnabled"
+                colorKey: "ButtonStyleBg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleBgEnabled = on
             }
             ConfigSep {}
@@ -445,8 +445,8 @@ Item {
                 accent: "teal"
                 enabledFlag: cfg_ButtonStyleHoverBgEnabled
                 colorValue: cfg_ButtonStyleHoverBg
-                enabledKey: "buttonStyleHoverBgEnabled"
-                colorKey: "buttonStyleHoverBg"
+                enabledKey: "ButtonStyleHoverBgEnabled"
+                colorKey: "ButtonStyleHoverBg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverBgEnabled = on
             }
             ConfigSep {}
@@ -456,8 +456,8 @@ Item {
                 accent: "cyan"
                 enabledFlag: cfg_ButtonStyleHoverFgEnabled
                 colorValue: cfg_ButtonStyleHoverFg
-                enabledKey: "buttonStyleHoverFgEnabled"
-                colorKey: "buttonStyleHoverFg"
+                enabledKey: "ButtonStyleHoverFgEnabled"
+                colorKey: "ButtonStyleHoverFg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleHoverFgEnabled = on
             }
             ConfigSep {}
@@ -467,8 +467,8 @@ Item {
                 accent: "orange"
                 enabledFlag: cfg_ButtonStyleActiveBgEnabled
                 colorValue: cfg_ButtonStyleActiveBg
-                enabledKey: "buttonStyleActiveBgEnabled"
-                colorKey: "buttonStyleActiveBg"
+                enabledKey: "ButtonStyleActiveBgEnabled"
+                colorKey: "ButtonStyleActiveBg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveBgEnabled = on
             }
             ConfigSep {}
@@ -478,8 +478,8 @@ Item {
                 accent: "pink"
                 enabledFlag: cfg_ButtonStyleActiveFgEnabled
                 colorValue: cfg_ButtonStyleActiveFg
-                enabledKey: "buttonStyleActiveFgEnabled"
-                colorKey: "buttonStyleActiveFg"
+                enabledKey: "ButtonStyleActiveFgEnabled"
+                colorKey: "ButtonStyleActiveFg"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleActiveFgEnabled = on
             }
             ConfigSep {}
@@ -489,8 +489,8 @@ Item {
                 accent: "indigo"
                 enabledFlag: cfg_ButtonStyleRadiusEnabled
                 spinValue: cfg_ButtonStyleRadius
-                enabledKey: "buttonStyleRadiusEnabled"
-                valueKey: "buttonStyleRadius"
+                enabledKey: "ButtonStyleRadiusEnabled"
+                valueKey: "ButtonStyleRadius"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleRadiusEnabled = on
                 onSpinEdited: (v) => cfg_ButtonStyleRadius = v
             }
@@ -503,8 +503,8 @@ Item {
                 enabledFlag: cfg_ButtonStyleBorderWidthEnabled
                 spinValue: cfg_ButtonStyleBorderWidth
                 to: 12
-                enabledKey: "buttonStyleBorderWidthEnabled"
-                valueKey: "buttonStyleBorderWidth"
+                enabledKey: "ButtonStyleBorderWidthEnabled"
+                valueKey: "ButtonStyleBorderWidth"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderWidthEnabled = on
                 onSpinEdited: (v) => cfg_ButtonStyleBorderWidth = v
             }
@@ -515,8 +515,8 @@ Item {
                 accent: "red"
                 enabledFlag: cfg_ButtonStyleBorderColorEnabled
                 colorValue: cfg_ButtonStyleBorderColor
-                enabledKey: "buttonStyleBorderColorEnabled"
-                colorKey: "buttonStyleBorderColor"
+                enabledKey: "ButtonStyleBorderColorEnabled"
+                colorKey: "ButtonStyleBorderColor"
                 onStyleEnabledToggled: (on) => cfg_ButtonStyleBorderColorEnabled = on
             }
         }
@@ -529,12 +529,12 @@ Item {
             if (kind === "file") {
                 cfg_CustomButtonIcon = filePath;
                 cfg_ButtonIcon = "custom";
-                writeLive("customButtonIcon", filePath);
-                writeLive("buttonIcon", "custom");
+                writeLive("CustomButtonIcon", filePath);
+                writeLive("ButtonIcon", "custom");
                 return;
             }
             cfg_ButtonIcon = iconId;
-            writeLive("buttonIcon", iconId);
+            writeLive("ButtonIcon", iconId);
         }
     }
 
@@ -546,13 +546,13 @@ Item {
             var key = root._colorTarget;
             if (!key)
                 return;
-            if (key === "buttonStyleFg") { cfg_ButtonStyleFg = c; writeLive(key, c); }
-            else if (key === "buttonStyleBg") { cfg_ButtonStyleBg = c; writeLive(key, c); }
-            else if (key === "buttonStyleHoverBg") { cfg_ButtonStyleHoverBg = c; writeLive(key, c); }
-            else if (key === "buttonStyleHoverFg") { cfg_ButtonStyleHoverFg = c; writeLive(key, c); }
-            else if (key === "buttonStyleActiveBg") { cfg_ButtonStyleActiveBg = c; writeLive(key, c); }
-            else if (key === "buttonStyleActiveFg") { cfg_ButtonStyleActiveFg = c; writeLive(key, c); }
-            else if (key === "buttonStyleBorderColor") { cfg_ButtonStyleBorderColor = c; writeLive(key, c); }
+            if (key === "ButtonStyleFg") { cfg_ButtonStyleFg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleBg") { cfg_ButtonStyleBg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleHoverBg") { cfg_ButtonStyleHoverBg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleHoverFg") { cfg_ButtonStyleHoverFg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleActiveBg") { cfg_ButtonStyleActiveBg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleActiveFg") { cfg_ButtonStyleActiveFg = c; writeLive(key, c); }
+            else if (key === "ButtonStyleBorderColor") { cfg_ButtonStyleBorderColor = c; writeLive(key, c); }
         }
     }
 

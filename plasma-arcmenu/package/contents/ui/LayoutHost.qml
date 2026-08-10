@@ -18,7 +18,7 @@ Item {
     readonly property string layoutId: {
         var fromConfig = "";
         try {
-            fromConfig = String(plasmoid.configuration.menuLayoutId || "");
+            fromConfig = String(plasmoid.configuration.MenuLayoutId || "");
         } catch (e) {
             fromConfig = "";
         }

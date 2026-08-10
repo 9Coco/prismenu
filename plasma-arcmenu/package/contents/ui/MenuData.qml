@@ -20,7 +20,7 @@ QtObject {
     /** Width ceiling, bound from main.qml to a screen-fit value (MenuData is
      *  a QtObject without a window, so it cannot read Screen itself). */
     property int maxMenuWidth: 900
-    // Bound directly from main.qml → plasmoid.configuration.menuLayoutId
+    // Bound directly from main.qml → plasmoid.configuration.MenuLayoutId
     property string currentLayoutId: "arcmenu"
     /**
      * Bound from main.qml as real QML bindings (not via var/cfg()), so toggles
@@ -119,7 +119,7 @@ QtObject {
     }
 
     // ---- UI language (General → Menu language) ----
-    readonly property string uiLanguagePref: cfgStr("uiLanguage", "zh_CN")
+    readonly property string uiLanguagePref: cfgStr("UiLanguage", "zh_CN")
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) {
@@ -132,18 +132,18 @@ QtObject {
 
     // ---- Derived config accessors ----
     readonly property var layoutInfo: LayoutRegistry.getLayout(currentLayoutId)
-    readonly property bool flipHorizontal: cfgBool("flipHorizontal", false)
-    readonly property string searchbarLocation: cfgStr("searchbarLocation", "bottom")
-    readonly property string allAppsButtonAction: cfgStr("allAppsButtonAction", "category-list")
-    readonly property bool showUserAvatar: cfgBool("showUserAvatar", true)
-    readonly property string avatarShape: cfgStr("avatarShape", "circle")
-    readonly property bool showVerticalSeparator: cfgBool("showVerticalSeparator", false)
-    readonly property bool showExternalDevices: cfgBool("showExternalDevices", false)
-    readonly property bool showBookmarks: cfgBool("showBookmarks", true)
+    readonly property bool flipHorizontal: cfgBool("FlipHorizontal", false)
+    readonly property string searchbarLocation: cfgStr("SearchbarLocation", "bottom")
+    readonly property string allAppsButtonAction: cfgStr("AllAppsButtonAction", "category-list")
+    readonly property bool showUserAvatar: cfgBool("ShowUserAvatar", true)
+    readonly property string avatarShape: cfgStr("AvatarShape", "circle")
+    readonly property bool showVerticalSeparator: cfgBool("ShowVerticalSeparator", false)
+    readonly property bool showExternalDevices: cfgBool("ShowExternalDevices", false)
+    readonly property bool showBookmarks: cfgBool("ShowBookmarks", true)
     readonly property var quickLinksOrder: {
         var o = (quickLinksOrderRaw !== undefined && quickLinksOrderRaw !== null)
             ? quickLinksOrderRaw
-            : cfg("quickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
+            : cfg("QuickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
         if (typeof o === "string")
             return o.length ? o.split(",") : [];
         return o || [];
@@ -151,7 +151,7 @@ QtObject {
     readonly property var quickLinksEnabled: {
         var o = (quickLinksEnabledRaw !== undefined && quickLinksEnabledRaw !== null)
             ? quickLinksEnabledRaw
-            : cfg("quickLinksEnabled", []);
+            : cfg("QuickLinksEnabled", []);
         if (typeof o === "string")
             return o.length ? o.split(",") : [];
         return o || [];
@@ -159,7 +159,7 @@ QtObject {
     readonly property string quickLinkPosition: {
         if (quickLinkPositionRaw !== undefined && quickLinkPositionRaw !== null && String(quickLinkPositionRaw).length)
             return String(quickLinkPositionRaw);
-        return cfgStr("quickLinkPosition", "bottom");
+        return cfgStr("QuickLinkPosition", "bottom");
     }
 
     function isQuickLinkEnabled(id) {
@@ -169,7 +169,7 @@ QtObject {
     // ---- Custom quick link groups (user-defined app collections) ----
     readonly property var customQuickLinkDefs: {
         var raw = (customQuickLinksRaw !== undefined && customQuickLinksRaw !== null)
-            ? customQuickLinksRaw : cfg("customQuickLinks", []);
+            ? customQuickLinksRaw : cfg("CustomQuickLinks", []);
         if (typeof raw === "string")
             raw = raw.length ? raw.split(",") : [];
         var out = [];
@@ -185,7 +185,7 @@ QtObject {
     
     readonly property var customGroupMap: {
         var raw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)
-            ? customGroupAppsRaw : cfg("customGroupApps", "{}");
+            ? customGroupAppsRaw : cfg("CustomGroupApps", "{}");
         try {
             var obj = JSON.parse(String(raw || "{}"));
             return (obj && typeof obj === "object") ? obj : {};
@@ -208,7 +208,7 @@ QtObject {
             return;
         var map = JSON.parse(JSON.stringify(root.customGroupMap));
         map[groupId] = ids || [];
-        plasmoidConfig.customGroupApps = JSON.stringify(map);
+        plasmoidConfig.CustomGroupApps = JSON.stringify(map);
         console.log("ArcMenu setCustomGroupApps", groupId, "->", JSON.stringify(ids || []));
     }
     
@@ -281,33 +281,33 @@ QtObject {
     }
     // Direct plasmoidConfig.* reads so QML tracks live drag-resize writes
     readonly property int leftPanelWidth: LayoutRegistry.clampSize(
-        (plasmoidConfig && plasmoidConfig.leftPanelWidth !== undefined && plasmoidConfig.leftPanelWidth !== null)
-            ? plasmoidConfig.leftPanelWidth : 380,
+        (plasmoidConfig && plasmoidConfig.LeftPanelWidth !== undefined && plasmoidConfig.LeftPanelWidth !== null)
+            ? plasmoidConfig.LeftPanelWidth : 380,
         180, 1600, 380)
     readonly property int rightPanelWidth: LayoutRegistry.clampSize(
-        (plasmoidConfig && plasmoidConfig.rightPanelWidth !== undefined && plasmoidConfig.rightPanelWidth !== null)
-            ? plasmoidConfig.rightPanelWidth : 220,
+        (plasmoidConfig && plasmoidConfig.RightPanelWidth !== undefined && plasmoidConfig.RightPanelWidth !== null)
+            ? plasmoidConfig.RightPanelWidth : 220,
         160, 360, 220)
     readonly property int widthOffset: LayoutRegistry.clampSize(
-        (plasmoidConfig && plasmoidConfig.widthOffset !== undefined && plasmoidConfig.widthOffset !== null)
-            ? plasmoidConfig.widthOffset : 0,
+        (plasmoidConfig && plasmoidConfig.WidthOffset !== undefined && plasmoidConfig.WidthOffset !== null)
+            ? plasmoidConfig.WidthOffset : 0,
         -200, 400, 0)
     /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
     readonly property int menuWidth: LayoutRegistry.clampSize(
         leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, root.maxMenuWidth, 620)
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
     readonly property int menuHeight: LayoutRegistry.clampSize(
-        (plasmoidConfig && plasmoidConfig.menuHeight !== undefined && plasmoidConfig.menuHeight !== null)
-            ? plasmoidConfig.menuHeight : 540,
+        (plasmoidConfig && plasmoidConfig.MenuHeight !== undefined && plasmoidConfig.MenuHeight !== null)
+            ? plasmoidConfig.MenuHeight : 540,
         400, 800, 540)
     /** Places / categories side column — synced with right panel for ArcMenu-style shells */
     readonly property int sidebarWidth: LayoutRegistry.clampSize(
-        cfgInt("sidebarWidth", cfgInt("rightPanelWidth", 220)), 160, 360, 220)
+        cfgInt("SidebarWidth", cfgInt("RightPanelWidth", 220)), 160, 360, 220)
     /** Zest middle categories column */
-    readonly property int categoryColumnWidth: LayoutRegistry.clampSize(cfgInt("categoryColumnWidth", 220), 160, 360, 220)
-    readonly property string overrideMenuPosition: cfgStr("overrideMenuPosition", "off")
-    readonly property bool overrideMenuRise: cfgBool("overrideMenuRise", false)
-    readonly property int menuRiseDistance: LayoutRegistry.clampSize(cfgInt("menuRiseDistance", 6), 0, 64, 6)
+    readonly property int categoryColumnWidth: LayoutRegistry.clampSize(cfgInt("CategoryColumnWidth", 220), 160, 360, 220)
+    readonly property string overrideMenuPosition: cfgStr("OverrideMenuPosition", "off")
+    readonly property bool overrideMenuRise: cfgBool("OverrideMenuRise", false)
+    readonly property int menuRiseDistance: LayoutRegistry.clampSize(cfgInt("MenuRiseDistance", 6), 0, 64, 6)
     readonly property int defaultMenuWidth: {
         var meta = layoutInfo;
         return meta && meta.defaultWidth ? meta.defaultWidth : 620;
@@ -324,44 +324,44 @@ QtObject {
         if (!plasmoidConfig)
             return;
         var c = LayoutRegistry.clampSize(w, 400, root.maxMenuWidth, 620);
-        plasmoidConfig.menuWidth = c;
+        plasmoidConfig.MenuWidth = c;
         // Keep right panel; adjust left so panels stay consistent with drag-resize
         var left = LayoutRegistry.clampSize(c - rightPanelWidth - 24 - widthOffset, 180, 1600, 380);
-        plasmoidConfig.leftPanelWidth = left;
+        plasmoidConfig.LeftPanelWidth = left;
         // The left-panel clamp (180–1600) can leave the derived menuWidth short
         // of / beyond the requested width — absorb the remainder in widthOffset
         // so the persisted menuWidth lands exactly on the dragged size.
         var residual = c - (left + rightPanelWidth + 24 + widthOffset);
         if (residual !== 0)
-            plasmoidConfig.widthOffset = LayoutRegistry.clampSize(widthOffset + residual, -200, 400, 0);
+            plasmoidConfig.WidthOffset = LayoutRegistry.clampSize(widthOffset + residual, -200, 400, 0);
     }
 
     function setMenuHeight(h) {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.menuHeight = LayoutRegistry.clampSize(h, 400, 800, 540);
+        plasmoidConfig.MenuHeight = LayoutRegistry.clampSize(h, 400, 800, 540);
     }
 
     function setSidebarWidth(w) {
         if (!plasmoidConfig)
             return;
         var c = LayoutRegistry.clampSize(w, 160, 360, 220);
-        plasmoidConfig.sidebarWidth = c;
-        plasmoidConfig.rightPanelWidth = c;
+        plasmoidConfig.SidebarWidth = c;
+        plasmoidConfig.RightPanelWidth = c;
     }
 
     function setCategoryColumnWidth(w) {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.categoryColumnWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
+        plasmoidConfig.CategoryColumnWidth = LayoutRegistry.clampSize(w, 160, 360, 220);
     }
 
     function setLeftPanelWidth(w) {
         if (!plasmoidConfig)
             return;
         var c = LayoutRegistry.clampSize(w, 180, 600, 290);
-        plasmoidConfig.leftPanelWidth = c;
-        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
+        plasmoidConfig.LeftPanelWidth = c;
+        plasmoidConfig.MenuWidth = LayoutRegistry.clampSize(
             c + rightPanelWidth + 24, 400, root.maxMenuWidth, 620);
     }
 
@@ -369,41 +369,41 @@ QtObject {
         if (!plasmoidConfig)
             return;
         var c = LayoutRegistry.clampSize(w, 160, 360, 205);
-        plasmoidConfig.rightPanelWidth = c;
-        plasmoidConfig.sidebarWidth = c;
-        plasmoidConfig.menuWidth = LayoutRegistry.clampSize(
+        plasmoidConfig.RightPanelWidth = c;
+        plasmoidConfig.SidebarWidth = c;
+        plasmoidConfig.MenuWidth = LayoutRegistry.clampSize(
             leftPanelWidth + c + 24, 400, root.maxMenuWidth, 620);
     }
 
     function resetLayoutSizesToDefaults() {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.menuWidth = defaultMenuWidth;
-        plasmoidConfig.menuHeight = defaultMenuHeight;
-        plasmoidConfig.sidebarWidth = defaultSidebarWidth;
-        plasmoidConfig.categoryColumnWidth = defaultCategoryColumnWidth;
-        plasmoidConfig.leftPanelWidth = 380;
-        plasmoidConfig.rightPanelWidth = 220;
-        plasmoidConfig.widthOffset = 0;
+        plasmoidConfig.MenuWidth = defaultMenuWidth;
+        plasmoidConfig.MenuHeight = defaultMenuHeight;
+        plasmoidConfig.SidebarWidth = defaultSidebarWidth;
+        plasmoidConfig.CategoryColumnWidth = defaultCategoryColumnWidth;
+        plasmoidConfig.LeftPanelWidth = 380;
+        plasmoidConfig.RightPanelWidth = 220;
+        plasmoidConfig.WidthOffset = 0;
     }
 
-    readonly property int baseAppIconSize: Math.max(16, cfgInt("appIconSize", 24))
-    readonly property int baseCategoryIconSize: Math.max(16, cfgInt("categoryIconSize", 24))
-    readonly property bool gridIconOverride: cfgInt("iconSizeGrid", -1) >= 0
-    readonly property bool appsIconOverride: cfgInt("iconSizeApps", -1) >= 0
-    readonly property bool shortcutsIconOverride: cfgInt("iconSizeShortcuts", -1) >= 0
-    readonly property bool categoriesIconOverride: cfgInt("iconSizeCategories", -1) >= 0
-    readonly property bool buttonsIconOverride: cfgInt("iconSizeButtons", -1) >= 0
-    readonly property bool otherIconOverride: cfgInt("iconSizeOther", -1) >= 0
-    readonly property int appIconSize: IconSizes.resolve(cfgInt("iconSizeApps", -1), baseAppIconSize)
-    readonly property int categoryIconSize: IconSizes.resolve(cfgInt("iconSizeCategories", -1), baseCategoryIconSize)
-    readonly property int gridIconSize: IconSizes.resolve(cfgInt("iconSizeGrid", -1), Math.max(baseAppIconSize + 12, 36))
-    readonly property int shortcutIconSize: IconSizes.resolve(cfgInt("iconSizeShortcuts", -1), categoryIconSize)
-    readonly property int buttonIconSize: IconSizes.resolve(cfgInt("iconSizeButtons", -1), 22)
-    readonly property int otherIconSize: IconSizes.resolve(cfgInt("iconSizeOther", -1), 22)
-    readonly property int pinnedCols: Math.max(1, cfgInt("pinnedCols", 6))
-    readonly property bool recentEnabled: cfgBool("enabled", true)
-    readonly property int recentMax: Math.max(0, cfgInt("maxItems", 5))
+    readonly property int baseAppIconSize: Math.max(16, cfgInt("AppIconSize", 24))
+    readonly property int baseCategoryIconSize: Math.max(16, cfgInt("CategoryIconSize", 24))
+    readonly property bool gridIconOverride: cfgInt("IconSizeGrid", -1) >= 0
+    readonly property bool appsIconOverride: cfgInt("IconSizeApps", -1) >= 0
+    readonly property bool shortcutsIconOverride: cfgInt("IconSizeShortcuts", -1) >= 0
+    readonly property bool categoriesIconOverride: cfgInt("IconSizeCategories", -1) >= 0
+    readonly property bool buttonsIconOverride: cfgInt("IconSizeButtons", -1) >= 0
+    readonly property bool otherIconOverride: cfgInt("IconSizeOther", -1) >= 0
+    readonly property int appIconSize: IconSizes.resolve(cfgInt("IconSizeApps", -1), baseAppIconSize)
+    readonly property int categoryIconSize: IconSizes.resolve(cfgInt("IconSizeCategories", -1), baseCategoryIconSize)
+    readonly property int gridIconSize: IconSizes.resolve(cfgInt("IconSizeGrid", -1), Math.max(baseAppIconSize + 12, 36))
+    readonly property int shortcutIconSize: IconSizes.resolve(cfgInt("IconSizeShortcuts", -1), categoryIconSize)
+    readonly property int buttonIconSize: IconSizes.resolve(cfgInt("IconSizeButtons", -1), 22)
+    readonly property int otherIconSize: IconSizes.resolve(cfgInt("IconSizeOther", -1), 22)
+    readonly property int pinnedCols: Math.max(1, cfgInt("PinnedCols", 6))
+    readonly property bool recentEnabled: cfgBool("Enabled", true)
+    readonly property int recentMax: Math.max(0, cfgInt("MaxItems", 5))
     // Bound from main.qml for live Apply from Search Options
     property var showDescriptionRaw
     property var hideSearchBarRaw
@@ -421,73 +421,73 @@ QtObject {
         var _ = searchConfigEpoch;
         if (showDescriptionRaw !== undefined && showDescriptionRaw !== null)
             return showDescriptionRaw === true || showDescriptionRaw === 1;
-        return cfgBool("showDescription", true);
+        return cfgBool("ShowDescription", true);
     }
     readonly property bool hideSearchBar: {
         var _ = searchConfigEpoch;
         if (hideSearchBarRaw !== undefined && hideSearchBarRaw !== null)
             return hideSearchBarRaw === true || hideSearchBarRaw === 1;
-        return cfgBool("hideSearchBar", false);
+        return cfgBool("HideSearchBar", false);
     }
     readonly property bool highlightSearchTerms: {
         var _ = searchConfigEpoch;
         if (highlightSearchTermsRaw !== undefined && highlightSearchTermsRaw !== null)
             return highlightSearchTermsRaw === true || highlightSearchTermsRaw === 1;
-        return cfgBool("highlightSearchTerms", true);
+        return cfgBool("HighlightSearchTerms", true);
     }
     readonly property bool searchBoxRadiusEnabled: {
         var _ = searchConfigEpoch;
         if (searchBoxRadiusEnabledRaw !== undefined && searchBoxRadiusEnabledRaw !== null)
             return searchBoxRadiusEnabledRaw === true || searchBoxRadiusEnabledRaw === 1;
-        return cfgBool("searchBoxRadiusEnabled", true);
+        return cfgBool("SearchBoxRadiusEnabled", true);
     }
     readonly property int searchBoxRadius: {
         var _ = searchConfigEpoch;
         var n = (searchBoxRadiusRaw !== undefined && searchBoxRadiusRaw !== null)
-            ? parseInt(searchBoxRadiusRaw, 10) : cfgInt("searchBoxRadius", 25);
+            ? parseInt(searchBoxRadiusRaw, 10) : cfgInt("SearchBoxRadius", 25);
         return Math.max(0, isNaN(n) ? 25 : n);
     }
     readonly property bool searchWindows: {
         var _ = searchConfigEpoch;
         if (searchWindowsRaw !== undefined && searchWindowsRaw !== null)
             return searchWindowsRaw === true || searchWindowsRaw === 1;
-        return cfgBool("searchWindows", false);
+        return cfgBool("SearchWindows", false);
     }
     readonly property bool searchRecentFiles: {
         var _ = searchConfigEpoch;
         if (searchRecentFilesRaw !== undefined && searchRecentFilesRaw !== null)
             return searchRecentFilesRaw === true || searchRecentFilesRaw === 1;
-        return cfgBool("searchRecentFiles", false);
+        return cfgBool("SearchRecentFiles", false);
     }
 
     // ---- Fine-tuning ----
-    readonly property bool showCategorySubmenus: cfgBool("showCategorySubmenus", false)
-    readonly property bool showAppDescriptions: cfgBool("showAppDescriptions", false)
-    readonly property bool showGenericNames: cfgBool("showGenericNames", false)
-    readonly property bool showHiddenRecentFiles: cfgBool("showHiddenRecentFiles", false)
-    readonly property bool multiLineLabels: cfgBool("multiLineLabels", true)
-    readonly property bool showTooltips: cfgBool("showTooltips", true)
-    readonly property bool groupAppsAlphabeticallyList: cfgBool("groupAppsAlphabeticallyList", true)
-    readonly property bool groupAppsAlphabeticallyGrid: cfgBool("groupAppsAlphabeticallyGrid", false)
-    readonly property bool activateExistingWindow: cfgBool("activateExistingWindow", false)
-    readonly property bool keepOpenOnCtrlClick: cfgBool("keepOpenOnCtrlClick", true)
-    readonly property bool scrollviewFadeEffects: cfgBool("scrollviewFadeEffects", true)
-    readonly property bool showScrollbars: cfgBool("showScrollbars", true)
-    readonly property bool overlayScrollbars: cfgBool("overlayScrollbars", true)
-    readonly property string categoryIconType: cfgStr("categoryIconType", "symbolic")
-    readonly property string shortcutIconType: cfgStr("shortcutIconType", "symbolic")
+    readonly property bool showCategorySubmenus: cfgBool("ShowCategorySubmenus", false)
+    readonly property bool showAppDescriptions: cfgBool("ShowAppDescriptions", false)
+    readonly property bool showGenericNames: cfgBool("ShowGenericNames", false)
+    readonly property bool showHiddenRecentFiles: cfgBool("ShowHiddenRecentFiles", false)
+    readonly property bool multiLineLabels: cfgBool("MultiLineLabels", true)
+    readonly property bool showTooltips: cfgBool("ShowTooltips", true)
+    readonly property bool groupAppsAlphabeticallyList: cfgBool("GroupAppsAlphabeticallyList", true)
+    readonly property bool groupAppsAlphabeticallyGrid: cfgBool("GroupAppsAlphabeticallyGrid", false)
+    readonly property bool activateExistingWindow: cfgBool("ActivateExistingWindow", false)
+    readonly property bool keepOpenOnCtrlClick: cfgBool("KeepOpenOnCtrlClick", true)
+    readonly property bool scrollviewFadeEffects: cfgBool("ScrollviewFadeEffects", true)
+    readonly property bool showScrollbars: cfgBool("ShowScrollbars", true)
+    readonly property bool overlayScrollbars: cfgBool("OverlayScrollbars", true)
+    readonly property string categoryIconType: cfgStr("CategoryIconType", "symbolic")
+    readonly property string shortcutIconType: cfgStr("ShortcutIconType", "symbolic")
     readonly property bool categoryIconsSymbolic: categoryIconType !== "fullcolor"
     readonly property bool shortcutIconsSymbolic: shortcutIconType !== "fullcolor"
     readonly property int maxSearchResults: {
         var _ = searchConfigEpoch;
         var n = (maxResultsRaw !== undefined && maxResultsRaw !== null)
-            ? parseInt(maxResultsRaw, 10) : cfgInt("maxResults", 5);
+            ? parseInt(maxResultsRaw, 10) : cfgInt("MaxResults", 5);
         if (isNaN(n) || n < 1)
             n = 5;
         return n;
     }
     readonly property var searchProviders: {
-        var p = cfg("providers", ["applications"]);
+        var p = cfg("Providers", ["applications"]);
         if (typeof p === "string")
             return p.length ? p.split(",") : ["applications"];
         if (!p || p.length === undefined)
@@ -502,14 +502,14 @@ QtObject {
         return list;
     }
     readonly property string searchPlaceholder: {
-        var p = cfgStr("placeholder", "Search…");
+        var p = cfgStr("Placeholder", "Search…");
         if (!p || p === "Search…")
             return root.tr("Search…");
         return root.tr(p);
     }
     readonly property var powerOptionsOrder: {
         var fallback = ["logout", "lock", "restart", "shutdown", "suspend", "hybridsleep", "hibernate", "switchuser"];
-        var opts = cfg("powerOptionsOrder", fallback);
+        var opts = cfg("PowerOptionsOrder", fallback);
         if (typeof opts === "string")
             return opts.length ? opts.split(",") : fallback;
         if (!opts || !opts.length)
@@ -518,7 +518,7 @@ QtObject {
     }
     readonly property var powerOptions: {
         var fallback = ["logout", "lock", "restart", "shutdown"];
-        var opts = cfg("options", fallback);
+        var opts = cfg("Options", fallback);
         if (opts === undefined || opts === null)
             return fallback;
         if (typeof opts === "string")
@@ -538,11 +538,11 @@ QtObject {
         }
         return sorted;
     }
-    readonly property bool powerConfirm: cfgBool("confirm", true)
-    readonly property string softwareCenterCmd: cfgStr("softwareCenterCmd", "auto-detect")
-    readonly property string powerDisplayStyle: cfgStr("powerDisplayStyle", "off")
-    readonly property bool syncFavorites: cfgBool("syncWithPlasma", true)
-    readonly property bool showEmptyCategories: cfgBool("showEmpty", true)
+    readonly property bool powerConfirm: cfgBool("Confirm", true)
+    readonly property string softwareCenterCmd: cfgStr("SoftwareCenterCmd", "auto-detect")
+    readonly property string powerDisplayStyle: cfgStr("PowerDisplayStyle", "off")
+    readonly property bool syncFavorites: cfgBool("SyncWithPlasma", true)
+    readonly property bool showEmptyCategories: cfgBool("ShowEmpty", true)
 
     // ---- Application catalog (populated by AppsBackend / Kicker RootModel) ----
     property var allApps: []
@@ -604,10 +604,10 @@ QtObject {
         };
         var customized = AppsModel.applyCategoryCustomization(
             withCounts,
-            cfg("order", []),
-            cfg("hidden", []),
-            cfgStr("customNames", "{}"),
-            cfgStr("customIcons", "{}"),
+            cfg("Order", []),
+            cfg("Hidden", []),
+            cfgStr("CustomNames", "{}"),
+            cfgStr("CustomIcons", "{}"),
             showEmptyCategories
         );
         return [all].concat(customized);
@@ -617,7 +617,7 @@ QtObject {
 
     /** Config list, or defaults when never saved — used by display + toggle */
     function effectivePinnedIds() {
-        var local = IdList.normalizeIdList(cfg("pinnedApps", []));
+        var local = IdList.normalizeIdList(cfg("PinnedApps", []));
         // Sync with Plasma global favorites (Kickoff / KAStats)
         if (root.syncFavorites && root.plasmaFavoriteIds && root.plasmaFavoriteIds.length) {
             var merged = [];
@@ -793,7 +793,7 @@ QtObject {
         // Prefer KAStats recent apps (same as Kickoff)
         if (plasmaRecentApps && plasmaRecentApps.length)
             return plasmaRecentApps.slice(0, recentMax || 10);
-        var ids = cfg("recentApps", []);
+        var ids = cfg("RecentApps", []);
         return AppsModel.resolveAppsByIds(allApps, ids);
     }
 
@@ -848,8 +848,8 @@ QtObject {
 
     readonly property string buttonIcon: {
         var raw = Distro.resolveButtonIcon(
-            cfgStr("buttonIcon", "auto-distro"),
-            cfgStr("customButtonIcon", ""),
+            cfgStr("ButtonIcon", "auto-distro"),
+            cfgStr("CustomButtonIcon", ""),
             osReleaseId,
             osPrettyName
         );
@@ -865,8 +865,8 @@ QtObject {
     }
 
     readonly property bool buttonIconIsMask: Distro.buttonIconIsMask(
-        cfgStr("buttonIcon", "auto-distro"),
-        cfgStr("customButtonIcon", "")
+        cfgStr("ButtonIcon", "auto-distro"),
+        cfgStr("CustomButtonIcon", "")
     )
 
     signal launchApp(var app)
@@ -934,33 +934,33 @@ QtObject {
     }
 
     readonly property var directoryShortcutIds: {
-        return ShortcutsConfig.normalizeList(cfg("directoryShortcuts", ShortcutsConfig.DEFAULT_DIRS), ShortcutsConfig.DEFAULT_DIRS);
+        return ShortcutsConfig.normalizeList(cfg("DirectoryShortcuts", ShortcutsConfig.DEFAULT_DIRS), ShortcutsConfig.DEFAULT_DIRS);
     }
     readonly property var applicationShortcutIds: {
-        return ShortcutsConfig.normalizeList(cfg("applicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
+        return ShortcutsConfig.normalizeList(cfg("ApplicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
     }
     readonly property bool extraCategoriesUserSet: {
         var _ = root.structureEpoch;
         if (extraCategoriesUserSetRaw === true || extraCategoriesUserSetRaw === 1)
             return true;
-        return cfgBool("extraCategoriesUserSet", false);
+        return cfgBool("ExtraCategoriesUserSet", false);
     }
     readonly property var extraCategoriesOrder: {
         var _ = root.structureEpoch;
         var raw = (extraCategoriesOrderRaw !== undefined && extraCategoriesOrderRaw !== null)
             ? extraCategoriesOrderRaw
-            : (plasmoidConfig ? plasmoidConfig.extraCategoriesOrder : undefined);
+            : (plasmoidConfig ? plasmoidConfig.ExtraCategoriesOrder : undefined);
         return ShortcutsConfig.normalizeList(raw, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
     }
     readonly property var extraCategoriesEnabled: {
         var _ = root.structureEpoch;
         var raw = (extraCategoriesEnabledRaw !== undefined && extraCategoriesEnabledRaw !== null)
             ? extraCategoriesEnabledRaw
-            : (plasmoidConfig ? plasmoidConfig.extraCategoriesEnabled : undefined);
+            : (plasmoidConfig ? plasmoidConfig.ExtraCategoriesEnabled : undefined);
         return ShortcutsConfig.effectiveExtraEnabled(raw, root.extraCategoriesUserSet);
     }
     readonly property var contextMenuItems: {
-        return ShortcutsConfig.normalizeList(cfg("contextMenuItems", ShortcutsConfig.DEFAULT_CTX), ShortcutsConfig.DEFAULT_CTX);
+        return ShortcutsConfig.normalizeList(cfg("ContextMenuItems", ShortcutsConfig.DEFAULT_CTX), ShortcutsConfig.DEFAULT_CTX);
     }
 
     function isExtraCategoryEnabled(id) {
@@ -1105,21 +1105,21 @@ QtObject {
             var wasFav = appsBackend.isPlasmaFavorite
                 ? appsBackend.isPlasmaFavorite(favId) : false;
             if (appsBackend.togglePlasmaFavorite(favId)) {
-                var cur = IdList.normalizeIdList(cfg("pinnedApps", []));
+                var cur = IdList.normalizeIdList(cfg("PinnedApps", []));
                 if (cur.length === 0)
                     cur = IdList.defaultPinnedIds().slice();
                 var nowFav = !wasFav;
                 var locally = Favorites.isFavorite(cur, pinId);
                 if (nowFav !== locally)
-                    plasmoidConfig.pinnedApps = Favorites.toggleFavorite(cur, pinId);
+                    plasmoidConfig.PinnedApps = Favorites.toggleFavorite(cur, pinId);
                 return;
             }
         }
 
-        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
+        var current = IdList.normalizeIdList(cfg("PinnedApps", []));
         if (current.length === 0)
             current = IdList.defaultPinnedIds().slice();
-        plasmoidConfig.pinnedApps = Favorites.toggleFavorite(current, pinId);
+        plasmoidConfig.PinnedApps = Favorites.toggleFavorite(current, pinId);
     }
 
     function isFavorite(appOrId) {
@@ -1143,12 +1143,12 @@ QtObject {
     function ensureArcMenuSettingsPinned() {
         if (!plasmoidConfig)
             return;
-        var current = IdList.normalizeIdList(cfg("pinnedApps", []));
+        var current = IdList.normalizeIdList(cfg("PinnedApps", []));
         if (current.length === 0)
             return; // display already uses defaults including ArcMenu Settings
         if (current.indexOf("arcmenu-settings") < 0) {
             current.push("arcmenu-settings");
-            plasmoidConfig.pinnedApps = current;
+            plasmoidConfig.PinnedApps = current;
         }
     }
 
@@ -1157,7 +1157,7 @@ QtObject {
             return;
         }
         var current = root.effectivePinnedIds();
-        plasmoidConfig.pinnedApps = Favorites.moveItem(current, from, to);
+        plasmoidConfig.PinnedApps = Favorites.moveItem(current, from, to);
     }
 
     function recordLaunch(app) {
@@ -1165,13 +1165,13 @@ QtObject {
             return;
         }
         if (recentEnabled) {
-            plasmoidConfig.recentApps = Favorites.pushRecent(plasmoidConfig.recentApps, app.id, recentMax);
+            plasmoidConfig.RecentApps = Favorites.pushRecent(plasmoidConfig.RecentApps, app.id, recentMax);
         }
     }
 
     function clearRecent() {
         if (plasmoidConfig) {
-            plasmoidConfig.recentApps = Favorites.clearRecent();
+            plasmoidConfig.RecentApps = Favorites.clearRecent();
         }
     }
 

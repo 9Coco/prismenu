@@ -47,7 +47,7 @@ Item {
     }
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -57,8 +57,8 @@ Item {
         cfg_OverrideMenuTheme = on;
         cfg_ThemeMode = on ? "custom" : "system";
         try {
-            plasmoid.configuration.overrideMenuTheme = on;
-            plasmoid.configuration.themeMode = cfg_ThemeMode;
+            plasmoid.configuration.OverrideMenuTheme = on;
+            plasmoid.configuration.ThemeMode = cfg_ThemeMode;
         } catch (e) {}
     }
 
@@ -87,20 +87,20 @@ Item {
         radiusSpin.value = cfg_CornerRadius;
         fontSizeSpin.value = cfg_FontSize;
         syncOverride(true);
-        writeLive("menuThemeName", cfg_MenuThemeName);
-        writeLive("bgColor", cfg_BgColor);
-        writeLive("fgColor", cfg_FgColor);
-        writeLive("borderColor", cfg_BorderColor);
-        writeLive("borderWidth", cfg_BorderWidth);
-        writeLive("cornerRadius", cfg_CornerRadius);
-        writeLive("fontSize", cfg_FontSize);
-        writeLive("separatorColor", cfg_SeparatorColor);
-        writeLive("hoverBg", cfg_HoverBg);
-        writeLive("hoverFg", cfg_HoverFg);
-        writeLive("activeBg", cfg_ActiveBg);
-        writeLive("activeFg", cfg_ActiveFg);
-        writeLive("selectedBg", cfg_SelectedBg);
-        writeLive("selectedFg", cfg_SelectedFg);
+        writeLive("MenuThemeName", cfg_MenuThemeName);
+        writeLive("BgColor", cfg_BgColor);
+        writeLive("FgColor", cfg_FgColor);
+        writeLive("BorderColor", cfg_BorderColor);
+        writeLive("BorderWidth", cfg_BorderWidth);
+        writeLive("CornerRadius", cfg_CornerRadius);
+        writeLive("FontSize", cfg_FontSize);
+        writeLive("SeparatorColor", cfg_SeparatorColor);
+        writeLive("HoverBg", cfg_HoverBg);
+        writeLive("HoverFg", cfg_HoverFg);
+        writeLive("ActiveBg", cfg_ActiveBg);
+        writeLive("ActiveFg", cfg_ActiveFg);
+        writeLive("SelectedBg", cfg_SelectedBg);
+        writeLive("SelectedFg", cfg_SelectedFg);
     }
 
     function currentColorsAsTheme(name) {
@@ -141,8 +141,8 @@ Item {
             next.push(currentColorsAsTheme(name));
         cfg_CustomThemes = ThemeHelper.customThemesToJson(next);
         cfg_MenuThemeName = name;
-        writeLive("customThemes", cfg_CustomThemes);
-        writeLive("menuThemeName", cfg_MenuThemeName);
+        writeLive("CustomThemes", cfg_CustomThemes);
+        writeLive("MenuThemeName", cfg_MenuThemeName);
         themeCombo.model = root.presetNames;
         themeCombo.currentIndex = Math.max(0, root.presetNames.indexOf(name));
     }
@@ -158,7 +158,7 @@ Item {
                 next.push(customs[i]);
         }
         cfg_CustomThemes = ThemeHelper.customThemesToJson(next);
-        writeLive("customThemes", cfg_CustomThemes);
+        writeLive("CustomThemes", cfg_CustomThemes);
         applyPreset(ThemeHelper.builtinPresets()[0]);
         themeCombo.model = root.presetNames;
         themeCombo.currentIndex = 0;
@@ -190,24 +190,24 @@ Item {
         catIconSpin.value = 24;
         appIconSpin.value = 24;
         themeCombo.currentIndex = Math.max(0, root.presetNames.indexOf("ArcMenu Style"));
-        writeLive("menuThemeName", cfg_MenuThemeName);
-        writeLive("bgColor", cfg_BgColor);
-        writeLive("fgColor", cfg_FgColor);
-        writeLive("borderColor", cfg_BorderColor);
-        writeLive("borderWidth", cfg_BorderWidth);
-        writeLive("cornerRadius", cfg_CornerRadius);
-        writeLive("font", cfg_Font);
-        writeLive("fontSize", cfg_FontSize);
-        writeLive("separatorColor", cfg_SeparatorColor);
-        writeLive("hoverBg", cfg_HoverBg);
-        writeLive("hoverFg", cfg_HoverFg);
-        writeLive("activeBg", cfg_ActiveBg);
-        writeLive("activeFg", cfg_ActiveFg);
-        writeLive("selectedBg", cfg_SelectedBg);
-        writeLive("selectedFg", cfg_SelectedFg);
-        writeLive("categoryIconSize", cfg_CategoryIconSize);
-        writeLive("appIconSize", cfg_AppIconSize);
-        writeLive("followColorScheme", cfg_FollowColorScheme);
+        writeLive("MenuThemeName", cfg_MenuThemeName);
+        writeLive("BgColor", cfg_BgColor);
+        writeLive("FgColor", cfg_FgColor);
+        writeLive("BorderColor", cfg_BorderColor);
+        writeLive("BorderWidth", cfg_BorderWidth);
+        writeLive("CornerRadius", cfg_CornerRadius);
+        writeLive("Font", cfg_Font);
+        writeLive("FontSize", cfg_FontSize);
+        writeLive("SeparatorColor", cfg_SeparatorColor);
+        writeLive("HoverBg", cfg_HoverBg);
+        writeLive("HoverFg", cfg_HoverFg);
+        writeLive("ActiveBg", cfg_ActiveBg);
+        writeLive("ActiveFg", cfg_ActiveFg);
+        writeLive("SelectedBg", cfg_SelectedBg);
+        writeLive("SelectedFg", cfg_SelectedFg);
+        writeLive("CategoryIconSize", cfg_CategoryIconSize);
+        writeLive("AppIconSize", cfg_AppIconSize);
+        writeLive("FollowColorScheme", cfg_FollowColorScheme);
     }
 
     component ColorRow: ConfigSettingRow {
@@ -337,7 +337,7 @@ Item {
                 colorValue: cfg_BgColor
                 propKey: "bg"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_BgColor = v; writeLive("bgColor", v); }
+                onColorEdited: (v) => { cfg_BgColor = v; writeLive("BgColor", v); }
             }
             ConfigSep {}
             ColorRow {
@@ -347,7 +347,7 @@ Item {
                 colorValue: cfg_FgColor
                 propKey: "fg"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_FgColor = v; writeLive("fgColor", v); }
+                onColorEdited: (v) => { cfg_FgColor = v; writeLive("FgColor", v); }
             }
             ConfigSep {}
             ColorRow {
@@ -357,7 +357,7 @@ Item {
                 colorValue: cfg_BorderColor
                 propKey: "border"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_BorderColor = v; writeLive("borderColor", v); }
+                onColorEdited: (v) => { cfg_BorderColor = v; writeLive("BorderColor", v); }
             }
             ConfigSep {}
             ConfigSettingRow {
@@ -372,7 +372,7 @@ Item {
                     value: cfg_BorderWidth
                     onValueModified: {
                         cfg_BorderWidth = value;
-                        writeLive("borderWidth", value);
+                        writeLive("BorderWidth", value);
                     }
                 }
             }
@@ -390,7 +390,7 @@ Item {
                     textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
                     onValueModified: {
                         cfg_CornerRadius = value;
-                        writeLive("cornerRadius", value);
+                        writeLive("CornerRadius", value);
                     }
                 }
             }
@@ -408,7 +408,7 @@ Item {
                     textFromValue: (v) => v < 0 ? root.tr("Follow theme") : String(v)
                     onValueModified: {
                         cfg_FontSize = value;
-                        writeLive("fontSize", value);
+                        writeLive("FontSize", value);
                     }
                 }
             }
@@ -420,7 +420,7 @@ Item {
                 colorValue: cfg_SeparatorColor
                 propKey: "sep"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_SeparatorColor = v; writeLive("separatorColor", v); }
+                onColorEdited: (v) => { cfg_SeparatorColor = v; writeLive("SeparatorColor", v); }
             }
         }
 
@@ -433,7 +433,7 @@ Item {
                 colorValue: cfg_HoverBg
                 propKey: "hoverBg"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_HoverBg = v; writeLive("hoverBg", v); }
+                onColorEdited: (v) => { cfg_HoverBg = v; writeLive("HoverBg", v); }
             }
             ConfigSep {}
             ColorRow {
@@ -443,7 +443,7 @@ Item {
                 colorValue: cfg_HoverFg
                 propKey: "hoverFg"
                 rowEnabled: root.overrideOn
-                onColorEdited: (v) => { cfg_HoverFg = v; writeLive("hoverFg", v); }
+                onColorEdited: (v) => { cfg_HoverFg = v; writeLive("HoverFg", v); }
             }
             ConfigSep {}
             ColorRow {
@@ -456,8 +456,8 @@ Item {
                 onColorEdited: (v) => {
                     cfg_ActiveBg = v;
                     cfg_SelectedBg = v;
-                    writeLive("activeBg", v);
-                    writeLive("selectedBg", v);
+                    writeLive("ActiveBg", v);
+                    writeLive("SelectedBg", v);
                 }
             }
             ConfigSep {}
@@ -471,8 +471,8 @@ Item {
                 onColorEdited: (v) => {
                     cfg_ActiveFg = v;
                     cfg_SelectedFg = v;
-                    writeLive("activeFg", v);
-                    writeLive("selectedFg", v);
+                    writeLive("ActiveFg", v);
+                    writeLive("SelectedFg", v);
                 }
             }
         }
@@ -489,7 +489,7 @@ Item {
                     value: cfg_CategoryIconSize
                     onValueModified: {
                         cfg_CategoryIconSize = value;
-                        writeLive("categoryIconSize", value);
+                        writeLive("CategoryIconSize", value);
                     }
                 }
             }
@@ -504,7 +504,7 @@ Item {
                     value: cfg_AppIconSize
                     onValueModified: {
                         cfg_AppIconSize = value;
-                        writeLive("appIconSize", value);
+                        writeLive("AppIconSize", value);
                     }
                 }
             }
@@ -585,18 +585,18 @@ Item {
         property string targetProp: "bg"
         onAccepted: {
             var c = selectedColor.toString();
-            if (targetProp === "bg") { cfg_BgColor = c; writeLive("bgColor", c); }
-            else if (targetProp === "fg") { cfg_FgColor = c; writeLive("fgColor", c); }
-            else if (targetProp === "border") { cfg_BorderColor = c; writeLive("borderColor", c); }
-            else if (targetProp === "sep") { cfg_SeparatorColor = c; writeLive("separatorColor", c); }
-            else if (targetProp === "hoverBg") { cfg_HoverBg = c; writeLive("hoverBg", c); }
-            else if (targetProp === "hoverFg") { cfg_HoverFg = c; writeLive("hoverFg", c); }
+            if (targetProp === "bg") { cfg_BgColor = c; writeLive("BgColor", c); }
+            else if (targetProp === "fg") { cfg_FgColor = c; writeLive("FgColor", c); }
+            else if (targetProp === "border") { cfg_BorderColor = c; writeLive("BorderColor", c); }
+            else if (targetProp === "sep") { cfg_SeparatorColor = c; writeLive("SeparatorColor", c); }
+            else if (targetProp === "hoverBg") { cfg_HoverBg = c; writeLive("HoverBg", c); }
+            else if (targetProp === "hoverFg") { cfg_HoverFg = c; writeLive("HoverFg", c); }
             else if (targetProp === "activeBg") {
                 cfg_ActiveBg = c; cfg_SelectedBg = c;
-                writeLive("activeBg", c); writeLive("selectedBg", c);
+                writeLive("ActiveBg", c); writeLive("SelectedBg", c);
             } else if (targetProp === "activeFg") {
                 cfg_ActiveFg = c; cfg_SelectedFg = c;
-                writeLive("activeFg", c); writeLive("selectedFg", c);
+                writeLive("ActiveFg", c); writeLive("SelectedFg", c);
             }
         }
     }
@@ -631,11 +631,11 @@ Item {
         appIconSpin.value = cfg_AppIconSize || 24;
         if ((!cfg_ActiveBg || cfg_ActiveBg === "") && cfg_SelectedBg) {
             cfg_ActiveBg = cfg_SelectedBg;
-            writeLive("activeBg", cfg_ActiveBg);
+            writeLive("ActiveBg", cfg_ActiveBg);
         }
         if ((!cfg_ActiveFg || cfg_ActiveFg === "") && cfg_SelectedFg) {
             cfg_ActiveFg = cfg_SelectedFg;
-            writeLive("activeFg", cfg_ActiveFg);
+            writeLive("ActiveFg", cfg_ActiveFg);
         }
     }
 }

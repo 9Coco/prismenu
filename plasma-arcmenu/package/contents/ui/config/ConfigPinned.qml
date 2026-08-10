@@ -19,7 +19,7 @@ Item {
     property var localApps: []
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -29,7 +29,7 @@ Item {
 
     function writeLive(list) {
         cfg_PinnedApps = list;
-        try { plasmoid.configuration.pinnedApps = list; } catch (e) {}
+        try { plasmoid.configuration.PinnedApps = list; } catch (e) {}
     }
 
     readonly property var pinnedIds: {

@@ -67,9 +67,9 @@ Item {
         var structure = host ? host.structureEpoch : 0;
         var extrasSig = host ? host.extrasSignature : "";
         // Also bind plasmoid.configuration directly (config dialog → live menu)
-        var liveEnabled = plasmoid.configuration.extraCategoriesEnabled;
-        var liveOrder = plasmoid.configuration.extraCategoriesOrder;
-        var liveUserSet = plasmoid.configuration.extraCategoriesUserSet;
+        var liveEnabled = plasmoid.configuration.ExtraCategoriesEnabled;
+        var liveOrder = plasmoid.configuration.ExtraCategoriesOrder;
+        var liveUserSet = plasmoid.configuration.ExtraCategoriesUserSet;
         var tick = root.refreshTick;
         var _ = root.uiLang;
         var allApps = host && host.allApps ? host.allApps : [];
@@ -81,7 +81,7 @@ Item {
         // Prefer live config; until userSet, empty/missing lists use GNOME defaults
         var extras = [];
         var userSet = false;
-        try { userSet = !!plasmoid.configuration.extraCategoriesUserSet; } catch (e0) {}
+        try { userSet = !!plasmoid.configuration.ExtraCategoriesUserSet; } catch (e0) {}
         var order = ShortcutsConfig.normalizeList(liveOrder, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
         var enabled = ShortcutsConfig.effectiveExtraEnabled(liveEnabled, userSet);
         for (i = 0; i < order.length; ++i) {

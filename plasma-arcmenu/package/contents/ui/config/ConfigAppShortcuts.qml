@@ -15,7 +15,7 @@ Item {
     property var localApps: []
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -23,7 +23,7 @@ Item {
 
     function writeLive(list) {
         cfg_ApplicationShortcuts = list;
-        try { plasmoid.configuration.applicationShortcuts = list; } catch (e) {}
+        try { plasmoid.configuration.ApplicationShortcuts = list; } catch (e) {}
     }
 
     readonly property var ids: SC.normalizeList(cfg_ApplicationShortcuts, SC.DEFAULT_APPS)

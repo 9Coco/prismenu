@@ -14,7 +14,7 @@ Item {
     property bool cfg_ExtraCategoriesUserSet: false
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -34,7 +34,7 @@ Item {
     function userSet() {
         if (cfg_ExtraCategoriesUserSet === true || cfg_ExtraCategoriesUserSet === 1)
             return true;
-        try { return !!plasmoid.configuration.extraCategoriesUserSet; } catch (e) { return false; }
+        try { return !!plasmoid.configuration.ExtraCategoriesUserSet; } catch (e) { return false; }
     }
 
     function enabledIds() {
@@ -82,8 +82,8 @@ Item {
         }
         cfg_ExtraCategoriesUserSet = true;
         cfg_ExtraCategoriesEnabled = list.slice();
-        writeLive("extraCategoriesUserSet", true);
-        writeLive("extraCategoriesEnabled", list.slice());
+        writeLive("ExtraCategoriesUserSet", true);
+        writeLive("ExtraCategoriesEnabled", list.slice());
     }
 
     function persistOrderFromModel() {
@@ -92,8 +92,8 @@ Item {
             order.push(listModel.get(i).catId);
         cfg_ExtraCategoriesUserSet = true;
         cfg_ExtraCategoriesOrder = order.slice();
-        writeLive("extraCategoriesUserSet", true);
-        writeLive("extraCategoriesOrder", order.slice());
+        writeLive("ExtraCategoriesUserSet", true);
+        writeLive("ExtraCategoriesOrder", order.slice());
     }
 
     function setRowOn(index, on) {
@@ -114,9 +114,9 @@ Item {
         cfg_ExtraCategoriesOrder = SC.DEFAULT_EXTRA_ORDER.slice();
         cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
         cfg_ExtraCategoriesUserSet = true;
-        writeLive("extraCategoriesOrder", cfg_ExtraCategoriesOrder.slice());
-        writeLive("extraCategoriesEnabled", cfg_ExtraCategoriesEnabled.slice());
-        writeLive("extraCategoriesUserSet", true);
+        writeLive("ExtraCategoriesOrder", cfg_ExtraCategoriesOrder.slice());
+        writeLive("ExtraCategoriesEnabled", cfg_ExtraCategoriesEnabled.slice());
+        writeLive("ExtraCategoriesUserSet", true);
         rebuildModel();
     }
 
@@ -181,8 +181,8 @@ Item {
         if (!userSet()) {
             cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
             // Align stored config with what the menu already shows, without marking user-set
-            writeLive("extraCategoriesEnabled", SC.DEFAULT_EXTRA_ON.slice());
-            writeLive("extraCategoriesOrder",
+            writeLive("ExtraCategoriesEnabled", SC.DEFAULT_EXTRA_ON.slice());
+            writeLive("ExtraCategoriesOrder",
                 SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER));
         } else if (cfg_ExtraCategoriesEnabled === undefined || cfg_ExtraCategoriesEnabled === null) {
             cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();

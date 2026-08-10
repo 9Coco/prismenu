@@ -29,7 +29,7 @@ Item {
     property string cfg_CustomGroupApps: "{}"
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -80,7 +80,7 @@ Item {
         // the menu right-click "Add to <group>" writes live while this page is
         // open, and writing the stale mirror back would silently drop them.
         try {
-            var obj = JSON.parse(String(plasmoid.configuration.customGroupApps || "{}"));
+            var obj = JSON.parse(String(plasmoid.configuration.CustomGroupApps || "{}"));
             return (obj && typeof obj === "object") ? obj : {};
         } catch (e) {
             return {};
@@ -94,13 +94,13 @@ Item {
     
     function writeCustomLinks(list) {
         cfg_CustomQuickLinks = list;
-        writeLive("customQuickLinks", list);
+        writeLive("CustomQuickLinks", list);
     }
     
     function writeCustomGroupApps(map) {
         var s = JSON.stringify(map);
         cfg_CustomGroupApps = s;
-        writeLive("customGroupApps", s);
+        writeLive("CustomGroupApps", s);
     }
     
     /** Resolve a group icon id to a renderable source (theme name, bundled
@@ -130,12 +130,12 @@ Item {
         if (enabled.indexOf(gid) < 0)
             enabled.push(gid);
         cfg_QuickLinksEnabled = enabled;
-        writeLive("quickLinksEnabled", enabled);
+        writeLive("QuickLinksEnabled", enabled);
         var order = (cfg_QuickLinksOrder || []).slice();
         if (order.indexOf(gid) < 0)
             order.push(gid);
         cfg_QuickLinksOrder = order;
-        writeLive("quickLinksOrder", order);
+        writeLive("QuickLinksOrder", order);
     }
     
     function deleteGroup(gid) {
@@ -148,10 +148,10 @@ Item {
         writeCustomGroupApps(map);
         var enabled = (cfg_QuickLinksEnabled || []).slice().filter(function (x) { return x !== gid; });
         cfg_QuickLinksEnabled = enabled;
-        writeLive("quickLinksEnabled", enabled);
+        writeLive("QuickLinksEnabled", enabled);
         var order = (cfg_QuickLinksOrder || []).slice().filter(function (x) { return x !== gid; });
         cfg_QuickLinksOrder = order;
-        writeLive("quickLinksOrder", order);
+        writeLive("QuickLinksOrder", order);
     }
     
     function toggleGroupApp(gid, appId, on) {
@@ -211,7 +211,7 @@ Item {
             list.splice(idx, 1);
         cfg_QuickLinksEnabled = list;
         console.log("ArcMenu setQuickEnabled", id, on, "list:", JSON.stringify(list));
-        writeLive("quickLinksEnabled", list);
+        writeLive("QuickLinksEnabled", list);
     }
 
     function moveQuick(from, to) {
@@ -221,7 +221,7 @@ Item {
         var item = order.splice(from, 1)[0];
         order.splice(to, 0, item);
         cfg_QuickLinksOrder = order;
-        writeLive("quickLinksOrder", order);
+        writeLive("QuickLinksOrder", order);
     }
 
     ConfigPage {
@@ -240,7 +240,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_AllAppsButtonAction === "all-apps" ? 1 : 0
                     onActivated: {
                         cfg_AllAppsButtonAction = currentIndex === 1 ? "all-apps" : "category-list";
-                        writeLive("allAppsButtonAction", cfg_AllAppsButtonAction);
+                        writeLive("AllAppsButtonAction", cfg_AllAppsButtonAction);
                     }
                 }
             }
@@ -251,7 +251,7 @@ Item {
                 accent: "purple"
                 QQC2.Switch {
                     checked: cfg_ShowUserAvatar
-                    onToggled: { cfg_ShowUserAvatar = checked; writeLive("showUserAvatar", checked); }
+                    onToggled: { cfg_ShowUserAvatar = checked; writeLive("ShowUserAvatar", checked); }
                 }
             }
             ConfigSep {}
@@ -269,7 +269,7 @@ Item {
                     }
                     onActivated: {
                         cfg_AvatarShape = keys[currentIndex];
-                        writeLive("avatarShape", cfg_AvatarShape);
+                        writeLive("AvatarShape", cfg_AvatarShape);
                     }
                 }
             }
@@ -284,7 +284,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
                     onActivated: {
                         cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
-                        writeLive("searchbarLocation", cfg_SearchbarLocation);
+                        writeLive("SearchbarLocation", cfg_SearchbarLocation);
                     }
                 }
             }
@@ -295,7 +295,7 @@ Item {
                 accent: "green"
                 QQC2.Switch {
                     checked: cfg_FlipHorizontal
-                    onToggled: { cfg_FlipHorizontal = checked; writeLive("flipHorizontal", checked); }
+                    onToggled: { cfg_FlipHorizontal = checked; writeLive("FlipHorizontal", checked); }
                 }
             }
             ConfigSep {}
@@ -305,7 +305,7 @@ Item {
                 accent: "cyan"
                 QQC2.Switch {
                     checked: cfg_ShowVerticalSeparator
-                    onToggled: { cfg_ShowVerticalSeparator = checked; writeLive("showVerticalSeparator", checked); }
+                    onToggled: { cfg_ShowVerticalSeparator = checked; writeLive("ShowVerticalSeparator", checked); }
                 }
             }
         }
@@ -318,7 +318,7 @@ Item {
                 accent: "indigo"
                 QQC2.Switch {
                     checked: cfg_ShowExternalDevices
-                    onToggled: { cfg_ShowExternalDevices = checked; writeLive("showExternalDevices", checked); }
+                    onToggled: { cfg_ShowExternalDevices = checked; writeLive("ShowExternalDevices", checked); }
                 }
             }
             ConfigSep {}
@@ -328,7 +328,7 @@ Item {
                 accent: "pink"
                 QQC2.Switch {
                     checked: cfg_ShowBookmarks
-                    onToggled: { cfg_ShowBookmarks = checked; writeLive("showBookmarks", checked); }
+                    onToggled: { cfg_ShowBookmarks = checked; writeLive("ShowBookmarks", checked); }
                 }
             }
         }
@@ -346,7 +346,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_QuickLinkPosition === "top" ? 0 : 1
                     onActivated: {
                         cfg_QuickLinkPosition = currentIndex === 0 ? "top" : "bottom";
-                        writeLive("quickLinkPosition", cfg_QuickLinkPosition);
+                        writeLive("QuickLinkPosition", cfg_QuickLinkPosition);
                     }
                 }
             }
@@ -554,7 +554,7 @@ Item {
         if ((cfg_QuickLinksEnabled || []).indexOf("all-apps") >= 0) {
             var cleaned = (cfg_QuickLinksEnabled || []).filter(function (id) { return id !== "all-apps"; });
             cfg_QuickLinksEnabled = cleaned;
-            writeLive("quickLinksEnabled", cleaned);
+            writeLive("QuickLinksEnabled", cleaned);
         }
         if (!cfg_QuickLinksOrder || !cfg_QuickLinksOrder.length)
             cfg_QuickLinksOrder = defaultQuickOrder.slice();
