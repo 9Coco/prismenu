@@ -142,21 +142,6 @@ LayoutBase {
                 opacity: 0.35
             }
 
-            PlasmaComponents.ToolButton {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
-                Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-                flat: true
-                icon.name: "view-fullscreen"
-                icon.width: Kirigami.Units.iconSizes.smallMedium
-                icon.height: Kirigami.Units.iconSizes.smallMedium
-                Accessible.name: root.tr("Activities Overview")
-                onClicked: root.powerAction("overview")
-                PlasmaComponents.ToolTip.text: root.tr("Activities Overview")
-                PlasmaComponents.ToolTip.visible: hovered
-                PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
-            }
-
             Item { Layout.fillHeight: true }
 
             PlasmaComponents.ToolButton {
