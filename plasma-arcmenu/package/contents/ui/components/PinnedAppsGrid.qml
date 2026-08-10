@@ -32,17 +32,20 @@ GridView {
         width: root.cellWidth
         height: root.cellHeight
 
+        // Highlight hugs the icon+label content instead of the whole cell
         Rectangle {
             anchors.centerIn: parent
-            width: parent.width - Kirigami.Units.smallSpacing
-            height: parent.height - Kirigami.Units.smallSpacing
-            radius: Kirigami.Units.smallSpacing
+            width: Math.min(del.width - Kirigami.Units.smallSpacing,
+                            contentCol.implicitWidth + Kirigami.Units.largeSpacing)
+            height: Math.min(del.height - Kirigami.Units.smallSpacing,
+                             contentCol.implicitHeight + Kirigami.Units.smallSpacing)
+            radius: Kirigami.Units.smallSpacing * 1.5
             color: mouse.containsMouse ? root.hoverBg : "transparent"
         }
 
         ColumnLayout {
+            id: contentCol
             anchors.centerIn: parent
-            width: parent.width - Kirigami.Units.smallSpacing * 2
             spacing: Kirigami.Units.smallSpacing / 2
 
             ResolvedIcon {
@@ -50,7 +53,7 @@ GridView {
                 // Real app icons must stay unmasked; bundled/preset names
                 // (if any) still resolve to their SVGs
                 preferSymbolic: false
-                tintColor: root.hoverFg
+                tintColor: mouse.containsMouse ? root.hoverFg : Kirigami.Theme.textColor
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: root.iconSize
                 Layout.preferredHeight: root.iconSize
@@ -60,7 +63,7 @@ GridView {
                 text: model.name || ""
                 elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
+                Layout.maximumWidth: del.width - Kirigami.Units.smallSpacing * 2
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: mouse.containsMouse ? root.hoverFg : Kirigami.Theme.textColor
             }
