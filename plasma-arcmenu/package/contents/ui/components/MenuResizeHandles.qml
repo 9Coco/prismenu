@@ -88,10 +88,11 @@ Item {
      * (runtime scans find no Behavior on the container). Size writes apply
      * instantly; only y glides.
      *
-     * So instead of fighting the animation we cancel its lag visually, every
-     * frame: transform ty = targetY - actual y. Painted geometry then equals
-     * the target exactly — the resized edge tracks the mouse 1:1 like a
-     * native window, no matter who animates y.
+     * So the drag never writes container.y — the glide is never started.
+     * The painted position is nailed to the target purely by a transform:
+     * ty = targetY - actual y. Only on release do we write y once, and the
+     * transform keeps the visuals exact through that single glide until the
+     * grid snap settles.
      */
     function compensate() {
         var c = root.dragContainer;
@@ -164,18 +165,19 @@ Item {
         // always grow/shrink upward (like a menu anchored to a taskbar
         // button), regardless of which edge handle is being dragged.
         //
-        // The containment glides container y while size writes apply
-        // instantly. Write the full target geometry at once and cancel the
-        // glide lag visually with a transform (compensate): painted pos =
-        // targetY, painted size = w x h, so the painted bottom edge sits at
-        // pressBottom every frame — no height feedback from the gliding y
-        // (that coupling made the content height oscillate/jump).
+        // Never write container.y during the drag: every y write retargets
+        // the containment's ~100ms glide, and reading c.y right after a
+        // write returns the new target, not the gliding painted value — the
+        // compensation then zeroed against a paint still mid-glide, which
+        // ghosted fast vertical drags. Keep c.y untouched for the whole
+        // drag and nail the painted position purely with the translate.
         root.writingGeom = true;
         container.width = w;
         container.height = h;
-        container.y = root.pressBottom - h;
         root.writingGeom = false;
         root.targetY = root.pressBottom - h;
+        // Safe here: no glide is running (we didn't touch y), so c.y reads
+        // the real painted position and the offset is exact.
         root.compensate();
     }
 
@@ -190,10 +192,14 @@ Item {
         function onYChanged() {
             if (!root.dragContainer)
                 return;
-            // Glide moved the container: refresh the lag compensation so
-            // the painted position stays nailed to targetY.
-            if (root.compTranslate)
-                root.compensate();
+            // Skip our own geometry writes: right after a write c.y reads the
+            // new target, not the gliding painted value — recomputing then
+            // would zero the compensation and ghost the paint for a frame.
+            if (root.writingGeom)
+                return;
+            // Glide moved the container: create/refresh the lag compensation
+            // so the painted position stays nailed to targetY.
+            root.compensate();
         }
         function onHeightChanged() {
             if (root.dragContainer && !root.writingGeom)
@@ -307,9 +313,9 @@ Item {
             root.writingGeom = true;
             root.dragContainer.y = root.targetY;
             root.writingGeom = false;
-            // Keep the visual exactly where the user released while the
-            // glide + grid snap settle; commitTimer drops it afterwards.
-            root.compensate();
+            // No compensate() after this write (same post-write-readback trap
+            // as syncContainerSize); the glide + snap ticks keep the visual
+            // nailed to targetY until commitTimer drops the compensation.
             commitTimer.restart();
         }
         console.log("ArcMenu resize commit:", root.liveWidth, "x", root.liveHeight,
