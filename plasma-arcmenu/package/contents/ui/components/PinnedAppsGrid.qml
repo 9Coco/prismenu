@@ -45,8 +45,12 @@ GridView {
             width: parent.width - Kirigami.Units.smallSpacing * 2
             spacing: Kirigami.Units.smallSpacing / 2
 
-            Kirigami.Icon {
-                source: model.icon || "application-x-executable"
+            ResolvedIcon {
+                iconName: model.icon || "application-x-executable"
+                // Real app icons must stay unmasked; bundled/preset names
+                // (if any) still resolve to their SVGs
+                preferSymbolic: false
+                tintColor: root.hoverFg
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: root.iconSize
                 Layout.preferredHeight: root.iconSize
