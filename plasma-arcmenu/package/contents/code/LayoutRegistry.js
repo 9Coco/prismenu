@@ -89,7 +89,7 @@ var LAYOUTS = [
     {
         id: "gnome",
         name: "GNOME",
-        description: "GNOME style (pinned + categories + overview)",
+        description: "GNOME style (pinned + categories)",
         category: "traditional",
         hasCategories: true,
         hasPinned: true,

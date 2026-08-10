@@ -367,7 +367,7 @@ Item {
         }
 
         // ===================== GNOME =====================
-        // Budgie + bottom Activities Overview bar
+        // Budgie style: search top | category sidebar | app content
         Item {
             anchors.fill: parent
             anchors.margins: 5
@@ -397,7 +397,6 @@ Item {
                 anchors.top: gnomeSearch.bottom
                 anchors.topMargin: 3
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: parent.height * 0.16
                 width: parent.width * 0.38
                 spacing: Math.max(2, height / 28)
                 Repeater {
@@ -412,7 +411,6 @@ Item {
                 anchors.top: gnomeSearch.bottom
                 anchors.topMargin: 3
                 anchors.bottom: parent.bottom
-                anchors.bottomMargin: parent.height * 0.16
                 width: parent.width * 0.56
                 spacing: Math.max(2, height / 24)
                 Repeater {
@@ -422,14 +420,6 @@ Item {
                         dual: true
                     }
                 }
-            }
-
-            PlaceRow {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.bottom: parent.bottom
-                rowWidth: parent.width
-                iconName: "overview"
             }
         }
 
