@@ -65,8 +65,12 @@ LayoutBase {
                     anchors.margins: Kirigami.Units.smallSpacing
                     spacing: Kirigami.Units.smallSpacing
 
-                    Kirigami.Icon {
-                        source: model.icon || "application-x-executable"
+                    Components.ResolvedIcon {
+                        iconName: model.icon || "application-x-executable"
+                        // Category icons are bundled mask SVGs; real app icons
+                        // (search results) must stay unmasked
+                        preferSymbolic: !root.searching
+                        tintColor: mouse.containsMouse ? root.selectedFg : root.fg
                         Layout.preferredWidth: root.appIconSize
                         Layout.preferredHeight: root.appIconSize
                     }
