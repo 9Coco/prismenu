@@ -33,10 +33,14 @@ GridView {
         width: root.cellWidth
         height: root.cellHeight
 
+        // Highlight hugs the icon+label content instead of the whole cell
         Rectangle {
-            anchors.fill: parent
-            anchors.margins: Kirigami.Units.smallSpacing / 2
-            radius: Kirigami.Units.smallSpacing
+            anchors.centerIn: parent
+            width: Math.min(del.width - Kirigami.Units.smallSpacing,
+                            contentCol.implicitWidth + Kirigami.Units.largeSpacing)
+            height: Math.min(del.height - Kirigami.Units.smallSpacing,
+                             contentCol.implicitHeight + Kirigami.Units.smallSpacing)
+            radius: Kirigami.Units.smallSpacing * 1.5
             color: {
                 if (root.currentIndex === del.index)
                     return root.selectedBg;
@@ -47,8 +51,8 @@ GridView {
         }
 
         ColumnLayout {
+            id: contentCol
             anchors.centerIn: parent
-            width: parent.width - Kirigami.Units.largeSpacing
             spacing: Kirigami.Units.smallSpacing / 2
 
             Kirigami.Icon {
@@ -66,7 +70,7 @@ GridView {
                 }
                 elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
-                Layout.fillWidth: true
+                Layout.maximumWidth: del.width - Kirigami.Units.largeSpacing
                 wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
                 color: {
