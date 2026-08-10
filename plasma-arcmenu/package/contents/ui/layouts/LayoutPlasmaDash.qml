@@ -23,9 +23,10 @@ LayoutBase {
         Components.PinnedAppsGrid {
             visible: !root.searching && pinnedModel.count > 0
             Layout.fillWidth: true
-            Layout.preferredHeight: root.appIconSize + Kirigami.Units.gridUnit * 2
+            // Fit the actual rows (capped at 2) instead of a fixed strip
+            Layout.preferredHeight: visible ? Math.min(contentHeight, cellHeight * 2) : 0
             columns: menuData ? menuData.pinnedCols : 6
-            iconSize: Math.max(32, root.appIconSize + 8)
+            iconSize: Math.max(48, root.appIconSize + 24)
             model: pinnedModel
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
@@ -35,12 +36,18 @@ LayoutBase {
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
 
+        Kirigami.Separator {
+            visible: !root.searching && pinnedModel.count > 0
+            Layout.fillWidth: true
+            opacity: 0.4
+        }
+
         Components.AppGrid {
             Layout.fillWidth: true
             Layout.fillHeight: true
             model: appModel
             iconSize: Math.max(48, root.appIconSize + 24)
-            columns: 7
+            columns: Math.max(4, Math.floor(width / (Kirigami.Units.gridUnit * 6)))
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             multiLineLabels: root.multiLineLabels
