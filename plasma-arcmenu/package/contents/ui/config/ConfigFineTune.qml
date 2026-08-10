@@ -28,7 +28,7 @@ Item {
     property string cfg_ShortcutIconType
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -51,21 +51,21 @@ Item {
         cfg_OverlayScrollbars = true;
         cfg_CategoryIconType = "symbolic";
         cfg_ShortcutIconType = "symbolic";
-        writeLive("showCategorySubmenus", false);
-        writeLive("showAppDescriptions", false);
-        writeLive("showGenericNames", false);
-        writeLive("showHiddenRecentFiles", false);
-        writeLive("multiLineLabels", true);
-        writeLive("showTooltips", true);
-        writeLive("groupAppsAlphabeticallyList", true);
-        writeLive("groupAppsAlphabeticallyGrid", false);
-        writeLive("activateExistingWindow", false);
-        writeLive("keepOpenOnCtrlClick", true);
-        writeLive("scrollviewFadeEffects", true);
-        writeLive("showScrollbars", true);
-        writeLive("overlayScrollbars", true);
-        writeLive("categoryIconType", "symbolic");
-        writeLive("shortcutIconType", "symbolic");
+        writeLive("ShowCategorySubmenus", false);
+        writeLive("ShowAppDescriptions", false);
+        writeLive("ShowGenericNames", false);
+        writeLive("ShowHiddenRecentFiles", false);
+        writeLive("MultiLineLabels", true);
+        writeLive("ShowTooltips", true);
+        writeLive("GroupAppsAlphabeticallyList", true);
+        writeLive("GroupAppsAlphabeticallyGrid", false);
+        writeLive("ActivateExistingWindow", false);
+        writeLive("KeepOpenOnCtrlClick", true);
+        writeLive("ScrollviewFadeEffects", true);
+        writeLive("ShowScrollbars", true);
+        writeLive("OverlayScrollbars", true);
+        writeLive("CategoryIconType", "symbolic");
+        writeLive("ShortcutIconType", "symbolic");
         catIconCombo.currentIndex = 1;
         shortcutIconCombo.currentIndex = 1;
     }
@@ -82,7 +82,7 @@ Item {
                 accent: "blue"
                 QQC2.Switch {
                     checked: cfg_ShowCategorySubmenus
-                    onToggled: { cfg_ShowCategorySubmenus = checked; writeLive("showCategorySubmenus", checked); }
+                    onToggled: { cfg_ShowCategorySubmenus = checked; writeLive("ShowCategorySubmenus", checked); }
                 }
             }
             ConfigSep {}
@@ -92,7 +92,7 @@ Item {
                 accent: "purple"
                 QQC2.Switch {
                     checked: cfg_ShowAppDescriptions
-                    onToggled: { cfg_ShowAppDescriptions = checked; writeLive("showAppDescriptions", checked); }
+                    onToggled: { cfg_ShowAppDescriptions = checked; writeLive("ShowAppDescriptions", checked); }
                 }
             }
             ConfigSep {}
@@ -102,7 +102,7 @@ Item {
                 accent: "teal"
                 QQC2.Switch {
                     checked: cfg_ShowGenericNames
-                    onToggled: { cfg_ShowGenericNames = checked; writeLive("showGenericNames", checked); }
+                    onToggled: { cfg_ShowGenericNames = checked; writeLive("ShowGenericNames", checked); }
                 }
             }
             ConfigSep {}
@@ -112,7 +112,7 @@ Item {
                 accent: "orange"
                 QQC2.Switch {
                     checked: cfg_ShowHiddenRecentFiles
-                    onToggled: { cfg_ShowHiddenRecentFiles = checked; writeLive("showHiddenRecentFiles", checked); }
+                    onToggled: { cfg_ShowHiddenRecentFiles = checked; writeLive("ShowHiddenRecentFiles", checked); }
                 }
             }
             ConfigSep {}
@@ -123,7 +123,7 @@ Item {
                 accent: "green"
                 QQC2.Switch {
                     checked: cfg_MultiLineLabels
-                    onToggled: { cfg_MultiLineLabels = checked; writeLive("multiLineLabels", checked); }
+                    onToggled: { cfg_MultiLineLabels = checked; writeLive("MultiLineLabels", checked); }
                 }
             }
             ConfigSep {}
@@ -133,7 +133,7 @@ Item {
                 accent: "cyan"
                 QQC2.Switch {
                     checked: cfg_ShowTooltips
-                    onToggled: { cfg_ShowTooltips = checked; writeLive("showTooltips", checked); }
+                    onToggled: { cfg_ShowTooltips = checked; writeLive("ShowTooltips", checked); }
                 }
             }
             ConfigSep {}
@@ -144,7 +144,7 @@ Item {
                 accent: "indigo"
                 QQC2.Switch {
                     checked: cfg_GroupAppsAlphabeticallyList
-                    onToggled: { cfg_GroupAppsAlphabeticallyList = checked; writeLive("groupAppsAlphabeticallyList", checked); }
+                    onToggled: { cfg_GroupAppsAlphabeticallyList = checked; writeLive("GroupAppsAlphabeticallyList", checked); }
                 }
             }
             ConfigSep {}
@@ -155,7 +155,7 @@ Item {
                 accent: "pink"
                 QQC2.Switch {
                     checked: cfg_GroupAppsAlphabeticallyGrid
-                    onToggled: { cfg_GroupAppsAlphabeticallyGrid = checked; writeLive("groupAppsAlphabeticallyGrid", checked); }
+                    onToggled: { cfg_GroupAppsAlphabeticallyGrid = checked; writeLive("GroupAppsAlphabeticallyGrid", checked); }
                 }
             }
             ConfigSep {}
@@ -166,7 +166,7 @@ Item {
                 accent: "yellow"
                 QQC2.Switch {
                     checked: cfg_ActivateExistingWindow
-                    onToggled: { cfg_ActivateExistingWindow = checked; writeLive("activateExistingWindow", checked); }
+                    onToggled: { cfg_ActivateExistingWindow = checked; writeLive("ActivateExistingWindow", checked); }
                 }
             }
             ConfigSep {}
@@ -177,7 +177,7 @@ Item {
                 accent: "red"
                 QQC2.Switch {
                     checked: cfg_KeepOpenOnCtrlClick
-                    onToggled: { cfg_KeepOpenOnCtrlClick = checked; writeLive("keepOpenOnCtrlClick", checked); }
+                    onToggled: { cfg_KeepOpenOnCtrlClick = checked; writeLive("KeepOpenOnCtrlClick", checked); }
                 }
             }
         }
@@ -190,7 +190,7 @@ Item {
                 accent: "blue"
                 QQC2.Switch {
                     checked: cfg_ScrollviewFadeEffects
-                    onToggled: { cfg_ScrollviewFadeEffects = checked; writeLive("scrollviewFadeEffects", checked); }
+                    onToggled: { cfg_ScrollviewFadeEffects = checked; writeLive("ScrollviewFadeEffects", checked); }
                 }
             }
             ConfigSep {}
@@ -200,7 +200,7 @@ Item {
                 accent: "purple"
                 QQC2.Switch {
                     checked: cfg_ShowScrollbars
-                    onToggled: { cfg_ShowScrollbars = checked; writeLive("showScrollbars", checked); }
+                    onToggled: { cfg_ShowScrollbars = checked; writeLive("ShowScrollbars", checked); }
                 }
             }
             ConfigSep {}
@@ -212,7 +212,7 @@ Item {
                 QQC2.Switch {
                     checked: cfg_OverlayScrollbars
                     enabled: cfg_ShowScrollbars
-                    onToggled: { cfg_OverlayScrollbars = checked; writeLive("overlayScrollbars", checked); }
+                    onToggled: { cfg_OverlayScrollbars = checked; writeLive("OverlayScrollbars", checked); }
                 }
             }
         }
@@ -230,7 +230,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_CategoryIconType === "fullcolor" ? 0 : 1
                     onActivated: {
                         cfg_CategoryIconType = currentIndex === 0 ? "fullcolor" : "symbolic";
-                        writeLive("categoryIconType", cfg_CategoryIconType);
+                        writeLive("CategoryIconType", cfg_CategoryIconType);
                     }
                 }
             }
@@ -245,7 +245,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_ShortcutIconType === "fullcolor" ? 0 : 1
                     onActivated: {
                         cfg_ShortcutIconType = currentIndex === 0 ? "fullcolor" : "symbolic";
-                        writeLive("shortcutIconType", cfg_ShortcutIconType);
+                        writeLive("ShortcutIconType", cfg_ShortcutIconType);
                     }
                 }
             }

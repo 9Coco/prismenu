@@ -51,11 +51,11 @@ Item {
 
     function syncLocalCfgFromConfig() {
         try {
-            cfg_UiLanguage = plasmoid.configuration.uiLanguage || cfg_UiLanguage;
-            cfg_MenuHotkey = plasmoid.configuration.menuHotkey || cfg_MenuHotkey;
-            cfg_PopupAnimation = plasmoid.configuration.popupAnimation || cfg_PopupAnimation;
-            cfg_ShareConfigAcrossInstances = !!plasmoid.configuration.shareConfigAcrossInstances;
-            cfg_FilterByActivity = !!plasmoid.configuration.filterByActivity;
+            cfg_UiLanguage = plasmoid.configuration.UiLanguage || cfg_UiLanguage;
+            cfg_MenuHotkey = plasmoid.configuration.MenuHotkey || cfg_MenuHotkey;
+            cfg_PopupAnimation = plasmoid.configuration.PopupAnimation || cfg_PopupAnimation;
+            cfg_ShareConfigAcrossInstances = !!plasmoid.configuration.ShareConfigAcrossInstances;
+            cfg_FilterByActivity = !!plasmoid.configuration.FilterByActivity;
             var ids = ["zh_CN", "en", "system"];
             langCombo.currentIndex = Math.max(0, ids.indexOf(cfg_UiLanguage || "zh_CN"));
             var anims = ["expand", "fade", "slide", "none"];
@@ -161,7 +161,7 @@ Item {
                     }
                     onActivated: {
                         cfg_UiLanguage = currentValue;
-                        try { plasmoid.configuration.uiLanguage = currentValue; } catch (e) {}
+                        try { plasmoid.configuration.UiLanguage = currentValue; } catch (e) {}
                     }
                 }
             }
@@ -178,7 +178,7 @@ Item {
                     id: hotkeyField
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 8
                     placeholderText: "Meta"
-                    onEditingFinished: root.writeLive("menuHotkey", text)
+                    onEditingFinished: root.writeLive("MenuHotkey", text)
                 }
             }
             ConfigSep {}
@@ -204,7 +204,7 @@ Item {
                     }
                     onActivated: {
                         cfg_PopupAnimation = currentValue;
-                        root.writeLive("popupAnimation", currentValue);
+                        root.writeLive("PopupAnimation", currentValue);
                     }
                 }
             }
@@ -216,7 +216,7 @@ Item {
                 accent: "green"
                 QQC2.Switch {
                     id: shareConfig
-                    onToggled: root.writeLive("shareConfigAcrossInstances", checked)
+                    onToggled: root.writeLive("ShareConfigAcrossInstances", checked)
                 }
             }
             ConfigSep {}
@@ -227,7 +227,7 @@ Item {
                 accent: "orange"
                 QQC2.Switch {
                     id: filterActivity
-                    onToggled: root.writeLive("filterByActivity", checked)
+                    onToggled: root.writeLive("FilterByActivity", checked)
                 }
             }
         }

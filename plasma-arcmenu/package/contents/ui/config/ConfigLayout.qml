@@ -29,7 +29,7 @@ Item {
 
     readonly property var currentLayout: LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu")
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -64,16 +64,16 @@ Item {
         }
 
         try {
-            plasmoid.configuration.menuLayoutId = id;
+            plasmoid.configuration.MenuLayoutId = id;
             if (meta) {
-                plasmoid.configuration.menuWidth = meta.defaultWidth;
+                plasmoid.configuration.MenuWidth = meta.defaultWidth;
                 if (id !== "raven")
-                    plasmoid.configuration.menuHeight = cfg_MenuHeight;
-                plasmoid.configuration.sidebarWidth = 220;
-                plasmoid.configuration.categoryColumnWidth = 220;
-                plasmoid.configuration.rightPanelWidth = 220;
-                plasmoid.configuration.leftPanelWidth = cfg_LeftPanelWidth;
-                plasmoid.configuration.widthOffset = 0;
+                    plasmoid.configuration.MenuHeight = cfg_MenuHeight;
+                plasmoid.configuration.SidebarWidth = 220;
+                plasmoid.configuration.CategoryColumnWidth = 220;
+                plasmoid.configuration.RightPanelWidth = 220;
+                plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
+                plasmoid.configuration.WidthOffset = 0;
             }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);
@@ -94,13 +94,13 @@ Item {
         cfg_LeftPanelWidth = Math.max(180, w - 220 - 24);
         cfg_WidthOffset = 0;
         try {
-            plasmoid.configuration.menuWidth = w;
-            plasmoid.configuration.menuHeight = h;
-            plasmoid.configuration.sidebarWidth = 220;
-            plasmoid.configuration.categoryColumnWidth = 220;
-            plasmoid.configuration.rightPanelWidth = 220;
-            plasmoid.configuration.leftPanelWidth = cfg_LeftPanelWidth;
-            plasmoid.configuration.widthOffset = 0;
+            plasmoid.configuration.MenuWidth = w;
+            plasmoid.configuration.MenuHeight = h;
+            plasmoid.configuration.SidebarWidth = 220;
+            plasmoid.configuration.CategoryColumnWidth = 220;
+            plasmoid.configuration.RightPanelWidth = 220;
+            plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
+            plasmoid.configuration.WidthOffset = 0;
         } catch (e) {}
     }
 
@@ -354,7 +354,7 @@ Item {
                     checked: cfg_FlipHorizontal
                     onToggled: {
                         cfg_FlipHorizontal = checked;
-                        try { plasmoid.configuration.flipHorizontal = checked; } catch (e) {}
+                        try { plasmoid.configuration.FlipHorizontal = checked; } catch (e) {}
                     }
                     enabled: LayoutRegistry.supportsOption(cfg_MenuLayoutId, "flip")
                 }
@@ -367,7 +367,7 @@ Item {
                     Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
                     onActivated: {
                         cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
-                        try { plasmoid.configuration.searchbarLocation = cfg_SearchbarLocation; } catch (e) {}
+                        try { plasmoid.configuration.SearchbarLocation = cfg_SearchbarLocation; } catch (e) {}
                     }
                 }
 
@@ -400,7 +400,7 @@ Item {
     Connections {
         target: plasmoid.configuration
         function onMenuLayoutIdChanged() {
-            cfg_MenuLayoutId = plasmoid.configuration.menuLayoutId || cfg_MenuLayoutId;
+            cfg_MenuLayoutId = plasmoid.configuration.MenuLayoutId || cfg_MenuLayoutId;
             var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId);
             if (meta)
                 root.ensureCategoryExpanded(meta.category);
@@ -409,8 +409,8 @@ Item {
 
     Component.onCompleted: {
         try {
-            if (plasmoid.configuration.menuLayoutId) {
-                cfg_MenuLayoutId = plasmoid.configuration.menuLayoutId;
+            if (plasmoid.configuration.MenuLayoutId) {
+                cfg_MenuLayoutId = plasmoid.configuration.MenuLayoutId;
             }
         } catch (e) {}
         if (!cfg_MenuLayoutId) {
@@ -421,7 +421,7 @@ Item {
         if (h > 800) {
             h = 800;
             cfg_MenuHeight = h;
-            try { plasmoid.configuration.menuHeight = h; } catch (e) {}
+            try { plasmoid.configuration.MenuHeight = h; } catch (e) {}
         }
     }
 }

@@ -29,7 +29,7 @@ PlasmoidItem {
     switchHeight: Kirigami.Units.gridUnit * 12
 
     property bool menuOpen: false
-    property string lastLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+    property string lastLayoutId: plasmoid.configuration.MenuLayoutId || "arcmenu"
 
     // Plasma Kickoff uses the same API for avatar + display name
     KCoreAddons.KUser {
@@ -55,10 +55,10 @@ PlasmoidItem {
         if (expanded) {
             root.applyKUserMeta();
             // os-release already probed at startup; face/name from KUser above
-            if (plasmoid.configuration.searchRecentFiles
+            if (plasmoid.configuration.SearchRecentFiles
                 || menuData.isExtraCategoryEnabled("recent-files"))
                 backend.refreshRecentFiles();
-            if (plasmoid.configuration.searchWindows)
+            if (plasmoid.configuration.SearchWindows)
                 backend.refreshOpenWindows();
         }
     }
@@ -68,9 +68,9 @@ PlasmoidItem {
         function onSearchQueryChanged() {
             if (!menuData.isSearching)
                 return;
-            if (plasmoid.configuration.searchRecentFiles && (!menuData.recentFileResults || !menuData.recentFileResults.length))
+            if (plasmoid.configuration.SearchRecentFiles && (!menuData.recentFileResults || !menuData.recentFileResults.length))
                 backend.refreshRecentFiles();
-            if (plasmoid.configuration.searchWindows && (!menuData.openWindowResults || !menuData.openWindowResults.length))
+            if (plasmoid.configuration.SearchWindows && (!menuData.openWindowResults || !menuData.openWindowResults.length))
                 backend.refreshOpenWindows();
         }
         function onRecentFilesRequestChanged() {
@@ -103,7 +103,7 @@ PlasmoidItem {
      */
     property alias catalog: menuData
 
-    readonly property bool isRavenLayout: (plasmoid.configuration.menuLayoutId || "") === "raven"
+    readonly property bool isRavenLayout: (plasmoid.configuration.MenuLayoutId || "") === "raven"
     // Raven: fill vertical desktop space (panel-reserved area excluded when available)
     readonly property int ravenFillHeight: {
         var h = Screen.desktopAvailableHeight;
@@ -116,26 +116,26 @@ PlasmoidItem {
     MenuData {
         id: menuData
         plasmoidConfig: plasmoid.configuration
-        currentLayoutId: plasmoid.configuration.menuLayoutId || "arcmenu"
+        currentLayoutId: plasmoid.configuration.MenuLayoutId || "arcmenu"
         // Width ceiling follows the screen (drag handles cap at the same fit)
         maxMenuWidth: Math.max(900, Screen.width - 80)
         // Direct bindings — required for live Extra Categories / Search Options toggles
-        extraCategoriesEnabledRaw: plasmoid.configuration.extraCategoriesEnabled
-        extraCategoriesOrderRaw: plasmoid.configuration.extraCategoriesOrder
-        extraCategoriesUserSetRaw: !!plasmoid.configuration.extraCategoriesUserSet
-        quickLinksEnabledRaw: plasmoid.configuration.quickLinksEnabled
-        quickLinksOrderRaw: plasmoid.configuration.quickLinksOrder
-        quickLinkPositionRaw: plasmoid.configuration.quickLinkPosition
-        customQuickLinksRaw: plasmoid.configuration.customQuickLinks
-        customGroupAppsRaw: plasmoid.configuration.customGroupApps
-        showDescriptionRaw: plasmoid.configuration.showDescription
-        hideSearchBarRaw: plasmoid.configuration.hideSearchBar
-        highlightSearchTermsRaw: plasmoid.configuration.highlightSearchTerms
-        searchBoxRadiusEnabledRaw: plasmoid.configuration.searchBoxRadiusEnabled
-        searchBoxRadiusRaw: plasmoid.configuration.searchBoxRadius
-        searchWindowsRaw: plasmoid.configuration.searchWindows
-        searchRecentFilesRaw: plasmoid.configuration.searchRecentFiles
-        maxResultsRaw: plasmoid.configuration.maxResults
+        extraCategoriesEnabledRaw: plasmoid.configuration.ExtraCategoriesEnabled
+        extraCategoriesOrderRaw: plasmoid.configuration.ExtraCategoriesOrder
+        extraCategoriesUserSetRaw: !!plasmoid.configuration.ExtraCategoriesUserSet
+        quickLinksEnabledRaw: plasmoid.configuration.QuickLinksEnabled
+        quickLinksOrderRaw: plasmoid.configuration.QuickLinksOrder
+        quickLinkPositionRaw: plasmoid.configuration.QuickLinkPosition
+        customQuickLinksRaw: plasmoid.configuration.CustomQuickLinks
+        customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
+        showDescriptionRaw: plasmoid.configuration.ShowDescription
+        hideSearchBarRaw: plasmoid.configuration.HideSearchBar
+        highlightSearchTermsRaw: plasmoid.configuration.HighlightSearchTerms
+        searchBoxRadiusEnabledRaw: plasmoid.configuration.SearchBoxRadiusEnabled
+        searchBoxRadiusRaw: plasmoid.configuration.SearchBoxRadius
+        searchWindowsRaw: plasmoid.configuration.SearchWindows
+        searchRecentFilesRaw: plasmoid.configuration.SearchRecentFiles
+        maxResultsRaw: plasmoid.configuration.MaxResults
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
             menuData.ensureArcMenuSettingsPinned();
@@ -147,19 +147,19 @@ PlasmoidItem {
         target: plasmoid.configuration
         ignoreUnknownSignals: true
         function onValueChanged(key, value) {
-            if (key === "extraCategoriesEnabled" || key === "extraCategoriesOrder"
-                || key === "extraCategoriesUserSet") {
+            if (key === "ExtraCategoriesEnabled" || key === "ExtraCategoriesOrder"
+                || key === "ExtraCategoriesUserSet") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
-            if (key === "showDescription" || key === "hideSearchBar" || key === "highlightSearchTerms"
-                || key === "searchBoxRadiusEnabled" || key === "searchBoxRadius"
-                || key === "searchWindows" || key === "searchRecentFiles" || key === "maxResults") {
+            if (key === "ShowDescription" || key === "HideSearchBar" || key === "HighlightSearchTerms"
+                || key === "SearchBoxRadiusEnabled" || key === "SearchBoxRadius"
+                || key === "SearchWindows" || key === "SearchRecentFiles" || key === "MaxResults") {
                 menuData.bumpSearchConfig();
-                if (key === "searchWindows" || key === "searchRecentFiles") {
-                    if (plasmoid.configuration.searchRecentFiles)
+                if (key === "SearchWindows" || key === "SearchRecentFiles") {
+                    if (plasmoid.configuration.SearchRecentFiles)
                         backend.refreshRecentFiles();
-                    if (plasmoid.configuration.searchWindows)
+                    if (plasmoid.configuration.SearchWindows)
                         backend.refreshOpenWindows();
                 }
             }
@@ -174,12 +174,12 @@ PlasmoidItem {
         function onSearchBoxRadiusChanged() { menuData.bumpSearchConfig(); }
         function onSearchWindowsChanged() {
             menuData.bumpSearchConfig();
-            if (plasmoid.configuration.searchWindows)
+            if (plasmoid.configuration.SearchWindows)
                 backend.refreshOpenWindows();
         }
         function onSearchRecentFilesChanged() {
             menuData.bumpSearchConfig();
-            if (plasmoid.configuration.searchRecentFiles)
+            if (plasmoid.configuration.SearchRecentFiles)
                 backend.refreshRecentFiles();
         }
         function onMaxResultsChanged() { menuData.bumpSearchConfig(); }
@@ -213,27 +213,27 @@ PlasmoidItem {
     }
 
     readonly property var themeStyle: ThemeHelper.buildStyle({
-        themeMode: plasmoid.configuration.themeMode,
-        overrideMenuTheme: !!plasmoid.configuration.overrideMenuTheme
-            || plasmoid.configuration.themeMode === "custom",
-        menuThemeName: plasmoid.configuration.menuThemeName || "",
-        bgColor: plasmoid.configuration.bgColor,
-        fgColor: plasmoid.configuration.fgColor,
-        borderColor: plasmoid.configuration.borderColor,
-        borderWidth: plasmoid.configuration.borderWidth,
-        cornerRadius: plasmoid.configuration.cornerRadius,
-        font: plasmoid.configuration.font,
-        fontSize: plasmoid.configuration.fontSize,
-        separatorColor: plasmoid.configuration.separatorColor,
-        hoverBg: plasmoid.configuration.hoverBg,
-        hoverFg: plasmoid.configuration.hoverFg,
-        activeBg: plasmoid.configuration.activeBg,
-        activeFg: plasmoid.configuration.activeFg,
-        selectedBg: plasmoid.configuration.selectedBg,
-        selectedFg: plasmoid.configuration.selectedFg,
-        categoryIconSize: plasmoid.configuration.categoryIconSize,
-        appIconSize: plasmoid.configuration.appIconSize,
-        followColorScheme: plasmoid.configuration.followColorScheme
+        themeMode: plasmoid.configuration.ThemeMode,
+        overrideMenuTheme: !!plasmoid.configuration.OverrideMenuTheme
+            || plasmoid.configuration.ThemeMode === "custom",
+        menuThemeName: plasmoid.configuration.MenuThemeName || "",
+        bgColor: plasmoid.configuration.BgColor,
+        fgColor: plasmoid.configuration.FgColor,
+        borderColor: plasmoid.configuration.BorderColor,
+        borderWidth: plasmoid.configuration.BorderWidth,
+        cornerRadius: plasmoid.configuration.CornerRadius,
+        font: plasmoid.configuration.Font,
+        fontSize: plasmoid.configuration.FontSize,
+        separatorColor: plasmoid.configuration.SeparatorColor,
+        hoverBg: plasmoid.configuration.HoverBg,
+        hoverFg: plasmoid.configuration.HoverFg,
+        activeBg: plasmoid.configuration.ActiveBg,
+        activeFg: plasmoid.configuration.ActiveFg,
+        selectedBg: plasmoid.configuration.SelectedBg,
+        selectedFg: plasmoid.configuration.SelectedFg,
+        categoryIconSize: plasmoid.configuration.CategoryIconSize,
+        appIconSize: plasmoid.configuration.AppIconSize,
+        followColorScheme: plasmoid.configuration.FollowColorScheme
     }, {
         background: Kirigami.Theme.backgroundColor,
         foreground: Kirigami.Theme.textColor,
@@ -267,11 +267,11 @@ PlasmoidItem {
             backend.openNewWindow(app);
         } else {
             backend.launch(app, {
-                activateExisting: !!plasmoid.configuration.activateExistingWindow && !ctrl
+                activateExisting: !!plasmoid.configuration.ActivateExistingWindow && !ctrl
             });
         }
         menuData.recordLaunch(app);
-        if (ctrl && plasmoid.configuration.keepOpenOnCtrlClick)
+        if (ctrl && plasmoid.configuration.KeepOpenOnCtrlClick)
             return;
         closeMenu();
     }
@@ -290,17 +290,17 @@ PlasmoidItem {
         // SessionManagement shows the system leave prompt (Kickoff Leave).
         // ArcMenu "confirm" → ForcePrompt; off → SkipPrompt.
         var sessionIds = ["shutdown", "restart", "logout", "lock", "suspend", "hibernate", "switchuser", "hybridsleep"];
-        var confMode = plasmoid.configuration.confirm ? "force" : "skip";
+        var confMode = plasmoid.configuration.Confirm ? "force" : "skip";
         if (sessionIds.indexOf(actionId) >= 0) {
             // Still allow ArcMenu dialog as an extra gate when ForcePrompt unsupported
-            if (plasmoid.configuration.confirm && ["shutdown", "restart", "logout"].indexOf(actionId) >= 0) {
+            if (plasmoid.configuration.Confirm && ["shutdown", "restart", "logout"].indexOf(actionId) >= 0) {
                 confirmDialog.openFor(actionId);
                 return;
             }
-            backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, confMode);
+            backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, confMode);
             return;
         }
-        backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, confMode);
+        backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, confMode);
         if (actionId === "settings" || actionId === "discover" || actionId === "accountsettings") {
             closeMenu();
         }
@@ -311,28 +311,28 @@ PlasmoidItem {
         id: compact
         readonly property bool isVertical: plasmoid.formFactor === PlasmaCore.Types.Vertical
         readonly property int panelIconSize: {
-            var n = parseInt(plasmoid.configuration.panelButtonIconSize, 10);
+            var n = parseInt(plasmoid.configuration.PanelButtonIconSize, 10);
             return (!n || isNaN(n)) ? 20 : Math.max(12, Math.min(64, n));
         }
         readonly property int panelPadding: {
-            var n = parseInt(plasmoid.configuration.panelButtonPadding, 10);
+            var n = parseInt(plasmoid.configuration.PanelButtonPadding, 10);
             // -1 = theme default (no extra padding)
             if (isNaN(n) || n < 0)
                 return 0;
             return Math.min(25, n);
         }
         readonly property int positionOffset: {
-            var n = parseInt(plasmoid.configuration.panelButtonPositionOffset, 10);
+            var n = parseInt(plasmoid.configuration.PanelButtonPositionOffset, 10);
             if (isNaN(n) || n < 0)
                 return 0;
             return Math.min(10, n);
         }
         readonly property string buttonAppearance: {
-            var a = plasmoid.configuration.menuButtonAppearance || "";
+            var a = plasmoid.configuration.MenuButtonAppearance || "";
             if (a)
                 return a;
             // Migrate older configs that only had buttonLabelVisible
-            return plasmoid.configuration.buttonLabelVisible ? "icon-text" : "icon";
+            return plasmoid.configuration.ButtonLabelVisible ? "icon-text" : "icon";
         }
         readonly property bool showButtonIcon: buttonAppearance === "icon"
             || buttonAppearance === "icon-text"
@@ -341,37 +341,37 @@ PlasmoidItem {
             || buttonAppearance === "icon-text"
             || buttonAppearance === "text-icon"
         readonly property bool buttonHidden: buttonAppearance === "hidden"
-        readonly property string leftAction: plasmoid.configuration.leftClickAction || "arcmenu"
-        readonly property string rightAction: plasmoid.configuration.rightClickAction || "context"
-        readonly property string middleAction: plasmoid.configuration.middleClickAction || "arcmenu"
+        readonly property string leftAction: plasmoid.configuration.LeftClickAction || "arcmenu"
+        readonly property string rightAction: plasmoid.configuration.RightClickAction || "context"
+        readonly property string middleAction: plasmoid.configuration.MiddleClickAction || "arcmenu"
 
-        readonly property bool styleFgOn: !!plasmoid.configuration.buttonStyleFgEnabled
-        readonly property bool styleBgOn: !!plasmoid.configuration.buttonStyleBgEnabled
-        readonly property bool styleHoverBgOn: !!plasmoid.configuration.buttonStyleHoverBgEnabled
-        readonly property bool styleHoverFgOn: !!plasmoid.configuration.buttonStyleHoverFgEnabled
-        readonly property bool styleActiveBgOn: !!plasmoid.configuration.buttonStyleActiveBgEnabled
-        readonly property bool styleActiveFgOn: !!plasmoid.configuration.buttonStyleActiveFgEnabled
-        readonly property bool styleRadiusOn: !!plasmoid.configuration.buttonStyleRadiusEnabled
-        readonly property bool styleBorderWOn: !!plasmoid.configuration.buttonStyleBorderWidthEnabled
-        readonly property bool styleBorderCOn: !!plasmoid.configuration.buttonStyleBorderColorEnabled
+        readonly property bool styleFgOn: !!plasmoid.configuration.ButtonStyleFgEnabled
+        readonly property bool styleBgOn: !!plasmoid.configuration.ButtonStyleBgEnabled
+        readonly property bool styleHoverBgOn: !!plasmoid.configuration.ButtonStyleHoverBgEnabled
+        readonly property bool styleHoverFgOn: !!plasmoid.configuration.ButtonStyleHoverFgEnabled
+        readonly property bool styleActiveBgOn: !!plasmoid.configuration.ButtonStyleActiveBgEnabled
+        readonly property bool styleActiveFgOn: !!plasmoid.configuration.ButtonStyleActiveFgEnabled
+        readonly property bool styleRadiusOn: !!plasmoid.configuration.ButtonStyleRadiusEnabled
+        readonly property bool styleBorderWOn: !!plasmoid.configuration.ButtonStyleBorderWidthEnabled
+        readonly property bool styleBorderCOn: !!plasmoid.configuration.ButtonStyleBorderColorEnabled
 
         readonly property color styleFg: {
-            try { return styleFgOn && plasmoid.configuration.buttonStyleFg
-                ? plasmoid.configuration.buttonStyleFg : Kirigami.Theme.textColor; } catch (e) { return Kirigami.Theme.textColor; }
+            try { return styleFgOn && plasmoid.configuration.ButtonStyleFg
+                ? plasmoid.configuration.ButtonStyleFg : Kirigami.Theme.textColor; } catch (e) { return Kirigami.Theme.textColor; }
         }
         readonly property color styleHoverFg: {
-            try { return styleHoverFgOn && plasmoid.configuration.buttonStyleHoverFg
-                ? plasmoid.configuration.buttonStyleHoverFg : styleFg; } catch (e) { return styleFg; }
+            try { return styleHoverFgOn && plasmoid.configuration.ButtonStyleHoverFg
+                ? plasmoid.configuration.ButtonStyleHoverFg : styleFg; } catch (e) { return styleFg; }
         }
         readonly property color styleActiveFg: {
-            try { return styleActiveFgOn && plasmoid.configuration.buttonStyleActiveFg
-                ? plasmoid.configuration.buttonStyleActiveFg : styleFg; } catch (e) { return styleFg; }
+            try { return styleActiveFgOn && plasmoid.configuration.ButtonStyleActiveFg
+                ? plasmoid.configuration.ButtonStyleActiveFg : styleFg; } catch (e) { return styleFg; }
         }
 
         implicitWidth: {
             if (compact.buttonHidden)
                 return 1;
-            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
+            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.ButtonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitHeight : compactContent.implicitWidth;
             var offset = isVertical ? 0 : compact.positionOffset * Kirigami.Units.smallSpacing;
             return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
@@ -379,7 +379,7 @@ PlasmoidItem {
         implicitHeight: {
             if (compact.buttonHidden)
                 return 1;
-            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth) * 2 : 0;
+            var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.ButtonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitWidth : compactContent.implicitHeight;
             var offset = isVertical ? compact.positionOffset * Kirigami.Units.smallSpacing : 0;
             return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
@@ -391,7 +391,7 @@ PlasmoidItem {
         acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
 
         Accessible.name: compact.showButtonText
-            ? (plasmoid.configuration.buttonLabelText || i18n("Arc Menu"))
+            ? (plasmoid.configuration.ButtonLabelText || i18n("Arc Menu"))
             : i18n("Arc Menu")
         Accessible.role: Accessible.Button
         Accessible.onPressAction: root.toggleMenu()
@@ -474,7 +474,7 @@ PlasmoidItem {
                 model: {
                     try {
                         return ShortcutsConfig.normalizeList(
-                            plasmoid.configuration.contextMenuItems,
+                            plasmoid.configuration.ContextMenuItems,
                             ShortcutsConfig.DEFAULT_CTX);
                     } catch (e) {
                         return ShortcutsConfig.DEFAULT_CTX.slice();
@@ -535,23 +535,23 @@ PlasmoidItem {
             anchors.fill: parent
             z: 0
             radius: compact.styleRadiusOn
-                ? Math.max(0, plasmoid.configuration.buttonStyleRadius)
+                ? Math.max(0, plasmoid.configuration.ButtonStyleRadius)
                 : Kirigami.Units.smallSpacing
             border.width: compact.styleBorderWOn
-                ? Math.max(0, plasmoid.configuration.buttonStyleBorderWidth)
+                ? Math.max(0, plasmoid.configuration.ButtonStyleBorderWidth)
                 : 0
             border.color: {
-                if (compact.styleBorderCOn && plasmoid.configuration.buttonStyleBorderColor)
-                    return plasmoid.configuration.buttonStyleBorderColor;
+                if (compact.styleBorderCOn && plasmoid.configuration.ButtonStyleBorderColor)
+                    return plasmoid.configuration.ButtonStyleBorderColor;
                 return "transparent";
             }
             color: {
-                if (root.expanded && compact.styleActiveBgOn && plasmoid.configuration.buttonStyleActiveBg)
-                    return plasmoid.configuration.buttonStyleActiveBg;
-                if (compact.containsMouse && compact.styleHoverBgOn && plasmoid.configuration.buttonStyleHoverBg)
-                    return plasmoid.configuration.buttonStyleHoverBg;
-                if (compact.styleBgOn && plasmoid.configuration.buttonStyleBg)
-                    return plasmoid.configuration.buttonStyleBg;
+                if (root.expanded && compact.styleActiveBgOn && plasmoid.configuration.ButtonStyleActiveBg)
+                    return plasmoid.configuration.ButtonStyleActiveBg;
+                if (compact.containsMouse && compact.styleHoverBgOn && plasmoid.configuration.ButtonStyleHoverBg)
+                    return plasmoid.configuration.ButtonStyleHoverBg;
+                if (compact.styleBgOn && plasmoid.configuration.ButtonStyleBg)
+                    return plasmoid.configuration.ButtonStyleBg;
                 if (root.expanded)
                     return Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.25);
                 if (compact.containsMouse)
@@ -586,7 +586,7 @@ PlasmoidItem {
 
             PlasmaComponents.Label {
                 visible: compact.showButtonText
-                text: plasmoid.configuration.buttonLabelText || ""
+                text: plasmoid.configuration.ButtonLabelText || ""
                 Layout.alignment: Qt.AlignVCenter
                 LayoutMirroring.enabled: false
                 color: root.expanded ? compact.styleActiveFg
@@ -629,22 +629,22 @@ PlasmoidItem {
         scale: 1
 
         Behavior on opacity {
-            enabled: plasmoid.configuration.popupAnimation !== "none"
+            enabled: plasmoid.configuration.PopupAnimation !== "none"
             NumberAnimation { duration: Kirigami.Units.longDuration }
         }
         Behavior on scale {
-            enabled: plasmoid.configuration.popupAnimation === "expand"
+            enabled: plasmoid.configuration.PopupAnimation === "expand"
             NumberAnimation { duration: Kirigami.Units.longDuration; easing.type: Easing.OutCubic }
         }
 
         // Visual Appearance → Override menu rise / position (best-effort within Plasma popup)
         readonly property int risePx: {
-            if (!plasmoid.configuration.overrideMenuRise)
+            if (!plasmoid.configuration.OverrideMenuRise)
                 return 0;
-            var d = parseInt(plasmoid.configuration.menuRiseDistance, 10);
+            var d = parseInt(plasmoid.configuration.MenuRiseDistance, 10);
             return (!d || isNaN(d)) ? 6 : Math.max(0, Math.min(64, d));
         }
-        readonly property string posMode: plasmoid.configuration.overrideMenuPosition || "off"
+        readonly property string posMode: plasmoid.configuration.OverrideMenuPosition || "off"
         readonly property int posShiftY: {
             if (posMode === "top-centered" || posMode === "center")
                 return -Math.round(fullRep.height * 0.08);
@@ -655,15 +655,15 @@ PlasmoidItem {
 
         Component.onCompleted: {
             var targetY = -fullRep.risePx + fullRep.posShiftY;
-            if (plasmoid.configuration.popupAnimation === "fade") {
+            if (plasmoid.configuration.PopupAnimation === "fade") {
                 opacity = 0;
                 opacity = 1;
                 fullRep.y = targetY;
-            } else if (plasmoid.configuration.popupAnimation === "expand") {
+            } else if (plasmoid.configuration.PopupAnimation === "expand") {
                 scale = 0.92;
                 scale = 1;
                 fullRep.y = targetY;
-            } else if (plasmoid.configuration.popupAnimation === "slide") {
+            } else if (plasmoid.configuration.PopupAnimation === "slide") {
                 fullRep.y = 12 + targetY;
                 slideAnim.to = targetY;
                 slideAnim.start();
@@ -727,6 +727,10 @@ PlasmoidItem {
 
         Components.AppContextMenu {
             id: contextMenu
+            // Anchor coordinates to the popup content so the menu can clamp
+            // itself inside the window (no clipping at the bottom/right edge)
+            parent: fullRep
+            boundsItem: fullRep
             menuData: root.catalog
             onLaunchRequested: (app) => root.launchApp(app)
             onNewWindowRequested: (app) => {
@@ -768,7 +772,7 @@ PlasmoidItem {
             menuData: root.catalog
             onConfirmed: (actionId) => {
                 // User already confirmed in ArcMenu dialog → skip system prompt
-                backend.runPower(actionId, plasmoid.configuration.softwareCenterCmd, "skip");
+                backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, "skip");
             }
         }
 
@@ -802,16 +806,16 @@ PlasmoidItem {
     Connections {
         target: plasmoid.configuration
         function onMenuLayoutIdChanged() {
-            console.log("ArcMenu: layout ->", plasmoid.configuration.menuLayoutId);
-            menuData.currentLayoutId = plasmoid.configuration.menuLayoutId || "arcmenu";
-            if (root.expanded && lastLayoutId !== plasmoid.configuration.menuLayoutId) {
+            console.log("ArcMenu: layout ->", plasmoid.configuration.MenuLayoutId);
+            menuData.currentLayoutId = plasmoid.configuration.MenuLayoutId || "arcmenu";
+            if (root.expanded && lastLayoutId !== plasmoid.configuration.MenuLayoutId) {
                 root.expanded = false;
                 Qt.callLater(() => {
                     menuData.resetView();
                     root.expanded = true;
                 });
             }
-            lastLayoutId = plasmoid.configuration.menuLayoutId || "arcmenu";
+            lastLayoutId = plasmoid.configuration.MenuLayoutId || "arcmenu";
         }
     }
 

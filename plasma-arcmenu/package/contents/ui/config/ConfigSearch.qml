@@ -23,7 +23,7 @@ Item {
     property bool cfg_SearchRecentFiles
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -48,7 +48,7 @@ Item {
                 accent: "blue"
                 QQC2.Switch {
                     checked: cfg_HideSearchBar
-                    onToggled: { cfg_HideSearchBar = checked; writeLive("hideSearchBar", checked); }
+                    onToggled: { cfg_HideSearchBar = checked; writeLive("HideSearchBar", checked); }
                 }
             }
             ConfigSep {}
@@ -58,7 +58,7 @@ Item {
                 accent: "purple"
                 QQC2.Switch {
                     checked: cfg_ShowDescription
-                    onToggled: { cfg_ShowDescription = checked; writeLive("showDescription", checked); }
+                    onToggled: { cfg_ShowDescription = checked; writeLive("ShowDescription", checked); }
                 }
             }
             ConfigSep {}
@@ -68,7 +68,7 @@ Item {
                 accent: "teal"
                 QQC2.Switch {
                     checked: cfg_HighlightSearchTerms
-                    onToggled: { cfg_HighlightSearchTerms = checked; writeLive("highlightSearchTerms", checked); }
+                    onToggled: { cfg_HighlightSearchTerms = checked; writeLive("HighlightSearchTerms", checked); }
                 }
             }
             ConfigSep {}
@@ -79,7 +79,7 @@ Item {
                 QQC2.SpinBox {
                     from: 1; to: 100
                     value: cfg_MaxResults > 0 ? cfg_MaxResults : 5
-                    onValueModified: { cfg_MaxResults = value; writeLive("maxResults", value); }
+                    onValueModified: { cfg_MaxResults = value; writeLive("MaxResults", value); }
                 }
             }
             ConfigSep {}
@@ -89,13 +89,13 @@ Item {
                 accent: "green"
                 QQC2.Switch {
                     checked: cfg_SearchBoxRadiusEnabled
-                    onToggled: { cfg_SearchBoxRadiusEnabled = checked; writeLive("searchBoxRadiusEnabled", checked); }
+                    onToggled: { cfg_SearchBoxRadiusEnabled = checked; writeLive("SearchBoxRadiusEnabled", checked); }
                 }
                 QQC2.SpinBox {
                     from: 0; to: 48
                     enabled: cfg_SearchBoxRadiusEnabled
                     value: cfg_SearchBoxRadius
-                    onValueModified: { cfg_SearchBoxRadius = value; writeLive("searchBoxRadius", value); }
+                    onValueModified: { cfg_SearchBoxRadius = value; writeLive("SearchBoxRadius", value); }
                 }
             }
         }
@@ -108,7 +108,7 @@ Item {
                 accent: "indigo"
                 QQC2.Switch {
                     checked: cfg_SearchWindows
-                    onToggled: { cfg_SearchWindows = checked; writeLive("searchWindows", checked); }
+                    onToggled: { cfg_SearchWindows = checked; writeLive("SearchWindows", checked); }
                 }
             }
             ConfigSep {}
@@ -118,7 +118,7 @@ Item {
                 accent: "cyan"
                 QQC2.Switch {
                     checked: cfg_SearchRecentFiles
-                    onToggled: { cfg_SearchRecentFiles = checked; writeLive("searchRecentFiles", checked); }
+                    onToggled: { cfg_SearchRecentFiles = checked; writeLive("SearchRecentFiles", checked); }
                 }
             }
         }
