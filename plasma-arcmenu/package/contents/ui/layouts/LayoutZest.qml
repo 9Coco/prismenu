@@ -21,6 +21,10 @@ LayoutBase {
     // Middle column selection �?drives right column content
     property string selectedId: "all"
 
+    /** Both the default "all" tab and the "all-apps" extra category show the
+     * A–Z sectioned view (upstream renders All Applications the same way). */
+    readonly property bool allView: selectedId === "all" || selectedId === "all-apps"
+
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
     readonly property var sideItems: {
@@ -42,15 +46,14 @@ LayoutBase {
         if (root.searching) {
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
         }
-        // "all" (the default tab) renders the A–Z sections below instead.
-        // "all-apps" (extra category) renders a plain flat list of every app.
-        if (selectedId === "all")
+        // "all" / "all-apps" render the A–Z sections below instead.
+        if (root.allView)
             return [];
         return root.computeContentItems(selectedId);
     }
 
     readonly property var azSections: {
-        if (root.searching || selectedId !== "all")
+        if (root.searching || !root.allView)
             return [];
         if (!menuData || !menuData.allApps)
             return [];
@@ -60,7 +63,7 @@ LayoutBase {
     readonly property bool rightEmpty: {
         if (root.searching)
             return flatItems.length === 0;
-        if (selectedId === "all")
+        if (root.allView)
             return azSections.length === 0;
         return flatItems.length === 0;
     }
@@ -321,7 +324,7 @@ LayoutBase {
 
                             // Search results or pinned / category flat list
                             Repeater {
-                                model: (root.searching || root.selectedId !== "all")
+                                model: (root.searching || !root.allView)
                                        ? root.flatItems.length : 0
                                 Components.AppListItem {
                                     required property int index
@@ -345,7 +348,7 @@ LayoutBase {
 
                             // All apps �?A–Z sections
                             Repeater {
-                                model: (!root.searching && root.selectedId === "all")
+                                model: (!root.searching && root.allView)
                                        ? root.azSections.length : 0
 
                                 Column {
