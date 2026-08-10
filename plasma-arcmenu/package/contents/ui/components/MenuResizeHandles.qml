@@ -74,6 +74,11 @@ Item {
     property var origTransforms: null
     /** True while this file writes container geometry (suppresses ext logs). */
     property bool writingGeom: false
+    /** Bottom-edge pin via a pure Translate transform. y is never written
+     *  (so the containment's glide never starts); the transform alone keeps
+     *  the painted bottom edge nailed to the press spot while height
+     *  changes, and it is deliberately KEPT after release — removing it
+     *  would snap the box back to its unpinned geometry position. */
     /** Wallpaper-blur layer behind the applet (see killBackdropBlur). */
     property var backdropBg: null
 
@@ -131,8 +136,34 @@ Item {
         }
     }
 
+    /**
+     * The pin transform survives release by design; once the menu closes it
+     * must go — the collapsed compact button inherits the leftover offset and
+     * would sit displaced from its real geometry. Collapse is the only safe
+     * moment to drop it (nothing menu-sized is painted, and the next press
+     * re-captures pressBottom from the painted position, so the anchor
+     * re-syncs). Guarded try/catch: `expanded` exists on desktop/panel hosts.
+     */
+    Connections {
+        target: plasmoid
+        ignoreUnknownSignals: true
+        function onExpandedChanged() {
+            try {
+                if (!plasmoid.expanded && root.compTranslate)
+                    root.clearCompensation();
+            } catch (e) {}
+        }
+    }
+
     Component.onCompleted: killBlurTimer.start()
 
+    /**
+     * Launcher anchor semantics: pin the PAINTED bottom edge to pressBottom.
+     * y is never written — the containment glides every y write and the
+     * layout engine owns placement anyway (dragging tracked fine without
+     * it). The Translate alone shifts the paint up as the box grows, so the
+     * bottom edge never moves and the top edge follows the mouse.
+     */
     function compensate() {
         var c = root.dragContainer;
         if (!c)
@@ -152,7 +183,9 @@ Item {
     }
 
     function clearCompensation() {
-        var c = root.dragContainer;
+        // dragContainer may already be cleared (post-release detach) — find
+        // the container again so the stale transform doesn't dangle.
+        var c = root.dragContainer ? root.dragContainer : root.appletContainer();
         if (root.compTranslate) {
             root.compTranslate.y = 0;
             root.compTranslate.destroy();
@@ -259,11 +292,14 @@ Item {
     }
 
     /**
-     * Deferred grid re-registration, two passes:
-     * 1st pass — the y glide may not have settled at release; wait for it,
-     *            then positionItem() (snaps to the cell grid + persists).
-     * 2nd pass — the snap itself glides y a bit; the compensation kept the
-     *            visuals exact through it — drop it now and detach.
+     * Release flow: no positionItem() (its grid snap shoved the box a few
+     * pixels), no y write, and NO removal of the pin transform — dropping it
+     * would snap the paint back to the unpinned geometry. commitTimer only
+     * waits out the engine's own one-shot reposition (the y changes it
+     * makes get re-pinned by onYChanged → compensate), then detaches. Size
+     * is persisted via config (MenuWidth/MenuHeight); the pin transform
+     * simply stays applied (invisible while collapsed, harmless on the next
+     * expansion, which re-captures pressBottom from the painted position).
      */
     property bool commitSnapped: false
     Timer {
@@ -278,13 +314,12 @@ Item {
             }
             if (!root.commitSnapped) {
                 root.commitSnapped = true;
-                if (c.layout && typeof c.layout.positionItem === "function")
-                    c.layout.positionItem(c);
                 commitTimer.restart();
                 return;
             }
             root.commitSnapped = false;
-            root.clearCompensation();
+            // NOTE: no clearCompensation() — the pin transform must survive
+            // release (see the release-flow note above).
             root.dragContainer = null;
         }
     }
@@ -316,8 +351,10 @@ Item {
         || loc === PlasmaCore.Types.Desktop)
     readonly property bool showBottom: resizeHeight && (
         loc === PlasmaCore.Types.TopEdge
-        || loc === PlasmaCore.Types.Floating
-        || loc === PlasmaCore.Types.Desktop)
+        || loc === PlasmaCore.Types.Floating)
+        // Deliberately NOT Desktop: the inline desktop menu sits on the
+        // screen's bottom edge — its bottom border is the fixed anchor and
+        // must not be draggable.
     readonly property bool showLeft: loc === PlasmaCore.Types.RightEdge
         || loc === PlasmaCore.Types.Floating
         || loc === PlasmaCore.Types.Desktop
@@ -342,21 +379,14 @@ Item {
             if (root.liveHeight > 0 && root.menuData.setMenuHeight)
                 root.menuData.setMenuHeight(root.liveHeight);
         }
-        // Desktop inline host: freeze the bottom edge at its current spot,
-        // then re-register with the grid layout once the y glide settles
-        // (snaps to the cell grid and schedules an ItemGeometries save).
-        if (root.dragContainer) {
-            // The write below is intercepted by the glide (reads back the
-            // mid-animation value), so pin targetY to the INTENDED spot.
-            root.targetY = root.pressBottom - root.dragContainer.height;
-            root.writingGeom = true;
-            root.dragContainer.y = root.targetY;
-            root.writingGeom = false;
-            // No compensate() after this write (same post-write-readback trap
-            // as syncContainerSize); the glide + snap ticks keep the visual
-            // nailed to targetY until commitTimer drops the compensation.
+        // Desktop inline host: never write container.y and never re-snap to
+        // the grid — both fought the layout engine's own placement (manual y
+        // writes jittered the release; the positionItem snap shoved the box
+        // a few pixels, and defending against it caused a tug-of-war sway).
+        // The engine settles the container on its own after the size writes;
+        // commitTimer just waits that out before detaching.
+        if (root.dragContainer)
             commitTimer.restart();
-        }
         console.log("ArcMenu resize commit:", root.liveWidth, "x", root.liveHeight,
                     "rep", Math.round(root.width), "x", Math.round(root.height));
         root.liveWidth = -1;
@@ -428,7 +458,11 @@ Item {
                 // the container we are about to drive.
                 commitTimer.stop();
                 root.commitSnapped = false;
-                root.pressBottom = root.dragContainer.y + root.dragContainer.height;
+                // The previous drag's pin transform may still be applied:
+                // capture the PAINTED bottom edge (y + transform), not the
+                // raw geometry — the two can differ by the whole pin offset.
+                var residY = (root.compTranslate && root.compTranslate.y) || 0;
+                root.pressBottom = root.dragContainer.y + residY + root.dragContainer.height;
             }
             var g = mapToGlobal(mouse.x, mouse.y);
             pressGlobalX = g.x;
