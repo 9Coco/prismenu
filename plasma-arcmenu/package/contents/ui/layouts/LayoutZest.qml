@@ -38,23 +38,15 @@ LayoutBase {
 
 
 
-    readonly property var pinnedItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
-    }
-
     readonly property var flatItems: {
         if (root.searching) {
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
         }
-        if (selectedId === "pinned")
-            return root.pinnedItems;
+        // "all" (the default tab) renders the A–Z sections below instead.
+        // "all-apps" (extra category) renders a plain flat list of every app.
         if (selectedId === "all")
-            return []; // use azSections instead
-        if (menuData && menuData.allApps)
-            return AppsModel.appsInCategory(menuData.allApps, selectedId);
-        return [];
+            return [];
+        return root.computeContentItems(selectedId);
     }
 
     readonly property var azSections: {
@@ -412,9 +404,11 @@ LayoutBase {
                         visible: root.rightEmpty
                         text: root.searching
                               ? root.tr("No matching applications found")
-                              : (root.selectedId === "pinned"
+                              : ((root.selectedId === "pinned" || root.selectedId === "favorites")
                                  ? root.tr("Pin applications from the context menu")
-                                 : root.tr("No applications"))
+                                 : (root.selectedId === "recent-files"
+                                    ? root.tr("No recent files")
+                                    : root.tr("No applications")))
                         opacity: 0.45
                         color: root.fg
                         width: parent.width * 0.8
