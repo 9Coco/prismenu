@@ -29,7 +29,7 @@ Item {
     property int cfg_IconSizeOther
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -42,11 +42,11 @@ Item {
         if (w > 900) w = 900;
         cfg_MenuWidth = w;
         cfg_SidebarWidth = cfg_RightPanelWidth;
-        writeLive("menuWidth", w);
-        writeLive("sidebarWidth", cfg_RightPanelWidth);
-        writeLive("leftPanelWidth", cfg_LeftPanelWidth);
-        writeLive("rightPanelWidth", cfg_RightPanelWidth);
-        writeLive("widthOffset", cfg_WidthOffset);
+        writeLive("MenuWidth", w);
+        writeLive("SidebarWidth", cfg_RightPanelWidth);
+        writeLive("LeftPanelWidth", cfg_LeftPanelWidth);
+        writeLive("RightPanelWidth", cfg_RightPanelWidth);
+        writeLive("WidthOffset", cfg_WidthOffset);
     }
 
     readonly property var iconLevelModel: [
@@ -88,16 +88,16 @@ Item {
         riseSpin.value = 6;
         posCombo.currentIndex = 0;
         syncWidthFromPanels();
-        writeLive("menuHeight", 540);
-        writeLive("overrideMenuPosition", "off");
-        writeLive("overrideMenuRise", false);
-        writeLive("menuRiseDistance", 6);
-        writeLive("iconSizeGrid", -1);
-        writeLive("iconSizeApps", -1);
-        writeLive("iconSizeShortcuts", -1);
-        writeLive("iconSizeCategories", -1);
-        writeLive("iconSizeButtons", -1);
-        writeLive("iconSizeOther", -1);
+        writeLive("MenuHeight", 540);
+        writeLive("OverrideMenuPosition", "off");
+        writeLive("OverrideMenuRise", false);
+        writeLive("MenuRiseDistance", 6);
+        writeLive("IconSizeGrid", -1);
+        writeLive("IconSizeApps", -1);
+        writeLive("IconSizeShortcuts", -1);
+        writeLive("IconSizeCategories", -1);
+        writeLive("IconSizeButtons", -1);
+        writeLive("IconSizeOther", -1);
     }
 
     ConfigPage {
@@ -116,7 +116,7 @@ Item {
                     value: cfg_MenuHeight
                     onValueModified: {
                         cfg_MenuHeight = value;
-                        writeLive("menuHeight", value);
+                        writeLive("MenuHeight", value);
                     }
                     textFromValue: (v) => v + " px"
                 }
@@ -196,7 +196,7 @@ Item {
                     }
                     onActivated: {
                         cfg_OverrideMenuPosition = keys[currentIndex];
-                        writeLive("overrideMenuPosition", cfg_OverrideMenuPosition);
+                        writeLive("OverrideMenuPosition", cfg_OverrideMenuPosition);
                     }
                 }
             }
@@ -211,7 +211,7 @@ Item {
                     checked: cfg_OverrideMenuRise
                     onToggled: {
                         cfg_OverrideMenuRise = checked;
-                        writeLive("overrideMenuRise", checked);
+                        writeLive("OverrideMenuRise", checked);
                     }
                 }
                 QQC2.SpinBox {
@@ -221,7 +221,7 @@ Item {
                     value: cfg_MenuRiseDistance
                     onValueModified: {
                         cfg_MenuRiseDistance = value;
-                        writeLive("menuRiseDistance", value);
+                        writeLive("MenuRiseDistance", value);
                     }
                     textFromValue: (v) => v + " px"
                 }
@@ -241,7 +241,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeGrid)
                     onActivated: {
                         cfg_IconSizeGrid = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeGrid", cfg_IconSizeGrid);
+                        writeLive("IconSizeGrid", cfg_IconSizeGrid);
                     }
                 }
             }
@@ -257,7 +257,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeApps)
                     onActivated: {
                         cfg_IconSizeApps = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeApps", cfg_IconSizeApps);
+                        writeLive("IconSizeApps", cfg_IconSizeApps);
                     }
                 }
             }
@@ -273,7 +273,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeShortcuts)
                     onActivated: {
                         cfg_IconSizeShortcuts = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeShortcuts", cfg_IconSizeShortcuts);
+                        writeLive("IconSizeShortcuts", cfg_IconSizeShortcuts);
                     }
                 }
             }
@@ -289,7 +289,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeCategories)
                     onActivated: {
                         cfg_IconSizeCategories = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeCategories", cfg_IconSizeCategories);
+                        writeLive("IconSizeCategories", cfg_IconSizeCategories);
                     }
                 }
             }
@@ -305,7 +305,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeButtons)
                     onActivated: {
                         cfg_IconSizeButtons = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeButtons", cfg_IconSizeButtons);
+                        writeLive("IconSizeButtons", cfg_IconSizeButtons);
                     }
                 }
             }
@@ -321,7 +321,7 @@ Item {
                     currentIndex: root.levelToIndex(cfg_IconSizeOther)
                     onActivated: {
                         cfg_IconSizeOther = root.indexToLevel(currentIndex);
-                        writeLive("iconSizeOther", cfg_IconSizeOther);
+                        writeLive("IconSizeOther", cfg_IconSizeOther);
                     }
                 }
             }
@@ -336,22 +336,22 @@ Item {
     Connections {
         target: plasmoid.configuration
         function onMenuHeightChanged() {
-            var v = plasmoid.configuration.menuHeight;
+            var v = plasmoid.configuration.MenuHeight;
             if (heightSpin.value !== v) heightSpin.value = v;
             cfg_MenuHeight = v;
         }
         function onLeftPanelWidthChanged() {
-            var v = plasmoid.configuration.leftPanelWidth;
+            var v = plasmoid.configuration.LeftPanelWidth;
             if (leftSpin.value !== v) leftSpin.value = v;
             cfg_LeftPanelWidth = v;
         }
         function onRightPanelWidthChanged() {
-            var v = plasmoid.configuration.rightPanelWidth;
+            var v = plasmoid.configuration.RightPanelWidth;
             if (rightSpin.value !== v) rightSpin.value = v;
             cfg_RightPanelWidth = v;
         }
         function onSidebarWidthChanged() {
-            var v = plasmoid.configuration.sidebarWidth;
+            var v = plasmoid.configuration.SidebarWidth;
             if (rightSpin.value !== v) {
                 rightSpin.value = v;
                 cfg_RightPanelWidth = v;

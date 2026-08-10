@@ -10,7 +10,7 @@ ConfigModel {
     readonly property string uiLang: Locale.resolveLanguage(
         (function () {
             try {
-                return plasmoid.configuration.uiLanguage || "zh_CN";
+                return plasmoid.configuration.UiLanguage || "zh_CN";
             } catch (e) {
                 return "zh_CN";
             }

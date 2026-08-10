@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Controls as QQC2
+import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import "../../code/Locale.js" as Locale
 
@@ -78,6 +79,54 @@ QQC2.Menu {
     function t(msgid) {
         return Locale.tr(msgid, root.uiLang);
     }
+
+    /**
+     * Item the menu must stay inside (set by main.qml to the popup content).
+     * The menu's parent must be the same item so x/y are directly comparable.
+     */
+    property Item boundsItem: null
+
+    /**
+     * Keep the menu inside its bounds (applet popup window / screen).
+     * Cursor-anchored popup() ignores edges, so items right-clicked near
+     * the bottom/right border got clipped — shift the menu back in view.
+     */
+    function repositionWithinBounds() {
+        try {
+            if (!root.opened || !root.width || !root.height)
+                return;
+            var minX = 0, minY = 0, maxX, maxY;
+            if (root.boundsItem) {
+                maxX = root.boundsItem.width - root.width;
+                maxY = root.boundsItem.height - root.height;
+            } else {
+                // Fallback: screen available area (panel excluded)
+                var gp = root.mapToGlobal(0, 0);
+                minX = Screen.desktopAvailableX - gp.x + root.x;
+                minY = Screen.desktopAvailableY - gp.y + root.y;
+                maxX = minX + Screen.desktopAvailableWidth - root.width;
+                maxY = minY + Screen.desktopAvailableHeight - root.height;
+            }
+            var m = Kirigami.Units.smallSpacing;
+            var nx = Math.min(root.x, maxX - m);
+            nx = Math.max(nx, minX + m);
+            if (maxX - m < minX + m)
+                nx = minX + m; // taller/wider than the bounds → pin to origin
+            var ny = Math.min(root.y, maxY - m);
+            ny = Math.max(ny, minY + m);
+            if (maxY - m < minY + m)
+                ny = minY + m;
+            if (nx !== root.x)
+                root.x = nx;
+            if (ny !== root.y)
+                root.y = ny;
+        } catch (e) {}
+    }
+
+    onOpened: Qt.callLater(root.repositionWithinBounds)
+    // Group items are appended while open → height changes after opening
+    onHeightChanged: if (root.opened) root.repositionWithinBounds()
+    onWidthChanged: if (root.opened) root.repositionWithinBounds()
 
     // ArcMenu Settings (pinned): unpin only
     QQC2.MenuItem {
@@ -197,7 +246,11 @@ QQC2.Menu {
                 : false
             onTriggered: root.toggleCustomGroupRequested(root.app, modelData.id)
         }
-        onObjectAdded: (index, object) => root.addItem(object)
+        onObjectAdded: (index, object) => {
+            root.addItem(object);
+            // Height changed while open → re-check the bounds
+            root.repositionWithinBounds();
+        }
         onObjectRemoved: (index, object) => root.removeItem(object)
     }
 }

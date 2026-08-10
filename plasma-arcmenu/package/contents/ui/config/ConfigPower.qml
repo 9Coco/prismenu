@@ -19,7 +19,7 @@ Item {
     property string cfg_PowerDisplayStyle
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -56,21 +56,21 @@ Item {
             if (list.indexOf(order[i]) >= 0) sorted.push(order[i]);
         }
         cfg_Options = sorted;
-        writeLive("options", sorted);
+        writeLive("Options", sorted);
     }
 
     function move(from, to) {
         var order = ordered.map(function (d) { return d.id; });
         order = SC.moveItem(order, from, to);
         cfg_PowerOptionsOrder = order;
-        writeLive("powerOptionsOrder", order);
+        writeLive("PowerOptionsOrder", order);
         var enabled = SC.normalizeList(cfg_Options, []);
         var sorted = [];
         for (var i = 0; i < order.length; ++i) {
             if (enabled.indexOf(order[i]) >= 0) sorted.push(order[i]);
         }
         cfg_Options = sorted;
-        writeLive("options", sorted);
+        writeLive("Options", sorted);
     }
 
     ConfigPage {
@@ -134,7 +134,7 @@ Item {
                     }
                     onActivated: {
                         cfg_PowerDisplayStyle = keys[currentIndex];
-                        writeLive("powerDisplayStyle", cfg_PowerDisplayStyle);
+                        writeLive("PowerDisplayStyle", cfg_PowerDisplayStyle);
                     }
                 }
             }
@@ -145,7 +145,7 @@ Item {
                 accent: "orange"
                 QQC2.Switch {
                     id: confirmSwitch
-                    onToggled: root.writeLive("confirm", checked)
+                    onToggled: root.writeLive("Confirm", checked)
                 }
             }
             ConfigSep {}
@@ -158,7 +158,7 @@ Item {
                     id: softwareCmd
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 12
                     placeholderText: "auto-detect"
-                    onEditingFinished: root.writeLive("softwareCenterCmd", text)
+                    onEditingFinished: root.writeLive("SoftwareCenterCmd", text)
                 }
             }
         }

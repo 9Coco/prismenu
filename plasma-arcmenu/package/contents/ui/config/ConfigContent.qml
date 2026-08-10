@@ -26,7 +26,7 @@ Item {
     property var customIconsMap: AppsModel.parseJsonMap(cfg_CustomIcons)
 
     readonly property string uiLanguagePref: {
-        try { return plasmoid.configuration.uiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
+        try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
     }
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
@@ -73,7 +73,7 @@ Item {
         if (!hide && idx >= 0)
             list.splice(idx, 1);
         cfg_Hidden = list;
-        writeLive("hidden", list);
+        writeLive("Hidden", list);
     }
 
     function moveCategory(from, to) {
@@ -85,7 +85,7 @@ Item {
         var item = order.splice(from, 1)[0];
         order.splice(to, 0, item);
         cfg_Order = order;
-        writeLive("order", order);
+        writeLive("Order", order);
     }
 
     function displayName(cat) {
@@ -106,7 +106,7 @@ Item {
                 accent: "blue"
                 QQC2.Switch {
                     id: showEmpty
-                    onToggled: root.writeLive("showEmpty", checked)
+                    onToggled: root.writeLive("ShowEmpty", checked)
                 }
             }
             ConfigSep {}
@@ -137,7 +137,7 @@ Item {
                                 map[modelData.id] = text;
                                 root.customNamesMap = map;
                                 cfg_CustomNames = AppsModel.stringifyJsonMap(map);
-                                root.writeLive("customNames", cfg_CustomNames);
+                                root.writeLive("CustomNames", cfg_CustomNames);
                             }
                         }
                         QQC2.TextField {
@@ -152,7 +152,7 @@ Item {
                                     delete map[modelData.id];
                                 root.customIconsMap = map;
                                 cfg_CustomIcons = AppsModel.stringifyJsonMap(map);
-                                root.writeLive("customIcons", cfg_CustomIcons);
+                                root.writeLive("CustomIcons", cfg_CustomIcons);
                             }
                         }
                         QQC2.Button {
@@ -184,7 +184,7 @@ Item {
                     id: pinnedColsSpin
                     from: 4
                     to: 8
-                    onValueModified: root.writeLive("pinnedCols", value)
+                    onValueModified: root.writeLive("PinnedCols", value)
                 }
             }
             ConfigSep {}
@@ -194,7 +194,7 @@ Item {
                 accent: "green"
                 QQC2.Switch {
                     id: syncPlasma
-                    onToggled: root.writeLive("syncWithPlasma", checked)
+                    onToggled: root.writeLive("SyncWithPlasma", checked)
                 }
             }
         }
@@ -207,7 +207,7 @@ Item {
                 accent: "indigo"
                 QQC2.Switch {
                     id: recentEnabled
-                    onToggled: root.writeLive("enabled", checked)
+                    onToggled: root.writeLive("Enabled", checked)
                 }
             }
             ConfigSep {}
@@ -221,7 +221,7 @@ Item {
                     from: 1
                     to: 20
                     enabled: recentEnabled.checked
-                    onValueModified: root.writeLive("maxItems", value)
+                    onValueModified: root.writeLive("MaxItems", value)
                 }
             }
             ConfigSep {}
@@ -234,7 +234,7 @@ Item {
                     icon.name: "edit-clear-history"
                     onClicked: {
                         cfg_RecentApps = [];
-                        root.writeLive("recentApps", []);
+                        root.writeLive("RecentApps", []);
                     }
                 }
             }
