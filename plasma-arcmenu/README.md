@@ -117,7 +117,7 @@ plasma-arcmenu/
 └── COPYING                  # GPL-2.0-or-later
 ```
 
-**Architecture note:** ArcMenu separates **page display** (`ui/pages` + `PageRegistry.js`) from **functional chrome** (sidebar / session / nav in `ui/components`). Layouts only compose the shell; new views are added as pages without rewriting chrome.
+**Architecture note:** all selectable layouts inherit `ui/layouts/LayoutBase.qml`, which owns the shared application-catalog projections and the idle-time first-viewport preloader. Full-catalog sorting and A–Z grouping are computed once in `MenuData.qml`; layouts consume `allApplications`, `allApplicationSections`, or `allApplicationRows` instead of rebuilding them. Full-catalog switch views use `ui/components/VirtualizedAppList.qml` or the shared `AppGrid.qml`; layouts remain responsible for navigation state, chrome, and visual composition.
 ## Development checks
 
 ```bash

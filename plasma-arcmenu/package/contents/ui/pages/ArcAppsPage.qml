@@ -585,21 +585,13 @@ Item {
             // Apps in selected category. A single virtualized ListView is important
             // here: the old nested Repeaters created every icon/row at once and
             // synchronously destroyed all of them when Back cleared drilledApps.
-            ListView {
+            Components.VirtualizedAppList {
                 id: appList
                 anchors.fill: parent
-                clip: true
                 visible: true
                 opacity: root.showingCategories ? 0 : 1
                 enabled: !root.showingCategories
                 z: enabled ? 1 : 0
-                boundsBehavior: Flickable.StopAtBounds
-                currentIndex: -1
-                keyNavigationWraps: true
-                reuseItems: true
-                cacheBuffer: Math.max(height, Kirigami.Units.gridUnit * 12)
-                spacing: Kirigami.Units.smallSpacing / 2
-                Accessible.role: Accessible.List
                 Accessible.name: root.categoryTitle()
 
                 readonly property bool useAz: {
@@ -630,44 +622,19 @@ Item {
                     return AppsModel.appsAzRowsFromSorted(root.drilledApps);
                 }
 
-                model: displayRows
-
-                // A hidden ListView may postpone delegate creation until it first
-                // becomes visible. Force one layout pass after the prewarmed model
-                // arrives so the initial All Applications transition has no cold
-                // model/delegate work on the click frame.
-                onCountChanged: {
-                    if (count > 0 && root.showingCategories)
-                        Qt.callLater(function () { appList.forceLayout(); });
-                }
-                Component.onCompleted: {
-                    if (count > 0)
-                        Qt.callLater(function () { appList.forceLayout(); });
-                }
-
-                delegate: Components.AppListItem {
-                    required property var modelData
-                    width: ListView.view.width
-                    app: modelData
-                    menuData: root.menuData || root.dataHost
-                    iconSize: root.appIconSize
-                    showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
-                    showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
-                    multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
-                    onActivated: {
-                        if (modelData && !modelData.isSection)
-                            root.appActivated(modelData);
-                    }
-                    onContextMenuRequested: (x, y) => {
-                        if (modelData && !modelData.isSection)
-                            root.appContextMenu(modelData, x, y);
-                    }
-                }
+                items: displayRows
+                menuData: root.menuData || root.dataHost
+                iconSize: root.appIconSize
+                showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
+                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                onAppActivated: (app) => root.appActivated(app)
+                onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
 
                 PlasmaComponents.Label {
                     anchors.centerIn: parent

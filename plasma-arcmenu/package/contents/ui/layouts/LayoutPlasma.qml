@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Plasma layout (ArcMenu Plasma style).
@@ -44,9 +43,7 @@ LayoutBase {
             return pinned.length ? pinned : root.defaultPinned;
         }
         if (plasmaTab === 1) {
-            if (menuData && menuData.allApps && menuData.allApps.length)
-                return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
-            return [];
+            return root.allApplications;
         }
         if (plasmaTab === 2) {
             return (menuData && menuData.places) ? menuData.places : [];

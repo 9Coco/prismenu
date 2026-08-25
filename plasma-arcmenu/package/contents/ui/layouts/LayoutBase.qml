@@ -71,6 +71,14 @@ Item {
     }
     readonly property bool searching: menuData ? menuData.isSearching : false
 
+    /** Shared catalog projections. Layouts must not sort/group allApps again. */
+    readonly property var allApplications: (menuData && menuData.sortedVisibleApps)
+        ? menuData.sortedVisibleApps : []
+    readonly property var allApplicationSections: (menuData && menuData.sortedVisibleAppsAzSections)
+        ? menuData.sortedVisibleAppsAzSections : []
+    readonly property var allApplicationRows: (menuData && menuData.sortedVisibleAppsAzRows)
+        ? menuData.sortedVisibleAppsAzRows : []
+
     /** Shared column width (persisted SidebarWidth); used by multi-column layouts */
     readonly property int sidebarW: (menuData && menuData.sidebarWidth) ? menuData.sidebarWidth : 220
     readonly property int categoryColW: (menuData && menuData.categoryColumnWidth) ? menuData.categoryColumnWidth : 220
@@ -212,5 +220,27 @@ Item {
         acceptedButtons: Qt.RightButton
         onPressed: (mouse) => { mouse.accepted = true; }
         onClicked: (mouse) => { mouse.accepted = true; }
+    }
+
+    // Every layout inherits one off-screen virtualized viewport. It prepares
+    // the shared delegate type and first application icons while the desktop is
+    // idle, so layouts do not each maintain their own cold-start workaround.
+    Components.VirtualizedAppList {
+        id: sharedAppListPreloader
+        anchors.fill: parent
+        z: -3
+        opacity: 0
+        enabled: false
+        items: root.allApplications
+        menuData: root.menuData
+        iconSize: root.appIconSize
+        showDescription: root.showAppDescriptions
+        showGenericNames: root.showGenericNames
+        multiLineLabels: root.multiLineLabels
+        selectedBg: root.selectedBg
+        selectedFg: root.selectedFg
+        hoverBg: root.hoverBg
+        hoverFg: root.hoverFg
+        fg: root.fg
     }
 }

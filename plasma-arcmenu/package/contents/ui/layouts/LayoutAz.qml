@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * A-Z layout (ArcMenu Az style).
@@ -30,9 +29,7 @@ LayoutBase {
     readonly property var azSections: {
         if (root.searching)
             return [];
-        if (menuData && menuData.allApps)
-            return AppsModel.appsAzSections(menuData.allApps);
-        return [];
+        return root.allApplicationSections;
     }
 
     readonly property var searchItems: {
@@ -187,86 +184,23 @@ LayoutBase {
                 }
             }
 
-            Flickable {
-                id: listFlick
+            Components.VirtualizedAppList {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                contentWidth: width
-                contentHeight: listCol.height
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-
-                Column {
-                    id: listCol
-                    width: listFlick.width
-                    spacing: Kirigami.Units.smallSpacing / 2
-
-                    // Search results (flat)
-                    Repeater {
-                        model: root.searching ? root.searchItems.length : 0
-                        Components.AppListItem {
-                            required property int index
-                            menuData: menuData
-                            width: listCol.width
-                            app: root.searchItems[index]
-                            iconSize: Math.max(root.appIconSize, 24)
-                            showDescription: root.showAppDescriptions
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.activateItem(root.searchItems[index])
-                            onContextMenuRequested: (x, y) => {
-                                var a = root.searchItems[index];
-                                if (a && !a.action) root.appContextMenu(a, x, y);
-                            }
-                        }
-                    }
-
-                    // A–Z sections
-                    Repeater {
-                        model: root.searching ? 0 : root.azSections.length
-
-                        Column {
-                            required property int index
-                            readonly property var section: root.azSections[index]
-                            width: listCol.width
-                            spacing: Kirigami.Units.smallSpacing / 2
-
-                            PlasmaComponents.Label {
-                                text: section.letter
-                                font.bold: true
-                                font.pointSize: Kirigami.Theme.defaultFont.pointSize + 1
-                                color: root.fg
-                                opacity: 0.75
-                                width: parent.width
-                                leftPadding: Kirigami.Units.smallSpacing
-                            }
-
-                            Repeater {
-                                model: section.apps.length
-                                Components.AppListItem {
-                                    required property int index
-                                    menuData: menuData
-                                    width: listCol.width
-                                    app: section.apps[index]
-                                    iconSize: Math.max(root.appIconSize, 24)
-                                    showDescription: root.showAppDescriptions
-                                    selectedBg: root.selectedBg
-                                    selectedFg: root.selectedFg
-                                    hoverBg: root.hoverBg
-                                    hoverFg: root.hoverFg
-                                    fg: root.fg
-                                    onActivated: root.activateItem(section.apps[index])
-                                    onContextMenuRequested: (x, y) => {
-                                        var a = section.apps[index];
-                                        if (a && !a.action) root.appContextMenu(a, x, y);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                items: root.searching ? root.searchItems : root.allApplicationRows
+                menuData: root.menuData
+                iconSize: Math.max(root.appIconSize, 24)
+                showDescription: root.showAppDescriptions
+                showGenericNames: root.showGenericNames
+                multiLineLabels: root.multiLineLabels
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                onAppActivated: (app) => root.activateItem(app)
+                onAppContextMenu: (app, x, y) => {
+                    if (app && !app.action) root.appContextMenu(app, x, y);
                 }
             }
 
