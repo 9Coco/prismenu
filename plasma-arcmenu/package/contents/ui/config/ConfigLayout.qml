@@ -172,7 +172,7 @@ Item {
                     }
 
                     QQC2.Label {
-                        text: root.currentLayout ? root.currentLayout.name : ""
+                        text: root.currentLayout ? root.tr(root.currentLayout.name) : ""
                         font.bold: true
                         font.pointSize: Kirigami.Theme.defaultFont.pointSize * 1.1
                         horizontalAlignment: Text.AlignHCenter
@@ -303,7 +303,7 @@ Item {
                                             }
 
                                             QQC2.Label {
-                                                text: card.layoutInfo.name || ""
+                                                text: root.tr(card.layoutInfo.name || "")
                                                 font.bold: true
                                                 horizontalAlignment: Text.AlignHCenter
                                                 Layout.fillWidth: true

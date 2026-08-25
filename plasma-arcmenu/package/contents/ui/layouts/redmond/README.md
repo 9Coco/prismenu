@@ -1,6 +1,6 @@
-# Redmond Layout
+# Windows 7 Two-column Layout (`redmond`)
 
-ArcMenu Redmond / Windows-style.
+Windows 7-inspired two-column structure, adapted with a pinned application grid.
 
 ```
 ┌─ Search ───────────────┬─ 👤 user ──────┐

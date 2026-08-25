@@ -1,6 +1,6 @@
-# A-Z Layout
+# Windows 11 Compact Layout (`az`)
 
-ArcMenu Az style — compact Win11-like without the frequent section.
+Compact Windows 11 style without the frequent/recommended section.
 
 ```
 ┌─ Search ────────────────────────────────┐

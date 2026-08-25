@@ -1,6 +1,6 @@
-# Insider Layout
+# Early Windows 10 Layout (`insider`)
 
-ArcMenu Insider style (centered avatar + app grid).
+ArcMenu's original Windows 10-inspired layout, later renamed Insider upstream.
 
 ```
 ┌──┬──────────────────────────────────────┐
