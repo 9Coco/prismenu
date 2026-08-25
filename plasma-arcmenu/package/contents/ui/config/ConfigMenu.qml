@@ -101,6 +101,8 @@ Item {
     property var cfg_ExtraCategoriesOrder
     property var cfg_ExtraCategoriesEnabled
     property bool cfg_ExtraCategoriesUserSet: false
+    property var cfg_SidebarOrder: []
+    property var cfg_SidebarHidden: []
     property var cfg_ContextMenuItems: []
     property var cfg_CustomQuickLinks: []
     property string cfg_CustomGroupApps: "{}"
@@ -208,6 +210,8 @@ Item {
     property alias cfg_extraCategoriesOrder: root.cfg_ExtraCategoriesOrder
     property alias cfg_extraCategoriesEnabled: root.cfg_ExtraCategoriesEnabled
     property alias cfg_extraCategoriesUserSet: root.cfg_ExtraCategoriesUserSet
+    property alias cfg_sidebarOrder: root.cfg_SidebarOrder
+    property alias cfg_sidebarHidden: root.cfg_SidebarHidden
     property alias cfg_contextMenuItems: root.cfg_ContextMenuItems
     property alias cfg_customQuickLinks: root.cfg_CustomQuickLinks
     property alias cfg_customGroupApps: root.cfg_CustomGroupApps
@@ -254,7 +258,8 @@ Item {
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
         "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
         "PinnedApps", "DirectoryShortcuts", "ApplicationShortcuts",
-        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "ContextMenuItems",
+        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
+        "SidebarOrder", "SidebarHidden", "ContextMenuItems",
         "CustomQuickLinks", "CustomGroupApps",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
@@ -324,7 +329,7 @@ Item {
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet"],
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks"],
         "ConfigContent": ["Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "PinnedApps", "PinnedCols", "SyncWithPlasma", "Enabled", "MaxItems", "RecentApps"],
         "ConfigContextMenu": ["ContextMenuItems"]
     })
@@ -724,8 +729,8 @@ Item {
                     }
                     NavSep {}
                     NavRow {
-                        title: root.tr("Extra Categories")
-                        subtitle: root.tr("Add or remove other custom categories")
+                        title: root.tr("Sidebar Items")
+                        subtitle: root.tr("Show, hide, and reorder sidebar items")
                         iconName: "view-list-details-symbolic"
                         accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)

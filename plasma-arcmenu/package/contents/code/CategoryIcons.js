@@ -127,6 +127,10 @@ function defaultIcon(categoryId) {
     return "arcmenu-cat-other-apps";
 }
 
+function hasCategory(categoryId) {
+    return !!(CATALOG[categoryId] && CATALOG[categoryId].defaultId);
+}
+
 function optionsFor(categoryId) {
     var entry = CATALOG[categoryId];
     if (!entry) {

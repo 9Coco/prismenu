@@ -3,6 +3,7 @@ import org.kde.plasma.plasmoid
 import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.private.kicker as Kicker
 import "../code/AppsModel.js" as AppsModel
+import "../code/CategoryMeta.js" as CategoryMeta
 
 /**
  * Application catalog via Plasma Kicker — same stack as Kickoff / XDG menus on KDE:
@@ -19,6 +20,8 @@ Item {
     property string lastScanError: ""
     property string scanBackend: "kicker"
     property int lastAppCount: 0
+    /** Shared native category metadata for runtime layouts and settings. */
+    property var categories: []
     property bool _rebuilding: false
     property int _rebuildToken: 0
     /** Recent files via Kicker.RecentUsageModel (see SearchNativeProviders) */
@@ -392,7 +395,8 @@ Item {
                 cats.push({
                     id: catId,
                     name: name,
-                    icon: iconNameFromDecoration(cat.decoration)
+                    icon: CategoryMeta.iconForCategory(
+                        name, catId, iconNameFromDecoration(cat.decoration))
                 });
                 collectFromAppInst(cat.appInst, catId, apps, seenApp, cat.row);
             }
@@ -414,6 +418,7 @@ Item {
         });
 
         lastAppCount = apps.length;
+        root.categories = cats;
         scanBackend = "kicker";
         lastScanError = apps.length === 0 ? "kicker returned 0 apps" : "";
         console.log("ArcMenu Kicker:", apps.length, "apps,", cats.length, "cats");
