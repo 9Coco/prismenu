@@ -36,10 +36,18 @@ def main() -> int:
         re.DOTALL,
     )
     layout_files = {layout_id: filename for layout_id, _body, filename in layout_blocks}
+    category_section = registry.split("var CATEGORIES = [", 1)[1].split("];", 1)[0]
+    category_ids = set(re.findall(r'id:\s*"([^"]+)"', category_section))
     check(bool(layout_files), "layouts discovered from registry")
     check(len(layout_files) == len(layout_blocks), "unique layout ids")
     check("gnome" not in layout_files, "duplicate GNOME layout removed")
+    check(category_ids == {"linux", "windows", "chromeos", "android", "other"},
+          "source-platform layout categories")
+    check("CATEGORIES.filter" in registry, "unused source categories stay hidden")
     for lid, body, fname in layout_blocks:
+        category_match = re.search(r'\bcategory:\s*"([^"]+)"', body)
+        check(bool(category_match) and category_match.group(1) in category_ids,
+              f"known source category: {lid}")
         check(bool(re.search(r"\bpreviewKind\s*:", body)), f"layout preview metadata: {lid}")
         check(bool(re.search(r"\bdefaultWidth\s*:", body)), f"layout width metadata: {lid}")
         check(bool(re.search(r"\bdefaultHeight\s*:", body)), f"layout height metadata: {lid}")
@@ -212,6 +220,8 @@ def main() -> int:
     check("Math.min(width, height)" not in layout_preview, "preview margins avoid size binding loops")
     check("catBlock.expanded ? catBlock.catLayouts.length : 0" in config_layout,
           "collapsed layout categories stay lazy")
+    check("switch (cat.id)" not in config_layout,
+          "category titles come from registry metadata")
     check('id !== "raven"' not in config_layout, "no layout-id sizing special case in config")
     check("isRavenLayout" not in main_qml, "no layout-id sizing special case at runtime")
     check('MenuLayoutId === "gnome"' in main_qml

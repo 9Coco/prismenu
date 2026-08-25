@@ -124,26 +124,13 @@ Item {
     }
 
     function categoryTitle(cat) {
-        switch (cat.id) {
-        case "traditional":
-            return root.tr("Traditional Menu Layouts");
-        case "modern":
-            return root.tr("Modern Menu Layouts");
-        case "touch":
-            return root.tr("Touch Menu Layouts");
-        case "launcher":
-            return root.tr("Launcher Menu Layouts");
-        case "alternative":
-            return root.tr("Alternative Menu Layouts");
-        default:
-            return cat.name || cat.id;
-        }
+        return root.tr(cat.name || cat.id);
     }
 
     function initExpanded() {
         var next = {};
         var cur = LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu");
-        var curCat = cur ? cur.category : "traditional";
+        var curCat = cur ? cur.category : "linux";
         for (var i = 0; i < categories.length; ++i) {
             next[categories[i].id] = (categories[i].id === curCat);
         }
