@@ -1,6 +1,8 @@
 # Arc Menu for KDE Plasma
 
-Feature-rich application menu plasmoid for **KDE Plasma 6**, targeting **Kubuntu** and other Plasma desktops. Provides **26 switchable layouts**, deep appearance customization, favorites/recents, Plasma Search–style app matching, system actions, and a full graphical settings UI.
+A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **26 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
+
+The project is intended to be a dependable replacement for Plasma's default application launchers, not only a collection of visual layout recreations. It uses Plasma's native application stack and keeps layouts, shared behavior, and configuration separated so the menu can continue to evolve with Plasma 6.
 
 ## Features
 
