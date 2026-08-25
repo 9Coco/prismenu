@@ -6,6 +6,7 @@ import org.kde.plasma.components as PlasmaComponents
 GridView {
     id: root
 
+    property var items: []
     property int iconSize: 48
     property int columns: 6
     property bool showDescription: false
@@ -15,21 +16,25 @@ GridView {
     property color selectedFg: Kirigami.Theme.highlightedTextColor
     property color hoverBg: selectedBg
     property color hoverFg: selectedFg
+    property color fg: Kirigami.Theme.textColor
 
     signal appActivated(var app)
     signal contextMenuRequested(var app, real x, real y)
 
+    model: items ? items.length : 0
     cellWidth: Math.max(Kirigami.Units.gridUnit * 4, width / Math.max(1, columns))
     cellHeight: iconSize + Kirigami.Units.gridUnit * 2
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+    reuseItems: true
+    cacheBuffer: Math.max(height, cellHeight * 2)
     Accessible.name: i18n("Applications")
     Accessible.role: Accessible.List
 
     delegate: Item {
         id: del
-        required property var model
         required property int index
+        readonly property var app: root.items[index]
         width: root.cellWidth
         height: root.cellHeight
 
@@ -56,7 +61,7 @@ GridView {
             spacing: Kirigami.Units.smallSpacing / 2
 
             Kirigami.Icon {
-                source: model.icon || "application-x-executable"
+                source: del.app ? (del.app.icon || "application-x-executable") : "application-x-executable"
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: root.iconSize
                 Layout.preferredHeight: root.iconSize
@@ -64,9 +69,11 @@ GridView {
 
             PlasmaComponents.Label {
                 text: {
-                    if (root.showGenericNames && model.genericName)
-                        return model.genericName;
-                    return model.name || "";
+                    if (!del.app)
+                        return "";
+                    if (root.showGenericNames && del.app.genericName)
+                        return del.app.genericName;
+                    return del.app.name || "";
                 }
                 elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
@@ -78,7 +85,7 @@ GridView {
                         return root.selectedFg;
                     if (mouse.containsMouse)
                         return root.hoverFg;
-                    return Kirigami.Theme.textColor;
+                    return root.fg;
                 }
             }
         }
@@ -91,24 +98,20 @@ GridView {
             onClicked: (mouse) => {
                 root.currentIndex = del.index;
                 if (mouse.button === Qt.RightButton) {
-                    root.contextMenuRequested(model, mouse.x, mouse.y);
+                    root.contextMenuRequested(del.app, mouse.x, mouse.y);
                 } else {
-                    root.appActivated(model);
+                    root.appActivated(del.app);
                 }
             }
         }
 
-        Accessible.name: model.name || ""
+        Accessible.name: del.app ? (del.app.name || "") : ""
         Accessible.role: Accessible.Button
-        Accessible.onPressAction: root.appActivated(model)
+        Accessible.onPressAction: if (del.app) root.appActivated(del.app)
     }
 
     Keys.onReturnPressed: {
-        if (currentIndex >= 0 && model) {
-            var app = model.get ? model.get(currentIndex) : null;
-            if (app) {
-                appActivated(app);
-            }
-        }
+        if (currentIndex >= 0 && root.items && currentIndex < root.items.length)
+            appActivated(root.items[currentIndex]);
     }
 }

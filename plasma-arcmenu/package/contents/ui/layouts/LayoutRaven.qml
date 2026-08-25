@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Raven layout (ArcMenu Raven / Budgie Raven style).
@@ -50,9 +49,7 @@ LayoutBase {
     readonly property var allAppsItems: {
         if (root.searching)
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
-        if (menuData && menuData.allApps && menuData.allApps.length)
-            return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
-        return [];
+        return root.allApplications;
     }
 
     readonly property bool onHome: !root.searching && !root.showAllApps
@@ -360,40 +357,22 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Flickable {
-                    id: appsFlick
+                Components.VirtualizedAppList {
                     anchors.fill: parent
-                    contentWidth: width
-                    contentHeight: appsCol.height
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-
-                    Column {
-                        id: appsCol
-                        width: appsFlick.width
-                        spacing: Kirigami.Units.smallSpacing / 2
-
-                        Repeater {
-                            model: root.allAppsItems.length
-                            Components.AppListItem {
-                                required property int index
-                                menuData: menuData
-                                width: appsCol.width
-                                app: root.allAppsItems[index]
-                                iconSize: Math.max(root.appIconSize, 28)
-                                showDescription: root.showAppDescriptions
-                                selectedBg: root.selectedBg
-                                selectedFg: root.selectedFg
-                                hoverBg: root.hoverBg
-                                hoverFg: root.hoverFg
-                                fg: root.fg
-                                onActivated: root.activateItem(root.allAppsItems[index])
-                                onContextMenuRequested: (x, y) => {
-                                    var a = root.allAppsItems[index];
-                                    if (a && !a.action) root.appContextMenu(a, x, y);
-                                }
-                            }
-                        }
+                    items: root.allAppsItems
+                    menuData: root.menuData
+                    iconSize: Math.max(root.appIconSize, 28)
+                    showDescription: root.showAppDescriptions
+                    showGenericNames: root.showGenericNames
+                    multiLineLabels: root.multiLineLabels
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    onAppActivated: (app) => root.activateItem(app)
+                    onAppContextMenu: (app, x, y) => {
+                        if (app && !app.action) root.appContextMenu(app, x, y);
                     }
                 }
 

@@ -107,15 +107,21 @@ function appsAzSectionsFromSorted(sortedApps) {
  */
 function appsAzRowsFromSorted(sortedApps) {
     var sections = appsAzSectionsFromSorted(sortedApps || []);
+    return appsAzRowsFromSections(sections);
+}
+
+/** Flatten precomputed A–Z sections without regrouping the catalog. */
+function appsAzRowsFromSections(sections) {
+    var grouped = sections || [];
     var rows = [];
-    for (var i = 0; i < sections.length; ++i) {
+    for (var i = 0; i < grouped.length; ++i) {
         rows.push({
-            id: "__az_section_" + sections[i].letter,
-            name: sections[i].letter,
+            id: "__az_section_" + grouped[i].letter,
+            name: grouped[i].letter,
             isSection: true
         });
-        for (var j = 0; j < sections[i].apps.length; ++j) {
-            rows.push(sections[i].apps[j]);
+        for (var j = 0; j < grouped[i].apps.length; ++j) {
+            rows.push(grouped[i].apps[j]);
         }
     }
     return rows;

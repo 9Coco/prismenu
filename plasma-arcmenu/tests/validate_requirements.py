@@ -66,6 +66,39 @@ def main() -> int:
         fname = layout_files[lid]
         check((PKG / "contents/ui/layouts" / fname).exists(), f"layout file: {fname}")
 
+    # Shared layout architecture: every selectable layout inherits the same
+    # catalog projections and preloader instead of maintaining cold-start
+    # workarounds or full-catalog sorting locally.
+    layout_sources = {
+        name: (PKG / "contents/ui/layouts" / name).read_text(encoding="utf-8")
+        for name in layout_files.values()
+    }
+    for fname, source in layout_sources.items():
+        check("LayoutBase {" in source, f"shared layout base: {fname}")
+        check(
+            "AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps))" not in source,
+            f"no duplicate full-catalog sort: {fname}",
+        )
+        check(
+            "AppsModel.appsAzSections(menuData.allApps)" not in source,
+            f"no duplicate A-Z grouping: {fname}",
+        )
+        check(
+            not any(pattern in source for pattern in [
+                "model: root.allAppsItems.length",
+                "model: root.gridItems.length",
+                "model: section.apps.length",
+            ]),
+            f"no eager full-app repeater: {fname}",
+        )
+        pinned_grid_blocks = re.findall(
+            r"Components\.PinnedAppsGrid\s*\{.*?^\s*\}", source, re.MULTILINE | re.DOTALL
+        )
+        check(
+            all(not re.search(r"^\s*fg\s*:", block, re.MULTILINE) for block in pinned_grid_blocks),
+            f"PinnedAppsGrid uses supported properties: {fname}",
+        )
+
     check((PKG / "contents/ui/layouts/budgie/README.md").exists(), "budgie folder")
     check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
     check((PKG / "contents/ui/layouts/gnome/README.md").exists(), "gnome folder")
@@ -168,7 +201,7 @@ def main() -> int:
         "AppGrid.qml", "SystemActionsBar.qml", "AppContextMenu.qml", "ConfirmDialog.qml",
         "AppDetailsDialog.qml",
         "ShortcutRow.qml", "PlacesSidebar.qml", "SessionButtons.qml", "AllAppsButton.qml",
-        "PinnedAppsList.qml",
+        "PinnedAppsList.qml", "VirtualizedAppList.qml",
     ]
     for c in components:
         check((PKG / "contents/ui/components" / c).exists(), f"component: {c}")
@@ -185,6 +218,11 @@ def main() -> int:
 
     for core in ["main.qml", "MenuData.qml", "LayoutHost.qml", "AppsBackend.qml"]:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")
+
+    layout_base = (PKG / "contents/ui/layouts/LayoutBase.qml").read_text(encoding="utf-8")
+    apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
+    check("Components.VirtualizedAppList" in layout_base, "shared all-layout app preloader")
+    check("Components.VirtualizedAppList" in apps_page, "apps page uses shared virtualized list")
 
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     for needle in ["Keys.onPressed", "Plasmoid.onActivated", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
