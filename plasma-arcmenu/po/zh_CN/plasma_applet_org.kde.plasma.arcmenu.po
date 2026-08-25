@@ -377,17 +377,17 @@ msgstr "当前菜单布局"
 msgid "Select a new menu layout?"
 msgstr "选择新的菜单布局？"
 
-msgid "Traditional Menu Layouts"
-msgstr "传统菜单布局"
+msgid "Linux-style Menus"
+msgstr "Linux 风格菜单"
 
-msgid "Modern Menu Layouts"
-msgstr "现代菜单布局"
+msgid "Windows-style Menus"
+msgstr "Windows 风格菜单"
 
-msgid "Touch Menu Layouts"
-msgstr "触摸菜单布局"
+msgid "ChromeOS-style Menus"
+msgstr "ChromeOS 风格菜单"
 
-msgid "Launcher Menu Layouts"
-msgstr "启动器菜单布局"
+msgid "Android-style Menus"
+msgstr "Android 风格菜单"
 
-msgid "Alternative Menu Layouts"
-msgstr "选择菜单布局"
+msgid "Other Menu Styles"
+msgstr "其他风格菜单"
