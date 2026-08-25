@@ -392,7 +392,7 @@ var LAYOUTS = [
     {
         id: "kickoff",
         name: "KDE Plasma Kickoff",
-        description: "Plasma Kickoff tabbed style",
+        description: "Current Plasma 6 Kickoff with applications, places, and power actions",
         category: "linux",
         hasCategories: true,
         hasPinned: true,
@@ -401,9 +401,10 @@ var LAYOUTS = [
         hasPower: true,
         supportsFlip: false,
         supportsSearchbarLocation: false,
-        defaultWidth: 600,
-        defaultHeight: 540,
-        previewKind: "plasma",
+        defaultWidth: 800,
+        defaultHeight: 600,
+        defaultSidebarWidth: 185,
+        previewKind: "kickoff6",
         source: "layouts/LayoutKickoff.qml"
     },
     {

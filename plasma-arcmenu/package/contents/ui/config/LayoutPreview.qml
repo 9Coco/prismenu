@@ -1203,6 +1203,106 @@ Item {
             }
         }
 
+        // ===================== Plasma 6 Kickoff =====================
+        Item {
+            anchors.fill: parent
+            anchors.margins: 5
+            visible: root.previewKind === "kickoff6"
+
+            Row {
+                id: kickoffHeader
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: parent.top
+                height: parent.height * 0.14
+                spacing: 3
+
+                InkIcon { source: "user-identity"; size: kickoffHeader.height * 0.72 }
+                TextLine { lineWidth: parent.width * 0.12; anchors.verticalCenter: parent.verticalCenter }
+                Rectangle {
+                    width: parent.width * 0.58
+                    height: parent.height * 0.8
+                    anchors.verticalCenter: parent.verticalCenter
+                    radius: 2
+                    color: "transparent"
+                    border.width: 1
+                    border.color: root.ink
+                    InkIcon {
+                        anchors.left: parent.left
+                        anchors.leftMargin: 3
+                        anchors.verticalCenter: parent.verticalCenter
+                        source: "search"
+                        size: 6
+                    }
+                }
+                InkIcon { source: "configure"; size: kickoffHeader.height * 0.65 }
+                InkIcon { source: "window-pin"; size: kickoffHeader.height * 0.65 }
+            }
+
+            Rectangle {
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.top: kickoffHeader.bottom
+                height: 1
+                color: root.inkSoft
+            }
+
+            Column {
+                id: kickoffNav
+                anchors.left: parent.left
+                anchors.top: kickoffHeader.bottom
+                anchors.topMargin: 3
+                anchors.bottom: kickoffFooter.top
+                width: parent.width * 0.25
+                spacing: 3
+                Repeater {
+                    model: 8
+                    CatRow { rowWidth: kickoffNav.width }
+                }
+            }
+
+            Rectangle {
+                anchors.left: kickoffNav.right
+                anchors.top: kickoffHeader.bottom
+                anchors.bottom: kickoffFooter.top
+                width: 1
+                color: root.inkSoft
+            }
+
+            Grid {
+                anchors.left: kickoffNav.right
+                anchors.leftMargin: 6
+                anchors.right: parent.right
+                anchors.top: kickoffHeader.bottom
+                anchors.topMargin: 6
+                anchors.bottom: kickoffFooter.top
+                columns: 5
+                rowSpacing: 4
+                columnSpacing: 5
+                Repeater {
+                    model: 20
+                    SolidSquare { size: Math.max(6, (parent.parent.width * 0.68 - 24) / 5) }
+                }
+            }
+
+            Row {
+                id: kickoffFooter
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                height: parent.height * 0.13
+                spacing: 5
+                InkIcon { source: "view-app-grid-symbolic"; size: kickoffFooter.height * 0.65 }
+                TextLine { lineWidth: parent.width * 0.12; anchors.verticalCenter: parent.verticalCenter }
+                InkIcon { source: "compass"; size: kickoffFooter.height * 0.65 }
+                Item { width: parent.width * 0.28; height: 1 }
+                InkIcon { source: "system-suspend"; size: kickoffFooter.height * 0.65 }
+                InkIcon { source: "system-reboot"; size: kickoffFooter.height * 0.65 }
+                InkIcon { source: "system-shutdown"; size: kickoffFooter.height * 0.65 }
+                InkIcon { source: "system-log-out"; size: kickoffFooter.height * 0.65 }
+            }
+        }
+
         // ===================== Raven =====================
         Item {
             anchors.fill: parent

@@ -466,3 +466,54 @@ msgstr "KDE Plasma · Kicker"
 
 msgid "Minimal Search Launcher"
 msgstr "极简搜索启动器"
+
+msgid "Favorite Applications"
+msgstr "常用应用程序"
+
+msgid "Application Sidebar"
+msgstr "应用侧栏"
+
+msgid "Sidebar Items"
+msgstr "侧栏项目"
+
+msgid "Show, hide, and reorder sidebar items"
+msgstr "显示、隐藏及调整侧栏项目顺序"
+
+msgid "Add custom item in ArcMenu layout adjustment"
+msgstr "在 ArcMenu 布局调整中添加自定义项目"
+
+msgid "Custom application groups appear here automatically."
+msgstr "自定义应用组会自动显示在这里。"
+
+msgid "Configure the shared application sidebar and legacy extra categories."
+msgstr "配置共享应用侧栏及兼容旧布局的额外分类。"
+
+msgid "Reset sidebar"
+msgstr "重置侧栏"
+
+msgid "Frequently Used"
+msgstr "常用"
+
+msgid "History"
+msgstr "历史"
+
+msgid "Keep Open"
+msgstr "保持打开"
+
+msgid "Show KRunner"
+msgstr "显示 KRunner"
+
+msgid "Search, calculate, or run commands"
+msgstr "查找、计算、或者运行命令"
+
+msgid "Configure system behavior and appearance"
+msgstr "配置系统的行为和外观"
+
+msgid "Info Center"
+msgstr "系统信息中心"
+
+msgid "View system hardware and status"
+msgstr "显示系统硬件和状态信息"
+
+msgid "Install and remove applications"
+msgstr "安装、移除应用程序和附加组件"

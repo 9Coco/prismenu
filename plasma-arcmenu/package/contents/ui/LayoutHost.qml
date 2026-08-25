@@ -14,6 +14,7 @@ Item {
     signal appContextMenu(var app, real x, real y)
     signal powerAction(string actionId)
     signal userMenu()
+    signal keepOpenRequested(bool pinned)
 
     readonly property string layoutId: {
         var fromConfig = "";
@@ -100,6 +101,10 @@ Item {
         if (item.userMenu) {
             try { item.userMenu.disconnect(root.userMenu); } catch (e4) {}
             item.userMenu.connect(root.userMenu);
+        }
+        if (item.keepOpenRequested) {
+            try { item.keepOpenRequested.disconnect(root.keepOpenRequested); } catch (e5) {}
+            item.keepOpenRequested.connect(root.keepOpenRequested);
         }
         console.log("ArcMenu LayoutHost wireItem catalog=",
                     md && md.allApps ? md.allApps.length : 0);
