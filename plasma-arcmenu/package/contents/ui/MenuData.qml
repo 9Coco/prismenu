@@ -565,6 +565,8 @@ QtObject {
 
     /** Visible apps sorted once — shared by every layout's "all" view */
     readonly property var sortedVisibleApps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps))
+    /** Flattened A–Z rows for virtualized lists; prepared when the catalog changes, not on navigation. */
+    readonly property var sortedVisibleAppsAzRows: AppsModel.appsAzRowsFromSorted(sortedVisibleApps)
 
     readonly property var categories: {
         var _apps = allApps || [];

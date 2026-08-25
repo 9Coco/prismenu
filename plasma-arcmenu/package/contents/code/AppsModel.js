@@ -76,6 +76,15 @@ function firstLetterKey(name) {
  */
 function appsAzSections(apps) {
     var sorted = sortAppsByName(filterVisibleApps(apps || []));
+    return appsAzSectionsFromSorted(sorted);
+}
+
+/**
+ * Group an already filtered and sorted app array without copying/sorting it.
+ * MenuData exposes exactly this shape as sortedVisibleApps.
+ */
+function appsAzSectionsFromSorted(sortedApps) {
+    var sorted = sortedApps || [];
     var sections = [];
     var current = null;
     for (var i = 0; i < sorted.length; ++i) {
@@ -88,6 +97,28 @@ function appsAzSections(apps) {
         current.apps.push(app);
     }
     return sections;
+}
+
+/**
+ * Flatten A–Z sections into one ListView-friendly model. Keeping section headers
+ * and applications in a single model lets QML virtualize and reuse delegates;
+ * nested Repeaters eagerly instantiate every application and are expensive to
+ * tear down when navigating back to categories.
+ */
+function appsAzRowsFromSorted(sortedApps) {
+    var sections = appsAzSectionsFromSorted(sortedApps || []);
+    var rows = [];
+    for (var i = 0; i < sections.length; ++i) {
+        rows.push({
+            id: "__az_section_" + sections[i].letter,
+            name: sections[i].letter,
+            isSection: true
+        });
+        for (var j = 0; j < sections[i].apps.length; ++j) {
+            rows.push(sections[i].apps[j]);
+        }
+    }
+    return rows;
 }
 
 function categoryMatches(appCats, categoryId) {
