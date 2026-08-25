@@ -391,3 +391,78 @@ msgstr "Android 风格菜单"
 
 msgid "Other Menu Styles"
 msgstr "其他风格菜单"
+
+msgid "Windows 7 (Two-column)"
+msgstr "Windows 7 · 双栏"
+
+msgid "Windows 10 (Early)"
+msgstr "Windows 10 · 早期版"
+
+msgid "Windows 10 (Classic)"
+msgstr "Windows 10 · 经典版"
+
+msgid "Windows 11 (Standard)"
+msgstr "Windows 11 · 标准版"
+
+msgid "Windows 11 (Compact)"
+msgstr "Windows 11 · 紧凑版"
+
+msgid "Enterprise Grid"
+msgstr "Enterprise · 分类网格"
+
+msgid "ArcMenu (Classic)"
+msgstr "ArcMenu · 经典"
+
+msgid "Solus Brisk"
+msgstr "Solus Brisk"
+
+msgid "Linux Mint"
+msgstr "Linux Mint"
+
+msgid "Xfce Whisker"
+msgstr "Xfce Whisker"
+
+msgid "elementary OS Launcher"
+msgstr "elementary OS · 应用启动器"
+
+msgid "KDE Plasma Dashboard"
+msgstr "KDE Plasma · 仪表盘"
+
+msgid "KDE Plasma (Tabbed)"
+msgstr "KDE Plasma · 分页菜单"
+
+msgid "Pop!_OS Launcher"
+msgstr "Pop!_OS · 应用启动器"
+
+msgid "Ubuntu Unity Dash"
+msgstr "Ubuntu Unity · Dash"
+
+msgid "Ubuntu Unity Menu"
+msgstr "Ubuntu Unity · 菜单"
+
+msgid "ArcMenu Sleek (Grid)"
+msgstr "ArcMenu Sleek · 网格"
+
+msgid "ArcMenu Tognee (Sidebar)"
+msgstr "ArcMenu Tognee · 侧栏"
+
+msgid "ArcMenu Zest (Three-column)"
+msgstr "ArcMenu Zest · 三栏"
+
+msgid "ChromeOS Launcher"
+msgstr "ChromeOS · 应用启动器"
+
+msgid "Budgie Raven"
+msgstr "Budgie Raven"
+
+msgid "Budgie Application Menu"
+msgstr "Budgie · 应用菜单"
+
+msgid "KDE Plasma Kickoff"
+msgstr "KDE Plasma · Kickoff"
+
+msgid "KDE Plasma Kicker"
+msgstr "KDE Plasma · Kicker"
+
+msgid "Minimal Search Launcher"
+msgstr "极简搜索启动器"
