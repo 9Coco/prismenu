@@ -132,7 +132,12 @@ Item {
             var catName = String(c.name || "").trim();
             if (!catName)
                 continue;
-            var apps = AppsModel.appsInCategory(allApps, c.id);
+            // MenuData already buckets and sorts each category. Reuse that
+            // cached result instead of filtering and sorting the full catalog
+            // again every time this page binding is evaluated.
+            var apps = (c.apps !== undefined && c.apps !== null)
+                ? c.apps
+                : AppsModel.appsInCategory(allApps, c.id);
             if (apps.length === 0 && allAppsLen > 0)
                 continue;
             out.push({
@@ -218,8 +223,11 @@ Item {
                 break;
             }
         }
-        if (root.drillCategoryId === "all")
+        if (root.drillCategoryId === "all") {
+            if (host && host.sortedVisibleApps)
+                return host.sortedVisibleApps;
             return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps));
+        }
         return AppsModel.appsInCategory(_apps, root.drillCategoryId);
     }
 
@@ -564,112 +572,71 @@ Item {
             }
         }
 
-        // Apps in selected category (optional A–Z sections like ArcMenu group-apps-alphabetically-list-layouts)
-        Flickable {
+        // Apps in selected category. A single virtualized ListView is important
+        // here: the old nested Repeaters created every icon/row at once and
+        // synchronously destroyed all of them when Back cleared drilledApps.
+        ListView {
+            id: appList
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            contentWidth: width
-            contentHeight: appColumn.height
             visible: !root.showingCategories
             boundsBehavior: Flickable.StopAtBounds
-            // Note: QQC2.ScrollBar.vertical is not attachable to plain Flickable on Plasma 6
+            currentIndex: -1
+            keyNavigationWraps: true
+            reuseItems: true
+            cacheBuffer: Math.max(height, Kirigami.Units.gridUnit * 12)
+            spacing: Kirigami.Units.smallSpacing / 2
+            Accessible.role: Accessible.List
+            Accessible.name: root.categoryTitle()
 
             readonly property bool useAz: {
                 var host = root.dataHost;
                 return !!(host && host.groupAppsAlphabeticallyList
                     && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
             }
-            readonly property var azSections: useAz
-                ? AppsModel.appsAzSections(root.drilledApps)
-                : []
+            readonly property var displayRows: {
+                if (!useAz)
+                    return root.drilledApps;
+                var host = root.dataHost;
+                if (root.drillCategoryId === "all" && host && host.sortedVisibleAppsAzRows)
+                    return host.sortedVisibleAppsAzRows;
+                return AppsModel.appsAzRowsFromSorted(root.drilledApps);
+            }
 
-            Column {
-                id: appColumn
-                width: parent.width
-                spacing: Kirigami.Units.smallSpacing / 2
+            model: displayRows
 
-                // Flat list
-                Repeater {
-                    model: appColumn.parent.useAz ? 0 : root.drilledApps.length
-
-                    Components.AppListItem {
-                        required property int index
-                        width: appColumn.width
-                        app: root.drilledApps[index]
-                        menuData: root.menuData || root.dataHost
-                        iconSize: root.appIconSize
-                        showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
-                        showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
-                        multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
-                        selectedBg: root.selectedBg
-                        selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg
-                        hoverFg: root.hoverFg
-                        fg: root.fg
-                        onActivated: {
-                            var a = root.drilledApps[index];
-                            if (a && !a.isSection)
-                                root.appActivated(a);
-                        }
-                        onContextMenuRequested: (x, y) => {
-                            var a = root.drilledApps[index];
-                            if (a && !a.isSection)
-                                root.appContextMenu(a, x, y);
-                        }
-                    }
+            delegate: Components.AppListItem {
+                required property var modelData
+                width: ListView.view.width
+                app: modelData
+                menuData: root.menuData || root.dataHost
+                iconSize: root.appIconSize
+                showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
+                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                onActivated: {
+                    if (modelData && !modelData.isSection)
+                        root.appActivated(modelData);
                 }
-
-                // A–Z grouped
-                Repeater {
-                    model: appColumn.parent.azSections
-                    Column {
-                        required property var modelData
-                        width: appColumn.width
-                        spacing: 0
-
-                        PlasmaComponents.Label {
-                            width: parent.width
-                            text: modelData.letter
-                            font.bold: true
-                            opacity: 0.65
-                            color: root.fg
-                            leftPadding: Kirigami.Units.smallSpacing
-                            topPadding: Kirigami.Units.smallSpacing
-                            bottomPadding: Kirigami.Units.smallSpacing / 2
-                        }
-
-                        Repeater {
-                            model: modelData.apps
-                            Components.AppListItem {
-                                required property var modelData
-                                width: appColumn.width
-                                app: modelData
-                                menuData: root.menuData || root.dataHost
-                                iconSize: root.appIconSize
-                                showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
-                                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
-                                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
-                                selectedBg: root.selectedBg
-                                selectedFg: root.selectedFg
-                                hoverBg: root.hoverBg
-                                hoverFg: root.hoverFg
-                                fg: root.fg
-                                onActivated: root.appActivated(modelData)
-                                onContextMenuRequested: (x, y) => root.appContextMenu(modelData, x, y)
-                            }
-                        }
-                    }
+                onContextMenuRequested: (x, y) => {
+                    if (modelData && !modelData.isSection)
+                        root.appContextMenu(modelData, x, y);
                 }
+            }
 
-                PlasmaComponents.Label {
-                    visible: root.drilledApps.length === 0
-                    width: parent.width
-                    horizontalAlignment: Text.AlignHCenter
-                    opacity: 0.55
-                    text: Locale.tr("No applications", root.uiLang)
-                    color: root.fg
-                }
+            PlasmaComponents.Label {
+                anchors.centerIn: parent
+                visible: root.drilledApps.length === 0
+                horizontalAlignment: Text.AlignHCenter
+                opacity: 0.55
+                text: Locale.tr("No applications", root.uiLang)
+                color: root.fg
             }
         }
     }
