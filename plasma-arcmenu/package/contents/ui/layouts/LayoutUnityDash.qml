@@ -52,7 +52,7 @@ LayoutBase {
         Components.AppGrid {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: appModel
+            items: root.appsModel()
             iconSize: Math.max(48, root.appIconSize + 24)
             columns: 7
             selectedBg: root.selectedBg
@@ -61,11 +61,11 @@ LayoutBase {
             showGenericNames: root.showGenericNames
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
+            fg: root.fg
             onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
     }
 
     Ui.ListModelBridge { id: pinnedModel; source: menuData ? menuData.pinnedApps : [] }
-    Ui.ListModelBridge { id: appModel; source: root.appsModel() }
 }

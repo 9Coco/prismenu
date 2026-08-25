@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Redmond layout (ArcMenu Redmond / Windows-style).
@@ -44,9 +43,7 @@ LayoutBase {
             var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
             return pinned.length ? pinned : root.defaultPinned;
         }
-        if (menuData && menuData.allApps && menuData.allApps.length)
-            return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
-        return [];
+        return root.allApplications;
     }
 
     function activateItem(item) {
@@ -117,78 +114,22 @@ LayoutBase {
                 Layout.fillHeight: true
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 10
 
-                Flickable {
-                    id: gridFlick
+                Components.AppGrid {
                     anchors.fill: parent
-                    contentWidth: width
-                    contentHeight: Math.max(height, gridFlow.height)
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-
-                    Flow {
-                        id: gridFlow
-                        width: gridFlick.width
-                        spacing: Kirigami.Units.smallSpacing
-
-                        Repeater {
-                            model: root.gridItems.length
-                            Item {
-                                required property int index
-                                readonly property var app: root.gridItems[index]
-                                readonly property int cellW: Math.floor(
-                                    (gridFlow.width - gridFlow.spacing * (root.gridColumns - 1))
-                                    / root.gridColumns)
-
-                                width: Math.max(Kirigami.Units.gridUnit * 5, cellW)
-                                height: root.gridCellHeight
-
-                                Rectangle {
-                                    anchors.fill: parent
-                                    anchors.margins: 1
-                                    radius: Kirigami.Units.smallSpacing
-                                    color: cellMouse.containsMouse ? root.selectedBg : "transparent"
-                                }
-
-                                ColumnLayout {
-                                    anchors.centerIn: parent
-                                    width: parent.width - Kirigami.Units.smallSpacing * 2
-                                    spacing: Kirigami.Units.smallSpacing / 2
-
-                                    Kirigami.Icon {
-                                        source: app.icon || "application-x-executable"
-                                        Layout.alignment: Qt.AlignHCenter
-                                        Layout.preferredWidth: root.gridIconSize
-                                        Layout.preferredHeight: root.gridIconSize
-                                    }
-
-                                    PlasmaComponents.Label {
-                                        text: app.name || ""
-                                        elide: Text.ElideRight
-                                        horizontalAlignment: Text.AlignHCenter
-                                        Layout.fillWidth: true
-                                        maximumLineCount: 2
-                                        wrapMode: Text.WordWrap
-                                        font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                        color: cellMouse.containsMouse ? root.selectedFg : root.fg
-                                    }
-                                }
-
-                                MouseArea {
-                                    id: cellMouse
-                                    anchors.fill: parent
-                                    hoverEnabled: true
-                                    acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                    onClicked: (mouse) => {
-                                        if (mouse.button === Qt.RightButton) {
-                                            if (app && !app.action)
-                                                root.appContextMenu(app, mouse.x, mouse.y);
-                                        } else {
-                                            root.activateItem(app);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    items: root.gridItems
+                    columns: root.gridColumns
+                    iconSize: root.gridIconSize
+                    cellWidth: Math.max(Kirigami.Units.gridUnit * 5, width / Math.max(1, columns))
+                    cellHeight: root.gridCellHeight
+                    multiLineLabels: true
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    onAppActivated: (app) => root.activateItem(app)
+                    onContextMenuRequested: (app, x, y) => {
+                        if (app && !app.action) root.appContextMenu(app, x, y);
                     }
                 }
 

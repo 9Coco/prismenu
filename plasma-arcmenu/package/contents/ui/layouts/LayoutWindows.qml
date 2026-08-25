@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Windows layout (ArcMenu Windows / Win10 Start style).
@@ -80,18 +79,13 @@ LayoutBase {
     readonly property var frequentItems: {
         if (menuData && menuData.recentApps && menuData.recentApps.length)
             return menuData.recentApps.slice(0, root.frequentMax);
-        if (menuData && menuData.allApps && menuData.allApps.length) {
-            var vis = AppsModel.sortAppsByName(AppsModel.filterVisibleApps(menuData.allApps));
-            if (vis.length)
-                return vis.slice(0, Math.min(root.frequentMax, vis.length));
-        }
+        if (root.allApplications.length)
+            return root.allApplications.slice(0, Math.min(root.frequentMax, root.allApplications.length));
         return root.defaultFrequent;
     }
 
     readonly property var azSections: {
-        if (!menuData || !menuData.allApps)
-            return [];
-        return AppsModel.appsAzSections(menuData.allApps);
+        return root.allApplicationSections;
     }
 
     readonly property var searchItems: {
@@ -99,6 +93,10 @@ LayoutBase {
             return menuData.searchResults;
         return [];
     }
+
+    readonly property var applicationListItems: root.searching
+        ? root.searchItems
+        : root.frequentItems.concat(root.allApplicationRows)
 
 
     function openFiles() {
@@ -489,114 +487,22 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Flickable {
-                    id: listFlick
+                Components.VirtualizedAppList {
                     anchors.fill: parent
-                    contentWidth: width
-                    contentHeight: listCol.height
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-
-                    Column {
-                        id: listCol
-                        width: listFlick.width
-                        spacing: Kirigami.Units.smallSpacing / 2
-
-                        Repeater {
-                            model: root.searching ? root.searchItems.length : 0
-                            Components.AppListItem {
-                                required property int index
-                                menuData: menuData
-                                width: listCol.width
-                                app: root.searchItems[index]
-                                iconSize: Math.max(root.appIconSize, 24)
-                                showDescription: root.showAppDescriptions
-                                selectedBg: root.selectedBg
-                                selectedFg: root.selectedFg
-                                hoverBg: root.hoverBg
-                                hoverFg: root.hoverFg
-                                fg: root.fg
-                                onActivated: root.activateItem(root.searchItems[index])
-                                onContextMenuRequested: (x, y) => {
-                                    var a = root.searchItems[index];
-                                    if (a && !a.action) root.appContextMenu(a, x, y);
-                                }
-                            }
-                        }
-
-                        Repeater {
-                            model: root.searching ? 0 : root.frequentItems.length
-                            Components.AppListItem {
-                                required property int index
-                                menuData: menuData
-                                width: listCol.width
-                                app: root.frequentItems[index]
-                                iconSize: Math.max(root.appIconSize, 24)
-                                showDescription: root.showAppDescriptions
-                                selectedBg: root.selectedBg
-                                selectedFg: root.selectedFg
-                                hoverBg: root.hoverBg
-                                hoverFg: root.hoverFg
-                                fg: root.fg
-                                onActivated: root.activateItem(root.frequentItems[index])
-                                onContextMenuRequested: (x, y) => {
-                                    var a = root.frequentItems[index];
-                                    if (a && !a.action) root.appContextMenu(a, x, y);
-                                }
-                            }
-                        }
-
-                        Repeater {
-                            model: root.searching ? 0 : root.azSections.length
-
-                            Column {
-                                required property int index
-                                readonly property var section: root.azSections[index]
-                                width: listCol.width
-                                spacing: Kirigami.Units.smallSpacing / 2
-
-                                RowLayout {
-                                    width: parent.width
-                                    spacing: Kirigami.Units.smallSpacing
-
-                                    PlasmaComponents.Label {
-                                        text: section.letter
-                                        font.bold: true
-                                        color: root.fg
-                                        opacity: 0.75
-                                    }
-
-                                    Rectangle {
-                                        Layout.fillWidth: true
-                                        Layout.preferredHeight: 1
-                                        color: root.borderColor
-                                        opacity: 0.35
-                                    }
-                                }
-
-                                Repeater {
-                                    model: section.apps.length
-                                    Components.AppListItem {
-                                        required property int index
-                                        menuData: menuData
-                                        width: listCol.width
-                                        app: section.apps[index]
-                                        iconSize: Math.max(root.appIconSize, 24)
-                                        showDescription: root.showAppDescriptions
-                                        selectedBg: root.selectedBg
-                                        selectedFg: root.selectedFg
-                                        hoverBg: root.hoverBg
-                                        hoverFg: root.hoverFg
-                                        fg: root.fg
-                                        onActivated: root.activateItem(section.apps[index])
-                                        onContextMenuRequested: (x, y) => {
-                                            var a = section.apps[index];
-                                            if (a && !a.action) root.appContextMenu(a, x, y);
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    items: root.applicationListItems
+                    menuData: root.menuData
+                    iconSize: Math.max(root.appIconSize, 24)
+                    showDescription: root.showAppDescriptions
+                    showGenericNames: root.showGenericNames
+                    multiLineLabels: root.multiLineLabels
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    onAppActivated: (app) => root.activateItem(app)
+                    onAppContextMenu: (app, x, y) => {
+                        if (app && !app.action) root.appContextMenu(app, x, y);
                     }
                 }
 

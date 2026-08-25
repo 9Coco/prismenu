@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Zest layout (ArcMenu Zest) �?three columns.
@@ -55,10 +54,11 @@ LayoutBase {
     readonly property var azSections: {
         if (root.searching || !root.allView)
             return [];
-        if (!menuData || !menuData.allApps)
-            return [];
-        return AppsModel.appsAzSections(menuData.allApps);
+        return root.allApplicationSections;
     }
+
+    readonly property var rightItems: (!root.searching && root.allView)
+        ? root.allApplicationRows : root.flatItems
 
     readonly property bool rightEmpty: {
         if (root.searching)
@@ -309,96 +309,22 @@ LayoutBase {
                     Layout.fillHeight: true
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 8
 
-                    Flickable {
-                        id: rightFlick
+                    Components.VirtualizedAppList {
                         anchors.fill: parent
-                        contentWidth: width
-                        contentHeight: rightCol.height
-                        clip: true
-                        boundsBehavior: Flickable.StopAtBounds
-
-                        Column {
-                            id: rightCol
-                            width: rightFlick.width
-                            spacing: Kirigami.Units.smallSpacing / 2
-
-                            // Search results or pinned / category flat list
-                            Repeater {
-                                model: (root.searching || !root.allView)
-                                       ? root.flatItems.length : 0
-                                Components.AppListItem {
-                                    required property int index
-                                    menuData: menuData
-                                    width: rightCol.width
-                                    app: root.flatItems[index]
-                                    iconSize: Math.max(root.appIconSize, 28)
-                                    showDescription: root.showAppDescriptions
-                                    selectedBg: root.selectedBg
-                                    selectedFg: root.selectedFg
-                                    hoverBg: root.hoverBg
-                                    hoverFg: root.hoverFg
-                                    fg: root.fg
-                                    onActivated: root.activateItem(root.flatItems[index])
-                                    onContextMenuRequested: (x, y) => {
-                                        var a = root.flatItems[index];
-                                        if (a && !a.action) root.appContextMenu(a, x, y);
-                                    }
-                                }
-                            }
-
-                            // All apps �?A–Z sections
-                            Repeater {
-                                model: (!root.searching && root.allView)
-                                       ? root.azSections.length : 0
-
-                                Column {
-                                    required property int index
-                                    readonly property var section: root.azSections[index]
-                                    width: rightCol.width
-                                    spacing: Kirigami.Units.smallSpacing / 2
-
-                                    RowLayout {
-                                        width: parent.width
-                                        spacing: Kirigami.Units.smallSpacing
-
-                                        PlasmaComponents.Label {
-                                            text: section.letter
-                                            font.bold: true
-                                            color: root.fg
-                                            opacity: 0.75
-                                        }
-
-                                        Rectangle {
-                                            Layout.fillWidth: true
-                                            Layout.preferredHeight: 1
-                                            color: root.borderColor
-                                            opacity: 0.35
-                                        }
-                                    }
-
-                                    Repeater {
-                                        model: section.apps.length
-                                        Components.AppListItem {
-                                            required property int index
-                                            menuData: menuData
-                                            width: rightCol.width
-                                            app: section.apps[index]
-                                            iconSize: Math.max(root.appIconSize, 28)
-                                            showDescription: root.showAppDescriptions
-                                            selectedBg: root.selectedBg
-                                            selectedFg: root.selectedFg
-                                            hoverBg: root.hoverBg
-                                            hoverFg: root.hoverFg
-                                            fg: root.fg
-                                            onActivated: root.activateItem(section.apps[index])
-                                            onContextMenuRequested: (x, y) => {
-                                                var a = section.apps[index];
-                                                if (a && !a.action) root.appContextMenu(a, x, y);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                        items: root.rightItems
+                        menuData: root.menuData
+                        iconSize: Math.max(root.appIconSize, 28)
+                        showDescription: root.showAppDescriptions
+                        showGenericNames: root.showGenericNames
+                        multiLineLabels: root.multiLineLabels
+                        selectedBg: root.selectedBg
+                        selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg
+                        hoverFg: root.hoverFg
+                        fg: root.fg
+                        onAppActivated: (app) => root.activateItem(app)
+                        onAppContextMenu: (app, x, y) => {
+                            if (app && !app.action) root.appContextMenu(app, x, y);
                         }
                     }
 

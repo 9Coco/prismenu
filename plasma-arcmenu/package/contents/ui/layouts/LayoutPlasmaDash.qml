@@ -8,6 +8,8 @@ import ".." as Ui
 LayoutBase {
     id: root
 
+    readonly property var gridItems: root.appsModel()
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: Kirigami.Units.largeSpacing
@@ -45,7 +47,7 @@ LayoutBase {
         Components.AppGrid {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            model: appModel
+            items: root.gridItems
             iconSize: Math.max(48, root.appIconSize + 24)
             columns: Math.max(4, Math.floor(width / (Kirigami.Units.gridUnit * 6)))
             selectedBg: root.selectedBg
@@ -54,25 +56,18 @@ LayoutBase {
             showGenericNames: root.showGenericNames
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
+            fg: root.fg
             onAppActivated: (app) => root.activateItem(app)
             onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
 
         PlasmaComponents.Label {
             Layout.alignment: Qt.AlignHCenter
-            visible: appModel.count === 0
+            visible: root.gridItems.length === 0
             text: root.tr("No matching applications found")
             opacity: 0.6
         }
     }
 
     Ui.ListModelBridge { id: pinnedModel; source: menuData ? menuData.pinnedApps : [] }
-    Ui.ListModelBridge {
-        id: appModel
-        source: {
-            if (!menuData) return [];
-            if (menuData.isSearching) return menuData.searchResultsFlat;
-            return menuData.categoryApps;
-        }
-    }
 }
