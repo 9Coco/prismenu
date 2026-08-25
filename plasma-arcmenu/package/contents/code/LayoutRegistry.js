@@ -10,7 +10,7 @@
 var LAYOUTS = [
     {
         id: "arcmenu",
-        name: "Arc Menu",
+        name: "ArcMenu (Classic)",
         description: "Official ArcMenu layout (pinned + places)",
         category: "linux",
         hasCategories: true,
@@ -27,7 +27,7 @@ var LAYOUTS = [
     },
     {
         id: "brisk",
-        name: "Brisk",
+        name: "Solus Brisk",
         description: "Solus Brisk Menu (sidebar + apps)",
         category: "linux",
         hasCategories: true,
@@ -45,7 +45,7 @@ var LAYOUTS = [
     },
     {
         id: "mint",
-        name: "Mint",
+        name: "Linux Mint",
         description: "Linux Mint Menu (icon rail + categories)",
         category: "linux",
         hasCategories: true,
@@ -63,7 +63,7 @@ var LAYOUTS = [
     },
     {
         id: "whisker",
-        name: "Whisker",
+        name: "Xfce Whisker",
         description: "XFCE Whisker (user bar + categories)",
         category: "linux",
         hasCategories: true,
@@ -81,7 +81,7 @@ var LAYOUTS = [
     },
     {
         id: "elementary",
-        name: "Elementary",
+        name: "elementary OS Launcher",
         description: "Elementary (search + 6-column app grid)",
         category: "linux",
         hasCategories: false,
@@ -98,7 +98,7 @@ var LAYOUTS = [
     },
     {
         id: "plasma-dash",
-        name: "Plasma Dash",
+        name: "KDE Plasma Dashboard",
         description: "Plasma overview grid",
         category: "linux",
         hasCategories: false,
@@ -115,7 +115,7 @@ var LAYOUTS = [
     },
     {
         id: "plasma",
-        name: "Plasma",
+        name: "KDE Plasma (Tabbed)",
         description: "Plasma (header + list + bottom tabs)",
         category: "linux",
         hasCategories: false,
@@ -132,7 +132,7 @@ var LAYOUTS = [
     },
     {
         id: "pop",
-        name: "Pop",
+        name: "Pop!_OS Launcher",
         description: "Pop!_OS (search + grid + category tabs)",
         category: "linux",
         hasCategories: true,
@@ -149,7 +149,7 @@ var LAYOUTS = [
     },
     {
         id: "unity-dash",
-        name: "Unity Dash",
+        name: "Ubuntu Unity Dash",
         description: "Ubuntu Unity style",
         category: "linux",
         hasCategories: false,
@@ -166,7 +166,7 @@ var LAYOUTS = [
     },
     {
         id: "unity",
-        name: "Unity",
+        name: "Ubuntu Unity Menu",
         description: "Unity (pinned + shortcuts + bottom places/session)",
         category: "linux",
         hasCategories: false,
@@ -183,8 +183,8 @@ var LAYOUTS = [
     },
     {
         id: "redmond",
-        name: "Redmond",
-        description: "Windows-style (app grid + places sidebar)",
+        name: "Windows 7 (Two-column)",
+        description: "Windows 7-inspired two-column menu with an app grid and places",
         category: "windows",
         hasCategories: false,
         hasPinned: true,
@@ -200,7 +200,7 @@ var LAYOUTS = [
     },
     {
         id: "sleek",
-        name: "Sleek",
+        name: "ArcMenu Sleek (Grid)",
         description: "Sleek (pinned grid + avatar sidebar + power)",
         category: "other",
         hasCategories: false,
@@ -217,7 +217,7 @@ var LAYOUTS = [
     },
     {
         id: "tognee",
-        name: "Tognee",
+        name: "ArcMenu Tognee (Sidebar)",
         description: "Tognee (icon rail + categories + bottom search)",
         category: "other",
         hasCategories: true,
@@ -234,8 +234,8 @@ var LAYOUTS = [
     },
     {
         id: "eleven",
-        name: "Eleven",
-        description: "Windows 11 (pinned grid + recommended + footer)",
+        name: "Windows 11 (Standard)",
+        description: "Windows 11-style pinned apps, recommendations, and footer",
         category: "windows",
         hasCategories: false,
         hasPinned: true,
@@ -251,9 +251,9 @@ var LAYOUTS = [
     },
     {
         id: "az",
-        name: "A-Z",
-        description: "Compact pinned + alphabetical A–Z app list",
-        category: "other",
+        name: "Windows 11 (Compact)",
+        description: "Compact Windows 11-style pinned apps with an A–Z app list",
+        category: "windows",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -268,9 +268,9 @@ var LAYOUTS = [
     },
     {
         id: "enterprise",
-        name: "Enterprise",
-        description: "Enterprise (user+search header, sidebar, grid)",
-        category: "windows",
+        name: "Enterprise Grid",
+        description: "Category sidebar and application grid for managed desktops",
+        category: "other",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -285,8 +285,8 @@ var LAYOUTS = [
     },
     {
         id: "insider",
-        name: "Insider",
-        description: "Insider (avatar + app grid + utility rail)",
+        name: "Windows 10 (Early)",
+        description: "Early Windows 10-inspired app grid with an account header and utility rail",
         category: "windows",
         hasCategories: false,
         hasPinned: false,
@@ -302,8 +302,8 @@ var LAYOUTS = [
     },
     {
         id: "windows",
-        name: "Windows",
-        description: "Windows (rail + frequent/A–Z list + pinned grid)",
+        name: "Windows 10 (Classic)",
+        description: "Windows 10-style app list, pinned tiles, and expandable side rail",
         category: "windows",
         hasCategories: false,
         hasPinned: true,
@@ -319,7 +319,7 @@ var LAYOUTS = [
     },
     {
         id: "zest",
-        name: "Zest",
+        name: "ArcMenu Zest (Three-column)",
         description: "Zest (places | categories → apps | search)",
         category: "other",
         hasCategories: true,
@@ -336,7 +336,7 @@ var LAYOUTS = [
     },
     {
         id: "chromebook",
-        name: "Chromebook",
+        name: "ChromeOS Launcher",
         description: "Chromebook (portrait: search + 4-column grid)",
         category: "chromeos",
         hasCategories: false,
@@ -353,7 +353,7 @@ var LAYOUTS = [
     },
     {
         id: "raven",
-        name: "Raven",
+        name: "Budgie Raven",
         description: "Raven (full-height rail + pinned/shortcuts panel)",
         category: "linux",
         hasCategories: false,
@@ -373,7 +373,7 @@ var LAYOUTS = [
     },
     {
         id: "budgie",
-        name: "Budgie",
+        name: "Budgie Application Menu",
         description: "Budgie desktop style (pinned + categories)",
         category: "linux",
         hasCategories: true,
@@ -391,7 +391,7 @@ var LAYOUTS = [
     },
     {
         id: "kickoff",
-        name: "Kickoff",
+        name: "KDE Plasma Kickoff",
         description: "Plasma Kickoff tabbed style",
         category: "linux",
         hasCategories: true,
@@ -408,7 +408,7 @@ var LAYOUTS = [
     },
     {
         id: "kicker",
-        name: "Kicker",
+        name: "KDE Plasma Kicker",
         description: "Plasma Kicker cascading style",
         category: "linux",
         hasCategories: true,
@@ -425,7 +425,7 @@ var LAYOUTS = [
     },
     {
         id: "simple",
-        name: "Simple",
+        name: "Minimal Search Launcher",
         description: "Minimal search-focused style",
         category: "other",
         hasCategories: false,

@@ -6,7 +6,7 @@ The project is intended to be a dependable replacement for Plasma's default appl
 
 ## Features
 
-- **25 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Raven, Budgie, Kickoff, Kicker, Simple
+- **25 layouts** with source-oriented display names, including Solus Brisk, Linux Mint, Xfce Whisker, KDE Plasma, Ubuntu Unity, Budgie, ChromeOS, Windows 7/10/11 variants, and ArcMenu-original layouts
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications via **Plasma Kicker** (`org.kde.plasma.private.kicker` → `RootModel` / KService) — same stack as Kickoff
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -75,18 +75,18 @@ family and appears automatically when its first layout is added.
 | `budgie` | Budgie style (search top, pinned/all/categories left, apps right) |
 | `mint` | Linux Mint (left icon rail + categories + pinned) |
 | `whisker` | XFCE Whisker (user bar + categories + pinned) |
-| `eleven` | Windows 11 (pinned grid + recommended + footer) |
-| `az` | A-Z compact (pinned + alphabetical all apps) |
-| `enterprise` | Enterprise (user+search header, category sidebar, pinned grid) |
-| `insider` | Insider (centered avatar + 5-col grid + utility rail) |
-| `windows` | Windows (rail + frequent/A–Z list + pinned grid) |
+| `redmond` | Windows 7-inspired two-column menu (grid adaptation + places) |
+| `insider` | Early Windows 10 style (account header + app grid + utility rail) |
+| `windows` | Windows 10 classic (rail + frequent/A–Z list + pinned tiles) |
+| `eleven` | Windows 11 standard (pinned grid + recommended + footer) |
+| `az` | Windows 11 compact (pinned grid + alphabetical all apps) |
+| `enterprise` | Generic enterprise category sidebar + application grid |
 | `zest` | Zest 三栏（左地点 / 中分类控制右栏 / 底搜索） |
 | `chromebook` | Chromebook（竖长：顶部搜索 + 四列网格） |
 | `raven` | Raven（全高左侧栏 + 固定/快捷方式侧板） |
 | `elementary` | Elementary（顶部搜索 + 六列应用网格） |
 | `plasma` | Plasma (user+search header, list, bottom tabs) |
 | `pop` | Pop!_OS (search + 6-col grid + category tabs) |
-| `redmond` | Windows-style (4-col grid + places sidebar) |
 | `sleek` | Sleek (pinned grid + avatar sidebar + single power) |
 | `tognee` | Tognee (icon rail + categories + bottom search) |
 | `kickoff` / `kicker` | Plasma native styles |

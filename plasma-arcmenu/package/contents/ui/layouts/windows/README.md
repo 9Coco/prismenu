@@ -1,6 +1,6 @@
-# Windows Layout
+# Windows 10 Classic Layout (`windows`)
 
-ArcMenu Windows / Win10 Start style.
+Windows 10 Start style: application list, pinned tiles, and expandable side rail.
 
 ```
 ┌─ ☰ ──┬─ 常用应用程序 ──────┬─ 已固定 ────┐

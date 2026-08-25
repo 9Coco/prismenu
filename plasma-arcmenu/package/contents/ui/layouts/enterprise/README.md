@@ -1,6 +1,7 @@
-# Enterprise Layout
+# Enterprise Category Grid Layout (`enterprise`)
 
-ArcMenu Enterprise style.
+Generic enterprise-oriented category sidebar and application grid; this is not
+a version-specific Windows Enterprise Start menu.
 
 ```
 ┌─ 👤 user ────────── [Search…] ──────────┐

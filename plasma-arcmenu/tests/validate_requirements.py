@@ -44,6 +44,17 @@ def main() -> int:
     check(category_ids == {"linux", "windows", "chromeos", "android", "other"},
           "source-platform layout categories")
     check("CATEGORIES.filter" in registry, "unused source categories stay hidden")
+    expected_windows_names = {
+        "redmond": "Windows 7 (Two-column)",
+        "insider": "Windows 10 (Early)",
+        "windows": "Windows 10 (Classic)",
+        "eleven": "Windows 11 (Standard)",
+        "az": "Windows 11 (Compact)",
+    }
+    for layout_id, display_name in expected_windows_names.items():
+        block = next((body for lid, body, _fname in layout_blocks if lid == layout_id), "")
+        check(f'name: "{display_name}"' in block,
+              f"versioned Windows layout name: {layout_id}")
     for lid, body, fname in layout_blocks:
         category_match = re.search(r'\bcategory:\s*"([^"]+)"', body)
         check(bool(category_match) and category_match.group(1) in category_ids,
