@@ -107,11 +107,9 @@ LayoutBase {
                     }
                 }
 
-                Components.SearchField {
+                Components.LayoutSearchField {
+                    layoutRoot: root
                     Layout.fillWidth: true
-                    placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                    text: menuData ? menuData.searchQuery : ""
-                    onTextChanged: if (menuData) menuData.setSearch(text)
                 }
             }
         }

@@ -27,43 +27,22 @@ def main() -> int:
     check("org.kde.plasma.launchermenu" in meta.get("X-Plasma-Provides", []), "launcher provides")
     check(meta.get("X-Plasma-API-Minimum-Version", "").startswith("6"), "Plasma 6 API")
 
-    layouts_expected = [
-        "arcmenu", "brisk", "mint", "whisker", "elementary", "gnome",
-        "plasma-dash", "plasma", "pop", "unity-dash", "unity", "redmond", "sleek", "tognee", "eleven", "az", "enterprise", "insider", "windows", "zest", "chromebook", "raven", "budgie",
-        "kickoff", "kicker", "simple",
-    ]
     registry = (PKG / "contents/code/LayoutRegistry.js").read_text(encoding="utf-8")
-    layout_files = {
-        "arcmenu": "LayoutArcMenu.qml",
-        "brisk": "LayoutBrisk.qml",
-        "mint": "LayoutMint.qml",
-        "whisker": "LayoutWhisker.qml",
-        "elementary": "LayoutElementary.qml",
-        "gnome": "LayoutGnome.qml",
-        "plasma-dash": "LayoutPlasmaDash.qml",
-        "plasma": "LayoutPlasma.qml",
-        "pop": "LayoutPop.qml",
-        "unity-dash": "LayoutUnityDash.qml",
-        "unity": "LayoutUnity.qml",
-        "redmond": "LayoutRedmond.qml",
-        "sleek": "LayoutSleek.qml",
-        "tognee": "LayoutTognee.qml",
-        "eleven": "LayoutEleven.qml",
-        "az": "LayoutAz.qml",
-        "enterprise": "LayoutEnterprise.qml",
-        "insider": "LayoutInsider.qml",
-        "windows": "LayoutWindows.qml",
-        "zest": "LayoutZest.qml",
-        "chromebook": "LayoutChromebook.qml",
-        "raven": "LayoutRaven.qml",
-        "budgie": "LayoutBudgie.qml",
-        "kickoff": "LayoutKickoff.qml",
-        "kicker": "LayoutKicker.qml",
-        "simple": "LayoutSimple.qml",
-    }
-    for lid in layouts_expected:
-        check(f'id: "{lid}"' in registry, f"layout registered: {lid}")
-        fname = layout_files[lid]
+    # LayoutRegistry is the single source of truth. Adding a layout must not
+    # require a second ID/file list in this validator.
+    layout_blocks = re.findall(
+        r"\{\s*id:\s*\"([^\"]+)\"(?P<body>.*?source:\s*\"layouts/([^\"]+)\".*?)\n\s*\}",
+        registry,
+        re.DOTALL,
+    )
+    layout_files = {layout_id: filename for layout_id, _body, filename in layout_blocks}
+    check(bool(layout_files), "layouts discovered from registry")
+    check(len(layout_files) == len(layout_blocks), "unique layout ids")
+    check("gnome" not in layout_files, "duplicate GNOME layout removed")
+    for lid, body, fname in layout_blocks:
+        check(bool(re.search(r"\bpreviewKind\s*:", body)), f"layout preview metadata: {lid}")
+        check(bool(re.search(r"\bdefaultWidth\s*:", body)), f"layout width metadata: {lid}")
+        check(bool(re.search(r"\bdefaultHeight\s*:", body)), f"layout height metadata: {lid}")
         check((PKG / "contents/ui/layouts" / fname).exists(), f"layout file: {fname}")
 
     # Shared layout architecture: every selectable layout inherits the same
@@ -98,11 +77,12 @@ def main() -> int:
             all(not re.search(r"^\s*fg\s*:", block, re.MULTILINE) for block in pinned_grid_blocks),
             f"PinnedAppsGrid uses supported properties: {fname}",
         )
+        check("Components.SearchField {" not in source, f"shared search adapter: {fname}")
+        check("Components.AppGrid {" not in source, f"shared grid adapter: {fname}")
+        check("Components.VirtualizedAppList {" not in source, f"shared list adapter: {fname}")
 
     check((PKG / "contents/ui/layouts/budgie/README.md").exists(), "budgie folder")
     check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
-    check((PKG / "contents/ui/layouts/gnome/README.md").exists(), "gnome folder")
-    check((PKG / "contents/ui/layouts/LayoutGnome.qml").exists(), "gnome layout entry")
     check((PKG / "contents/ui/layouts/mint/README.md").exists(), "mint folder")
     check((PKG / "contents/ui/layouts/LayoutMint.qml").exists(), "mint layout entry")
     check((PKG / "contents/ui/layouts/whisker/README.md").exists(), "whisker folder")
@@ -202,6 +182,7 @@ def main() -> int:
         "AppDetailsDialog.qml",
         "ShortcutRow.qml", "PlacesSidebar.qml", "SessionButtons.qml", "AllAppsButton.qml",
         "PinnedAppsList.qml", "VirtualizedAppList.qml",
+        "LayoutSearchField.qml", "LayoutAppGrid.qml", "LayoutAppList.qml",
     ]
     for c in components:
         check((PKG / "contents/ui/components" / c).exists(), f"component: {c}")
@@ -221,10 +202,22 @@ def main() -> int:
 
     layout_base = (PKG / "contents/ui/layouts/LayoutBase.qml").read_text(encoding="utf-8")
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
-    check("Components.VirtualizedAppList" in layout_base, "shared all-layout app preloader")
+    check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("Components.VirtualizedAppList" in apps_page, "apps page uses shared virtualized list")
 
+    layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
+    config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
+    check("switch (layoutId)" not in layout_preview, "preview kind comes from registry")
+    check("Math.min(width, height)" not in layout_preview, "preview margins avoid size binding loops")
+    check("catBlock.expanded ? catBlock.catLayouts.length : 0" in config_layout,
+          "collapsed layout categories stay lazy")
+    check('id !== "raven"' not in config_layout, "no layout-id sizing special case in config")
+    check("isRavenLayout" not in main_qml, "no layout-id sizing special case at runtime")
+    check('MenuLayoutId === "gnome"' in main_qml
+          and 'MenuLayoutId = "budgie"' in main_qml,
+          "legacy GNOME layout migrates to Budgie")
+
     for needle in ["Keys.onPressed", "Plasmoid.onActivated", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
         check(needle in main_qml, f"main.qml contains {needle}")
 

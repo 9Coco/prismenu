@@ -60,9 +60,10 @@ Item {
     readonly property bool shortcutIconsSymbolic: !menuData || menuData.shortcutIconsSymbolic
     readonly property bool flip: menuData ? menuData.flipHorizontal : false
     /** Layout default when SearchbarLocation was never changed (global config
-     * default is "bottom"): upstream brisk/budgie/gnome/mint/whisker show the
+     * default is "bottom"): upstream brisk/budgie/mint/whisker show the
      * search bar on top. Layouts override this to true. */
-    property bool defaultSearchOnTop: false
+    property bool defaultSearchOnTop: !!(menuData && menuData.layoutInfo
+        && menuData.layoutInfo.searchbarDefaultTop)
     readonly property bool searchOnTop: {
         if (menuData && menuData.searchbarLocationUserSet)
             return menuData.searchbarLocation !== "bottom";
@@ -174,6 +175,12 @@ Item {
         return out;
     }
 
+    readonly property var standardCategoryIds: [
+        "Office", "Development", "Accessories", "Utility",
+        "Network", "Graphics", "System"
+    ]
+    readonly property var standardCategories: root.categorySubset(root.standardCategoryIds)
+
     function appsModel() {
         if (!menuData) {
             return [];
@@ -225,22 +232,13 @@ Item {
     // Every layout inherits one off-screen virtualized viewport. It prepares
     // the shared delegate type and first application icons while the desktop is
     // idle, so layouts do not each maintain their own cold-start workaround.
-    Components.VirtualizedAppList {
+    Components.LayoutAppList {
         id: sharedAppListPreloader
+        layoutRoot: root
         anchors.fill: parent
         z: -3
         opacity: 0
         enabled: false
         items: root.allApplications
-        menuData: root.menuData
-        iconSize: root.appIconSize
-        showDescription: root.showAppDescriptions
-        showGenericNames: root.showGenericNames
-        multiLineLabels: root.multiLineLabels
-        selectedBg: root.selectedBg
-        selectedFg: root.selectedFg
-        hoverBg: root.hoverBg
-        hoverFg: root.hoverFg
-        fg: root.fg
     }
 }

@@ -103,15 +103,22 @@ PlasmoidItem {
      */
     property alias catalog: menuData
 
-    readonly property bool isRavenLayout: (plasmoid.configuration.MenuLayoutId || "") === "raven"
-    // Raven: fill vertical desktop space (panel-reserved area excluded when available)
-    readonly property int ravenFillHeight: {
+    readonly property var currentLayoutInfo: LayoutRegistry.getLayout(
+        plasmoid.configuration.MenuLayoutId || "arcmenu")
+    readonly property bool layoutFillsAvailableHeight: currentLayoutInfo
+        && currentLayoutInfo.heightPolicy === "available"
+    readonly property int availableLayoutHeight: {
         var h = Screen.desktopAvailableHeight;
         if (!h || h < 400)
             h = Screen.height;
-        return LayoutRegistry.clampSize(h, 400, 1400, 900);
+        var maxH = (root.currentLayoutInfo && root.currentLayoutInfo.maxHeight)
+            ? root.currentLayoutInfo.maxHeight : 800;
+        var fallbackH = (root.currentLayoutInfo && root.currentLayoutInfo.defaultHeight)
+            ? root.currentLayoutInfo.defaultHeight : 540;
+        return LayoutRegistry.clampSize(h, 400, maxH, fallbackH);
     }
-    readonly property int effectiveMenuHeight: root.isRavenLayout ? root.ravenFillHeight : menuData.menuHeight
+    readonly property int effectiveMenuHeight: root.layoutFillsAvailableHeight
+        ? root.availableLayoutHeight : menuData.menuHeight
 
     MenuData {
         id: menuData
@@ -720,9 +727,10 @@ PlasmoidItem {
             z: 40
             menuData: root.catalog
             sideWidth: fullRep.hostSideWidth
-            maxHeight: root.isRavenLayout ? 1400 : 800
-            // Raven fills the screen vertically — width only
-            resizeHeight: !root.isRavenLayout
+            maxHeight: (root.currentLayoutInfo && root.currentLayoutInfo.maxHeight)
+                ? root.currentLayoutInfo.maxHeight : 800
+            resizeHeight: !root.currentLayoutInfo
+                || root.currentLayoutInfo.resizableHeight !== false
         }
 
         Components.AppContextMenu {
@@ -823,6 +831,11 @@ PlasmoidItem {
     Plasmoid.contextualActions: []
 
     Component.onCompleted: {
+        // GNOME used to duplicate Budgie. Keep existing installations valid
+        // after removing it from the registry and package.
+        if (plasmoid.configuration.MenuLayoutId === "gnome")
+            plasmoid.configuration.MenuLayoutId = "budgie";
+
         // Keep Configure / Remove / Alternatives available in panel edit mode.
         var restore = ["remove", "alternatives", "configure"];
         for (var i = 0; i < restore.length; ++i) {

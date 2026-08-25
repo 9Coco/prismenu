@@ -13,12 +13,10 @@ LayoutBase {
         anchors.margins: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.largeSpacing
 
-        Components.SearchField {
+        Components.LayoutSearchField {
+            layoutRoot: root
             Layout.fillWidth: true
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-            text: menuData ? menuData.searchQuery : ""
-            onTextChanged: if (menuData) menuData.setSearch(text)
         }
 
         PlasmaComponents.Label {
@@ -49,7 +47,8 @@ LayoutBase {
             color: root.fg
         }
 
-        Components.AppGrid {
+        Components.LayoutAppGrid {
+            layoutRoot: root
             Layout.fillWidth: true
             Layout.fillHeight: true
             items: root.appsModel()
@@ -62,8 +61,6 @@ LayoutBase {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             fg: root.fg
-            onAppActivated: (app) => root.activateItem(app)
-            onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
     }
 

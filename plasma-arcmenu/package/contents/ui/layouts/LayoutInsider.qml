@@ -160,18 +160,17 @@ LayoutBase {
                 }
             }
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
 
             Item {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Components.AppGrid {
+                Components.LayoutAppGrid {
+                    layoutRoot: root
                     anchors.fill: parent
                     items: root.gridItems
                     columns: root.gridColumns
@@ -184,10 +183,6 @@ LayoutBase {
                     hoverBg: root.hoverBg
                     hoverFg: root.hoverFg
                     fg: root.fg
-                    onAppActivated: (app) => root.activateItem(app)
-                    onContextMenuRequested: (app, x, y) => {
-                        if (app && !app.action) root.appContextMenu(app, x, y);
-                    }
                 }
 
                 PlasmaComponents.Label {
