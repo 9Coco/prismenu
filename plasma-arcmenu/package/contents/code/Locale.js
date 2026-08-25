@@ -508,7 +508,7 @@ var ZH_CN = {
     "Search bar location:": "搜索栏位置：",
     "Top": "顶部",
     "Bottom": "底部",
-    "A feature-rich Plasma application menu with 14 switchable layouts, deep appearance customization, favorites, recent apps, Plasma Search integration, and system actions. Designed for Kubuntu and other Plasma desktops.": "功能丰富的 Plasma 应用菜单，支持多种可切换布局、深度外观自定义、收藏、最近应用、Plasma 搜索集成与系统操作。面向 Kubuntu 及其他 Plasma 桌面。",
+    "A customizable, daily-use Plasma 6 application menu with switchable layouts, deep appearance customization, favorites, recent apps, Plasma Search integration, and system actions. Maintained for long-term use on Kubuntu and other Plasma desktops.": "面向日常使用、可深度自定义的 Plasma 6 应用菜单，支持多种可切换布局、收藏、最近应用、Plasma 搜索集成与系统操作。面向 Kubuntu 及其他 Plasma 桌面长期维护。",
     "Links": "链接",
     "Inspired by the Arc Menu project for GNOME Shell and the layout diversity of traditional Linux/Windows start menus. Built on KDE Frameworks, Plasma, Kirigami, and KService.": "灵感来自 GNOME Shell 的 Arc Menu 项目，以及传统 Linux/Windows 开始菜单的布局多样性。基于 KDE Frameworks、Plasma、Kirigami 与 KService 构建。"
 };
