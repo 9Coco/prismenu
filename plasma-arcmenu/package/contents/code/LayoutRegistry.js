@@ -2,7 +2,9 @@
 
 /**
  * Registry of all Arc Menu layouts and their capabilities.
- * Categories align with GNOME ArcMenu: traditional / modern / touch / launcher / alternative
+ * Categories describe the platform/style family a menu comes from. They are
+ * independent from ArcMenu's historical layout-type grouping so layouts from
+ * other desktop and mobile ecosystems can be added cleanly.
  */
 
 var LAYOUTS = [
@@ -10,7 +12,7 @@ var LAYOUTS = [
         id: "arcmenu",
         name: "Arc Menu",
         description: "Official ArcMenu layout (pinned + places)",
-        category: "traditional",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -27,7 +29,7 @@ var LAYOUTS = [
         id: "brisk",
         name: "Brisk",
         description: "Solus Brisk Menu (sidebar + apps)",
-        category: "traditional",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -45,7 +47,7 @@ var LAYOUTS = [
         id: "mint",
         name: "Mint",
         description: "Linux Mint Menu (icon rail + categories)",
-        category: "traditional",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -63,7 +65,7 @@ var LAYOUTS = [
         id: "whisker",
         name: "Whisker",
         description: "XFCE Whisker (user bar + categories)",
-        category: "traditional",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -81,7 +83,7 @@ var LAYOUTS = [
         id: "elementary",
         name: "Elementary",
         description: "Elementary (search + 6-column app grid)",
-        category: "touch",
+        category: "linux",
         hasCategories: false,
         hasPinned: false,
         hasSearch: true,
@@ -98,7 +100,7 @@ var LAYOUTS = [
         id: "plasma-dash",
         name: "Plasma Dash",
         description: "Plasma overview grid",
-        category: "launcher",
+        category: "linux",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -115,7 +117,7 @@ var LAYOUTS = [
         id: "plasma",
         name: "Plasma",
         description: "Plasma (header + list + bottom tabs)",
-        category: "modern",
+        category: "linux",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -132,7 +134,7 @@ var LAYOUTS = [
         id: "pop",
         name: "Pop",
         description: "Pop!_OS (search + grid + category tabs)",
-        category: "launcher",
+        category: "linux",
         hasCategories: true,
         hasPinned: false,
         hasSearch: true,
@@ -149,7 +151,7 @@ var LAYOUTS = [
         id: "unity-dash",
         name: "Unity Dash",
         description: "Ubuntu Unity style",
-        category: "launcher",
+        category: "linux",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -166,7 +168,7 @@ var LAYOUTS = [
         id: "unity",
         name: "Unity",
         description: "Unity (pinned + shortcuts + bottom places/session)",
-        category: "modern",
+        category: "linux",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -183,7 +185,7 @@ var LAYOUTS = [
         id: "redmond",
         name: "Redmond",
         description: "Windows-style (app grid + places sidebar)",
-        category: "modern",
+        category: "windows",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -200,7 +202,7 @@ var LAYOUTS = [
         id: "sleek",
         name: "Sleek",
         description: "Sleek (pinned grid + avatar sidebar + power)",
-        category: "alternative",
+        category: "other",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -217,7 +219,7 @@ var LAYOUTS = [
         id: "tognee",
         name: "Tognee",
         description: "Tognee (icon rail + categories + bottom search)",
-        category: "touch",
+        category: "other",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -234,7 +236,7 @@ var LAYOUTS = [
         id: "eleven",
         name: "Eleven",
         description: "Windows 11 (pinned grid + recommended + footer)",
-        category: "modern",
+        category: "windows",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -251,7 +253,7 @@ var LAYOUTS = [
         id: "az",
         name: "A-Z",
         description: "Compact pinned + alphabetical A–Z app list",
-        category: "alternative",
+        category: "other",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -268,7 +270,7 @@ var LAYOUTS = [
         id: "enterprise",
         name: "Enterprise",
         description: "Enterprise (user+search header, sidebar, grid)",
-        category: "alternative",
+        category: "windows",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -285,7 +287,7 @@ var LAYOUTS = [
         id: "insider",
         name: "Insider",
         description: "Insider (avatar + app grid + utility rail)",
-        category: "modern",
+        category: "windows",
         hasCategories: false,
         hasPinned: false,
         hasSearch: true,
@@ -302,7 +304,7 @@ var LAYOUTS = [
         id: "windows",
         name: "Windows",
         description: "Windows (rail + frequent/A–Z list + pinned grid)",
-        category: "modern",
+        category: "windows",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -319,7 +321,7 @@ var LAYOUTS = [
         id: "zest",
         name: "Zest",
         description: "Zest (places | categories → apps | search)",
-        category: "alternative",
+        category: "other",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -336,7 +338,7 @@ var LAYOUTS = [
         id: "chromebook",
         name: "Chromebook",
         description: "Chromebook (portrait: search + 4-column grid)",
-        category: "touch",
+        category: "chromeos",
         hasCategories: false,
         hasPinned: false,
         hasSearch: true,
@@ -353,7 +355,7 @@ var LAYOUTS = [
         id: "raven",
         name: "Raven",
         description: "Raven (full-height rail + pinned/shortcuts panel)",
-        category: "launcher",
+        category: "linux",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -373,7 +375,7 @@ var LAYOUTS = [
         id: "budgie",
         name: "Budgie",
         description: "Budgie desktop style (pinned + categories)",
-        category: "traditional",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -391,7 +393,7 @@ var LAYOUTS = [
         id: "kickoff",
         name: "Kickoff",
         description: "Plasma Kickoff tabbed style",
-        category: "alternative",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -408,7 +410,7 @@ var LAYOUTS = [
         id: "kicker",
         name: "Kicker",
         description: "Plasma Kicker cascading style",
-        category: "alternative",
+        category: "linux",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -425,7 +427,7 @@ var LAYOUTS = [
         id: "simple",
         name: "Simple",
         description: "Minimal search-focused style",
-        category: "alternative",
+        category: "other",
         hasCategories: false,
         hasPinned: false,
         hasSearch: true,
@@ -441,11 +443,12 @@ var LAYOUTS = [
 ];
 
 var CATEGORIES = [
-    { id: "traditional", name: "Traditional Menu Layouts", icon: "computer" },
-    { id: "modern", name: "Modern Menu Layouts", icon: "input-keyboard" },
-    { id: "touch", name: "Touch Menu Layouts", icon: "tablet" },
-    { id: "launcher", name: "Launcher Menu Layouts", icon: "view-grid-symbolic" },
-    { id: "alternative", name: "Alternative Menu Layouts", icon: "folder-templates" }
+    { id: "linux", name: "Linux-style Menus", icon: "start-here-kde" },
+    { id: "windows", name: "Windows-style Menus", icon: "computer" },
+    { id: "chromeos", name: "ChromeOS-style Menus", icon: "computer-laptop" },
+    // Extensibility point: empty categories remain hidden until first use.
+    { id: "android", name: "Android-style Menus", icon: "phone" },
+    { id: "other", name: "Other Menu Styles", icon: "applications-other" }
 ];
 
 function allLayouts() {
@@ -453,7 +456,10 @@ function allLayouts() {
 }
 
 function layoutCategories() {
-    return CATEGORIES.slice();
+    var used = {};
+    for (var i = 0; i < LAYOUTS.length; ++i)
+        used[LAYOUTS[i].category] = true;
+    return CATEGORIES.filter(function(category) { return !!used[category.id]; });
 }
 
 function layoutsInCategory(categoryId) {

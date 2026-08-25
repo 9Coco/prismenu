@@ -63,6 +63,11 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 
 ## Layout notes
 
+The layout picker groups menus by their source platform rather than ArcMenu's
+historical interaction-style categories. Current groups are Linux, Windows,
+ChromeOS, and original/other styles; Android is registered as a future source
+family and appears automatically when its first layout is added.
+
 | Layout | Style |
 |--------|-------|
 | `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
