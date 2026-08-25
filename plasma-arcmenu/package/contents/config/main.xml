@@ -89,7 +89,7 @@
             <default>bottom</default>
         </entry>
         <!-- false until the user changes SearchbarLocation; lets layouts fall
-             back to their own default (upstream: brisk/gnome/… search on top) -->
+             back to their own default (upstream: brisk/budgie/… search on top) -->
         <entry name="SearchbarLocationUserSet" type="Bool">
             <default>false</default>
         </entry>

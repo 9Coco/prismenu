@@ -14,7 +14,7 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+    readonly property var categories: root.standardCategories
 
     // Home shows category nav (matches reference). Drill-in shows apps.
     property bool showingApps: false
@@ -320,15 +320,9 @@ LayoutBase {
                 }
             }
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: {
-                    if (menuData) menuData.setSearch(text);
-                    if (!(text && text.length) && root.showingApps === false)
-                        return;
-                }
             }
         }
     }

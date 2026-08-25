@@ -13,11 +13,10 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+    readonly property var categories: root.standardCategories
 
     property string mintSelectedId: "pinned"
     activeNavId: mintSelectedId
-    defaultSearchOnTop: true
 
 
     // Top group: places / shortcuts — upstream mint-layout-extra-shortcuts
@@ -43,24 +42,6 @@ LayoutBase {
 
 
 
-
-    function activateItem(item) {
-        if (!item || item.isSection)
-            return;
-        if (item.action === "configure") {
-            if (menuData) menuData.requestConfigure();
-            return;
-        }
-        if (item.action) {
-            root.powerAction(item.action);
-            return;
-        }
-        if (item.exec) {
-            root.appActivated(item);
-            return;
-        }
-        root.appActivated(item);
-    }
 
     /** Upstream extra-categories: user-configurable sidebar entries
      * (pinned / all-apps / favorites / frequent / recent-files). */
@@ -169,12 +150,10 @@ LayoutBase {
             Layout.fillHeight: true
             spacing: Kirigami.Units.smallSpacing
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
                 visible: root.searchOnTop
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
 
             Kirigami.Separator {
@@ -322,12 +301,10 @@ LayoutBase {
                 opacity: 0.5
             }
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
                 visible: !root.searchOnTop
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
         }
     }

@@ -15,18 +15,19 @@ LayoutBase {
         anchors.margins: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        Components.SearchField {
+        Components.LayoutSearchField {
+            layoutRoot: root
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-            text: menuData ? menuData.searchQuery : ""
-            onTextChanged: if (menuData) menuData.setSearch(text)
         }
 
         Components.PinnedAppsGrid {
             visible: !root.searching && pinnedModel.count > 0
             Layout.fillWidth: true
-            // Fit the actual rows (capped at 2) instead of a fixed strip
-            Layout.preferredHeight: visible ? Math.min(contentHeight, cellHeight * 2) : 0
+            // Fit the actual rows (capped at 2) without feeding GridView's
+            // height-dependent contentHeight back into the parent layout.
+            Layout.preferredHeight: visible
+                ? cellHeight * Math.min(2, Math.ceil(count / Math.max(1, columns)))
+                : 0
             columns: menuData ? menuData.pinnedCols : 6
             iconSize: Math.max(48, root.appIconSize + 24)
             model: pinnedModel
@@ -44,7 +45,8 @@ LayoutBase {
             opacity: 0.4
         }
 
-        Components.AppGrid {
+        Components.LayoutAppGrid {
+            layoutRoot: root
             Layout.fillWidth: true
             Layout.fillHeight: true
             items: root.gridItems
@@ -57,8 +59,6 @@ LayoutBase {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             fg: root.fg
-            onAppActivated: (app) => root.activateItem(app)
-            onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
         }
 
         PlasmaComponents.Label {

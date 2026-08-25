@@ -263,9 +263,6 @@ msgstr "使用 Arc Menu 布局"
 msgid "Use Budgie layout"
 msgstr "使用 Budgie 布局"
 
-msgid "Use GNOME layout"
-msgstr "使用 GNOME 布局"
-
 msgid "Use Mint layout"
 msgstr "使用 Mint 布局"
 
@@ -394,4 +391,3 @@ msgstr "启动器菜单布局"
 
 msgid "Alternative Menu Layouts"
 msgstr "选择菜单布局"
-

@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../../code/LayoutRegistry.js" as LayoutRegistry
 
 /**
  * Schematic layout preview matching each real menu layout.
@@ -18,38 +19,9 @@ Item {
     readonly property color ink: Qt.rgba(lineColor.r, lineColor.g, lineColor.b, lineOpacity)
     readonly property color inkSoft: Qt.rgba(lineColor.r, lineColor.g, lineColor.b, lineOpacity * 0.5)
 
-    readonly property string previewKind: {
-        switch (layoutId) {
-        case "arcmenu": return "arcmenu";
-        case "brisk": return "brisk";
-        case "budgie": return "budgie";
-        case "gnome": return "gnome";
-        case "mint":
-        case "tognee": return "mint";
-        case "whisker": return "whisker";
-        case "elementary":
-        case "chromebook":
-        case "plasma-dash":
-        case "unity-dash": return "searchGrid";
-        case "pop": return "pop";
-        case "plasma":
-        case "unity":
-        case "kickoff": return "plasma";
-        case "redmond":
-        case "sleek": return "redmond";
-        case "eleven": return "eleven";
-        case "az": return "az";
-        case "insider": return "insider";
-        case "enterprise":
-        case "zest": return "enterprise";
-        case "windows": return "windows";
-        case "raven": return "raven";
-        case "kicker":
-        case "simple":
-        case "runner": return "runner";
-        default: return "brisk";
-        }
-    }
+    readonly property var layoutInfo: LayoutRegistry.getLayout(layoutId)
+    readonly property string previewKind: (layoutInfo && layoutInfo.previewKind)
+        ? layoutInfo.previewKind : "brisk"
 
     component InkIcon: Kirigami.Icon {
         property int size: 8
@@ -148,7 +120,10 @@ Item {
     Rectangle {
         id: frame
         anchors.fill: parent
-        anchors.margins: Math.max(2, Math.round(Math.min(width, height) * 0.04))
+        // Do not derive margins from this item's own layout-managed size.
+        // That feeds width/height back into ColumnLayout and produced one
+        // binding loop per preview card while switching layouts.
+        anchors.margins: Math.max(2, Kirigami.Units.smallSpacing / 2)
         radius: 3
         color: "transparent"
         border.width: 1.5
@@ -360,63 +335,6 @@ Item {
                     model: 6
                     AppRow {
                         rowWidth: budgieApps.width
-                        dual: true
-                    }
-                }
-            }
-        }
-
-        // ===================== GNOME =====================
-        // Budgie style: search top | category sidebar | app content
-        Item {
-            anchors.fill: parent
-            anchors.margins: 5
-            visible: root.previewKind === "gnome"
-
-            Rectangle {
-                id: gnomeSearch
-                height: parent.height * 0.12
-                width: parent.width
-                anchors.top: parent.top
-                radius: 2
-                color: "transparent"
-                border.width: 1
-                border.color: root.ink
-                InkIcon {
-                    anchors.left: parent.left
-                    anchors.leftMargin: 3
-                    anchors.verticalCenter: parent.verticalCenter
-                    source: "search"
-                    size: 7
-                }
-            }
-
-            Column {
-                id: gnomeCats
-                anchors.left: parent.left
-                anchors.top: gnomeSearch.bottom
-                anchors.topMargin: 3
-                anchors.bottom: parent.bottom
-                width: parent.width * 0.38
-                spacing: Math.max(2, height / 28)
-                Repeater {
-                    model: 6
-                    CatRow { rowWidth: gnomeCats.width }
-                }
-            }
-
-            Column {
-                id: gnomeApps
-                anchors.right: parent.right
-                anchors.top: gnomeSearch.bottom
-                anchors.topMargin: 3
-                anchors.bottom: parent.bottom
-                width: parent.width * 0.56
-                spacing: Math.max(2, height / 24)
-                Repeater {
-                    model: 5
-                    AppRow {
-                        rowWidth: gnomeApps.width
                         dual: true
                     }
                 }

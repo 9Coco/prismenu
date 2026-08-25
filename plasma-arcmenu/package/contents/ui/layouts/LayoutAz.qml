@@ -53,12 +53,10 @@ LayoutBase {
         anchors.margins: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        Components.SearchField {
+        Components.LayoutSearchField {
+            layoutRoot: root
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-            text: menuData ? menuData.searchQuery : ""
             onTextChanged: {
-                if (menuData) menuData.setSearch(text);
                 if (text && text.length)
                     root.showAllApps = false;
             }
@@ -184,24 +182,12 @@ LayoutBase {
                 }
             }
 
-            Components.VirtualizedAppList {
+            Components.LayoutAppList {
+                layoutRoot: root
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 items: root.searching ? root.searchItems : root.allApplicationRows
-                menuData: root.menuData
                 iconSize: Math.max(root.appIconSize, 24)
-                showDescription: root.showAppDescriptions
-                showGenericNames: root.showGenericNames
-                multiLineLabels: root.multiLineLabels
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                hoverBg: root.hoverBg
-                hoverFg: root.hoverFg
-                fg: root.fg
-                onAppActivated: (app) => root.activateItem(app)
-                onAppContextMenu: (app, x, y) => {
-                    if (app && !app.action) root.appContextMenu(app, x, y);
-                }
             }
 
             PlasmaComponents.Label {

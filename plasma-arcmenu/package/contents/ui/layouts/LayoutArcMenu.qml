@@ -267,13 +267,10 @@ LayoutBase {
             Layout.minimumWidth: Kirigami.Units.gridUnit * 8
             spacing: Kirigami.Units.smallSpacing
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
                 visible: root.searchOnTop
-                menuData: root.menuData
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
 
             Item {
@@ -296,9 +293,9 @@ LayoutBase {
                     }
 
                     Components.PinnedAppsList {
+                        menuData: root.menuData
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        menuData: root.menuData
                         apps: menuData ? menuData.pinnedApps : []
                         iconSize: Math.max(root.appIconSize, 28)
                         selectedBg: root.selectedBg
@@ -359,10 +356,10 @@ LayoutBase {
 
             Components.AllAppsButton {
                 id: allAppsBtn
+                menuData: root.menuData
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
                 z: 2
-                menuData: root.menuData
                 iconSize: Math.max(root.appIconSize, 24)
                 showBack: root.activePageId === "apps" || root.activePageId === "search"
                 highlighted: false
@@ -379,13 +376,10 @@ LayoutBase {
                 }
             }
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
                 visible: !root.searchOnTop
-                menuData: root.menuData
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
         }
 
@@ -421,9 +415,9 @@ LayoutBase {
             spacing: Kirigami.Units.smallSpacing
 
             Components.PlacesSidebar {
+                menuData: root.menuData
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                menuData: root.menuData
                 iconSize: root.shortcutIconSize
                 selectedBg: root.selectedBg
                 selectedFg: root.selectedFg
@@ -440,10 +434,10 @@ LayoutBase {
 
             // ArcMenu power-display-style: buttons (default) | list
             Components.SessionButtons {
+                menuData: root.menuData
                 Layout.fillWidth: true
                 Layout.alignment: Qt.AlignHCenter
                 visible: !menuData || menuData.powerDisplayStyle !== "list"
-                menuData: root.menuData
                 iconSize: root.buttonIconSize
                 enabledOptions: root.powerOptions
                 onActionRequested: (id) => root.powerAction(id)

@@ -1,12 +1,12 @@
 # Arc Menu for KDE Plasma
 
-A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **26 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
+A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **25 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
 
 The project is intended to be a dependable replacement for Plasma's default application launchers, not only a collection of visual layout recreations. It uses Plasma's native application stack and keeps layouts, shared behavior, and configuration separated so the menu can continue to evolve with Plasma 6.
 
 ## Features
 
-- **26 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, GNOME, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Raven, Budgie, Kickoff, Kicker, Simple
+- **25 layouts**: Arc Menu, Brisk, Mint, Whisker, Elementary, Plasma, Plasma Dash, Pop, Unity Dash, Unity, Redmond (Win7), Sleek, Tognee, Eleven (Win11), A-Z, Enterprise, Insider, Windows, Zest, Chromebook, Raven, Budgie, Kickoff, Kicker, Simple
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications via **Plasma Kicker** (`org.kde.plasma.private.kicker` → `RootModel` / KService) — same stack as Kickoff
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
@@ -68,7 +68,6 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
 | `brisk` | Solus Brisk (search top, category sidebar left, apps right, session bottom) |
 | `budgie` | Budgie style (search top, pinned/all/categories left, apps right) |
-| `gnome` | GNOME style (like Budgie: search top, category sidebar left, apps right) |
 | `mint` | Linux Mint (left icon rail + categories + pinned) |
 | `whisker` | XFCE Whisker (user bar + categories + pinned) |
 | `eleven` | Windows 11 (pinned grid + recommended + footer) |
@@ -86,7 +85,7 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 | `sleek` | Sleek (pinned grid + avatar sidebar + single power) |
 | `tognee` | Tognee (icon rail + categories + bottom search) |
 | `kickoff` / `kicker` | Plasma native styles |
-| `whisker` / `mint` / `brisk` / `budgie` / `gnome` | Traditional Linux menus |
+| `whisker` / `mint` / `brisk` / `budgie` | Traditional Linux menus |
 | `chromebook` / `elementary` / `plasma-dash` / `unity-dash` / `simple` | Grid / minimal |
 | `unity` | Unity compact (pinned + shortcuts + bottom places/session) |
 
@@ -117,7 +116,10 @@ plasma-arcmenu/
 └── COPYING                  # GPL-2.0-or-later
 ```
 
-**Architecture note:** all selectable layouts inherit `ui/layouts/LayoutBase.qml`, which owns the shared application-catalog projections and the idle-time first-viewport preloader. Full-catalog sorting and A–Z grouping are computed once in `MenuData.qml`; layouts consume `allApplications`, `allApplicationSections`, or `allApplicationRows` instead of rebuilding them. Full-catalog switch views use `ui/components/VirtualizedAppList.qml` or the shared `AppGrid.qml`; layouts remain responsible for navigation state, chrome, and visual composition.
+**Architecture note:** `code/LayoutRegistry.js` is the single source of layout metadata, including the QML source, preview kind, capabilities, defaults, and sizing policy. All selectable layouts inherit `ui/layouts/LayoutBase.qml`, which owns shared catalog projections, activation behavior, standard categories, and idle-time preloading. Layouts use `LayoutSearchField`, `LayoutAppList`, and `LayoutAppGrid` to inherit data/theme/event wiring while remaining responsible for navigation state, chrome, sizing, and visual composition. Full-catalog sorting and A–Z grouping are computed once in `MenuData.qml`.
+
+To add a normal layout, create `ui/layouts/LayoutName.qml` inheriting `LayoutBase`, then add one metadata object to `LayoutRegistry.js`. The settings preview and structural checks discover the new layout from that object; they do not maintain separate layout-ID lists.
+
 ## Development checks
 
 ```bash
