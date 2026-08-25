@@ -14,11 +14,10 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+    readonly property var categories: root.standardCategories
 
     property string whiskerSelectedId: "pinned"
     activeNavId: whiskerSelectedId
-    defaultSearchOnTop: true
 
 
     readonly property var sessionActions: [
@@ -62,11 +61,9 @@ LayoutBase {
         anchors.margins: Kirigami.Units.largeSpacing
         spacing: Kirigami.Units.smallSpacing
 
-        Components.SearchField {
+        Components.LayoutSearchField {
+            layoutRoot: root
             Layout.fillWidth: true
-            placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-            text: menuData ? menuData.searchQuery : ""
-            onTextChanged: if (menuData) menuData.setSearch(text)
         }
 
         // User + session header (Whisker hallmark)

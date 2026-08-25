@@ -15,7 +15,7 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.categorySubset(["Office", "Development", "Accessories", "Utility", "Network", "Graphics", "System"])
+    readonly property var categories: root.standardCategories
 
     property string enterpriseSelectedId: "pinned"
     activeNavId: enterpriseSelectedId
@@ -96,11 +96,9 @@ LayoutBase {
                 }
             }
 
-            Components.SearchField {
+            Components.LayoutSearchField {
+                layoutRoot: root
                 Layout.fillWidth: true
-                placeholder: menuData ? menuData.searchPlaceholder : root.tr("Search…")
-                text: menuData ? menuData.searchQuery : ""
-                onTextChanged: if (menuData) menuData.setSearch(text)
             }
         }
 
@@ -185,7 +183,7 @@ LayoutBase {
                 }
 
                 Components.SessionButtons {
-                menuData: root.menuData
+                    menuData: root.menuData
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignLeft
                     enabledOptions: ["logout", "lock", "restart", "shutdown"]

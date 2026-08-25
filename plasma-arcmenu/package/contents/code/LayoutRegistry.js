@@ -20,6 +20,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: true,
         defaultWidth: 620,
         defaultHeight: 540,
+        previewKind: "arcmenu",
         source: "layouts/LayoutArcMenu.qml"
     },
     {
@@ -36,6 +37,8 @@ var LAYOUTS = [
         supportsSearchbarLocation: true,
         defaultWidth: 580,
         defaultHeight: 560,
+        searchbarDefaultTop: true,
+        previewKind: "brisk",
         source: "layouts/LayoutBrisk.qml"
     },
     {
@@ -52,6 +55,8 @@ var LAYOUTS = [
         supportsSearchbarLocation: true,
         defaultWidth: 640,
         defaultHeight: 540,
+        searchbarDefaultTop: true,
+        previewKind: "mint",
         source: "layouts/LayoutMint.qml"
     },
     {
@@ -68,6 +73,8 @@ var LAYOUTS = [
         supportsSearchbarLocation: true,
         defaultWidth: 560,
         defaultHeight: 520,
+        searchbarDefaultTop: true,
+        previewKind: "whisker",
         source: "layouts/LayoutWhisker.qml"
     },
     {
@@ -84,23 +91,8 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "searchGrid",
         source: "layouts/LayoutElementary.qml"
-    },
-    {
-        id: "gnome",
-        name: "GNOME",
-        description: "GNOME style (pinned + categories)",
-        category: "traditional",
-        hasCategories: true,
-        hasPinned: true,
-        hasSearch: true,
-        hasUser: false,
-        hasPower: false,
-        supportsFlip: true,
-        supportsSearchbarLocation: true,
-        defaultWidth: 560,
-        defaultHeight: 540,
-        source: "layouts/LayoutGnome.qml"
     },
     {
         id: "plasma-dash",
@@ -116,6 +108,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "searchGrid",
         source: "layouts/LayoutPlasmaDash.qml"
     },
     {
@@ -132,6 +125,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 420,
         defaultHeight: 560,
+        previewKind: "plasma",
         source: "layouts/LayoutPlasma.qml"
     },
     {
@@ -148,6 +142,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "pop",
         source: "layouts/LayoutPop.qml"
     },
     {
@@ -164,6 +159,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "searchGrid",
         source: "layouts/LayoutUnityDash.qml"
     },
     {
@@ -180,6 +176,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 420,
         defaultHeight: 560,
+        previewKind: "plasma",
         source: "layouts/LayoutUnity.qml"
     },
     {
@@ -196,6 +193,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "redmond",
         source: "layouts/LayoutRedmond.qml"
     },
     {
@@ -212,6 +210,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 640,
         defaultHeight: 560,
+        previewKind: "redmond",
         source: "layouts/LayoutSleek.qml"
     },
     {
@@ -228,6 +227,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 420,
         defaultHeight: 560,
+        previewKind: "mint",
         source: "layouts/LayoutTognee.qml"
     },
     {
@@ -244,6 +244,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 680,
         defaultHeight: 620,
+        previewKind: "eleven",
         source: "layouts/LayoutEleven.qml"
     },
     {
@@ -260,6 +261,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 520,
         defaultHeight: 560,
+        previewKind: "az",
         source: "layouts/LayoutAz.qml"
     },
     {
@@ -276,6 +278,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "enterprise",
         source: "layouts/LayoutEnterprise.qml"
     },
     {
@@ -292,6 +295,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 560,
         defaultHeight: 640,
+        previewKind: "insider",
         source: "layouts/LayoutInsider.qml"
     },
     {
@@ -308,6 +312,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "windows",
         source: "layouts/LayoutWindows.qml"
     },
     {
@@ -324,6 +329,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 720,
         defaultHeight: 560,
+        previewKind: "enterprise",
         source: "layouts/LayoutZest.qml"
     },
     {
@@ -340,6 +346,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 420,
         defaultHeight: 620,
+        previewKind: "searchGrid",
         source: "layouts/LayoutChromebook.qml"
     },
     {
@@ -356,6 +363,10 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 460,
         defaultHeight: 900,
+        previewKind: "raven",
+        heightPolicy: "available",
+        maxHeight: 1400,
+        resizableHeight: false,
         source: "layouts/LayoutRaven.qml"
     },
     {
@@ -372,6 +383,8 @@ var LAYOUTS = [
         supportsSearchbarLocation: true,
         defaultWidth: 560,
         defaultHeight: 520,
+        searchbarDefaultTop: true,
+        previewKind: "budgie",
         source: "layouts/LayoutBudgie.qml"
     },
     {
@@ -388,6 +401,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 600,
         defaultHeight: 540,
+        previewKind: "plasma",
         source: "layouts/LayoutKickoff.qml"
     },
     {
@@ -404,6 +418,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 320,
         defaultHeight: 480,
+        previewKind: "runner",
         source: "layouts/LayoutKicker.qml"
     },
     {
@@ -420,6 +435,7 @@ var LAYOUTS = [
         supportsSearchbarLocation: false,
         defaultWidth: 480,
         defaultHeight: 420,
+        previewKind: "runner",
         source: "layouts/LayoutSimple.qml"
     }
 ];
@@ -483,16 +499,8 @@ function supportsOption(layoutId, option) {
  * "Top" for them). The global config default is "bottom" (ArcMenu layout), so
  * an untouched value must fall back to the per-layout default. */
 function searchbarDefaultsToTop(layoutId) {
-    switch (layoutId) {
-    case "brisk":
-    case "mint":
-    case "whisker":
-    case "gnome":
-    case "budgie":
-        return true;
-    default:
-        return false;
-    }
+    var layout = getLayout(layoutId);
+    return !!(layout && layout.searchbarDefaultTop);
 }
 
 function clampSize(value, min, max, fallback) {

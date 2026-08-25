@@ -52,8 +52,8 @@ Item {
             cfg_RightPanelWidth = 220;
             cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - 220 - 24);
             cfg_WidthOffset = 0;
-            // Raven fills height at runtime — do not pollute shared MenuHeight with 800/900.
-            if (id !== "raven") {
+            // Layouts using the available desktop height own runtime height.
+            if (meta.heightPolicy !== "available") {
                 var h = meta.defaultHeight;
                 if (h > 800)
                     h = 800;
@@ -68,7 +68,7 @@ Item {
             plasmoid.configuration.MenuLayoutId = id;
             if (meta) {
                 plasmoid.configuration.MenuWidth = meta.defaultWidth;
-                if (id !== "raven")
+                if (meta.heightPolicy !== "available")
                     plasmoid.configuration.MenuHeight = cfg_MenuHeight;
                 plasmoid.configuration.SidebarWidth = 220;
                 plasmoid.configuration.CategoryColumnWidth = 220;
@@ -282,7 +282,10 @@ Item {
                                 visible: catBlock.expanded
 
                                 Repeater {
-                                    model: catBlock.catLayouts.length
+                                    // A hidden Flow still lets Repeater instantiate every
+                                    // delegate. Keep collapsed categories genuinely lazy so
+                                    // their heavyweight schematic previews do not block clicks.
+                                    model: catBlock.expanded ? catBlock.catLayouts.length : 0
 
                                     Rectangle {
                                         id: card
@@ -367,7 +370,7 @@ Item {
                     model: [root.tr("Top"), root.tr("Bottom")]
                     Component.onCompleted: {
                         // Never changed → the layout's own default (upstream:
-                        // brisk/gnome/budgie/mint/whisker search on top)
+                        // brisk/budgie/mint/whisker search on top)
                         var onTop = cfg_SearchbarLocationUserSet
                             ? cfg_SearchbarLocation !== "bottom"
                             : LayoutRegistry.searchbarDefaultsToTop(cfg_MenuLayoutId);
@@ -410,8 +413,10 @@ Item {
     }
 
     Connections {
-        target: plasmoid.configuration
+        target: (plasmoid && plasmoid.configuration) ? plasmoid.configuration : null
         function onMenuLayoutIdChanged() {
+            if (!plasmoid || !plasmoid.configuration)
+                return;
             cfg_MenuLayoutId = plasmoid.configuration.MenuLayoutId || cfg_MenuLayoutId;
             var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId);
             if (meta)
