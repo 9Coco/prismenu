@@ -484,159 +484,199 @@ Item {
             visible: !root.showingCategories
         }
 
-        // Category list
-        Flickable {
+        // Both views share the same geometry. Keeping them instantiated and
+        // switching opacity avoids a cold layout/delegate pass on first use.
+        Item {
+            id: contentStack
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            contentWidth: width
-            contentHeight: catColumn.height
-            visible: root.showingCategories
-            boundsBehavior: Flickable.StopAtBounds
-            flickableDirection: Flickable.VerticalFlick
 
-            Column {
-                id: catColumn
-                width: parent.width
-                spacing: 0
+            // Category list
+            Flickable {
+                anchors.fill: parent
+                clip: true
+                contentWidth: width
+                contentHeight: catColumn.height
+                visible: true
+                opacity: root.showingCategories ? 1 : 0
+                enabled: root.showingCategories
+                z: enabled ? 1 : 0
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
 
-                Repeater {
-                    model: root.categoryItems.length
+                Column {
+                    id: catColumn
+                    width: parent.width
+                    spacing: 0
 
-                    Item {
-                        id: catDel
-                        required property int index
-                        readonly property var cat: root.categoryItems[index]
-                        readonly property bool isSep: !!(catDel.cat && catDel.cat.separator)
-                        visible: !!(catDel.cat && (catDel.cat.separator || catDel.cat.name))
-                        width: catColumn.width
-                        height: {
-                            if (!visible)
-                                return 0;
-                            if (catDel.isSep)
-                                return Kirigami.Units.smallSpacing * 3;
-                            return Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1);
-                        }
+                    Repeater {
+                        model: root.categoryItems.length
 
-                        Kirigami.Separator {
-                            visible: catDel.isSep
-                            anchors.left: parent.left
-                            anchors.right: parent.right
-                            anchors.verticalCenter: parent.verticalCenter
-                            anchors.leftMargin: Kirigami.Units.smallSpacing
-                            anchors.rightMargin: Kirigami.Units.smallSpacing
-                            opacity: 0.45
-                        }
-
-                        Rectangle {
-                            visible: !catDel.isSep
-                            anchors.fill: parent
-                            anchors.margins: 1
-                            radius: Kirigami.Units.smallSpacing
-                            color: catMouse.containsMouse ? root.hoverBg : "transparent"
-                        }
-
-                        RowLayout {
-                            visible: !catDel.isSep
-                            anchors.fill: parent
-                            anchors.leftMargin: Kirigami.Units.smallSpacing
-                            anchors.rightMargin: Kirigami.Units.smallSpacing
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Components.ResolvedIcon {
-                                iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
-                                tintColor: catMouse.containsMouse ? root.hoverFg : root.fg
-                                preferSymbolic: !(root.dataHost) || root.dataHost.categoryIconsSymbolic !== false
-                                Layout.preferredWidth: root.categoryIconSize
-                                Layout.preferredHeight: root.categoryIconSize
+                        Item {
+                            id: catDel
+                            required property int index
+                            readonly property var cat: root.categoryItems[index]
+                            readonly property bool isSep: !!(catDel.cat && catDel.cat.separator)
+                            visible: !!(catDel.cat && (catDel.cat.separator || catDel.cat.name))
+                            width: catColumn.width
+                            height: {
+                                if (!visible)
+                                    return 0;
+                                if (catDel.isSep)
+                                    return Kirigami.Units.smallSpacing * 3;
+                                return Math.max(root.categoryIconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 2.1);
                             }
 
-                            PlasmaComponents.Label {
-                                Layout.fillWidth: true
-                                text: (catDel.cat && catDel.cat.name) ? catDel.cat.name : ""
-                                elide: Text.ElideRight
-                                color: catMouse.containsMouse ? root.hoverFg : root.fg
+                            Kirigami.Separator {
+                                visible: catDel.isSep
+                                anchors.left: parent.left
+                                anchors.right: parent.right
+                                anchors.verticalCenter: parent.verticalCenter
+                                anchors.leftMargin: Kirigami.Units.smallSpacing
+                                anchors.rightMargin: Kirigami.Units.smallSpacing
+                                opacity: 0.45
                             }
-                        }
 
-                        MouseArea {
-                            id: catMouse
-                            anchors.fill: parent
-                            hoverEnabled: !catDel.isSep
-                            cursorShape: catDel.isSep ? Qt.ArrowCursor : Qt.PointingHandCursor
-                            enabled: !catDel.isSep && !!(catDel.cat && catDel.cat.id)
-                            onClicked: root.openCategory(catDel.cat ? catDel.cat.id : "")
+                            Rectangle {
+                                visible: !catDel.isSep
+                                anchors.fill: parent
+                                anchors.margins: 1
+                                radius: Kirigami.Units.smallSpacing
+                                color: catMouse.containsMouse ? root.hoverBg : "transparent"
+                            }
+
+                            RowLayout {
+                                visible: !catDel.isSep
+                                anchors.fill: parent
+                                anchors.leftMargin: Kirigami.Units.smallSpacing
+                                anchors.rightMargin: Kirigami.Units.smallSpacing
+                                spacing: Kirigami.Units.smallSpacing
+
+                                Components.ResolvedIcon {
+                                    iconName: (catDel.cat && catDel.cat.icon) ? catDel.cat.icon : "arcmenu-cat-other-apps"
+                                    tintColor: catMouse.containsMouse ? root.hoverFg : root.fg
+                                    preferSymbolic: !(root.dataHost) || root.dataHost.categoryIconsSymbolic !== false
+                                    Layout.preferredWidth: root.categoryIconSize
+                                    Layout.preferredHeight: root.categoryIconSize
+                                }
+
+                                PlasmaComponents.Label {
+                                    Layout.fillWidth: true
+                                    text: (catDel.cat && catDel.cat.name) ? catDel.cat.name : ""
+                                    elide: Text.ElideRight
+                                    color: catMouse.containsMouse ? root.hoverFg : root.fg
+                                }
+                            }
+
+                            MouseArea {
+                                id: catMouse
+                                anchors.fill: parent
+                                hoverEnabled: !catDel.isSep
+                                cursorShape: catDel.isSep ? Qt.ArrowCursor : Qt.PointingHandCursor
+                                enabled: !catDel.isSep && !!(catDel.cat && catDel.cat.id)
+                                onClicked: root.openCategory(catDel.cat ? catDel.cat.id : "")
+                            }
                         }
                     }
                 }
             }
-        }
 
-        // Apps in selected category. A single virtualized ListView is important
-        // here: the old nested Repeaters created every icon/row at once and
-        // synchronously destroyed all of them when Back cleared drilledApps.
-        ListView {
-            id: appList
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            clip: true
-            visible: !root.showingCategories
-            boundsBehavior: Flickable.StopAtBounds
-            currentIndex: -1
-            keyNavigationWraps: true
-            reuseItems: true
-            cacheBuffer: Math.max(height, Kirigami.Units.gridUnit * 12)
-            spacing: Kirigami.Units.smallSpacing / 2
-            Accessible.role: Accessible.List
-            Accessible.name: root.categoryTitle()
+            // Apps in selected category. A single virtualized ListView is important
+            // here: the old nested Repeaters created every icon/row at once and
+            // synchronously destroyed all of them when Back cleared drilledApps.
+            ListView {
+                id: appList
+                anchors.fill: parent
+                clip: true
+                visible: true
+                opacity: root.showingCategories ? 0 : 1
+                enabled: !root.showingCategories
+                z: enabled ? 1 : 0
+                boundsBehavior: Flickable.StopAtBounds
+                currentIndex: -1
+                keyNavigationWraps: true
+                reuseItems: true
+                cacheBuffer: Math.max(height, Kirigami.Units.gridUnit * 12)
+                spacing: Kirigami.Units.smallSpacing / 2
+                Accessible.role: Accessible.List
+                Accessible.name: root.categoryTitle()
 
-            readonly property bool useAz: {
-                var host = root.dataHost;
-                return !!(host && host.groupAppsAlphabeticallyList
-                    && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
-            }
-            readonly property var displayRows: {
-                if (!useAz)
-                    return root.drilledApps;
-                var host = root.dataHost;
-                if (root.drillCategoryId === "all" && host && host.sortedVisibleAppsAzRows)
-                    return host.sortedVisibleAppsAzRows;
-                return AppsModel.appsAzRowsFromSorted(root.drilledApps);
-            }
-
-            model: displayRows
-
-            delegate: Components.AppListItem {
-                required property var modelData
-                width: ListView.view.width
-                app: modelData
-                menuData: root.menuData || root.dataHost
-                iconSize: root.appIconSize
-                showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
-                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
-                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                hoverBg: root.hoverBg
-                hoverFg: root.hoverFg
-                fg: root.fg
-                onActivated: {
-                    if (modelData && !modelData.isSection)
-                        root.appActivated(modelData);
+                readonly property bool useAz: {
+                    var host = root.dataHost;
+                    return !!(host && host.groupAppsAlphabeticallyList
+                        && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
                 }
-                onContextMenuRequested: (x, y) => {
-                    if (modelData && !modelData.isSection)
-                        root.appContextMenu(modelData, x, y);
-                }
-            }
+                readonly property var displayRows: {
+                    var host = root.dataHost;
 
-            PlasmaComponents.Label {
-                anchors.centerIn: parent
-                visible: root.drilledApps.length === 0
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.55
-                text: Locale.tr("No applications", root.uiLang)
-                color: root.fg
+                    // Keep the default all-apps model attached while the category
+                    // browser/home page is showing. After a fresh Plasma start this
+                    // lets ListView prepare its first viewport during idle time,
+                    // instead of building the model and delegates on the first click.
+                    // It also keeps those delegates warm when navigating Back.
+                    if (root.showingCategories) {
+                        if (!host)
+                            return [];
+                        return host.groupAppsAlphabeticallyList
+                            ? (host.sortedVisibleAppsAzRows || [])
+                            : (host.sortedVisibleApps || []);
+                    }
+
+                    if (!useAz)
+                        return root.drilledApps;
+                    if (root.drillCategoryId === "all" && host && host.sortedVisibleAppsAzRows)
+                        return host.sortedVisibleAppsAzRows;
+                    return AppsModel.appsAzRowsFromSorted(root.drilledApps);
+                }
+
+                model: displayRows
+
+                // A hidden ListView may postpone delegate creation until it first
+                // becomes visible. Force one layout pass after the prewarmed model
+                // arrives so the initial All Applications transition has no cold
+                // model/delegate work on the click frame.
+                onCountChanged: {
+                    if (count > 0 && root.showingCategories)
+                        Qt.callLater(function () { appList.forceLayout(); });
+                }
+                Component.onCompleted: {
+                    if (count > 0)
+                        Qt.callLater(function () { appList.forceLayout(); });
+                }
+
+                delegate: Components.AppListItem {
+                    required property var modelData
+                    width: ListView.view.width
+                    app: modelData
+                    menuData: root.menuData || root.dataHost
+                    iconSize: root.appIconSize
+                    showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
+                    showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                    multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
+                    selectedBg: root.selectedBg
+                    selectedFg: root.selectedFg
+                    hoverBg: root.hoverBg
+                    hoverFg: root.hoverFg
+                    fg: root.fg
+                    onActivated: {
+                        if (modelData && !modelData.isSection)
+                            root.appActivated(modelData);
+                    }
+                    onContextMenuRequested: (x, y) => {
+                        if (modelData && !modelData.isSection)
+                            root.appContextMenu(modelData, x, y);
+                    }
+                }
+
+                PlasmaComponents.Label {
+                    anchors.centerIn: parent
+                    visible: root.drilledApps.length === 0
+                    horizontalAlignment: Text.AlignHCenter
+                    opacity: 0.55
+                    text: Locale.tr("No applications", root.uiLang)
+                    color: root.fg
+                }
             }
         }
     }
