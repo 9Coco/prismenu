@@ -5,6 +5,8 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
 import "../../code/ShortcutsConfig.js" as SC
+import "../../code/SidebarModel.js" as SidebarModel
+import "../../code/CatalogBridge.js" as CatalogBridge
 
 Item {
     id: root
@@ -12,6 +14,9 @@ Item {
     property var cfg_ExtraCategoriesOrder: []
     property var cfg_ExtraCategoriesEnabled: []
     property bool cfg_ExtraCategoriesUserSet: false
+    property var cfg_SidebarOrder: []
+    property var cfg_SidebarHidden: []
+    property var cfg_CustomQuickLinks: []
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -120,11 +125,153 @@ Item {
         rebuildModel();
     }
 
+    function sidebarCategories() {
+        try {
+            var md = CatalogBridge.menuData();
+            return md && md.categories ? md.categories : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function sidebarGroups() {
+        var raw = cfg_CustomQuickLinks || [];
+        if (typeof raw === "string")
+            raw = raw.length ? raw.split(",") : [];
+        var out = [];
+        for (var i = 0; i < raw.length; ++i) {
+            var parts = String(raw[i] || "").split("|");
+            if (parts[0])
+                out.push({ id: parts[0], name: parts[1] || parts[0],
+                    icon: parts[2] || "folder-favorites" });
+        }
+        return out;
+    }
+
+    function rebuildSidebarModel() {
+        var categories = sidebarCategories();
+        var groups = sidebarGroups();
+        var defs = SidebarModel.definitions(categories, groups, root.tr);
+        var order = SidebarModel.fullOrder(categories, groups, cfg_SidebarOrder, root.tr);
+        var hidden = SidebarModel.normalizeList(cfg_SidebarHidden);
+        var byId = {};
+        for (var d = 0; d < defs.length; ++d)
+            byId[defs[d].id] = defs[d];
+        sidebarListModel.clear();
+        for (var i = 0; i < order.length; ++i) {
+            var item = byId[order[i]];
+            if (!item)
+                continue;
+            sidebarListModel.append({
+                itemId: item.id,
+                itemName: item.name,
+                itemIcon: item.icon || "applications-other",
+                itemOn: hidden.indexOf(item.id) < 0
+            });
+        }
+    }
+
+    function persistSidebarOrder() {
+        var order = [];
+        for (var i = 0; i < sidebarListModel.count; ++i)
+            order.push(sidebarListModel.get(i).itemId);
+        cfg_SidebarOrder = order.slice();
+        writeLive("SidebarOrder", order.slice());
+    }
+
+    function persistSidebarHidden() {
+        var hidden = [];
+        for (var i = 0; i < sidebarListModel.count; ++i) {
+            if (!sidebarListModel.get(i).itemOn)
+                hidden.push(sidebarListModel.get(i).itemId);
+        }
+        cfg_SidebarHidden = hidden.slice();
+        writeLive("SidebarHidden", hidden.slice());
+    }
+
+    function setSidebarItemOn(index, on) {
+        if (index < 0 || index >= sidebarListModel.count)
+            return;
+        sidebarListModel.setProperty(index, "itemOn", !!on);
+        persistSidebarHidden();
+    }
+
+    function moveSidebarItem(from, to) {
+        if (from < 0 || to < 0 || from >= sidebarListModel.count
+                || to >= sidebarListModel.count || from === to)
+            return;
+        sidebarListModel.move(from, to, 1);
+        persistSidebarOrder();
+    }
+
+    function resetSidebarDefaults() {
+        cfg_SidebarOrder = [];
+        cfg_SidebarHidden = [];
+        writeLive("SidebarOrder", []);
+        writeLive("SidebarHidden", []);
+        rebuildSidebarModel();
+    }
+
     ListModel { id: listModel }
+    ListModel { id: sidebarListModel }
 
     ConfigPage {
-        title: root.tr("Extra Categories")
-        tip: root.tr("Toggle which fixed categories appear above the normal category list.")
+        title: root.tr("Sidebar Items")
+        tip: root.tr("Configure the shared application sidebar and legacy extra categories.")
+
+        ConfigGroup {
+            title: root.tr("Application Sidebar")
+            Repeater {
+                model: sidebarListModel
+                ColumnLayout {
+                    id: sidebarRow
+                    required property int index
+                    required property string itemId
+                    required property string itemName
+                    required property string itemIcon
+                    required property bool itemOn
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: sidebarRow.itemName
+                        iconName: sidebarRow.itemIcon
+                        accent: index % 2 === 0 ? "blue" : "teal"
+                        Kirigami.Icon {
+                            source: "transform-move"
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                            opacity: 0.4
+                        }
+                        QQC2.Switch {
+                            checked: sidebarRow.itemOn
+                            onToggled: root.setSidebarItemOn(sidebarRow.index, checked)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-up"
+                            flat: true
+                            enabled: sidebarRow.index > 0
+                            onClicked: root.moveSidebarItem(sidebarRow.index, sidebarRow.index - 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            flat: true
+                            enabled: sidebarRow.index < sidebarListModel.count - 1
+                            onClicked: root.moveSidebarItem(sidebarRow.index, sidebarRow.index + 1)
+                        }
+                    }
+                    ConfigSep { visible: sidebarRow.index < sidebarListModel.count - 1 }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Add custom item in ArcMenu layout adjustment")
+                subtitle: root.tr("Custom application groups appear here automatically.")
+                iconName: "list-add"
+                accent: "green"
+            }
+        }
+
+        QQC2.Button { text: root.tr("Reset sidebar"); onClicked: root.resetSidebarDefaults() }
 
         ConfigGroup {
             title: root.tr("Extra Categories")
@@ -188,6 +335,7 @@ Item {
             cfg_ExtraCategoriesEnabled = SC.DEFAULT_EXTRA_ON.slice();
         }
         rebuildModel();
+        rebuildSidebarModel();
     }
 
     onCfg_ExtraCategoriesOrderChanged: {
@@ -207,4 +355,13 @@ Item {
         }
     }
     onCfg_ExtraCategoriesUserSetChanged: rebuildModel()
+    onCfg_SidebarOrderChanged: {
+        if (sidebarListModel.count === 0)
+            rebuildSidebarModel();
+    }
+    onCfg_SidebarHiddenChanged: {
+        if (sidebarListModel.count === 0)
+            rebuildSidebarModel();
+    }
+    onCfg_CustomQuickLinksChanged: rebuildSidebarModel()
 }

@@ -29,6 +29,8 @@ PlasmoidItem {
     switchHeight: Kirigami.Units.gridUnit * 12
 
     property bool menuOpen: false
+    property bool menuPinnedOpen: false
+    hideOnWindowDeactivate: !menuPinnedOpen
     property string lastLayoutId: plasmoid.configuration.MenuLayoutId || "arcmenu"
 
     // Plasma Kickoff uses the same API for avatar + display name
@@ -135,6 +137,8 @@ PlasmoidItem {
         quickLinkPositionRaw: plasmoid.configuration.QuickLinkPosition
         customQuickLinksRaw: plasmoid.configuration.CustomQuickLinks
         customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
+        sidebarOrderRaw: plasmoid.configuration.SidebarOrder
+        sidebarHiddenRaw: plasmoid.configuration.SidebarHidden
         showDescriptionRaw: plasmoid.configuration.ShowDescription
         hideSearchBarRaw: plasmoid.configuration.HideSearchBar
         highlightSearchTermsRaw: plasmoid.configuration.HighlightSearchTerms
@@ -155,7 +159,8 @@ PlasmoidItem {
         ignoreUnknownSignals: true
         function onValueChanged(key, value) {
             if (key === "ExtraCategoriesEnabled" || key === "ExtraCategoriesOrder"
-                || key === "ExtraCategoriesUserSet") {
+                || key === "ExtraCategoriesUserSet" || key === "SidebarOrder"
+                || key === "SidebarHidden") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
@@ -174,6 +179,8 @@ PlasmoidItem {
         function onExtraCategoriesEnabledChanged() { menuData.bumpStructure(); }
         function onExtraCategoriesOrderChanged() { menuData.bumpStructure(); }
         function onExtraCategoriesUserSetChanged() { menuData.bumpStructure(); }
+        function onSidebarOrderChanged() { menuData.bumpStructure(); }
+        function onSidebarHiddenChanged() { menuData.bumpStructure(); }
         function onShowDescriptionChanged() { menuData.bumpSearchConfig(); }
         function onHideSearchBarChanged() { menuData.bumpSearchConfig(); }
         function onHighlightSearchTermsChanged() { menuData.bumpSearchConfig(); }
@@ -716,6 +723,7 @@ PlasmoidItem {
                 contextMenu.popup();
             }
             onPowerAction: (id) => root.handlePower(id)
+            onKeepOpenRequested: (pinned) => root.menuPinnedOpen = pinned
             // ArcMenu "User" → System Settings → Users (not switch-user dialog)
             onUserMenu: root.handlePower("accountsettings")
         }
@@ -824,6 +832,9 @@ PlasmoidItem {
                 });
             }
             lastLayoutId = plasmoid.configuration.MenuLayoutId || "arcmenu";
+            // A keep-open request belongs to the layout instance being left.
+            // Reset it generically so future layouts can reuse the same signal.
+            root.menuPinnedOpen = false;
         }
     }
 

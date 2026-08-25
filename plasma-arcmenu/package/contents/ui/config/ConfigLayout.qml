@@ -46,11 +46,12 @@ Item {
 
         var meta = LayoutRegistry.getLayout(id);
         if (meta) {
+            var sidebarWidth = meta.defaultSidebarWidth || 220;
             cfg_MenuWidth = meta.defaultWidth;
-            cfg_SidebarWidth = 220;
+            cfg_SidebarWidth = sidebarWidth;
             cfg_CategoryColumnWidth = 220;
-            cfg_RightPanelWidth = 220;
-            cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - 220 - 24);
+            cfg_RightPanelWidth = sidebarWidth;
+            cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - sidebarWidth - 24);
             cfg_WidthOffset = 0;
             // Layouts using the available desktop height own runtime height.
             if (meta.heightPolicy !== "available") {
@@ -70,9 +71,9 @@ Item {
                 plasmoid.configuration.MenuWidth = meta.defaultWidth;
                 if (meta.heightPolicy !== "available")
                     plasmoid.configuration.MenuHeight = cfg_MenuHeight;
-                plasmoid.configuration.SidebarWidth = 220;
+                plasmoid.configuration.SidebarWidth = sidebarWidth;
                 plasmoid.configuration.CategoryColumnWidth = 220;
-                plasmoid.configuration.RightPanelWidth = 220;
+                plasmoid.configuration.RightPanelWidth = sidebarWidth;
                 plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
                 plasmoid.configuration.WidthOffset = 0;
             }
@@ -85,21 +86,22 @@ Item {
         var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu");
         var w = meta && meta.defaultWidth ? meta.defaultWidth : 620;
         var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
+        var sidebarWidth = meta && meta.defaultSidebarWidth ? meta.defaultSidebarWidth : 220;
         if (h > 800)
             h = 800;
         cfg_MenuWidth = w;
         cfg_MenuHeight = h;
-        cfg_SidebarWidth = 220;
+        cfg_SidebarWidth = sidebarWidth;
         cfg_CategoryColumnWidth = 220;
-        cfg_RightPanelWidth = 220;
-        cfg_LeftPanelWidth = Math.max(180, w - 220 - 24);
+        cfg_RightPanelWidth = sidebarWidth;
+        cfg_LeftPanelWidth = Math.max(180, w - sidebarWidth - 24);
         cfg_WidthOffset = 0;
         try {
             plasmoid.configuration.MenuWidth = w;
             plasmoid.configuration.MenuHeight = h;
-            plasmoid.configuration.SidebarWidth = 220;
+            plasmoid.configuration.SidebarWidth = sidebarWidth;
             plasmoid.configuration.CategoryColumnWidth = 220;
-            plasmoid.configuration.RightPanelWidth = 220;
+            plasmoid.configuration.RightPanelWidth = sidebarWidth;
             plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
             plasmoid.configuration.WidthOffset = 0;
         } catch (e) {}

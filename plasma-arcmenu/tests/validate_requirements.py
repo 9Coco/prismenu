@@ -100,6 +100,21 @@ def main() -> int:
         check("Components.AppGrid {" not in source, f"shared grid adapter: {fname}")
         check("Components.VirtualizedAppList {" not in source, f"shared list adapter: {fname}")
 
+    kickoff = layout_sources.get("LayoutKickoff.qml", "")
+    kickoff_meta = next((body for lid, body, _fname in layout_blocks if lid == "kickoff"), "")
+    check('defaultSidebarWidth: 185' in kickoff_meta, "Kickoff sidebar width metadata")
+    check('property string section: "applications"' in kickoff, "Kickoff applications/places sections")
+    check('property string applicationsPage: "special:favorites"' in kickoff, "Kickoff applications pages")
+    check('property string placesPage: "computer"' in kickoff, "Kickoff places pages")
+    check("Components.LayoutAppGrid {" in kickoff, "Kickoff shared favorites grid")
+    check("Components.LayoutAppList {" in kickoff, "Kickoff shared applications list")
+    check("Components.ResolvedIcon {" in kickoff, "Kickoff shared category icon resolver")
+    check("signal keepOpenRequested(bool pinned)" in kickoff, "Kickoff keep-open contract")
+    check(kickoff.count("Layout.maximumHeight: Layout.preferredHeight") >= 2,
+          "Kickoff fixed header and footer heights")
+    check("Layout.minimumWidth: Layout.preferredWidth" in kickoff,
+          "Kickoff reserved header action width")
+
     check((PKG / "contents/ui/layouts/budgie/README.md").exists(), "budgie folder")
     check((PKG / "contents/ui/layouts/LayoutBudgie.qml").exists(), "budgie layout entry")
     check((PKG / "contents/ui/layouts/mint/README.md").exists(), "mint folder")
@@ -165,7 +180,7 @@ def main() -> int:
         "Enabled", "MaxItems", "RecentApps",
         "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty",
         "DirectoryShortcuts", "ApplicationShortcuts",
-        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ContextMenuItems",
+        "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "SidebarOrder", "SidebarHidden", "ContextMenuItems",
         "Providers", "Placeholder", "ShowDescription", "MaxResults",
         "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled",
         "SearchBoxRadius", "SearchWindows", "SearchRecentFiles",
@@ -215,14 +230,20 @@ def main() -> int:
     check((PKG / "contents/code/PageRegistry.js").exists(), "PageRegistry.js")
     check((PKG / "contents/code/IdList.js").exists(), "IdList.js")
     check((PKG / "contents/code/Locale.js").exists(), "Locale.js")
+    check((PKG / "contents/code/CategoryMeta.js").exists(), "CategoryMeta.js")
+    check((PKG / "contents/code/SidebarModel.js").exists(), "SidebarModel.js")
 
     for core in ["main.qml", "MenuData.qml", "LayoutHost.qml", "AppsBackend.qml"]:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")
 
     layout_base = (PKG / "contents/ui/layouts/LayoutBase.qml").read_text(encoding="utf-8")
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
+    apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("Components.VirtualizedAppList" in apps_page, "apps page uses shared virtualized list")
+    check("CategoryMeta.iconForCategory(" in apps_backend, "shared semantic category icons")
+    check("SidebarModel.orderedItems(" in layout_sources["LayoutKickoff.qml"],
+          "Kickoff shared configurable sidebar")
 
     layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
     config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")

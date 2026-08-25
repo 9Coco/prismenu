@@ -11,6 +11,7 @@ import "../code/CategoryIcons.js" as CategoryIcons
 import "../code/IconSizes.js" as IconSizes
 import "../code/ShortcutsConfig.js" as ShortcutsConfig
 import "../code/SearchExtras.js" as SearchExtras
+import "../code/SidebarModel.js" as SidebarModel
 
 QtObject {
     id: root
@@ -34,6 +35,8 @@ QtObject {
     property var quickLinkPositionRaw
     property var customQuickLinksRaw
     property var customGroupAppsRaw
+    property var sidebarOrderRaw
+    property var sidebarHiddenRaw
 
     // ---- Runtime state ----
     property string searchQuery: ""
@@ -157,6 +160,12 @@ QtObject {
             return o.length ? o.split(",") : [];
         return o || [];
     }
+    readonly property var sidebarOrder: SidebarModel.normalizeList(
+        sidebarOrderRaw !== undefined && sidebarOrderRaw !== null
+            ? sidebarOrderRaw : cfg("SidebarOrder", []))
+    readonly property var sidebarHidden: SidebarModel.normalizeList(
+        sidebarHiddenRaw !== undefined && sidebarHiddenRaw !== null
+            ? sidebarHiddenRaw : cfg("SidebarHidden", []))
     readonly property string quickLinkPosition: {
         if (quickLinkPositionRaw !== undefined && quickLinkPositionRaw !== null && String(quickLinkPositionRaw).length)
             return String(quickLinkPositionRaw);
@@ -318,7 +327,10 @@ QtObject {
         var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
         return h > 800 ? 800 : h;
     }
-    readonly property int defaultSidebarWidth: 220
+    readonly property int defaultSidebarWidth: {
+        var meta = layoutInfo;
+        return meta && meta.defaultSidebarWidth ? meta.defaultSidebarWidth : 220;
+    }
     readonly property int defaultCategoryColumnWidth: 220
 
     function setMenuWidth(w) {
@@ -383,8 +395,8 @@ QtObject {
         plasmoidConfig.MenuHeight = defaultMenuHeight;
         plasmoidConfig.SidebarWidth = defaultSidebarWidth;
         plasmoidConfig.CategoryColumnWidth = defaultCategoryColumnWidth;
-        plasmoidConfig.LeftPanelWidth = 380;
-        plasmoidConfig.RightPanelWidth = 220;
+        plasmoidConfig.LeftPanelWidth = Math.max(180, defaultMenuWidth - defaultSidebarWidth - 24);
+        plasmoidConfig.RightPanelWidth = defaultSidebarWidth;
         plasmoidConfig.WidthOffset = 0;
     }
 
@@ -592,7 +604,10 @@ QtObject {
             var originalName = String(c.name || "");
             var translated = root.tr(originalName);
             c.name = translated || originalName || c.id;
-            if (!CategoryIcons.isBundled(c.icon))
+            // Keep semantic backend icons for synthetic categories such as
+            // Help and browser-hosted app groups. Only canonical categories
+            // with a real bundled SVG should be replaced by our icon pack.
+            if (!CategoryIcons.isBundled(c.icon) && CategoryIcons.hasCategory(c.id))
                 c.icon = CategoryIcons.defaultIcon(c.id);
             c.apps = AppsModel.sortAppsByName(buckets[c.id]);
             c.appCount = c.apps.length;
