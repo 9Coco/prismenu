@@ -173,16 +173,30 @@ LayoutBase {
     }
 
     function openAppsPage() {
-        root.showingApps = true;
         if (menuData)
             menuData.navigateTo("apps");
-        Qt.callLater(function () {
-            if (!appsLoader.item)
-                return;
+
+        // The apps page is kept loaded and prewarmed behind Home. Select the
+        // destination synchronously before revealing it, so the click frame
+        // never paints the category page or waits for Qt.callLater.
+        if (appsLoader.item) {
             if (menuData && menuData.allAppsButtonAction === "all-apps")
                 appsLoader.item.openCategory("all");
             else
                 appsLoader.item.resetToCategories();
+            root.showingApps = true;
+            return;
+        }
+
+        // Defensive fallback for an unexpected loader delay.
+        Qt.callLater(function () {
+            if (appsLoader.item) {
+                if (menuData && menuData.allAppsButtonAction === "all-apps")
+                    appsLoader.item.openCategory("all");
+                else
+                    appsLoader.item.resetToCategories();
+            }
+            root.showingApps = true;
         });
     }
 
@@ -308,9 +322,13 @@ LayoutBase {
                 Loader {
                     id: appsLoader
                     anchors.fill: parent
-                    visible: root.activePageId === "apps"
-                    enabled: true
-                    z: visible ? 2 : 0
+                    // Keep the loader effectively visible behind Home so Qt
+                    // can build the virtualized first viewport before the
+                    // user's first All Applications click.
+                    visible: true
+                    opacity: root.activePageId === "apps" ? 1 : 0
+                    enabled: root.activePageId === "apps"
+                    z: enabled ? 2 : 0
                     active: true
                     asynchronous: false
                     source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
