@@ -97,7 +97,7 @@ LayoutBase {
             return;
         }
         // Custom quick link group → in-menu app list from the group's member ids
-        if (String(id).indexOf("qgrp-") === 0) {
+        if (String(id).indexOf("qgrp-") === 0 || String(id).indexOf("tgrp-") === 0) {
             root.showingApps = true;
             if (menuData)
                 menuData.navigateTo("apps");

@@ -267,6 +267,7 @@ def main() -> int:
     for label in [
         "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
         "Directory Shortcuts", "Application Shortcuts", "Extra Categories",
+        "Menu Groups",
         "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
         "Menu Content", "Search Options", "Power Options",
         "Modify ArcMenu Context Menu",

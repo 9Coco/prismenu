@@ -139,6 +139,7 @@ PlasmoidItem {
         quickLinksOrderRaw: plasmoid.configuration.QuickLinksOrder
         quickLinkPositionRaw: plasmoid.configuration.QuickLinkPosition
         customQuickLinksRaw: plasmoid.configuration.CustomQuickLinks
+        customTypeGroupsRaw: plasmoid.configuration.CustomTypeGroups
         customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
         sidebarOrderRaw: plasmoid.configuration.SidebarOrder
         sidebarHiddenRaw: plasmoid.configuration.SidebarHidden
@@ -164,6 +165,7 @@ PlasmoidItem {
             if (key === "ExtraCategoriesEnabled" || key === "ExtraCategoriesOrder"
                 || key === "ExtraCategoriesUserSet" || key === "SidebarOrder"
                 || key === "SidebarHidden" || key === "CustomQuickLinks"
+                || key === "CustomTypeGroups"
                 || key === "CustomGroupApps" || key === "DirectoryShortcuts"
                 || key === "ApplicationShortcuts") {
                 menuData.bumpStructure();
@@ -187,6 +189,7 @@ PlasmoidItem {
         function onSidebarOrderChanged() { menuData.bumpStructure(); }
         function onSidebarHiddenChanged() { menuData.bumpStructure(); }
         function onCustomQuickLinksChanged() { menuData.bumpStructure(); }
+        function onCustomTypeGroupsChanged() { menuData.bumpStructure(); }
         function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
         function onDirectoryShortcutsChanged() { menuData.bumpStructure(); }
         function onApplicationShortcutsChanged() { menuData.bumpStructure(); }

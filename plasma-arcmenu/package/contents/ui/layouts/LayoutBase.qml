@@ -136,7 +136,7 @@ Item {
             return (menuData && menuData.recentApps) ? menuData.recentApps : [];
         if (navId === "recent-files")
             return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
-        if (String(navId).indexOf("qgrp-") === 0) {
+        if (String(navId).indexOf("qgrp-") === 0 || String(navId).indexOf("tgrp-") === 0) {
             var _map = menuData ? menuData.customGroupMap : null;
             return (menuData && menuData.customGroupApps)
                 ? menuData.customGroupApps(navId) : [];
@@ -174,6 +174,17 @@ Item {
 
     /** Full system category list (Kickoff / Kicker source), minus synthetic "all". */
     readonly property var standardCategories: root.categorySubset([])
+
+    /** System categories plus user type-groups (bottom section of menu groups). */
+    readonly property var typeCategories: {
+        var cats = root.standardCategories.slice();
+        var groups = (menuData && menuData.customTypeGroupDefs)
+            ? menuData.customTypeGroupDefs : [];
+        var _map = menuData ? menuData.customGroupMap : null;
+        for (var i = 0; i < groups.length; ++i)
+            cats.push(groups[i]);
+        return cats;
+    }
 
     /** Places + application shortcuts from settings (Directory / Application Shortcuts). */
     readonly property var sidebarShortcuts: {
