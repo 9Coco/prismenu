@@ -7,6 +7,7 @@ AppGrid {
     required property var layoutRoot
     property bool contextMenuForActions: false
 
+    menuData: layoutRoot ? layoutRoot.menuData : null
     iconSize: layoutRoot ? layoutRoot.gridIconSize : 48
     multiLineLabels: layoutRoot ? layoutRoot.multiLineLabels : true
     showGenericNames: layoutRoot ? layoutRoot.showGenericNames : false

@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -504,6 +505,8 @@ Item {
                 z: enabled ? 1 : 0
                 boundsBehavior: Flickable.StopAtBounds
                 flickableDirection: Flickable.VerticalFlick
+                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.dataHost }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
 
                 Column {
                     id: catColumn

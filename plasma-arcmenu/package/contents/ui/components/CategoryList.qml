@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -20,6 +21,8 @@ ListView {
     clip: true
     boundsBehavior: Flickable.StopAtBounds
     currentIndex: -1
+    QQC2.ScrollBar.vertical: MenuScrollBar {}
+    QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
     keyNavigationWraps: true
     Accessible.role: Accessible.List
     Accessible.name: i18n("Categories")

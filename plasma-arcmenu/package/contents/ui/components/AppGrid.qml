@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -8,6 +9,7 @@ GridView {
     id: root
 
     property var items: []
+    property var menuData: null
     property int iconSize: 48
     property int columns: 6
     property bool showDescription: false
@@ -27,6 +29,8 @@ GridView {
     cellHeight: iconSize + Kirigami.Units.gridUnit * 2
     clip: true
     boundsBehavior: Flickable.StopAtBounds
+    QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
+    QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
     reuseItems: true
     cacheBuffer: Math.max(height, cellHeight * 2)
     Accessible.name: i18n("Applications")
