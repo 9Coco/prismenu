@@ -192,6 +192,24 @@ Item {
             : menuData.categoryApps;
     }
 
+    /** Always-available ArcMenu Settings row for layouts that list shortcuts. */
+    readonly property var arcMenuSettingsItem: {
+        var _ = root.uiLang;
+        return {
+            id: "arcmenu-settings",
+            name: root.tr("ArcMenu Settings"),
+            icon: "preferences-system-windows",
+            exec: "",
+            action: "configure",
+            noDisplay: false
+        };
+    }
+
+    function openArcMenuSettings() {
+        if (menuData)
+            menuData.requestConfigure();
+    }
+
     /**
      * Shared launcher for pinned / places / shortcuts across all layouts.
      * Handles configure, power actions, place: keys, and normal apps.
@@ -199,9 +217,8 @@ Item {
     function activateItem(item) {
         if (!item || item.isSection)
             return;
-        if (item.action === "configure") {
-            if (menuData)
-                menuData.requestConfigure();
+        if (item.action === "configure" || item.id === "arcmenu-settings") {
+            root.openArcMenuSettings();
             return;
         }
         if (item.action) {
