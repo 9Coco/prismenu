@@ -452,6 +452,25 @@ var LAYOUTS = [
         source: "layouts/LayoutKicker.qml"
     },
     {
+        id: "application-menu",
+        name: "KDE Plasma Application Menu",
+        description: "Plasma Application Menu (compact Kicker flyouts)",
+        category: "linux",
+        hasCategories: true,
+        hasPinned: true,
+        hasSearch: true,
+        hasUser: false,
+        hasPower: true,
+        supportsFlip: true,
+        supportsSearchbarLocation: false,
+        compactPopup: true,
+        defaultWidth: 360,
+        defaultHeight: 540,
+        defaultSidebarWidth: 56,
+        previewKind: "runner",
+        source: "layouts/LayoutApplicationMenu.qml"
+    },
+    {
         id: "simple",
         name: "Minimal Search Launcher",
         description: "Minimal search-focused style",

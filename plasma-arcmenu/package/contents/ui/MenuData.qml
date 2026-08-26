@@ -303,13 +303,25 @@ QtObject {
             ? plasmoidConfig.WidthOffset : 0,
         -200, 400, 0)
     /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
-    readonly property int menuWidth: LayoutRegistry.clampSize(
-        leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, root.maxMenuWidth, 620)
+    readonly property int menuWidth: {
+        var meta = root.layoutInfo;
+        if (meta && meta.compactPopup) {
+            var defW = meta.defaultWidth || 280;
+            return LayoutRegistry.clampSize(cfgInt("MenuWidth", defW), 220, 420, defW);
+        }
+        return LayoutRegistry.clampSize(
+            leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, root.maxMenuWidth, 620);
+    }
     // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
-    readonly property int menuHeight: LayoutRegistry.clampSize(
-        (plasmoidConfig && plasmoidConfig.MenuHeight !== undefined && plasmoidConfig.MenuHeight !== null)
-            ? plasmoidConfig.MenuHeight : 540,
-        400, 800, 540)
+    readonly property int menuHeight: {
+        var stored = (plasmoidConfig && plasmoidConfig.MenuHeight !== undefined
+            && plasmoidConfig.MenuHeight !== null)
+            ? plasmoidConfig.MenuHeight : 540;
+        var meta = root.layoutInfo;
+        if (meta && meta.compactPopup)
+            return LayoutRegistry.clampSize(stored, 360, 800, meta.defaultHeight || 540);
+        return LayoutRegistry.clampSize(stored, 400, 800, 540);
+    }
     /** Places / categories side column — synced with right panel for ArcMenu-style shells */
     readonly property int sidebarWidth: LayoutRegistry.clampSize(
         cfgInt("SidebarWidth", cfgInt("RightPanelWidth", 220)), 160, 360, 220)
