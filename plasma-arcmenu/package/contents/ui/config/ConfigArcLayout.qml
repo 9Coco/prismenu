@@ -186,10 +186,9 @@ Item {
         writeCustomGroupApps(map);
     }
 
-    readonly property var defaultQuickOrder: ["favorites", "frequent", "pinned", "recent-files"]
+    readonly property var defaultQuickOrder: ["frequent", "pinned", "recent-files"]
 
     readonly property var quickLinkDefs: [
-        { id: "favorites", name: root.tr("Favorites"), icon: "bookmarks" },
         { id: "frequent", name: root.tr("Frequent Apps"), icon: "view-calendar" },
         // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
         // so a duplicate quick link only confused the menu (removed 2026-08).

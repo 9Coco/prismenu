@@ -113,7 +113,7 @@
             <default>true</default>
         </entry>
         <entry name="QuickLinksOrder" type="StringList">
-            <default>favorites,frequent,pinned,recent-files</default>
+            <default>frequent,pinned,recent-files</default>
         </entry>
         <entry name="QuickLinksEnabled" type="StringList">
             <default></default>
@@ -309,7 +309,7 @@
             <default>discover,settings,tweaks</default>
         </entry>
         <entry name="ExtraCategoriesOrder" type="StringList">
-            <default>pinned,all-apps,favorites,frequent,recent-files</default>
+            <default>pinned,all-apps,frequent,recent-files</default>
         </entry>
         <entry name="ExtraCategoriesEnabled" type="StringList">
             <default>pinned,all-apps</default>
