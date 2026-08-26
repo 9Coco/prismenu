@@ -6,6 +6,8 @@ This is a long-term, daily-use project rather than a one-off visual prototype. T
 
 See [`plasma-arcmenu/README.md`](plasma-arcmenu/README.md) for install, configuration, and development details.
 
+Layout research (structure diagrams, names, previews, and functional design for popular desktop/tablet start menus) lives in [`docs/start-menu-catalog/`](docs/start-menu-catalog/README.md).
+
 ## Project goals
 
 - Provide a dependable replacement for Plasma's default application launchers.
