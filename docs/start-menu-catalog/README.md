@@ -1,6 +1,6 @@
 # 开始菜单布局目录
 
-本目录是 **plasma-arcmenu** 的布局研究库：对照常见桌面 / 平板系统里真正流行过的启动器，拆成可实现的结构，而不是再复述已有的 25 套 ArcMenu 皮肤。
+本目录是 **plasma-arcmenu** 的布局研究库：对照常见桌面 / 平板系统里真正流行过的启动器，拆成可实现的结构，而不是只复述 ArcMenu 历史皮肤。
 
 预览图是**结构示意**（区域、密度、交互重心），不是操作系统截图。可用 `tools/render_previews.py` 重新生成。
 
@@ -56,26 +56,22 @@
 | I. 应用抽屉 | Android、ChromeOS、Win11 紧凑网格 | 字母/分页网格，几乎无 chrome |
 | J. 自动分类墙 | iPadOS App Library、Win11 2025 分类视图 | 系统自动把应用打成文件夹/卡片 |
 
-## 与现有 25 套布局的缺口
+## 实现状态
 
-已有实现偏 **ArcMenu 历史皮肤**（Whisker / Eleven / Redmond / Raven …）。下面这些流行形态**还没有对等布局**，按实现价值排序：
+布局注册表已覆盖本文档中的非磁贴菜单形态。实现按结构原型复用 QML，不为每个名称复制整套菜单代码；映射和维护边界见 [IMPLEMENTATION.md](IMPLEMENTATION.md)。
 
-| 优先 | 目录名称 | 缺什么 |
-|------|----------|--------|
-| 高 | `windows-start-win11全应用分类` | 顶层分类卡片 + 分类/网格/列表三视图，不再把「所有应用」藏到二级页 |
-| 高 | `gnome-shell-活动概览` | 窗口缩略图 + 工作区条 + Dash，启动器与任务切换合一 |
-| 高 | `ipados-应用资料库` | 自动分类大文件夹墙（2×2 预览），不是手动分类侧栏 |
-| 高 | `pop-cosmic-启动器搜索` | 打开窗口优先、1–10 数字快捷键、内联计算 |
-| 高 | `kde-plasma-krunner搜索` | 居中 Runner，而不是再做一个 Kickoff 变体 |
-| 中 | `android-pixel-应用抽屉` | 预测行 + A–Z 网格，平板/触控友好 |
-| 中 | `chromeos-ash-启动器半屏` | 从 Shelf 向上长出的半屏抽屉（现有 chromebook 是竖长弹窗） |
-| 中 | `deepin-dde-窗口启动器` | 拖角在窗口 ↔ 全屏之间变形 |
-| 中 | `windows-start-win8全屏磁贴` | 可变尺寸磁贴墙（Win10 磁贴是弹窗，不是全屏） |
-| 中 | `mint-cinnamenu-网格版` | 文件/表情/书签搜索混在同一网格 |
-| 低 | `macos-aqua-启动台` | 分页 + 文件夹，和 elementary 全屏接近，可做变体 |
-| 低 | `android-dex-桌面启动器` | 与 Win11 弹出网格接近，可复用 eleven/az chrome |
+| 状态 | 目录名称 | 当前实现 |
+|------|----------|----------|
+| 已接入 | `windows-start-win11全应用分类` | `win11-categories`，分类卡片可进入已有应用分类 |
+| 已接入 | `gnome-shell-活动概览` | `gnome-overview`，接入现有窗口激活、搜索和收藏 Dash |
+| 已接入 | `ipados-应用资料库` | `ipados-library`，分类卡片墙复用应用分类数据 |
+| 已接入 | `pop-cosmic-启动器搜索` / `kde-plasma-krunner搜索` / Spotlight | 共享 Runner 壳，接入现有分组搜索和窗口结果 |
+| 已接入 | Android / ChromeOS / Launchpad / iPadOS 主屏 | 共享应用抽屉壳，按预测行、分页点、Dash、会话栏配置变体 |
+| 已接入 | Deepin 窗口 / 全屏、Cinnamenu 网格 | 共享分类网格数据，分别提供侧栏或字母索引外形 |
+| 暂缓 | Win8 全屏磁贴、Win10 动态磁贴细节 | 需要跨格尺寸、磁贴编辑和动态内容；本轮按要求不实现 |
+| 不作为菜单 | macOS Dock、Unity Launcher | 属于常驻任务栏/程序坞，应由 Plasma 面板或任务管理器承担 |
 
-`kickoff` / `kicker` / `plasma-dash` 已经覆盖 Plasma 三条主线；本目录把它们拆成**经典页签 / 标准 / 紧凑 / 仪表盘 / Runner**，方便对照实现细节，而不是再注册五个同名布局。
+`ArcMenu (Classic)` 继续使用独立的 `LayoutArcMenu.qml`，本轮不修改其结构或行为。
 
 ## 交互重心对照
 

@@ -9,7 +9,7 @@ Pantheon 的启动器叫 **Slingshot / Applications**。默认是顶栏弹出的
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
 | `elementary-pantheon-slingshot窗口` | 浅色六列弹窗 | `elementary` |
-| `elementary-pantheon-slingshot全屏` | 全屏网格 | `plasma-dash` 密度近似 |
+| `elementary-pantheon-slingshot全屏` | 全屏网格 | `elementary-full` |
 
 ---
 

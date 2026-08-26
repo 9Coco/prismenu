@@ -8,9 +8,9 @@ GNOME 3 之后放弃「开始菜单」这个控件，改成 **Activities Overvie
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `gnome-shell-活动概览` | 窗口+工作区+Dash | **无（高优先）** |
-| `gnome-shell-应用网格` | 全屏分页网格 | `unity-dash` / `elementary` 部分 |
-| `gnome-classic-传统菜单` | 顶栏级联 | `kicker` 近似 |
+| `gnome-shell-活动概览` | 窗口+工作区+Dash | `gnome-overview` |
+| `gnome-shell-应用网格` | 全屏分页网格 | `gnome-grid` |
+| `gnome-classic-传统菜单` | 顶栏级联 | `gnome-classic` |
 
 GNOME ArcMenu 本身是第三方扩展，布局皮肤已在本仓库大量移植，不在此重复。
 

@@ -1,14 +1,14 @@
 # Android / One UI / DeX
 
-手机应用抽屉是近十年「开始菜单」改版最常引用的参照：少 chrome、字母网格、顶搜索、一行预测。平板和大屏上又分出 **One UI 自定义抽屉** 和 **DeX 桌面弹窗**。本仓库 `LayoutRegistry` 已预留 `android` 分类，但还没有任何布局。
+手机应用抽屉是近十年「开始菜单」改版最常引用的参照：少 chrome、字母网格、顶搜索、一行预测。平板和大屏上又分出 **One UI 自定义抽屉** 和 **DeX 桌面弹窗**。
 
 ## 变体一览
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `android-pixel-应用抽屉` | 预测行 + A–Z | **无（中高优先）** |
-| `android-oneui-应用抽屉` | 自定义分页网格 | 无 |
-| `android-dex-桌面启动器` | 桌面弹出网格 | `eleven` / `az` 接近 |
+| `android-pixel-应用抽屉` | 预测行 + A–Z | `android-pixel` |
+| `android-oneui-应用抽屉` | 自定义分页网格 | `android-oneui` |
+| `android-dex-桌面启动器` | 桌面弹出网格 | `android-dex` |
 
 ---
 

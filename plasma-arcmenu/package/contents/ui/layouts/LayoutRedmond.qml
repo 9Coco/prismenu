@@ -8,17 +8,13 @@ import "../components" as Components
 /**
  * Redmond layout (ArcMenu Redmond / Windows-style).
  *
- * Left: search + All Apps / Pinned toggle + icon grid
+ * Left: pinned/recent program list + in-place All Programs + bottom search
  * Right: user, places, system shortcuts, session buttons
  */
 LayoutBase {
     id: root
 
-    property bool showPinned: false
-
-    readonly property int gridColumns: 4
-    readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(36, root.appIconSize + 8)
-    readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 2
+    property bool showAllPrograms: false
 
 
     readonly property var placeItems: [
@@ -36,15 +32,21 @@ LayoutBase {
         { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
     ]
 
-    readonly property var gridItems: {
-        if (root.searching) {
-            return (menuData && menuData.searchResultsFlat) ? menuData.searchResultsFlat : [];
+    readonly property var programItems: {
+        if (root.searching)
+            return menuData && menuData.searchResults ? menuData.searchResults : [];
+        if (root.showAllPrograms)
+            return root.allApplicationRows;
+        var pinned = menuData && menuData.pinnedApps ? menuData.pinnedApps : [];
+        var recent = menuData && menuData.recentApps ? menuData.recentApps : [];
+        var combined = pinned.concat(recent);
+        var out = [], seen = {};
+        for (var i = 0; i < combined.length; ++i) {
+            var item = combined[i];
+            var id = String(item.id || item.name || "");
+            if (!seen[id]) { seen[id] = true; out.push(item); }
         }
-        if (root.showPinned) {
-            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
-            return pinned.length ? pinned : root.defaultPinned;
-        }
-        return root.allApplications;
+        return out.length ? out.slice(0, 12) : root.defaultPinned;
     }
 
     RowLayout {
@@ -53,78 +55,33 @@ LayoutBase {
         spacing: 0
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
-        // ---- Left: search + apps grid ----
+        // ---- Left: Win7-style program list ----
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: Kirigami.Units.smallSpacing
 
+            Components.LayoutAppList {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                layoutRoot: root
+                items: root.programItems
+                showDescription: root.searching
+                iconSize: Math.max(28, root.appIconSize)
+            }
+
+            PlasmaComponents.Button {
+                Layout.fillWidth: true
+                visible: !root.searching
+                text: root.showAllPrograms ? root.tr("Back") : root.tr("All Applications") + "  ›"
+                icon.name: root.showAllPrograms ? "go-previous-symbolic" : "view-app-list"
+                onClicked: root.showAllPrograms = !root.showAllPrograms
+            }
+
             Components.LayoutSearchField {
                 layoutRoot: root
                 Layout.fillWidth: true
                 Layout.fillHeight: false
-                onTextChanged: {
-                    if (text && text.length)
-                        root.showPinned = false;
-                }
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: false
-                visible: !root.searching
-
-                PlasmaComponents.Label {
-                    text: root.showPinned ? root.tr("Pinned") : root.tr("All Applications")
-                    font.bold: true
-                    color: root.fg
-                    Layout.fillWidth: true
-                }
-
-                PlasmaComponents.ToolButton {
-                    flat: true
-                    text: root.showPinned
-                          ? root.tr("All Applications") + " >"
-                          : root.tr("Pinned") + " >"
-                    onClicked: root.showPinned = !root.showPinned
-                }
-            }
-
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                Layout.minimumHeight: Kirigami.Units.gridUnit * 10
-
-                Components.LayoutAppGrid {
-                    layoutRoot: root
-                    anchors.fill: parent
-                    items: root.gridItems
-                    columns: root.gridColumns
-                    iconSize: root.gridIconSize
-                    cellWidth: Math.max(Kirigami.Units.gridUnit * 5, width / Math.max(1, columns))
-                    cellHeight: root.gridCellHeight
-                    multiLineLabels: true
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
-                }
-
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: root.gridItems.length === 0
-                    text: root.searching
-                          ? root.tr("No matching applications found")
-                          : (root.showPinned
-                             ? root.tr("Pin applications from the context menu")
-                             : root.tr("No applications"))
-                    opacity: 0.45
-                    color: root.fg
-                    width: parent.width * 0.8
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
             }
         }
 
