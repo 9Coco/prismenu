@@ -353,7 +353,7 @@
             <default>25</default>
         </entry>
         <entry name="SearchWindows" type="Bool">
-            <default>false</default>
+            <default>true</default>
         </entry>
         <entry name="SearchRecentFiles" type="Bool">
             <default>true</default>
