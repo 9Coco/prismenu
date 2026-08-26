@@ -392,6 +392,54 @@ msgstr "Android 风格菜单"
 msgid "Other Menu Styles"
 msgstr "其他风格菜单"
 
+msgid "KDE Desktop"
+msgstr "KDE 桌面"
+
+msgid "GNOME Desktop"
+msgstr "GNOME 桌面"
+
+msgid "Linux Mint Desktop"
+msgstr "Linux Mint 桌面"
+
+msgid "Xfce Desktop"
+msgstr "Xfce 桌面"
+
+msgid "Solus Desktop"
+msgstr "Solus 桌面"
+
+msgid "Budgie Desktop"
+msgstr "Budgie 桌面"
+
+msgid "Ubuntu Unity Desktop"
+msgstr "Ubuntu Unity 桌面"
+
+msgid "elementary Desktop"
+msgstr "elementary 桌面"
+
+msgid "Pop!_OS Desktop"
+msgstr "Pop!_OS 桌面"
+
+msgid "Windows 7 Desktop"
+msgstr "Windows 7 桌面"
+
+msgid "Windows 10 Desktop"
+msgstr "Windows 10 桌面"
+
+msgid "Windows 11 Desktop"
+msgstr "Windows 11 桌面"
+
+msgid "ChromeOS Desktop"
+msgstr "ChromeOS 桌面"
+
+msgid "Android Desktop"
+msgstr "Android 桌面"
+
+msgid "ArcMenu Original"
+msgstr "ArcMenu 原创"
+
+msgid "Other Desktops"
+msgstr "其他桌面"
+
 msgid "Windows 7 (Two-column)"
 msgstr "Windows 7 · 双栏"
 

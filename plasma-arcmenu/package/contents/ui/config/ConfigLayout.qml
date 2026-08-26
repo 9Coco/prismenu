@@ -25,8 +25,9 @@ Item {
     property var layouts: LayoutRegistry.allLayouts()
     property var categories: LayoutRegistry.layoutCategories()
 
-    // Which category sections are expanded (keyed by category id)
+    // Which platform / desktop sections are expanded (keyed by id)
     property var expandedCategories: ({})
+    property var expandedDesktops: ({})
 
     readonly property var currentLayout: LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu")
     readonly property string uiLanguagePref: {
@@ -61,8 +62,8 @@ Item {
                 cfg_MenuHeight = h;
             }
 
-            // Keep the selected layout's category expanded
-            ensureCategoryExpanded(meta.category);
+            // Keep the selected layout's platform and desktop groups open
+            ensureLayoutGroupsExpanded(meta);
         }
 
         try {
@@ -115,28 +116,64 @@ Item {
         expandedCategories = next;
     }
 
+    function ensureDesktopExpanded(desktopId) {
+        if (!desktopId)
+            return;
+        var next = Object.assign({}, expandedDesktops);
+        next[desktopId] = true;
+        expandedDesktops = next;
+    }
+
+    function ensureLayoutGroupsExpanded(meta) {
+        if (!meta)
+            return;
+        ensureCategoryExpanded(meta.category);
+        ensureDesktopExpanded(meta.desktop);
+    }
+
     function toggleCategory(categoryId) {
         var next = Object.assign({}, expandedCategories);
         next[categoryId] = !next[categoryId];
         expandedCategories = next;
     }
 
+    function toggleDesktop(desktopId) {
+        var next = Object.assign({}, expandedDesktops);
+        next[desktopId] = !next[desktopId];
+        expandedDesktops = next;
+    }
+
     function isCategoryExpanded(categoryId) {
         return !!expandedCategories[categoryId];
+    }
+
+    function isDesktopExpanded(desktopId) {
+        return !!expandedDesktops[desktopId];
     }
 
     function categoryTitle(cat) {
         return root.tr(cat.name || cat.id);
     }
 
+    function desktopTitle(desk) {
+        return root.tr(desk.name || desk.id);
+    }
+
     function initExpanded() {
         var next = {};
+        var nextDesk = {};
         var cur = LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu");
         var curCat = cur ? cur.category : "linux";
+        var curDesk = cur ? cur.desktop : "";
         for (var i = 0; i < categories.length; ++i) {
             next[categories[i].id] = (categories[i].id === curCat);
         }
+        var desks = LayoutRegistry.layoutDesktops();
+        for (var j = 0; j < desks.length; ++j) {
+            nextDesk[desks[j].id] = (desks[j].id === curDesk);
+        }
         expandedCategories = next;
+        expandedDesktops = nextDesk;
     }
 
     ConfigPage {
@@ -217,7 +254,7 @@ Item {
 
                             required property int index
                             readonly property var cat: root.categories[index]
-                            readonly property var catLayouts: LayoutRegistry.layoutsInCategory(cat.id)
+                            readonly property var desktops: LayoutRegistry.desktopsInCategory(cat.id)
                             readonly property bool expanded: root.isCategoryExpanded(cat.id)
 
                             // Category header
@@ -261,62 +298,128 @@ Item {
                                 }
                             }
 
-                            // Layout grid
-                            Flow {
+                            // Desktop subgroups (KDE / GNOME / Windows 7 …)
+                            ColumnLayout {
                                 Layout.fillWidth: true
-                                Layout.leftMargin: Kirigami.Units.smallSpacing
-                                Layout.rightMargin: Kirigami.Units.smallSpacing
-                                Layout.bottomMargin: catBlock.expanded ? Kirigami.Units.smallSpacing : 0
-                                spacing: Kirigami.Units.smallSpacing
+                                spacing: 0
                                 visible: catBlock.expanded
 
                                 Repeater {
-                                    // A hidden Flow still lets Repeater instantiate every
-                                    // delegate. Keep collapsed categories genuinely lazy so
-                                    // their heavyweight schematic previews do not block clicks.
-                                    model: catBlock.expanded ? catBlock.catLayouts.length : 0
+                                    // Collapsed platforms must not instantiate desktop
+                                    // headers or layout previews.
+                                    model: catBlock.expanded ? catBlock.desktops.length : 0
 
-                                    Rectangle {
-                                        id: card
+                                    ColumnLayout {
+                                        id: deskBlock
+                                        Layout.fillWidth: true
+                                        spacing: 0
+
                                         required property int index
-                                        readonly property var layoutInfo: catBlock.catLayouts[index]
-                                        readonly property bool selected: root.cfg_MenuLayoutId === layoutInfo.id
+                                        readonly property var desk: catBlock.desktops[index]
+                                        readonly property var deskLayouts: LayoutRegistry.layoutsInDesktop(desk.id)
+                                        readonly property bool expanded: root.isDesktopExpanded(desk.id)
 
-                                        width: Math.floor((categoryColumn.width - Kirigami.Units.smallSpacing * 4 - Kirigami.Units.smallSpacing * 2) / 3)
-                                        height: width * 0.95
-                                        radius: Kirigami.Units.smallSpacing
-                                        color: selected
-                                               ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18)
-                                               : Kirigami.Theme.backgroundColor
-                                        border.width: selected ? 2 : 1
-                                        border.color: selected ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
+                                        Rectangle {
+                                            Layout.fillWidth: true
+                                            Layout.preferredHeight: Kirigami.Units.gridUnit * 2
+                                            Layout.leftMargin: Kirigami.Units.largeSpacing
+                                            color: deskHeaderMa.containsMouse
+                                                   ? Qt.rgba(Kirigami.Theme.textColor.r, Kirigami.Theme.textColor.g, Kirigami.Theme.textColor.b, 0.08)
+                                                   : "transparent"
+                                            radius: Kirigami.Units.smallSpacing
 
-                                        ColumnLayout {
-                                            anchors.fill: parent
-                                            anchors.margins: Kirigami.Units.smallSpacing
-                                            spacing: Kirigami.Units.smallSpacing / 2
+                                            RowLayout {
+                                                anchors.fill: parent
+                                                anchors.leftMargin: Kirigami.Units.smallSpacing
+                                                anchors.rightMargin: Kirigami.Units.smallSpacing
+                                                spacing: Kirigami.Units.smallSpacing
 
-                                            LayoutPreview {
-                                                Layout.fillWidth: true
-                                                Layout.fillHeight: true
-                                                layoutId: card.layoutInfo.id
-                                                lineColor: Kirigami.Theme.textColor
-                                                lineOpacity: 0.55
+                                                Kirigami.Icon {
+                                                    source: deskBlock.desk.icon || "desktop"
+                                                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                                                }
+
+                                                QQC2.Label {
+                                                    text: root.desktopTitle(deskBlock.desk)
+                                                    Layout.fillWidth: true
+                                                    elide: Text.ElideRight
+                                                    opacity: 0.9
+                                                }
+
+                                                Kirigami.Icon {
+                                                    source: deskBlock.expanded ? "go-up" : "go-down"
+                                                    Layout.preferredWidth: Kirigami.Units.iconSizes.small
+                                                    Layout.preferredHeight: Kirigami.Units.iconSizes.small
+                                                }
                                             }
 
-                                            QQC2.Label {
-                                                text: root.tr(card.layoutInfo.name || "")
-                                                font.bold: true
-                                                horizontalAlignment: Text.AlignHCenter
-                                                Layout.fillWidth: true
-                                                elide: Text.ElideRight
+                                            MouseArea {
+                                                id: deskHeaderMa
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: root.toggleDesktop(deskBlock.desk.id)
                                             }
                                         }
 
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: root.selectLayout(card.layoutInfo.id)
+                                        Flow {
+                                            Layout.fillWidth: true
+                                            Layout.leftMargin: Kirigami.Units.largeSpacing + Kirigami.Units.smallSpacing
+                                            Layout.rightMargin: Kirigami.Units.smallSpacing
+                                            Layout.bottomMargin: deskBlock.expanded ? Kirigami.Units.smallSpacing : 0
+                                            spacing: Kirigami.Units.smallSpacing
+                                            visible: deskBlock.expanded
+
+                                            Repeater {
+                                                // Keep collapsed desktops lazy so schematic
+                                                // previews do not block clicks.
+                                                model: deskBlock.expanded ? deskBlock.deskLayouts.length : 0
+
+                                                Rectangle {
+                                                    id: card
+                                                    required property int index
+                                                    readonly property var layoutInfo: deskBlock.deskLayouts[index]
+                                                    readonly property bool selected: root.cfg_MenuLayoutId === layoutInfo.id
+
+                                                    width: Math.floor((categoryColumn.width - Kirigami.Units.largeSpacing - Kirigami.Units.smallSpacing * 6) / 3)
+                                                    height: width * 0.95
+                                                    radius: Kirigami.Units.smallSpacing
+                                                    color: selected
+                                                           ? Qt.rgba(Kirigami.Theme.highlightColor.r, Kirigami.Theme.highlightColor.g, Kirigami.Theme.highlightColor.b, 0.18)
+                                                           : Kirigami.Theme.backgroundColor
+                                                    border.width: selected ? 2 : 1
+                                                    border.color: selected ? Kirigami.Theme.highlightColor : Kirigami.Theme.disabledTextColor
+
+                                                    ColumnLayout {
+                                                        anchors.fill: parent
+                                                        anchors.margins: Kirigami.Units.smallSpacing
+                                                        spacing: Kirigami.Units.smallSpacing / 2
+
+                                                        LayoutPreview {
+                                                            Layout.fillWidth: true
+                                                            Layout.fillHeight: true
+                                                            layoutId: card.layoutInfo.id
+                                                            lineColor: Kirigami.Theme.textColor
+                                                            lineOpacity: 0.55
+                                                        }
+
+                                                        QQC2.Label {
+                                                            text: root.tr(card.layoutInfo.name || "")
+                                                            font.bold: true
+                                                            horizontalAlignment: Text.AlignHCenter
+                                                            Layout.fillWidth: true
+                                                            elide: Text.ElideRight
+                                                        }
+                                                    }
+
+                                                    MouseArea {
+                                                        anchors.fill: parent
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: root.selectLayout(card.layoutInfo.id)
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -409,7 +512,7 @@ Item {
             cfg_MenuLayoutId = plasmoid.configuration.MenuLayoutId || cfg_MenuLayoutId;
             var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId);
             if (meta)
-                root.ensureCategoryExpanded(meta.category);
+                root.ensureLayoutGroupsExpanded(meta);
         }
     }
 
