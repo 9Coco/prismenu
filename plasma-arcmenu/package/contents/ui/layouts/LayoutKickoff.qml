@@ -199,6 +199,7 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.minimumWidth: 0
                 autoFocus: true
+                showSettingsButton: false
             }
 
             RowLayout {
@@ -210,8 +211,8 @@ LayoutBase {
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 2
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 2
                     icon.name: "configure"
-                    Accessible.name: root.tr("Configure Arc Menu")
-                    onClicked: if (menuData) menuData.requestConfigure()
+                    Accessible.name: root.tr("ArcMenu Settings")
+                    onClicked: root.openArcMenuSettings()
                     PlasmaComponents.ToolTip.text: Accessible.name
                     PlasmaComponents.ToolTip.visible: hovered
                 }

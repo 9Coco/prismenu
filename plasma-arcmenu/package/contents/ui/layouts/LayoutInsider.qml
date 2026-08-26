@@ -36,8 +36,7 @@ LayoutBase {
     }
 
     function openMenu() {
-        if (menuData)
-            menuData.requestConfigure();
+        root.openArcMenuSettings();
     }
 
     RowLayout {
