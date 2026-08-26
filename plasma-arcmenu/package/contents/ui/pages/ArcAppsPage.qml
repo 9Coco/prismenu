@@ -87,12 +87,11 @@ Item {
         var enabled = ShortcutsConfig.effectiveExtraEnabled(liveEnabled, userSet);
         for (i = 0; i < order.length; ++i) {
             var eid = order[i];
-            if (!eid || enabled.indexOf(eid) < 0)
+            if (!eid || eid === "favorites" || enabled.indexOf(eid) < 0)
                 continue;
             var ename = eid;
             var eicon = "applications-other";
-            if (eid === "favorites") { ename = Locale.tr("Favorites", _); eicon = "emblem-favorite"; }
-            else if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
+            if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
             else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
             else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
             else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }

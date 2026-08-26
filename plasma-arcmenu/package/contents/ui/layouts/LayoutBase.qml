@@ -186,6 +186,17 @@ Item {
         return cats;
     }
 
+    /** Preference groups (pinned / all-apps / frequent / recent / custom). */
+    readonly property var preferenceGroups: {
+        var _sig = menuData ? menuData.extrasSignature : "";
+        if (menuData && menuData.enabledExtraCategories && menuData.enabledExtraCategories.length)
+            return menuData.enabledExtraCategories;
+        return [
+            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
+            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
+        ];
+    }
+
     /** Places + application shortcuts from settings (Directory / Application Shortcuts). */
     readonly property var sidebarShortcuts: {
         var _ = root.uiLang;

@@ -59,15 +59,7 @@ LayoutBase {
     }
 
 
-    /** Upstream extra-categories: user-configurable sidebar entries
-     * (pinned / all-apps / favorites / frequent / recent-files). */
-    readonly property var extraCategories: (menuData && menuData.enabledExtraCategories
-        && menuData.enabledExtraCategories.length)
-        ? menuData.enabledExtraCategories
-        : [
-            { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },
-            { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
-        ]
+    readonly property var extraCategories: root.preferenceGroups
 
     function selectNav(id) {
         selectedId = id;
