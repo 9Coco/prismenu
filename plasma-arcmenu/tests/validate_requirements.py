@@ -311,6 +311,8 @@ def main() -> int:
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")
+    check("sidebarShortcuts" in layout_base, "shared settings-driven sidebar shortcuts")
+    check('indexOf("qgrp-")' in layout_base, "custom groups resolve in content pane")
     check("ArcMenuSettingsButton" in layout_search, "search field ArcMenu Settings")
     check((PKG / "contents/icons/arcmenu-settings.svg").exists(), "dedicated ArcMenu Settings icon")
     settings_btn = (PKG / "contents/ui/components/ArcMenuSettingsButton.qml").read_text(encoding="utf-8")

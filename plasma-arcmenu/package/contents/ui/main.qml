@@ -163,7 +163,9 @@ PlasmoidItem {
         function onValueChanged(key, value) {
             if (key === "ExtraCategoriesEnabled" || key === "ExtraCategoriesOrder"
                 || key === "ExtraCategoriesUserSet" || key === "SidebarOrder"
-                || key === "SidebarHidden") {
+                || key === "SidebarHidden" || key === "CustomQuickLinks"
+                || key === "CustomGroupApps" || key === "DirectoryShortcuts"
+                || key === "ApplicationShortcuts") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
@@ -184,6 +186,10 @@ PlasmoidItem {
         function onExtraCategoriesUserSetChanged() { menuData.bumpStructure(); }
         function onSidebarOrderChanged() { menuData.bumpStructure(); }
         function onSidebarHiddenChanged() { menuData.bumpStructure(); }
+        function onCustomQuickLinksChanged() { menuData.bumpStructure(); }
+        function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
+        function onDirectoryShortcutsChanged() { menuData.bumpStructure(); }
+        function onApplicationShortcutsChanged() { menuData.bumpStructure(); }
         function onShowDescriptionChanged() { menuData.bumpSearchConfig(); }
         function onHideSearchBarChanged() { menuData.bumpSearchConfig(); }
         function onHighlightSearchTermsChanged() { menuData.bumpSearchConfig(); }

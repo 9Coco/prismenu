@@ -27,18 +27,7 @@ LayoutBase {
 
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
-    readonly property var sideItems: {
-        var _ = root.uiLang;
-        return [
-            { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
-            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
-            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
-            { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
-            { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
-            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
-        ];
-    }
+    readonly property var sideItems: root.sidebarShortcuts
 
 
 
@@ -85,7 +74,8 @@ LayoutBase {
         if (!menuData) return;
         menuData.setSearch("");
         root.refreshNavData(id);
-        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
+        if (id === "pinned" || id === "favorites" || id === "frequent"
+                || id === "recent-files" || String(id).indexOf("qgrp-") === 0)
             return;
         menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }

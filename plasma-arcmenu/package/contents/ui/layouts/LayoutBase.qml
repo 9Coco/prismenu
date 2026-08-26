@@ -136,6 +136,11 @@ Item {
             return (menuData && menuData.recentApps) ? menuData.recentApps : [];
         if (navId === "recent-files")
             return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
+        if (String(navId).indexOf("qgrp-") === 0) {
+            var _map = menuData ? menuData.customGroupMap : null;
+            return (menuData && menuData.customGroupApps)
+                ? menuData.customGroupApps(navId) : [];
+        }
         if (menuData && menuData.allApps)
             return AppsModel.appsInCategory(menuData.allApps, navId);
         return [];
@@ -169,6 +174,24 @@ Item {
 
     /** Full system category list (Kickoff / Kicker source), minus synthetic "all". */
     readonly property var standardCategories: root.categorySubset([])
+
+    /** Places + application shortcuts from settings (Directory / Application Shortcuts). */
+    readonly property var sidebarShortcuts: {
+        var _ = root.uiLang;
+        var places = (menuData && menuData.places && menuData.places.length)
+            ? menuData.places : [];
+        var apps = (menuData && menuData.systemShortcuts && menuData.systemShortcuts.length)
+            ? menuData.systemShortcuts : [];
+        if (places.length || apps.length)
+            return places.concat(apps);
+        return [
+            { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
+            { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
+            { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
+            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
+        ];
+    }
 
     function appsModel() {
         if (!menuData) {

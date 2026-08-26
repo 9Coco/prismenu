@@ -1017,7 +1017,39 @@ QtObject {
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
             else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
+            else if (String(id).indexOf("qgrp-") === 0) {
+                var grp = null;
+                var defsEarly = root.customQuickLinkDefs;
+                for (var g = 0; g < defsEarly.length; ++g) {
+                    if (defsEarly[g].id === id) {
+                        grp = defsEarly[g];
+                        break;
+                    }
+                }
+                if (!grp)
+                    continue;
+                name = grp.name;
+                icon = grp.icon || "folder-favorites";
+            } else {
+                continue;
+            }
             out.push({ id: id, name: name, icon: icon, extra: true });
+        }
+        var defs = root.customQuickLinkDefs;
+        var seen = {};
+        for (var s = 0; s < out.length; ++s)
+            seen[out[s].id] = true;
+        for (var c = 0; c < defs.length; ++c) {
+            if (!defs[c] || !defs[c].id || seen[defs[c].id])
+                continue;
+            if (root.extraCategoriesUserSet && order.indexOf(defs[c].id) >= 0)
+                continue;
+            out.push({
+                id: defs[c].id,
+                name: defs[c].name,
+                icon: defs[c].icon || "folder-favorites",
+                extra: true
+            });
         }
         return out;
     }
@@ -1026,39 +1058,63 @@ QtObject {
     readonly property string extrasSignature: {
         var e = extraCategoriesEnabled || [];
         var o = extraCategoriesOrder || [];
-        return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",");
+        var gids = [];
+        var defs = root.customQuickLinkDefs || [];
+        for (var i = 0; i < defs.length; ++i)
+            gids.push(defs[i].id);
+        return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",")
+            + "|g:" + gids.join(",");
     }
 
     /**
      * Configurable directory shortcuts (sidebar places).
+     * Directory Shortcuts settings is the order/source of truth, including
+     * custom:Name|icon|path entries. Plasma places fill in real URLs when
+     * a built-in folder is present.
      */
     readonly property var places: {
         var _ = root.uiLang;
-        // Prefer KFilePlacesModel (Dolphin / Kickoff places)
-        if (plasmaPlaces && plasmaPlaces.length) {
-            var kp = plasmaPlaces.slice();
-            if (root.showBookmarks) {
-                kp.push({
-                    id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
-                    special: "bookmarks",
-                    categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
-                });
-            }
-            if (root.showExternalDevices) {
-                kp.push({
-                    id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
-                    special: "devices",
-                    categories: ["Places"], keywords: [], genericName: root.tr("External devices"), noDisplay: false
-                });
-            }
-            return kp;
-        }
         var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
+        var plasmaByPlace = {};
+        var plasmaByPath = {};
+        var k;
+        if (plasmaPlaces && plasmaPlaces.length) {
+            for (k = 0; k < plasmaPlaces.length; ++k) {
+                var pp = plasmaPlaces[k];
+                if (!pp)
+                    continue;
+                if (pp.place)
+                    plasmaByPlace[String(pp.place).toUpperCase()] = pp;
+                if (pp.path)
+                    plasmaByPath[String(pp.path)] = pp;
+                if (pp.id)
+                    plasmaByPlace[String(pp.id)] = pp;
+            }
+        }
         var out = [];
+        var seen = {};
         for (var i = 0; i < raw.length; ++i) {
             var it = raw[i];
-            if (it.invalid)
+            if (!it || it.invalid)
                 continue;
+            var sid = String(it.id || "");
+            if (seen[sid])
+                continue;
+            seen[sid] = true;
+            var matched = null;
+            if (it.place && plasmaByPlace[String(it.place).toUpperCase()])
+                matched = plasmaByPlace[String(it.place).toUpperCase()];
+            else if (it.path && plasmaByPath[String(it.path)])
+                matched = plasmaByPath[String(it.path)];
+            else if (plasmaByPlace[sid])
+                matched = plasmaByPlace[sid];
+            if (matched) {
+                var copy = Object.assign({}, matched);
+                copy.name = it.name || copy.name;
+                copy.icon = it.icon || copy.icon;
+                out.push(copy);
+                continue;
+            }
             out.push({
                 id: it.id,
                 name: it.name,
@@ -1072,14 +1128,14 @@ QtObject {
                 noDisplay: false
             });
         }
-        if (root.showBookmarks) {
+        if (root.showBookmarks && !seen["place-bookmarks"]) {
             out.push({
                 id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
                 special: "bookmarks",
                 categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
             });
         }
-        if (root.showExternalDevices) {
+        if (root.showExternalDevices && !seen["place-devices"]) {
             out.push({
                 id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
                 special: "devices",
