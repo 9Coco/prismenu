@@ -255,7 +255,7 @@
 
     <group name="Favorites">
         <entry name="PinnedApps" type="StringList">
-            <default>org.kde.dolphin.desktop,arcmenu-settings</default>
+            <default>org.kde.dolphin.desktop</default>
         </entry>
         <entry name="PinnedCols" type="Int">
             <default>6</default>

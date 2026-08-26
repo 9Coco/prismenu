@@ -58,12 +58,6 @@ LayoutBase {
         }
         if (!root.pureTraditional)
             out.push({ id: "session", name: root.tr("Power / Session"), icon: "system-shutdown" });
-        out.push({
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            action: "configure"
-        });
         return out;
     }
 
@@ -134,8 +128,6 @@ LayoutBase {
     }
 
     function itemHasChildren(id) {
-        if (id === "arcmenu-settings")
-            return false;
         if (id === "recent")
             return !!(menuData && menuData.recentApps && menuData.recentApps.length);
         if (id === "recent-files")
@@ -421,15 +413,7 @@ LayoutBase {
                         root.openFlyoutFor(row.index, row.modelData.id, row);
                     }
                     onExited: root.scheduleClose()
-                    onClicked: {
-                        if (row.modelData && (row.modelData.id === "arcmenu-settings"
-                                || row.modelData.action === "configure")) {
-                            root.activateItem(row.modelData);
-                            root.hideFlyout();
-                            return;
-                        }
-                        root.openFlyoutFor(row.index, row.modelData.id, row);
-                    }
+                    onClicked: root.openFlyoutFor(row.index, row.modelData.id, row)
                 }
             }
         }

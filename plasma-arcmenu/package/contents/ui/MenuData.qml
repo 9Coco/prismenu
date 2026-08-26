@@ -658,7 +658,9 @@ QtObject {
                 var lid = String(local[i] || "");
                 if (!lid)
                     continue;
-                if (lid === "arcmenu-settings" || lid.indexOf("custom:") === 0
+                if (lid === "arcmenu-settings")
+                    continue;
+                if (lid.indexOf("custom:") === 0
                     || lid.indexOf("shortcut-") === 0) {
                     if (!seen[lid]) {
                         seen[lid] = true;
@@ -685,11 +687,11 @@ QtObject {
                 merged.push(id);
             }
             if (merged.length)
-                return merged;
+                return IdList.withoutMenuSettings(merged);
         }
         if (local.length === 0)
             return IdList.defaultPinnedIds().slice();
-        return local;
+        return IdList.withoutMenuSettings(local);
     }
 
     /** Map sidebar shortcuts → pin ids (prefer real .desktop when known) */
@@ -802,14 +804,6 @@ QtObject {
                     name: Locale.tr("Files", lang),
                     icon: "system-file-manager",
                     exec: "dolphin",
-                    noDisplay: false
-                },
-                {
-                    id: "arcmenu-settings",
-                    name: Locale.tr("ArcMenu Settings", lang),
-                    icon: "preferences-system-windows",
-                    exec: "",
-                    action: "configure",
                     noDisplay: false
                 }
             ];
@@ -1175,17 +1169,14 @@ QtObject {
         return Favorites.isFavorite(ids, appOrId);
     }
 
-    /** Keep ArcMenu Settings in the pinned list when config was previously wiped */
-    function ensureArcMenuSettingsPinned() {
+    /** Settings lives on the search bar — drop the old in-menu pin. */
+    function dropInMenuSettingsPin() {
         if (!plasmoidConfig)
             return;
         var current = IdList.normalizeIdList(cfg("PinnedApps", []));
-        if (current.length === 0)
-            return; // display already uses defaults including ArcMenu Settings
-        if (current.indexOf("arcmenu-settings") < 0) {
-            current.push("arcmenu-settings");
-            plasmoidConfig.PinnedApps = current;
-        }
+        var next = IdList.withoutMenuSettings(current);
+        if (next.length !== current.length)
+            plasmoidConfig.PinnedApps = next;
     }
 
     function reorderPinned(from, to) {
