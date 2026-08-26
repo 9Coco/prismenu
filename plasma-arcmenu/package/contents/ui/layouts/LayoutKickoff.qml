@@ -251,6 +251,8 @@ LayoutBase {
                 Layout.fillHeight: true
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
+                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
                 model: root.section === "applications"
                     ? root.applicationNavigation : root.placesNavigation
 

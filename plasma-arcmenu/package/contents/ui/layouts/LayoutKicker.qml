@@ -37,12 +37,42 @@ LayoutBase {
         }
 
         ListView {
-            id: cascadeList
+            id: searchList
+            visible: root.searching
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: root.searching ? appModel : categoryModel
+            model: appModel
             boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+            delegate: Components.AppListItem {
+                menuData: menuData
+                width: searchList.width
+                app: model
+                iconSize: root.appIconSize
+                showDescription: menuData ? menuData.showSearchDescription : true
+                selected: searchList.currentIndex === index
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                onActivated: root.activateItem(model)
+                onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+            }
+        }
+
+        ListView {
+            id: cascadeList
+            visible: !root.searching
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            clip: true
+            model: categoryModel
+            boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
 
             delegate: Item {
                 id: del
@@ -65,9 +95,7 @@ LayoutBase {
 
                     Components.ResolvedIcon {
                         iconName: model.icon || "application-x-executable"
-                        // Category icons are bundled mask SVGs; real app icons
-                        // (search results) must stay unmasked
-                        preferSymbolic: !root.searching
+                        preferSymbolic: true
                         tintColor: mouse.containsMouse ? root.selectedFg : root.fg
                         Layout.preferredWidth: root.appIconSize
                         Layout.preferredHeight: root.appIconSize
@@ -79,7 +107,6 @@ LayoutBase {
                         color: mouse.containsMouse ? root.selectedFg : root.fg
                     }
                     Kirigami.Icon {
-                        visible: !root.searching
                         source: "go-next"
                         Layout.preferredWidth: Kirigami.Units.iconSizes.small
                         Layout.preferredHeight: Kirigami.Units.iconSizes.small
@@ -93,17 +120,9 @@ LayoutBase {
                     hoverEnabled: true
                     acceptedButtons: Qt.LeftButton | Qt.RightButton
                     onClicked: (mouse) => {
-                        if (root.searching) {
-                            if (mouse.button === Qt.RightButton) {
-                                root.appContextMenu(model, mouse.x, mouse.y);
-                            } else {
-                                root.activateItem(model);
-                            }
-                        } else {
-                            root.cascadeCategoryId = model.id;
-                            if (menuData) menuData.selectCategory(model.id);
-                            cascadePopup.open();
-                        }
+                        root.cascadeCategoryId = model.id;
+                        if (menuData) menuData.selectCategory(model.id);
+                        cascadePopup.open();
                     }
                 }
             }
@@ -140,6 +159,9 @@ LayoutBase {
             id: cascadeApps
             clip: true
             model: cascadeAppModel
+            boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
             delegate: Components.AppListItem {
                 menuData: menuData
                 width: cascadeApps.width
