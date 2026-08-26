@@ -152,7 +152,7 @@ PlasmoidItem {
         maxResultsRaw: plasmoid.configuration.MaxResults
         Component.onCompleted: {
             CatalogBridge.setMenuData(menuData);
-            menuData.ensureArcMenuSettingsPinned();
+            menuData.dropInMenuSettingsPin();
             console.log("ArcMenu catalog registered on bridge");
         }
     }

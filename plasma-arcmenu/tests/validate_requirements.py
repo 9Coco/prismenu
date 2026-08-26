@@ -317,7 +317,10 @@ def main() -> int:
     check("arcmenu-settings.svg" in settings_btn, "settings button uses dedicated icon")
     check("Layout.fillHeight: false" in layout_search, "search field does not stretch layouts")
     app_menu = layout_sources.get("LayoutApplicationMenu.qml", "")
-    check("arcmenu-settings" in app_menu, "traditional menus list ArcMenu Settings")
+    check("ArcMenuSettingsButton" in app_menu, "traditional menus keep settings button")
+    id_list = (PKG / "contents/code/IdList.js").read_text(encoding="utf-8")
+    check("arcmenu-settings" not in id_list.split("function defaultPinnedIds")[1].split("function")[0],
+          "default pins omit in-menu ArcMenu Settings")
     for fname, source in layout_sources.items():
         has_search = "Components.LayoutSearchField" in source
         has_direct = ("ArcMenuSettingsButton" in source

@@ -112,14 +112,6 @@ Item {
             icon: "system-file-manager",
             exec: "dolphin",
             noDisplay: false
-        },
-        {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
         }
     ]
 
@@ -187,19 +179,6 @@ Item {
         return searching
             ? (menuData.searchResultsFlat || menuData.searchResults)
             : menuData.categoryApps;
-    }
-
-    /** Always-available ArcMenu Settings row for layouts that list shortcuts. */
-    readonly property var arcMenuSettingsItem: {
-        var _ = root.uiLang;
-        return {
-            id: "arcmenu-settings",
-            name: root.tr("ArcMenu Settings"),
-            icon: "preferences-system-windows",
-            exec: "",
-            action: "configure",
-            noDisplay: false
-        };
     }
 
     function openArcMenuSettings() {

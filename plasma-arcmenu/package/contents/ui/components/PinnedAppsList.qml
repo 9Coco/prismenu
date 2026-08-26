@@ -59,14 +59,6 @@ Item {
                     icon: "system-file-manager",
                     exec: "dolphin",
                     noDisplay: false
-                },
-                {
-                    id: "arcmenu-settings",
-                    name: "ArcMenu Settings",
-                    icon: "preferences-system-windows",
-                    exec: "",
-                    action: "configure",
-                    noDisplay: false
                 }
             ];
         }
