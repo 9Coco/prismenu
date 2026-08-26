@@ -11,7 +11,7 @@ import "../../code/Locale.js" as Locale
 Item {
     id: root
 
-    property var cfg_Providers: ["applications"]
+    property var cfg_Providers: ["applications", "places", "files"]
     property string cfg_Placeholder
     property bool cfg_ShowDescription
     property int cfg_MaxResults
@@ -73,12 +73,12 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
-                title: root.tr("Maximum search results")
+                title: root.tr("Maximum results per section")
                 iconName: "view-list-details"
                 accent: "orange"
                 QQC2.SpinBox {
                     from: 1; to: 100
-                    value: cfg_MaxResults > 0 ? cfg_MaxResults : 5
+                    value: cfg_MaxResults > 0 ? cfg_MaxResults : 20
                     onValueModified: { cfg_MaxResults = value; writeLive("MaxResults", value); }
                 }
             }
@@ -125,7 +125,7 @@ Item {
     }
 
     Component.onCompleted: {
-        if (!cfg_MaxResults) cfg_MaxResults = 5;
+        if (!cfg_MaxResults) cfg_MaxResults = 20;
         if (cfg_SearchBoxRadius === undefined || cfg_SearchBoxRadius === null)
             cfg_SearchBoxRadius = 25;
     }

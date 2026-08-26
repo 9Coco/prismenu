@@ -12,6 +12,8 @@ Item {
     property var menuData: null
     property int iconSize: 24
     property bool showDescription: true
+    /** Kickoff-style single-line row with the description/path at the right. */
+    property bool inlineDescription: false
     property bool showGenericNames: false
     property bool multiLineLabels: false
     /** When set with highlightTerms, primary label uses RichText bold matches (ArcMenu) */
@@ -64,7 +66,8 @@ Item {
     height: root.isSection
         ? Kirigami.Units.gridUnit * 1.35
         : Math.max(iconSize + Kirigami.Units.smallSpacing * 2,
-                   secondaryText ? Kirigami.Units.gridUnit * 2.2 : Kirigami.Units.gridUnit * 1.8)
+                   secondaryText && !inlineDescription
+                       ? Kirigami.Units.gridUnit * 2.2 : Kirigami.Units.gridUnit * 1.8)
     Accessible.name: primaryText
     Accessible.role: root.isSection ? Accessible.Heading : Accessible.ListItem
     Accessible.onPressAction: {
@@ -73,18 +76,22 @@ Item {
     }
 
     // ---- Section header (Applications / Files / Windows) ----
-    PlasmaComponents.Label {
+    RowLayout {
         anchors.fill: parent
         anchors.leftMargin: Kirigami.Units.smallSpacing
         anchors.rightMargin: Kirigami.Units.smallSpacing
         visible: root.isSection
-        text: root.primaryText
-        elide: Text.ElideRight
-        verticalAlignment: Text.AlignVCenter
-        font.pointSize: Kirigami.Theme.smallFont.pointSize
-        font.weight: Font.DemiBold
-        opacity: 0.65
-        color: root.fg
+        spacing: Kirigami.Units.smallSpacing
+
+        PlasmaComponents.Label {
+            text: root.primaryText
+            elide: Text.ElideRight
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            font.weight: Font.DemiBold
+            color: root.fg
+        }
+
+        Kirigami.Separator { Layout.fillWidth: true }
     }
 
     // ---- Normal result row ----
@@ -127,7 +134,7 @@ Item {
             }
 
             PlasmaComponents.Label {
-                visible: root.secondaryText.length > 0
+                visible: !root.inlineDescription && root.secondaryText.length > 0
                 text: root._doHighlight
                     ? SearchExtras.highlightMarkup(root.secondaryText, root._highlightQ)
                     : root.secondaryText
@@ -138,6 +145,18 @@ Item {
                 font.pointSize: Kirigami.Theme.smallFont.pointSize
                 color: root.chipFg
             }
+        }
+
+        PlasmaComponents.Label {
+            visible: root.inlineDescription && root.secondaryText.length > 0
+            text: root.secondaryText
+            elide: Text.ElideMiddle
+            horizontalAlignment: Text.AlignRight
+            Layout.preferredWidth: Math.min(implicitWidth, Math.max(120, root.width * 0.42))
+            Layout.maximumWidth: root.width * 0.5
+            opacity: 0.7
+            font.pointSize: Kirigami.Theme.smallFont.pointSize
+            color: root.chipFg
         }
     }
 
