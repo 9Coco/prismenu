@@ -55,7 +55,7 @@ def main() -> int:
         "kickoff": "plasma",
         "kicker": "plasma",
         "plasma-dash": "plasma",
-        "arcmenu": "gnome",
+        "arcmenu": "arcmenu",
         "whisker": "xfce",
         "mint": "mint",
         "redmond": "win7",

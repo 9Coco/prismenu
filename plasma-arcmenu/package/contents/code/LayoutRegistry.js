@@ -12,8 +12,8 @@ var LAYOUTS = [
         id: "arcmenu",
         name: "ArcMenu (Classic)",
         description: "Official ArcMenu layout (pinned + places)",
-        category: "linux",
-        desktop: "gnome",
+        category: "other",
+        desktop: "arcmenu",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -510,17 +510,6 @@ var LAYOUTS = [
         supportsFlip: false, supportsSearchbarLocation: false,
         compactPopup: true, defaultWidth: 380, defaultHeight: 560,
         previewKind: "plasma", source: "layouts/LayoutKickoffCompact.qml"
-    },
-    {
-        id: "gnome-overview",
-        name: "GNOME Activities Overview",
-        description: "Window overview, workspace strip, search, and Dash",
-        category: "linux", desktop: "gnome",
-        hasCategories: false, hasPinned: true, hasSearch: true,
-        hasUser: false, hasPower: false,
-        supportsFlip: false, supportsSearchbarLocation: false,
-        defaultWidth: 1200, defaultHeight: 800, heightPolicy: "available", maxHeight: 1600,
-        previewKind: "searchGrid", source: "layouts/LayoutOverview.qml"
     },
     {
         id: "gnome-grid",
