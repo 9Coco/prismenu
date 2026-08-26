@@ -49,6 +49,7 @@ var CONFIG_KEYS = [
     "CornerRadius",
     "CustomButtonIcon",
     "CustomGroupApps",
+    "GroupViewOptions",
     "CustomIcons",
     "CustomNames",
     "CustomQuickLinks",
@@ -266,6 +267,7 @@ var CONFIG_DEFAULTS = {
     customQuickLinks: [],
     customTypeGroups: [],
     customGroupApps: "{}",
+    groupViewOptions: "{}",
     // Search
     providers: ["applications", "places", "files"],
     placeholder: "Search…",

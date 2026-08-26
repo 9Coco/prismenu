@@ -141,6 +141,7 @@ PlasmoidItem {
         customQuickLinksRaw: plasmoid.configuration.CustomQuickLinks
         customTypeGroupsRaw: plasmoid.configuration.CustomTypeGroups
         customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
+        groupViewOptionsRaw: plasmoid.configuration.GroupViewOptions
         sidebarOrderRaw: plasmoid.configuration.SidebarOrder
         sidebarHiddenRaw: plasmoid.configuration.SidebarHidden
         showDescriptionRaw: plasmoid.configuration.ShowDescription
@@ -166,8 +167,12 @@ PlasmoidItem {
                 || key === "ExtraCategoriesUserSet" || key === "SidebarOrder"
                 || key === "SidebarHidden" || key === "CustomQuickLinks"
                 || key === "CustomTypeGroups"
-                || key === "CustomGroupApps" || key === "DirectoryShortcuts"
-                || key === "ApplicationShortcuts") {
+                || key === "CustomGroupApps" || key === "GroupViewOptions"
+                || key === "DirectoryShortcuts"
+                || key === "ApplicationShortcuts" || key === "Order"
+                || key === "Hidden" || key === "ShowEmpty" || key === "CustomNames"
+                || key === "CustomIcons" || key === "Enabled" || key === "MaxItems"
+                || key === "RecentApps" || key === "PinnedApps") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
@@ -190,7 +195,15 @@ PlasmoidItem {
         function onSidebarHiddenChanged() { menuData.bumpStructure(); }
         function onCustomQuickLinksChanged() { menuData.bumpStructure(); }
         function onCustomTypeGroupsChanged() { menuData.bumpStructure(); }
+        function onOrderChanged() { menuData.bumpStructure(); }
+        function onHiddenChanged() { menuData.bumpStructure(); }
+        function onShowEmptyChanged() { menuData.bumpStructure(); }
         function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
+        function onGroupViewOptionsChanged() { menuData.bumpStructure(); }
+        function onEnabledChanged() { menuData.bumpStructure(); }
+        function onMaxItemsChanged() { menuData.bumpStructure(); }
+        function onRecentAppsChanged() { menuData.bumpStructure(); }
+        function onPinnedAppsChanged() { menuData.bumpStructure(); }
         function onDirectoryShortcutsChanged() { menuData.bumpStructure(); }
         function onApplicationShortcutsChanged() { menuData.bumpStructure(); }
         function onShowDescriptionChanged() { menuData.bumpSearchConfig(); }

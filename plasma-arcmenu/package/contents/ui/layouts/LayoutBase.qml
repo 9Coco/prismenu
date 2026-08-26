@@ -122,6 +122,42 @@ Item {
     /** Standard content pane model: search > pinned > all > extra > category */
     readonly property var contentItems: root.computeContentItems(root.activeNavId)
 
+    function mergeExtraApps(navId, base) {
+        if (!menuData || !menuData.customGroupApps || !navId)
+            return base || [];
+        var extra = menuData.customGroupApps(navId) || [];
+        if (!extra.length)
+            return base || [];
+        var seen = {};
+        var out = [];
+        var i;
+        var list = base || [];
+        for (i = 0; i < list.length; ++i) {
+            if (!list[i])
+                continue;
+            seen[String(list[i].id || "")] = true;
+            out.push(list[i]);
+        }
+        for (i = 0; i < extra.length; ++i) {
+            if (!extra[i] || seen[String(extra[i].id || "")])
+                continue;
+            seen[String(extra[i].id || "")] = true;
+            out.push(extra[i]);
+        }
+        return out;
+    }
+
+    function groupViewMode(navId) {
+        var _sig = menuData ? menuData.extrasSignature : "";
+        if (menuData && menuData.groupViewMode)
+            return menuData.groupViewMode(navId);
+        return (navId === "pinned" || navId === "favorites") ? "grid" : "list";
+    }
+
+    function usesGridView(navId) {
+        return root.groupViewMode(navId) === "grid";
+    }
+
     function computeContentItems(navId) {
         if (root.searching)
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
@@ -130,19 +166,25 @@ Item {
             var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
             return pinned.length ? pinned : root.defaultPinned;
         }
-        if (navId === "all" || navId === "all-apps")
-            return (menuData && menuData.sortedVisibleApps) ? menuData.sortedVisibleApps : [];
-        if (navId === "frequent")
-            return (menuData && menuData.recentApps) ? menuData.recentApps : [];
-        if (navId === "recent-files")
-            return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
+        if (navId === "all" || navId === "all-apps") {
+            var allApps = (menuData && menuData.sortedVisibleApps) ? menuData.sortedVisibleApps : [];
+            return root.mergeExtraApps("all-apps", allApps);
+        }
+        if (navId === "frequent") {
+            var recents = (menuData && menuData.recentApps) ? menuData.recentApps : [];
+            return root.mergeExtraApps("frequent", recents);
+        }
+        if (navId === "recent-files") {
+            var files = (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
+            return root.mergeExtraApps("recent-files", files);
+        }
         if (String(navId).indexOf("qgrp-") === 0 || String(navId).indexOf("tgrp-") === 0) {
             var _map = menuData ? menuData.customGroupMap : null;
             return (menuData && menuData.customGroupApps)
                 ? menuData.customGroupApps(navId) : [];
         }
         if (menuData && menuData.allApps)
-            return AppsModel.appsInCategory(menuData.allApps, navId);
+            return root.mergeExtraApps(navId, AppsModel.appsInCategory(menuData.allApps, navId));
         return [];
     }
 
@@ -177,12 +219,19 @@ Item {
 
     /** System categories plus user type-groups (bottom section of menu groups). */
     readonly property var typeCategories: {
+        var _sig = menuData ? menuData.extrasSignature : "";
+        var hidden = (menuData && menuData.hiddenCategoryIds) ? menuData.hiddenCategoryIds : [];
         var cats = root.standardCategories.slice();
         var groups = (menuData && menuData.customTypeGroupDefs)
             ? menuData.customTypeGroupDefs : [];
         var _map = menuData ? menuData.customGroupMap : null;
-        for (var i = 0; i < groups.length; ++i)
+        for (var i = 0; i < groups.length; ++i) {
+            if (!groups[i] || !groups[i].id)
+                continue;
+            if (hidden.indexOf(groups[i].id) >= 0)
+                continue;
             cats.push(groups[i]);
+        }
         return cats;
     }
 

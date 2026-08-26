@@ -7,6 +7,8 @@ import "../../code/Locale.js" as Locale
 import "../../code/ShortcutsConfig.js" as SC
 import "../../code/SidebarModel.js" as SidebarModel
 import "../../code/CatalogBridge.js" as CatalogBridge
+import "../../code/AppsModel.js" as AppsModel
+import ".." as Ui
 
 Item {
     id: root
@@ -19,6 +21,16 @@ Item {
     property var cfg_CustomQuickLinks: []
     property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
+    property string cfg_GroupViewOptions: "{}"
+    property var cfg_PinnedApps: []
+    property var cfg_Order: []
+    property var cfg_Hidden: []
+    property string cfg_CustomNames: "{}"
+    property string cfg_CustomIcons: "{}"
+    property bool cfg_ShowEmpty: true
+    property bool cfg_Enabled: true
+    property int cfg_MaxItems: 5
+    property var cfg_RecentApps: []
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -247,8 +259,26 @@ Item {
     }
 
     function groupContains(gid, appId) {
+        if (gid === "pinned" || gid === "favorites")
+            return (cfg_PinnedApps || []).indexOf(appId) >= 0;
         var ids = customGroupMap()[gid];
         return Array.isArray(ids) && ids.indexOf(appId) >= 0;
+    }
+
+    function groupViewMode(id) {
+        return SC.groupViewMode(cfg_GroupViewOptions, id);
+    }
+
+    function setGroupViewMode(id, view) {
+        var s = SC.setGroupView(cfg_GroupViewOptions, id, view);
+        cfg_GroupViewOptions = s;
+        writeLive("GroupViewOptions", s);
+    }
+
+    function openColumnSettings(id, name) {
+        columnDialog.groupId = id;
+        columnDialog.groupName = name || id;
+        columnDialog.open();
     }
 
     function enableExtraId(gid) {
@@ -287,6 +317,8 @@ Item {
             root.enableExtraId(gid);
         rebuildModel();
         rebuildTypeModel();
+        if (isType)
+            persistTypeOrder();
         rebuildSidebarModel();
     }
 
@@ -306,6 +338,13 @@ Item {
         var s = JSON.stringify(map);
         cfg_CustomGroupApps = s;
         writeLive("CustomGroupApps", s);
+        var views = SC.parseGroupViewOptions(cfg_GroupViewOptions);
+        if (views[gid]) {
+            delete views[gid];
+            var vs = JSON.stringify(views);
+            cfg_GroupViewOptions = vs;
+            writeLive("GroupViewOptions", vs);
+        }
         var order = SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER)
             .filter(function (id) { return id !== gid; });
         var enabled = enabledIds().filter(function (id) { return id !== gid; });
@@ -321,6 +360,17 @@ Item {
     function toggleGroupApp(gid, appId, on) {
         if (!gid || !appId)
             return;
+        if (gid === "pinned" || gid === "favorites") {
+            var pins = (cfg_PinnedApps || []).slice();
+            var pidx = pins.indexOf(appId);
+            if (on && pidx < 0)
+                pins.push(appId);
+            if (!on && pidx >= 0)
+                pins.splice(pidx, 1);
+            cfg_PinnedApps = pins;
+            writeLive("PinnedApps", pins);
+            return;
+        }
         var map = customGroupMap();
         var ids = Array.isArray(map[gid]) ? map[gid].slice() : [];
         var idx = ids.indexOf(appId);
@@ -346,16 +396,125 @@ Item {
     ListModel { id: sidebarListModel }
     ListModel { id: typeListModel }
 
+    Ui.AppsBackend {
+        id: typeBackend
+        onAppsUpdated: root.rebuildTypeModel()
+    }
+
+    function systemCategories() {
+        var src = [];
+        if (typeBackend.categories && typeBackend.categories.length)
+            src = typeBackend.categories;
+        else {
+            try {
+                var md = CatalogBridge.menuData();
+                if (md && md.rawCategories && md.rawCategories.length)
+                    src = md.rawCategories;
+                else if (md && md.categories && md.categories.length)
+                    src = md.categories;
+            } catch (e) {}
+        }
+        var live = [];
+        for (var i = 0; i < src.length; ++i) {
+            if (src[i] && src[i].id && src[i].id !== "all")
+                live.push(src[i]);
+        }
+        return live;
+    }
+
+    function customNamesMap() {
+        return AppsModel.parseJsonMap(cfg_CustomNames);
+    }
+
+    function customIconsMap() {
+        return AppsModel.parseJsonMap(cfg_CustomIcons);
+    }
+
+    function displayTypeName(cat) {
+        var names = customNamesMap();
+        if (cat.id && names[cat.id])
+            return names[cat.id];
+        return cat.name || cat.id;
+    }
+
+    function isTypeHidden(id) {
+        return (cfg_Hidden || []).indexOf(id) >= 0;
+    }
+
     function rebuildTypeModel() {
         typeListModel.clear();
+        var cats = root.systemCategories();
         var groups = root.typeGroups();
-        for (var i = 0; i < groups.length; ++i) {
-            typeListModel.append({
+        var byId = {};
+        var i;
+        for (i = 0; i < cats.length; ++i) {
+            if (cats[i] && cats[i].id)
+                byId[cats[i].id] = {
+                    catId: cats[i].id,
+                    catName: root.displayTypeName(cats[i]),
+                    catIcon: customIconsMap()[cats[i].id] || cats[i].icon || "applications-other",
+                    rowKind: "system",
+                    catOn: !root.isTypeHidden(cats[i].id)
+                };
+        }
+        for (i = 0; i < groups.length; ++i) {
+            byId[groups[i].id] = {
                 catId: groups[i].id,
                 catName: groups[i].name,
-                catIcon: groups[i].icon || "folder-favorites"
-            });
+                catIcon: groups[i].icon || "folder-favorites",
+                rowKind: "custom",
+                catOn: !root.isTypeHidden(groups[i].id)
+            };
         }
+        var order = (cfg_Order && cfg_Order.length)
+            ? cfg_Order.slice()
+            : cats.map(function (c) { return c.id; });
+        var seen = {};
+        for (i = 0; i < order.length; ++i) {
+            var id = order[i];
+            if (!byId[id] || seen[id])
+                continue;
+            seen[id] = true;
+            typeListModel.append(byId[id]);
+        }
+        for (i = 0; i < cats.length; ++i) {
+            if (cats[i] && cats[i].id && !seen[cats[i].id]) {
+                seen[cats[i].id] = true;
+                typeListModel.append(byId[cats[i].id]);
+            }
+        }
+        for (i = 0; i < groups.length; ++i) {
+            if (!seen[groups[i].id])
+                typeListModel.append(byId[groups[i].id]);
+        }
+    }
+
+    function persistTypeOrder() {
+        var order = [];
+        for (var i = 0; i < typeListModel.count; ++i)
+            order.push(typeListModel.get(i).catId);
+        cfg_Order = order.slice();
+        writeLive("Order", order.slice());
+    }
+
+    function moveTypeRow(from, to) {
+        if (from < 0 || to < 0 || from >= typeListModel.count
+                || to >= typeListModel.count || from === to)
+            return;
+        typeListModel.move(from, to, 1);
+        persistTypeOrder();
+    }
+
+    function setTypeHidden(id, hide) {
+        var list = (cfg_Hidden || []).slice();
+        var idx = list.indexOf(id);
+        if (hide && idx < 0)
+            list.push(id);
+        if (!hide && idx >= 0)
+            list.splice(idx, 1);
+        cfg_Hidden = list;
+        writeLive("Hidden", list);
+        rebuildTypeModel();
     }
 
     ConfigPage {
@@ -402,14 +561,12 @@ Item {
                             onClicked: root.move(row.index, row.index + 1)
                         }
                         QQC2.Button {
-                            visible: String(row.catId).indexOf("qgrp-") === 0
-                            icon.name: "document-edit"
+                            icon.name: "settings-configure"
                             flat: true
-                            onClicked: {
-                                manageDialog.groupId = row.catId;
-                                manageFilter.text = "";
-                                manageDialog.open();
-                            }
+                            QQC2.ToolTip.visible: hovered
+                            QQC2.ToolTip.text: root.tr("Column settings")
+                            Accessible.name: root.tr("Column settings")
+                            onClicked: root.openColumnSettings(row.catId, row.catName)
                         }
                         QQC2.Button {
                             visible: String(row.catId).indexOf("qgrp-") === 0
@@ -447,6 +604,19 @@ Item {
 
         ConfigGroup {
             title: root.tr("Type Groups")
+            ConfigSettingRow {
+                title: root.tr("Show empty categories")
+                iconName: "view-list-details"
+                accent: "blue"
+                QQC2.Switch {
+                    checked: root.cfg_ShowEmpty
+                    onToggled: {
+                        root.cfg_ShowEmpty = checked;
+                        root.writeLive("ShowEmpty", checked);
+                    }
+                }
+            }
+            ConfigSep {}
             Repeater {
                 model: typeListModel
                 ColumnLayout {
@@ -455,22 +625,40 @@ Item {
                     required property string catId
                     required property string catName
                     required property string catIcon
+                    required property string rowKind
+                    required property bool catOn
                     Layout.fillWidth: true
                     spacing: 0
                     ConfigSettingRow {
                         title: typeRow.catName
                         iconName: typeRow.catIcon
                         accent: index % 2 === 0 ? "teal" : "purple"
-                        QQC2.Button {
-                            icon.name: "document-edit"
-                            flat: true
-                            onClicked: {
-                                manageDialog.groupId = typeRow.catId;
-                                manageFilter.text = "";
-                                manageDialog.open();
-                            }
+                        QQC2.Switch {
+                            checked: typeRow.catOn
+                            onToggled: root.setTypeHidden(typeRow.catId, !checked)
                         }
                         QQC2.Button {
+                            icon.name: "go-up"
+                            flat: true
+                            enabled: typeRow.index > 0
+                            onClicked: root.moveTypeRow(typeRow.index, typeRow.index - 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "go-down"
+                            flat: true
+                            enabled: typeRow.index < typeListModel.count - 1
+                            onClicked: root.moveTypeRow(typeRow.index, typeRow.index + 1)
+                        }
+                        QQC2.Button {
+                            icon.name: "settings-configure"
+                            flat: true
+                            QQC2.ToolTip.visible: hovered
+                            QQC2.ToolTip.text: root.tr("Column settings")
+                            Accessible.name: root.tr("Column settings")
+                            onClicked: root.openColumnSettings(typeRow.catId, typeRow.catName)
+                        }
+                        QQC2.Button {
+                            visible: typeRow.rowKind === "custom"
                             icon.name: "list-remove"
                             flat: true
                             onClicked: {
@@ -485,7 +673,7 @@ Item {
             ConfigSep {}
             ConfigSettingRow {
                 title: root.tr("New custom group…")
-                subtitle: root.tr("Shown below the split, with Office, Games, and other types")
+                subtitle: root.tr("Shown below the split with system application types")
                 iconName: "list-add"
                 accent: "teal"
                 QQC2.Button {
@@ -536,6 +724,105 @@ Item {
             }
         }
         onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon, newGroupDialog.isType)
+    }
+
+    QQC2.Dialog {
+        id: columnDialog
+        property string groupId: ""
+        property string groupName: ""
+        readonly property bool isFrequent: groupId === "frequent"
+        title: root.tr("Column settings")
+        modal: true
+        standardButtons: QQC2.Dialog.Close
+        width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+        onAboutToShow: {
+            var view = root.groupViewMode(columnDialog.groupId);
+            viewCombo.currentIndex = view === "grid" ? 0 : 1;
+        }
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+            QQC2.Label {
+                Layout.fillWidth: true
+                text: columnDialog.groupName
+                wrapMode: Text.WordWrap
+                font.weight: Font.Medium
+            }
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
+                QQC2.ComboBox {
+                    id: viewCombo
+                    Kirigami.FormData.label: root.tr("Icon display")
+                    model: [root.tr("Square icons"), root.tr("Show in rows")]
+                    onActivated: root.setGroupViewMode(columnDialog.groupId, currentIndex === 0 ? "grid" : "list")
+                }
+            }
+            ConfigSettingRow {
+                title: root.tr("Add applications")
+                subtitle: root.tr("Choose which applications appear in this column")
+                iconName: "list-add"
+                accent: "green"
+                QQC2.Button {
+                    text: root.tr("Add applications")
+                    icon.name: "list-add"
+                    onClicked: {
+                        manageDialog.groupId = columnDialog.groupId;
+                        manageFilter.text = "";
+                        manageDialog.open();
+                    }
+                }
+            }
+            ColumnLayout {
+                visible: columnDialog.isFrequent
+                Layout.fillWidth: true
+                spacing: 0
+                ConfigSep {}
+                ConfigSettingRow {
+                    title: root.tr("Enable recent applications section")
+                    iconName: "view-history"
+                    accent: "indigo"
+                    QQC2.Switch {
+                        checked: root.cfg_Enabled
+                        onToggled: {
+                            root.cfg_Enabled = checked;
+                            root.writeLive("Enabled", checked);
+                        }
+                    }
+                }
+                ConfigSep {}
+                ConfigSettingRow {
+                    title: root.tr("Maximum recent items:")
+                    iconName: "view-list-details"
+                    accent: "cyan"
+                    opacity: root.cfg_Enabled ? 1 : 0.45
+                    QQC2.SpinBox {
+                        from: 1
+                        to: 20
+                        value: root.cfg_MaxItems
+                        enabled: root.cfg_Enabled
+                        onValueModified: {
+                            root.cfg_MaxItems = value;
+                            root.writeLive("MaxItems", value);
+                        }
+                    }
+                }
+                ConfigSep {}
+                ConfigSettingRow {
+                    title: root.tr("Clear recent applications")
+                    iconName: "edit-clear-history"
+                    accent: "red"
+                    QQC2.Button {
+                        text: root.tr("Clear recent applications")
+                        icon.name: "edit-clear-history"
+                        onClicked: {
+                            cfg_RecentApps = [];
+                            root.writeLive("RecentApps", []);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     QQC2.Dialog {
@@ -658,4 +945,12 @@ Item {
         rebuildModel();
     }
     onCfg_CustomTypeGroupsChanged: rebuildTypeModel()
+    onCfg_OrderChanged: {
+        if (typeListModel.count === 0)
+            rebuildTypeModel();
+    }
+    onCfg_HiddenChanged: {
+        if (typeListModel.count === 0)
+            rebuildTypeModel();
+    }
 }

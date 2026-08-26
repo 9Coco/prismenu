@@ -175,11 +175,40 @@ function powerDefs(tr) {
     ];
 }
 
+function parseGroupViewOptions(raw) {
+    try {
+        var obj = typeof raw === "string" ? JSON.parse(String(raw || "{}")) : (raw || {});
+        return (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function defaultGroupView(id) {
+    return (id === "pinned" || id === "favorites") ? "grid" : "list";
+}
+
+function groupViewMode(raw, id) {
+    var map = parseGroupViewOptions(raw);
+    var entry = map[id];
+    if (entry && (entry.view === "grid" || entry.view === "list"))
+        return entry.view;
+    return defaultGroupView(id);
+}
+
+function setGroupView(raw, id, view) {
+    var map = parseGroupViewOptions(raw);
+    if (!map[id] || typeof map[id] !== "object")
+        map[id] = {};
+    map[id].view = (view === "grid") ? "grid" : "list";
+    return JSON.stringify(map);
+}
+
 function extraCategoryDefs(tr) {
     return [
         { id: "pinned", name: tr("Pinned Applications"), icon: "pin" },
         { id: "all-apps", name: tr("All Applications"), icon: "view-app-grid-symbolic" },
-        { id: "frequent", name: tr("Frequent Apps"), icon: "view-calendar" },
+        { id: "frequent", name: tr("Recent Apps"), icon: "view-history" },
         { id: "recent-files", name: tr("Recent Files"), icon: "document-open-recent" }
     ];
 }

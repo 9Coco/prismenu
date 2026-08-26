@@ -105,7 +105,9 @@ Item {
     property var cfg_SidebarHidden: []
     property var cfg_ContextMenuItems: []
     property var cfg_CustomQuickLinks: []
+    property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
+    property string cfg_GroupViewOptions: "{}"
 
     property var cfg_Providers: ["applications", "places", "files"]
     property string cfg_Placeholder
@@ -214,7 +216,9 @@ Item {
     property alias cfg_sidebarHidden: root.cfg_SidebarHidden
     property alias cfg_contextMenuItems: root.cfg_ContextMenuItems
     property alias cfg_customQuickLinks: root.cfg_CustomQuickLinks
+    property alias cfg_customTypeGroups: root.cfg_CustomTypeGroups
     property alias cfg_customGroupApps: root.cfg_CustomGroupApps
+    property alias cfg_groupViewOptions: root.cfg_GroupViewOptions
     property alias cfg_providers: root.cfg_Providers
     property alias cfg_placeholder: root.cfg_Placeholder
     property alias cfg_showDescription: root.cfg_ShowDescription
@@ -260,7 +264,7 @@ Item {
         "PinnedApps", "DirectoryShortcuts", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
         "SidebarOrder", "SidebarHidden", "ContextMenuItems",
-        "CustomQuickLinks", "CustomGroupApps",
+        "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
         "SearchWindows", "SearchRecentFiles",
@@ -324,13 +328,12 @@ Item {
         "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
         "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
-        "ConfigPinned": ["PinnedApps"],
+        "ConfigPinned": ["PinnedApps", "PinnedCols", "SyncWithPlasma"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps"],
-        "ConfigContent": ["Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "PinnedApps", "PinnedCols", "SyncWithPlasma", "Enabled", "MaxItems", "RecentApps"],
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "PinnedApps", "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "Enabled", "MaxItems", "RecentApps"],
         "ConfigContextMenu": ["ContextMenuItems"]
     })
 
@@ -346,7 +349,6 @@ Item {
         if (component === pageSearch) return "ConfigSearch";
         if (component === pagePower) return "ConfigPower";
         if (component === pageExtra) return "ConfigExtraCategories";
-        if (component === pageContent) return "ConfigContent";
         if (component === pageContext) return "ConfigContextMenu";
         return "";
     }
@@ -735,14 +737,6 @@ Item {
                         accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)
                     }
-                    NavSep {}
-                    NavRow {
-                        title: root.tr("Menu Content")
-                        subtitle: root.tr("Category order, visibility, and recent apps")
-                        iconName: "view-catalog-symbolic"
-                        accent: "teal"
-                        onActivated: root.openSubPage(pageContent, title)
-                    }
                 }
 
                 NavGroup {
@@ -772,7 +766,6 @@ Item {
     Component { id: pageSearch; ConfigSearch {} }
     Component { id: pagePower; ConfigPower {} }
     Component { id: pageExtra; ConfigExtraCategories {} }
-    Component { id: pageContent; ConfigContent {} }
     Component { id: pageContext; ConfigContextMenu {} }
 
     Component.onCompleted: {

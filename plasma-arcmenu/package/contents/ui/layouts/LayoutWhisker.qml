@@ -210,55 +210,20 @@ LayoutBase {
                 onWidthDragged: (w) => root.setSidebarFromDrag(w)
             }
 
-            Item {
+            Components.LayoutGroupPane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
-                ListView {
-                    id: contentFlick
-                    anchors.fill: parent
-                    model: root.contentItems
-                    spacing: Kirigami.Units.smallSpacing / 2
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-                    QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-                    delegate: Components.AppListItem {
-                                    required property int index
-                                    menuData: menuData
-                                    width: contentFlick.width
-                                    app: root.contentItems[index]
-                                    iconSize: Math.max(root.appIconSize, 28)
-                                    showDescription: root.showAppDescriptions
-                                    selectedBg: root.selectedBg
-                                    selectedFg: root.selectedFg
-                                    hoverBg: root.hoverBg
-                                    hoverFg: root.hoverFg
-                                    fg: root.fg
-                                    onActivated: root.activateItem(root.contentItems[index])
-                                    onContextMenuRequested: (x, y) => {
-                                        var a = root.contentItems[index];
-                                        if (a && !a.action) root.appContextMenu(a, x, y);
-                                    }
-                                }
-}
-
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: root.contentItems.length === 0
-                    text: root.searching
+                layoutRoot: root
+                items: root.contentItems
+                useGrid: !root.searching && root.usesGridView(root.whiskerSelectedId)
+                showDescription: root.showAppDescriptions
+                emptyText: root.searching
                           ? root.tr("No matching applications found")
                           : (root.whiskerSelectedId === "pinned"
                              ? root.tr("Pin applications from the context menu")
                              : (root.whiskerSelectedId === "recent-files"
                                 ? root.tr("No recent files")
                                 : root.tr("No applications")))
-                    opacity: 0.45
-                    color: root.fg
-                    width: parent.width * 0.8
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
             }
         }
     }
