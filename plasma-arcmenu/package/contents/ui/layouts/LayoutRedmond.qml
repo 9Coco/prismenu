@@ -107,17 +107,68 @@ LayoutBase {
             Layout.maximumWidth: root.sidebarMax
             spacing: Kirigami.Units.smallSpacing / 2
 
-            Components.ShortcutRow {
+            Item {
+                id: userRow
                 Layout.fillWidth: true
-                iconName: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
-                label: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
-                iconSize: Math.max(root.categoryIconSize, Kirigami.Units.iconSizes.medium)
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                hoverBg: root.hoverBg
-                hoverFg: root.hoverFg
-                fg: root.fg
-                onActivated: root.userMenu()
+                Layout.preferredHeight: Math.max(avatarBox.height + Kirigami.Units.smallSpacing * 2,
+                                                 Kirigami.Units.gridUnit * 2.1)
+                Accessible.name: userLabel.text
+                Accessible.role: Accessible.Button
+                Accessible.onPressAction: root.userMenu()
+
+                readonly property bool showAvatar: !menuData || menuData.showUserAvatar !== false
+                readonly property string avatarShape: (menuData && menuData.avatarShape)
+                    ? menuData.avatarShape : "circle"
+
+                Rectangle {
+                    anchors.fill: parent
+                    radius: Kirigami.Units.smallSpacing
+                    color: userMouse.containsMouse ? root.hoverBg : "transparent"
+                    opacity: userMouse.containsMouse ? 1 : 0
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Kirigami.Units.smallSpacing
+                    anchors.rightMargin: Kirigami.Units.smallSpacing
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Item {
+                        id: avatarBox
+                        readonly property int avSize: Math.max(root.categoryIconSize,
+                                                               Kirigami.Units.iconSizes.medium)
+                        Layout.preferredWidth: userRow.showAvatar ? avSize : 0
+                        Layout.preferredHeight: avSize
+                        visible: userRow.showAvatar
+                        // Do not clip — Kirigami Avatar layer-effects paint a solid
+                        // disc under a clipped ancestor (same rule as ArcMenu).
+
+                        Components.UserFace {
+                            anchors.fill: parent
+                            userIcon: (menuData && menuData.userIcon) ? menuData.userIcon : "user-identity"
+                            userName: (menuData && menuData.userName) ? menuData.userName : ""
+                            fallbackColor: userMouse.containsMouse ? root.hoverFg : root.fg
+                            shape: userRow.avatarShape
+                            showRing: true
+                        }
+                    }
+
+                    PlasmaComponents.Label {
+                        id: userLabel
+                        Layout.fillWidth: true
+                        text: (menuData && menuData.userName) ? menuData.userName : root.tr("User")
+                        elide: Text.ElideRight
+                        color: userMouse.containsMouse ? root.hoverFg : root.fg
+                    }
+                }
+
+                MouseArea {
+                    id: userMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: root.userMenu()
+                }
             }
 
             Flickable {
