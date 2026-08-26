@@ -175,11 +175,8 @@ Item {
         return out;
     }
 
-    readonly property var standardCategoryIds: [
-        "Office", "Development", "Accessories", "Utility",
-        "Network", "Graphics", "System"
-    ]
-    readonly property var standardCategories: root.categorySubset(root.standardCategoryIds)
+    /** Full system category list (Kickoff / Kicker source), minus synthetic "all". */
+    readonly property var standardCategories: root.categorySubset([])
 
     function appsModel() {
         if (!menuData) {
