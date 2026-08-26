@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -130,6 +131,8 @@ LayoutBase {
             spacing: Kirigami.Units.smallSpacing / 2
             clip: true
             boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
             delegate: Components.AppListItem {
                             required property int index
                             menuData: menuData
