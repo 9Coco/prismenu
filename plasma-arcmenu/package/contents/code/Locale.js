@@ -248,6 +248,7 @@ var ZH_CN = {
     "KDE Plasma (Tabbed)": "KDE Plasma · 分页菜单",
     "KDE Plasma Kickoff": "KDE Plasma · Kickoff",
     "KDE Plasma Kicker": "KDE Plasma · Kicker",
+    "KDE Plasma Application Menu": "KDE Plasma · 应用程序菜单",
     "Keep Open": "保持打开",
     "Configure system behavior and appearance": "配置系统的行为和外观",
     "Info Center": "系统信息中心",
