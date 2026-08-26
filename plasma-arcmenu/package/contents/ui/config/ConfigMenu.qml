@@ -107,7 +107,7 @@ Item {
     property var cfg_CustomQuickLinks: []
     property string cfg_CustomGroupApps: "{}"
 
-    property var cfg_Providers: ["applications"]
+    property var cfg_Providers: ["applications", "places", "files"]
     property string cfg_Placeholder
     property bool cfg_ShowDescription
     property int cfg_MaxResults

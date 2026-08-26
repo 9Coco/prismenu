@@ -15,6 +15,7 @@ ListView {
     property var menuData: null
     property int iconSize: 24
     property bool showDescription: false
+    property bool inlineDescription: false
     property bool showGenericNames: false
     property bool multiLineLabels: false
     property color selectedBg: Kirigami.Theme.highlightColor
@@ -46,6 +47,16 @@ ListView {
         if (count > 0)
             Qt.callLater(root.warmViewport);
     }
+    onItemsChanged: {
+        // Providers update asynchronously. Do not inherit contentY from the
+        // previous category/result snapshot or its first groups disappear
+        // above the viewport despite still being present in the model.
+        currentIndex = -1;
+        Qt.callLater(function () {
+            if (root.count > 0)
+                root.positionViewAtBeginning();
+        });
+    }
     Component.onCompleted: {
         if (count > 0)
             Qt.callLater(root.warmViewport);
@@ -60,6 +71,7 @@ ListView {
         menuData: root.menuData
         iconSize: root.iconSize
         showDescription: root.showDescription
+        inlineDescription: root.inlineDescription
         showGenericNames: root.showGenericNames
         multiLineLabels: root.multiLineLabels
         selected: !isSection && root.currentIndex === index
