@@ -68,6 +68,13 @@ historical interaction-style categories. Current groups are Linux, Windows,
 ChromeOS, and original/other styles; Android is registered as a future source
 family and appears automatically when its first layout is added.
 
+A catalog of start-menu structures from Windows, Plasma, GNOME, macOS, ChromeOS,
+Android, iPadOS, and other desktops — including names, structure diagrams, preview
+mockups, and functional design notes — is in
+[`docs/start-menu-catalog/`](../docs/start-menu-catalog/README.md). Use it when
+adding layouts so new shells follow a real platform pattern instead of another
+skin of the same two-column menu.
+
 | Layout | Style |
 |--------|-------|
 | `arcmenu` | Official ArcMenu (pinned left, places/shortcuts right, search+session bottom) |
