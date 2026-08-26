@@ -329,7 +329,7 @@ Item {
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks"],
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomGroupApps"],
         "ConfigContent": ["Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "PinnedApps", "PinnedCols", "SyncWithPlasma", "Enabled", "MaxItems", "RecentApps"],
         "ConfigContextMenu": ["ContextMenuItems"]
     })
@@ -698,7 +698,7 @@ Item {
                     NavSep {}
                     NavRow {
                         title: root.tr("Directory Shortcuts")
-                        subtitle: root.tr("Folders shown in the places sidebar")
+                        subtitle: root.tr("Folders and custom paths on the left sidebar")
                         iconName: "folder-symbolic"
                         accent: "cyan"
                         onActivated: root.openSubPage(pageDirs, title)
@@ -706,7 +706,7 @@ Item {
                     NavSep {}
                     NavRow {
                         title: root.tr("Application Shortcuts")
-                        subtitle: root.tr("Shortcuts shown under places")
+                        subtitle: root.tr("Apps and custom commands on the left sidebar")
                         iconName: "applications-all-symbolic"
                         accent: "green"
                         onActivated: root.openSubPage(pageApps, title)
@@ -730,7 +730,7 @@ Item {
                     NavSep {}
                     NavRow {
                         title: root.tr("Sidebar Items")
-                        subtitle: root.tr("Show, hide, and reorder sidebar items")
+                        subtitle: root.tr("Extra categories and custom groups such as AI")
                         iconName: "view-list-details-symbolic"
                         accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)

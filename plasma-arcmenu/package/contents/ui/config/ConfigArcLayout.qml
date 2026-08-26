@@ -126,6 +126,23 @@ Item {
             list = list.length ? list.split(",") : [];
         list.push(gid + "|" + name + "|" + icon);
         writeCustomLinks(list);
+        try {
+            var extraOrder = plasmoid.configuration.ExtraCategoriesOrder || [];
+            if (typeof extraOrder === "string")
+                extraOrder = extraOrder.length ? extraOrder.split(",") : [];
+            extraOrder = extraOrder.slice();
+            if (extraOrder.indexOf(gid) < 0)
+                extraOrder.push(gid);
+            var extraOn = plasmoid.configuration.ExtraCategoriesEnabled || [];
+            if (typeof extraOn === "string")
+                extraOn = extraOn.length ? extraOn.split(",") : [];
+            extraOn = extraOn.slice();
+            if (extraOn.indexOf(gid) < 0)
+                extraOn.push(gid);
+            writeLive("ExtraCategoriesUserSet", true);
+            writeLive("ExtraCategoriesOrder", extraOrder);
+            writeLive("ExtraCategoriesEnabled", extraOn);
+        } catch (e) {}
         // New groups start enabled and ordered last
         var enabled = (cfg_QuickLinksEnabled || []).slice();
         if (enabled.indexOf(gid) < 0)

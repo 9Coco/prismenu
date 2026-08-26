@@ -23,16 +23,7 @@ LayoutBase {
     readonly property int avatarSize: Kirigami.Units.gridUnit * 4
 
 
-    // Continuous sidebar list matching Sleek reference (no Videos / Tweaks / Overview)
-    readonly property var sideItems: [
-        { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
-        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
-        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
-        { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
-        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
-        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
-    ]
+    readonly property var sideItems: root.sidebarShortcuts
 
     readonly property var gridItems: {
         if (root.searching) {
