@@ -545,7 +545,7 @@ Item {
         }
 
         // KFilePlaces / file URL
-        if (app.provider === "kfileplaces" && app.kickerUrl) {
+        if ((app.provider === "kfileplaces" || app.provider === "bookmarks") && app.kickerUrl) {
             if (plasmaNative.openPlaceUrl(app.kickerUrl))
                 return;
         }
@@ -556,9 +556,10 @@ Item {
                 return;
         }
 
-        // Plasma Search / KRunner hit — same as Kickoff model.trigger
+        // Plasma Search / KRunner hit — trigger the per-runner matches model
         if (app.provider === "runner" && typeof app.runnerIndex === "number") {
-            if (plasmaNative.triggerRunnerAt(app.runnerIndex))
+            var runnerRow = (typeof app.runnerRow === "number") ? app.runnerRow : 0;
+            if (plasmaNative.triggerRunnerAt(runnerRow, app.runnerIndex))
                 return;
         }
 
@@ -875,8 +876,10 @@ Item {
             items.push({
                 id: "bookmark:" + uri,
                 name: name,
-                icon: "folder",
+                icon: uri.indexOf("http") === 0 ? "bookmarks" : "folder",
                 exec: openCmd,
+                kickerUrl: uri,
+                entryPath: uri,
                 genericName: path,
                 description: path,
                 provider: "bookmarks",

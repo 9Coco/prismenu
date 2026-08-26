@@ -65,6 +65,56 @@ function highlightMarkup(text, query) {
     return out;
 }
 
+/**
+ * Icon for a search/app row. Prefer the live KRunner QIcon (`decoration`) so
+ * favicons, MIME icons, and window pixmaps survive; fall back to a theme name.
+ */
+function resultIconSource(app) {
+    if (!app)
+        return "application-x-executable";
+    var dec = null;
+    try {
+        if (app.iconHolder && app.iconHolder.decoration !== undefined)
+            dec = app.iconHolder.decoration;
+    } catch (e0) {}
+    if (dec === undefined || dec === null || dec === "")
+        dec = app.decoration;
+    if (dec !== undefined && dec !== null && dec !== "") {
+        try {
+            if (dec.isNull === true)
+                dec = null;
+        } catch (e) {}
+        if (dec) {
+            if (typeof dec !== "string")
+                return dec;
+            if (dec.length)
+                return dec;
+        }
+    }
+    if (app.icon && String(app.icon).length)
+        return app.icon;
+    return "application-x-executable";
+}
+
+function fallbackSearchIcon(item) {
+    var section = classifySearchItem(item);
+    var url = String(item.kickerUrl || item.entryPath || item.url || "").toLowerCase();
+    if (section === "bookmarks" || /^https?:/.test(url))
+        return "bookmarks";
+    if (section === "places") {
+        if (/^(sftp|ftp|smb|nfs|fish|webdav|davs?|remote|mtp|kdeconnect|bluetooth|phone):/.test(url))
+            return "folder-remote";
+        return "folder";
+    }
+    if (section === "windows")
+        return "window";
+    if (section === "files")
+        return "text-x-generic";
+    if (section === "settings")
+        return "preferences-system";
+    return "application-x-executable";
+}
+
 function filterByQuery(items, query, nameKey) {
     nameKey = nameKey || "name";
     var q = String(query || "").trim().toLowerCase();
@@ -76,7 +126,8 @@ function filterByQuery(items, query, nameKey) {
         if (!it)
             continue;
         var name = String(it[nameKey] || "").toLowerCase();
-        var desc = String(it.genericName || it.description || it.path || "").toLowerCase();
+        var desc = String(it.genericName || it.description || it.path
+            || it.kickerUrl || it.entryPath || "").toLowerCase();
         if (name.indexOf(q) >= 0 || desc.indexOf(q) >= 0)
             out.push(it);
     }
@@ -126,7 +177,8 @@ function mergeSearchResults(apps, extras, maxResults) {
 
 /**
  * Classify a result into an ArcMenu-style search section.
- * @returns {"applications"|"settings"|"places"|"files"|"windows"|"other"}
+ * Kickoff groups: Applications / Locations / Windows / Bookmarks / Files / Settings.
+ * @returns {"applications"|"settings"|"places"|"windows"|"bookmarks"|"files"|"other"}
  */
 function classifySearchItem(item) {
     if (!item)
@@ -136,8 +188,10 @@ function classifySearchItem(item) {
     var provider = String(item.provider || "").toLowerCase();
     if (provider === "windows" || provider === "window")
         return "windows";
-    if (provider === "kfileplaces" || provider === "places")
+    if (provider === "kfileplaces" || provider === "places" || provider === "locations")
         return "places";
+    if (provider === "bookmarks" || provider === "bookmark")
+        return "bookmarks";
     if (provider === "recent-files" || provider === "files")
         return "files";
     if (provider === "settings" || provider === "kcm")
@@ -147,6 +201,12 @@ function classifySearchItem(item) {
 
     var group = String(item.group || item.category || "").toLowerCase();
     if (group) {
+        if (group.indexOf("bookmark") >= 0 || group.indexOf("书签") >= 0
+            || group.indexOf("收藏") >= 0)
+            return "bookmarks";
+        if (group.indexOf("place") >= 0 || group.indexOf("location") >= 0
+            || group.indexOf("位置") >= 0 || group.indexOf("地点") >= 0)
+            return "places";
         if (group.indexOf("setting") >= 0 || group.indexOf("设置") >= 0
             || group.indexOf("system setting") >= 0 || group.indexOf("kcm") >= 0)
             return "settings";
@@ -158,9 +218,9 @@ function classifySearchItem(item) {
             || group.indexOf("task") >= 0)
             return "windows";
         if (group.indexOf("app") >= 0 || group.indexOf("application") >= 0
-            || group.indexOf("应用") >= 0 || group.indexOf("program") >= 0)
+            || group.indexOf("应用") >= 0 || group.indexOf("program") >= 0
+            || group.indexOf("software") >= 0 || group.indexOf("软件") >= 0)
             return "applications";
-        // Unknown runner group label — keep as its own bucket via "other" only if clearly not apps
         if (group.indexOf("clock") >= 0 || group.indexOf("时钟") >= 0
             || group.indexOf("calculator") >= 0 || group.indexOf("unit") >= 0)
             return "other";
@@ -169,14 +229,23 @@ function classifySearchItem(item) {
     var url = String(item.kickerUrl || item.entryPath || item.url || "").toLowerCase();
     var fav = String(item.favoriteId || item.id || "").toLowerCase();
     var detail = String(item.genericName || item.description || "").trim().toLowerCase();
-    if (/^(sftp|ftp|smb|fish|webdav|remote):/.test(url)
-        || /^(sftp|ftp|smb|fish|webdav|remote):/.test(detail))
+    if (/^https?:/.test(url) || /^https?:/.test(detail))
+        return "bookmarks";
+    if (/^(sftp|ftp|smb|nfs|fish|webdav|davs?|remote|mtp|kdeconnect|bluetooth|timeline|phone):/.test(url)
+        || /^(sftp|ftp|smb|nfs|fish|webdav|davs?|remote|mtp|kdeconnect|bluetooth|timeline|phone):/.test(detail)
+        || url.indexOf("locations:") === 0)
         return "places";
     if (url.indexOf("applications:") === 0 || fav.indexOf(".desktop") >= 0)
         return "applications";
     if (url.indexOf("file:") === 0 || url.indexOf("/") === 0
-        || detail.indexOf("~/") === 0 || detail.indexOf("/") === 0
-        || /\.(md|txt|pdf|png|jpg|jpeg|svg|odt|docx?|xlsx?|csv)$/i.test(url)
+        || detail.indexOf("~/") === 0 || detail.indexOf("/") === 0) {
+        var leaf = (url || detail).split("/").pop() || "";
+        try { leaf = decodeURIComponent(leaf); } catch (e) {}
+        if (leaf && /\.[a-z0-9]{1,8}$/i.test(leaf))
+            return "files";
+        return "places";
+    }
+    if (/\.(md|txt|pdf|png|jpg|jpeg|svg|odt|docx?|xlsx?|csv)$/i.test(url)
         || /\.(md|txt|pdf)$/i.test(String(item.name || "")))
         return "files";
     if (url.indexOf("kcm") >= 0 || url.indexOf("systemsettings") >= 0
@@ -184,8 +253,9 @@ function classifySearchItem(item) {
         return "settings";
     if (String(item.id || "").indexOf("window:") === 0)
         return "windows";
+    if (String(item.id || "").indexOf("bookmark:") === 0)
+        return "bookmarks";
 
-    // Runner fallback: treat as applications (Plasma Search apps dominate)
     if (provider === "runner")
         return "applications";
     return "applications";
@@ -198,13 +268,14 @@ function classifySearchItem(item) {
 function groupSearchResults(items, maxResults, trFn) {
     var limit = maxResults > 0 ? maxResults : 50;
     trFn = trFn || function (s) { return s; };
-    var order = ["applications", "settings", "places", "files", "windows", "other"];
+    var order = ["applications", "settings", "places", "windows", "bookmarks", "files", "other"];
     var labelKey = {
         applications: "Applications",
         settings: "Settings",
-        places: "Places",
-        files: "Files",
+        places: "Locations",
         windows: "Windows",
+        bookmarks: "Bookmarks",
+        files: "Files",
         other: "Other"
     };
     var buckets = {};
@@ -264,7 +335,7 @@ function _resultKey(item) {
     if (url)
         return "url:" + url;
     var detail = String(item.genericName || item.description || "").toLowerCase();
-    if (/^(file|sftp|ftp|smb|fish|webdav|remote):/.test(detail)
+    if (/^(file|sftp|ftp|smb|nfs|fish|webdav|dav|remote|mtp|kdeconnect|https?):/.test(detail)
         || detail.indexOf("~/") === 0 || detail.indexOf("/") === 0)
         return "location:" + detail;
     var id = String(item.favoriteId || item.id || "").toLowerCase();
@@ -280,44 +351,52 @@ function _resultKey(item) {
  * global cap made application hits consume the entire budget, so Places and
  * Recent Files never appeared even when their native models had matches.
  */
-function composeSearchResults(primary, places, recentFiles, windows, query,
+function composeSearchResults(primary, places, recentFiles, windows, bookmarks, query,
                               maxPerSection, trFn) {
+    // Compat with the previous (…, windows, query, max, trFn) signature.
+    if (typeof bookmarks === "string") {
+        trFn = maxPerSection;
+        maxPerSection = query;
+        query = bookmarks;
+        bookmarks = [];
+    }
     var cap = maxPerSection > 0 ? maxPerSection : 20;
     trFn = trFn || function (s) { return s; };
-    var order = ["applications", "settings", "places", "files", "windows", "other"];
+    var order = ["applications", "settings", "places", "windows", "bookmarks", "files", "other"];
     var labelKey = {
         applications: "Applications",
         settings: "Settings",
-        places: "Places",
-        files: "Recent Files",
+        places: "Locations",
         windows: "Windows",
+        bookmarks: "Bookmarks",
+        files: "Recent Files",
         other: "Other"
     };
     var buckets = {};
     var seen = {};
-    var seenNames = {};
+    var seenInSection = {};
     for (var i = 0; i < order.length; ++i)
         buckets[order[i]] = [];
 
     function add(item, forcedSection) {
-        if (!item || item.isSection)
+        if (!item || item.isSection || item.special)
             return;
+        var section = forcedSection || classifySearchItem(item);
+        if (!buckets[section])
+            section = "other";
         var key = _resultKey(item);
         if (key && seen[key])
             return;
         var nameKey = String(item.name || "").trim().toLowerCase();
-        // RunnerModel and the explicit native adapters can expose the same
-        // row with differently formatted URLs. Prefer the runner row because
-        // it retains runnerIndex activation semantics.
-        if (forcedSection && nameKey && seenNames[nameKey])
+        var sectionName = section + "\0" + nameKey;
+        // Same URL (runner + native adapter) is one hit. Same name in another
+        // section is not — Kickoff shows Clash Verge as both an app and a window.
+        if (nameKey && seenInSection[sectionName])
             return;
         if (key)
             seen[key] = true;
         if (nameKey)
-            seenNames[nameKey] = true;
-        var section = forcedSection || classifySearchItem(item);
-        if (!buckets[section])
-            section = "other";
+            seenInSection[sectionName] = true;
         buckets[section].push(item);
     }
 
@@ -336,6 +415,10 @@ function composeSearchResults(primary, places, recentFiles, windows, query,
     var matchingWindows = filterByQuery(windows || [], query);
     for (var w = 0; w < matchingWindows.length; ++w)
         add(matchingWindows[w], "windows");
+
+    var matchingBookmarks = filterByQuery(bookmarks || [], query);
+    for (var b = 0; b < matchingBookmarks.length; ++b)
+        add(matchingBookmarks[b], "bookmarks");
 
     var out = [];
     for (var o = 0; o < order.length; ++o) {

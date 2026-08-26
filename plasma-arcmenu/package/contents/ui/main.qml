@@ -60,8 +60,9 @@ PlasmoidItem {
             if (plasmoid.configuration.SearchRecentFiles
                 || menuData.isExtraCategoryEnabled("recent-files"))
                 backend.refreshRecentFiles();
-            if (plasmoid.configuration.SearchWindows)
-                backend.refreshOpenWindows();
+            backend.refreshOpenWindows();
+            if (!menuData.bookmarkResults || !menuData.bookmarkResults.length)
+                backend.refreshBookmarks();
         }
     }
 
@@ -72,8 +73,10 @@ PlasmoidItem {
                 return;
             if (plasmoid.configuration.SearchRecentFiles && (!menuData.recentFileResults || !menuData.recentFileResults.length))
                 backend.refreshRecentFiles();
-            if (plasmoid.configuration.SearchWindows && (!menuData.openWindowResults || !menuData.openWindowResults.length))
+            if (!menuData.openWindowResults || !menuData.openWindowResults.length)
                 backend.refreshOpenWindows();
+            if (!menuData.bookmarkResults || !menuData.bookmarkResults.length)
+                backend.refreshBookmarks();
         }
         function onRecentFilesRequestChanged() {
             backend.refreshRecentFiles();

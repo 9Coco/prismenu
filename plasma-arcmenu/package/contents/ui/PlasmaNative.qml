@@ -98,85 +98,174 @@ Item {
     }
 
     // ---- Plasma Search (KRunner via Kicker.RunnerModel) ----
+    // Kickoff path: mergeResults=true creates one ResultsModel of every
+    // enabled runner (apps, locations, windows, bookmarks, files, …).
+    // mergeResults=false with an empty runners list creates *zero* models,
+    // which is why Locations/Bookmarks never appeared.
     Kicker.RunnerModel {
         id: runnerModel
         appletInterface: plasmoid
         query: (menuData && menuData.searchQuery) ? String(menuData.searchQuery) : ""
-        onCountChanged: root.rebuildRunnerResults()
-        onDataChanged: root.rebuildRunnerResults()
-        onModelReset: root.rebuildRunnerResults()
+        mergeResults: true
+        onCountChanged: root.bindMatchesModel()
+        onDataChanged: root.scheduleRunnerRebuild()
+        onModelReset: root.bindMatchesModel()
         Component.onCompleted: {
             try {
                 if (root.rootModel && root.rootModel.favoritesModel)
                     runnerModel.favoritesModel = root.rootModel.favoritesModel;
             } catch (e) {}
-            Qt.callLater(root.rebuildRunnerResults);
+            Qt.callLater(root.bindMatchesModel);
         }
     }
 
+    Connections {
+        target: runnerModel
+        ignoreUnknownSignals: true
+        function onQueryFinished() { root.scheduleRunnerRebuild(); }
+        function onAnyRunnerFinished() { root.scheduleRunnerRebuild(); }
+        function onQueryingChanged() {
+            if (runnerModel && !runnerModel.querying)
+                root.scheduleRunnerRebuild();
+        }
+        function onQueryChanged() { root.bindMatchesModel(); }
+    }
+
+    Timer {
+        id: runnerRebuildTimer
+        interval: 40
+        repeat: false
+        onTriggered: root.rebuildRunnerResults()
+    }
+
+    function scheduleRunnerRebuild() {
+        runnerRebuildTimer.restart();
+    }
+
+    function bindMatchesModel() {
+        var m = null;
+        try {
+            if (runnerModel.count > 0)
+                m = runnerModel.modelForRow(0);
+        } catch (e) {}
+        if (matchesInst.model !== m)
+            matchesInst.model = m;
+        root.scheduleRunnerRebuild();
+    }
+
     Instantiator {
-        id: runnerInst
-        model: runnerModel
+        id: matchesInst
+        model: null
         asynchronous: false
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property int row: index
+            readonly property int runnerRow: 0
             readonly property string display: String(model.display !== undefined ? model.display : "")
             readonly property string description: String(model.description !== undefined ? model.description : "")
             readonly property var decoration: model.decoration
+            readonly property var iconName: model.iconName !== undefined ? model.iconName
+                : (model.icon !== undefined ? model.icon : "")
             readonly property var url: model.url
             readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
-            readonly property string group: String(model.group !== undefined ? model.group
-                : (model.category !== undefined ? model.category : ""))
+            readonly property string category: String(
+                model.category !== undefined ? model.category
+                    : (model.group !== undefined ? model.group
+                        : (model.section !== undefined ? model.section : "")))
+            readonly property string group: category
             readonly property bool isSeparator: !!(model.isSeparator || model.IsSeparator
                 || model.isSection || model.IsSection)
         }
-        onObjectAdded: root.rebuildRunnerResults()
-        onObjectRemoved: root.rebuildRunnerResults()
+        onObjectAdded: root.scheduleRunnerRebuild()
+        onObjectRemoved: root.scheduleRunnerRebuild()
+        onCountChanged: root.scheduleRunnerRebuild()
+    }
+
+    Connections {
+        target: matchesInst.model
+        ignoreUnknownSignals: true
+        function onCountChanged() { root.scheduleRunnerRebuild(); }
+        function onDataChanged() { root.scheduleRunnerRebuild(); }
+        function onModelReset() { root.scheduleRunnerRebuild(); }
+        function onRowsInserted() { root.scheduleRunnerRebuild(); }
+        function onRowsRemoved() { root.scheduleRunnerRebuild(); }
+    }
+
+    function _runnerIcon(obj) {
+        try {
+            var named = obj.iconName;
+            if (typeof named === "string" && named.length)
+                return named;
+            if (typeof obj.decoration === "string" && obj.decoration.length)
+                return obj.decoration;
+            if (obj.decoration && obj.decoration.name)
+                return String(obj.decoration.name);
+        } catch (e) {}
+        return "";
+    }
+
+    function _fallbackRunnerIcon(group, uri) {
+        var g = String(group || "").toLowerCase();
+        var u = String(uri || "").toLowerCase();
+        if (g.indexOf("bookmark") >= 0 || g.indexOf("书签") >= 0 || /^https?:/.test(u))
+            return "bookmarks";
+        if (g.indexOf("location") >= 0 || g.indexOf("place") >= 0 || g.indexOf("位置") >= 0
+            || /^(sftp|ftp|smb|nfs|fish|webdav|davs?|remote|mtp|kdeconnect):/.test(u))
+            return "folder-remote";
+        if (g.indexOf("window") >= 0 || g.indexOf("窗口") >= 0)
+            return "window";
+        if (u.indexOf("file:") === 0)
+            return "unknown";
+        return "application-x-executable";
     }
 
     function rebuildRunnerResults() {
         var out = [];
-        var n = runnerInst.count;
-        // RunnerModel inserts separator rows whose display is the category (Apps / Settings / …)
+        var q = "";
+        try { q = String(runnerModel.query || "").trim(); } catch (e0) {}
+        if (!q) {
+            root.runnerResults = [];
+            runnerResultsUpdated([]);
+            if (menuData)
+                menuData.runnerResults = [];
+            return;
+        }
         var currentGroup = "";
-        for (var i = 0; i < n && out.length < 40; ++i) {
-            var obj = runnerInst.objectAt(i);
+        var n = matchesInst.count;
+        for (var i = 0; i < n && out.length < 200; ++i) {
+            var obj = matchesInst.objectAt(i);
             if (!obj)
                 continue;
             if (obj.isSeparator) {
-                currentGroup = String(obj.display || "").trim();
+                var sepName = String(obj.display || "").trim();
+                if (sepName)
+                    currentGroup = sepName;
                 continue;
             }
             var name = String(obj.display || "").trim();
             if (!name)
                 continue;
-            var icon = "application-x-executable";
-            try {
-                if (typeof obj.decoration === "string" && obj.decoration.length)
-                    icon = obj.decoration;
-                else if (obj.decoration && obj.decoration.name)
-                    icon = String(obj.decoration.name);
-            } catch (e) {}
+            var itemGroup = String(obj.category || obj.group || "").trim();
+            if (!itemGroup)
+                itemGroup = currentGroup;
+            if (itemGroup)
+                currentGroup = itemGroup;
             var uri = obj.url !== undefined && obj.url !== null ? String(obj.url) : "";
-            var group = "";
-            try {
-                if (obj.group)
-                    group = String(obj.group);
-            } catch (e2) {}
-            if (!group)
-                group = currentGroup;
+            var icon = _runnerIcon(obj) || _fallbackRunnerIcon(itemGroup, uri);
             out.push({
-                id: "runner:" + i + ":" + (obj.favoriteId || name),
+                id: "runner:0:" + obj.row + ":" + (obj.favoriteId || name),
                 name: name,
                 icon: icon,
+                decoration: obj.decoration,
+                iconHolder: obj,
                 genericName: obj.description || "",
                 description: obj.description || "",
                 favoriteId: obj.favoriteId || "",
                 kickerUrl: uri,
                 entryPath: uri,
                 provider: "runner",
-                group: group,
+                group: itemGroup,
+                runnerRow: 0,
                 runnerIndex: obj.row,
                 noDisplay: false
             });
@@ -187,15 +276,23 @@ Item {
             menuData.runnerResults = out;
     }
 
-    function triggerRunnerAt(index) {
-        if (index === undefined || index === null || index < 0)
+    function triggerRunnerAt(runnerRow, matchIndex) {
+        if (matchIndex === undefined || matchIndex === null) {
+            matchIndex = runnerRow;
+            runnerRow = 0;
+        }
+        if (matchIndex === undefined || matchIndex === null || matchIndex < 0)
             return false;
+        if (runnerRow === undefined || runnerRow === null || runnerRow < 0)
+            runnerRow = 0;
         try {
-            return !!runnerModel.trigger(index, "", null);
+            var m = runnerModel.modelForRow(runnerRow);
+            if (m && m.trigger)
+                return !!m.trigger(matchIndex, "", null);
         } catch (e) {
             console.warn("ArcMenu runner trigger failed", e);
-            return false;
         }
+        return false;
     }
 
     // ---- Recent applications (KAStats / Kickoff) ----
@@ -447,6 +544,8 @@ Item {
                 id: "kplace:" + uri,
                 name: name,
                 icon: icon,
+                decoration: obj.decoration,
+                iconHolder: obj,
                 kickerUrl: uri,
                 entryPath: uri,
                 exec: "",
