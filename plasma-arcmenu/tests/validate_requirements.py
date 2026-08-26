@@ -126,6 +126,36 @@ def main() -> int:
         check("Components.SearchField {" not in source, f"shared search adapter: {fname}")
         check("Components.AppGrid {" not in source, f"shared grid adapter: {fname}")
         check("Components.VirtualizedAppList {" not in source, f"shared list adapter: {fname}")
+        # Face photos must go through UserFace (or a chrome helper that uses it).
+        # ShortcutRow / icon.name treats the path as a symbolic mask → solid disc.
+        if "userIcon" in source:
+            uses_face = (
+                "Components.UserFace {" in source
+                or "PlacesSidebar" in source
+                or "SystemActionsBar" in source
+            )
+            uses_row = bool(re.search(
+                r"ShortcutRow\s*\{[^}]*userIcon", source, re.DOTALL
+            ))
+            uses_icon_name = bool(re.search(
+                r"icon\.name:\s*[^\n]*userIcon", source
+            ))
+            check(uses_face and not uses_row and not uses_icon_name,
+                  f"user avatar via UserFace: {fname}")
+
+    for lid, body, fname in layout_blocks:
+        if not re.search(r"hasUser:\s*true", body):
+            continue
+        src = layout_sources.get(fname, "")
+        check(
+            "Components.UserFace {" in src
+            or "PlacesSidebar" in src
+            or "SystemActionsBar" in src,
+            f"hasUser layout shows UserFace: {lid}",
+        )
+
+    redmond = layout_sources.get("LayoutRedmond.qml", "")
+    check("Components.UserFace {" in redmond, "Redmond uses shared user avatar")
 
     kickoff = layout_sources.get("LayoutKickoff.qml", "")
     kickoff_meta = next((body for lid, body, _fname in layout_blocks if lid == "kickoff"), "")
