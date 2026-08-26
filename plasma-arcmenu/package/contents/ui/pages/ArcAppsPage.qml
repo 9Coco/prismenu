@@ -91,7 +91,7 @@ Item {
                 continue;
             var ename = eid;
             var eicon = "applications-other";
-            if (eid === "frequent") { ename = Locale.tr("Frequent Apps", _); eicon = "view-calendar"; }
+            if (eid === "frequent") { ename = Locale.tr("Recent Apps", _); eicon = "view-history"; }
             else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
             else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
             else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }
@@ -346,7 +346,7 @@ Item {
         if (root.specialListId === "favorites")
             return Locale.tr("Favorites", root.uiLang);
         if (root.specialListId === "frequent")
-            return Locale.tr("Frequent Apps", root.uiLang);
+            return Locale.tr("Recent Apps", root.uiLang);
         if (root.specialListId === "recent-files")
             return Locale.tr("Recent Files", root.uiLang);
         if (root.specialListId === "bookmarks")
