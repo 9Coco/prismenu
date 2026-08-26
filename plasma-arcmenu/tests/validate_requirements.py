@@ -38,12 +38,36 @@ def main() -> int:
     layout_files = {layout_id: filename for layout_id, _body, filename in layout_blocks}
     category_section = registry.split("var CATEGORIES = [", 1)[1].split("];", 1)[0]
     category_ids = set(re.findall(r'id:\s*"([^"]+)"', category_section))
+    desktop_section = registry.split("var DESKTOPS = [", 1)[1].split("];", 1)[0]
+    desktop_ids = set(re.findall(r'id:\s*"([^"]+)"', desktop_section))
+    desktop_categories = set(re.findall(r'category:\s*"([^"]+)"', desktop_section))
     check(bool(layout_files), "layouts discovered from registry")
     check(len(layout_files) == len(layout_blocks), "unique layout ids")
     check("gnome" not in layout_files, "duplicate GNOME layout removed")
     check(category_ids == {"linux", "windows", "chromeos", "android", "other"},
           "source-platform layout categories")
+    check("plasma" in desktop_ids and "win7" in desktop_ids and "gnome" in desktop_ids,
+          "desktop subgroups include KDE / GNOME / Windows 7")
+    check(desktop_categories <= category_ids, "desktop groups belong to known platforms")
     check("CATEGORIES.filter" in registry, "unused source categories stay hidden")
+    check("DESKTOPS.filter" in registry, "unused desktop groups stay hidden")
+    expected_desktops = {
+        "kickoff": "plasma",
+        "kicker": "plasma",
+        "plasma-dash": "plasma",
+        "arcmenu": "gnome",
+        "whisker": "xfce",
+        "mint": "mint",
+        "redmond": "win7",
+        "windows": "win10",
+        "eleven": "win11",
+        "az": "win11",
+        "chromebook": "chromeos",
+    }
+    for layout_id, desktop_id in expected_desktops.items():
+        block = next((body for lid, body, _fname in layout_blocks if lid == layout_id), "")
+        check(f'desktop: "{desktop_id}"' in block,
+              f"desktop subgroup {desktop_id}: {layout_id}")
     expected_windows_names = {
         "redmond": "Windows 7 (Two-column)",
         "insider": "Windows 10 (Early)",
@@ -57,8 +81,11 @@ def main() -> int:
               f"versioned Windows layout name: {layout_id}")
     for lid, body, fname in layout_blocks:
         category_match = re.search(r'\bcategory:\s*"([^"]+)"', body)
+        desktop_match = re.search(r'\bdesktop:\s*"([^"]+)"', body)
         check(bool(category_match) and category_match.group(1) in category_ids,
               f"known source category: {lid}")
+        check(bool(desktop_match) and desktop_match.group(1) in desktop_ids,
+              f"known desktop group: {lid}")
         check(bool(re.search(r"\bpreviewKind\s*:", body)), f"layout preview metadata: {lid}")
         check(bool(re.search(r"\bdefaultWidth\s*:", body)), f"layout width metadata: {lid}")
         check(bool(re.search(r"\bdefaultHeight\s*:", body)), f"layout height metadata: {lid}")
@@ -250,10 +277,15 @@ def main() -> int:
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     check("switch (layoutId)" not in layout_preview, "preview kind comes from registry")
     check("Math.min(width, height)" not in layout_preview, "preview margins avoid size binding loops")
-    check("catBlock.expanded ? catBlock.catLayouts.length : 0" in config_layout,
+    check("deskBlock.expanded ? deskBlock.deskLayouts.length : 0" in config_layout,
+          "collapsed desktop groups stay lazy")
+    check("catBlock.expanded ? catBlock.desktops.length : 0" in config_layout,
           "collapsed layout categories stay lazy")
+    check("desktopsInCategory" in config_layout, "layout picker nests desktop groups")
     check("switch (cat.id)" not in config_layout,
           "category titles come from registry metadata")
+    check("switch (desk.id)" not in config_layout,
+          "desktop titles come from registry metadata")
     check('id !== "raven"' not in config_layout, "no layout-id sizing special case in config")
     check("isRavenLayout" not in main_qml, "no layout-id sizing special case at runtime")
     check('MenuLayoutId === "gnome"' in main_qml
