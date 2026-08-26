@@ -52,7 +52,7 @@ LayoutBase {
         if (!menuData) return;
         menuData.setSearch("");
         root.refreshNavData(id);
-        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files")
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files" || String(id).indexOf("qgrp-") === 0)
             return;
         menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }

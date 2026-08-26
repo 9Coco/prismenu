@@ -17,6 +17,7 @@ Item {
     property var cfg_SidebarOrder: []
     property var cfg_SidebarHidden: []
     property var cfg_CustomQuickLinks: []
+    property string cfg_CustomGroupApps: "{}"
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -50,8 +51,12 @@ Item {
         var order = SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER);
         var defs = SC.extraCategoryDefs(root.tr);
         var byId = {};
-        for (var i = 0; i < defs.length; ++i)
+        var i;
+        for (i = 0; i < defs.length; ++i)
             byId[defs[i].id] = defs[i];
+        var groups = root.sidebarGroups();
+        for (i = 0; i < groups.length; ++i)
+            byId[groups[i].id] = groups[i];
         var enabled = enabledIds();
         listModel.clear();
         var seen = {};
@@ -70,11 +75,22 @@ Item {
         for (var k = 0; k < defs.length; ++k) {
             if (seen[defs[k].id])
                 continue;
+            seen[defs[k].id] = true;
             listModel.append({
                 catId: defs[k].id,
                 catName: defs[k].name,
                 catIcon: defs[k].icon || "applications-other",
                 catOn: enabled.indexOf(defs[k].id) >= 0
+            });
+        }
+        for (i = 0; i < groups.length; ++i) {
+            if (seen[groups[i].id])
+                continue;
+            listModel.append({
+                catId: groups[i].id,
+                catName: groups[i].name,
+                catIcon: groups[i].icon || "folder-favorites",
+                catOn: enabled.indexOf(groups[i].id) >= 0 || !userSet()
             });
         }
     }
@@ -204,6 +220,99 @@ Item {
         persistSidebarOrder();
     }
 
+    function customGroupMap() {
+        try {
+            var obj = JSON.parse(String(cfg_CustomGroupApps || "{}"));
+            return (obj && typeof obj === "object") ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function catalogApps() {
+        try {
+            var md = CatalogBridge.menuData();
+            return md && md.allApps ? md.allApps : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function groupContains(gid, appId) {
+        var ids = customGroupMap()[gid];
+        return Array.isArray(ids) && ids.indexOf(appId) >= 0;
+    }
+
+    function enableExtraId(gid) {
+        var order = SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER);
+        if (order.indexOf(gid) < 0)
+            order.push(gid);
+        var enabled = enabledIds().slice();
+        if (enabled.indexOf(gid) < 0)
+            enabled.push(gid);
+        cfg_ExtraCategoriesUserSet = true;
+        cfg_ExtraCategoriesOrder = order.slice();
+        cfg_ExtraCategoriesEnabled = enabled.slice();
+        writeLive("ExtraCategoriesUserSet", true);
+        writeLive("ExtraCategoriesOrder", order.slice());
+        writeLive("ExtraCategoriesEnabled", enabled.slice());
+    }
+
+    function createGroup(name, icon) {
+        name = String(name || "").replace(/[|,]/g, " ").trim();
+        if (!name)
+            return;
+        icon = String(icon || "folder-favorites").replace(/[|,]/g, "-").trim() || "folder-favorites";
+        var gid = "qgrp-" + Math.random().toString(36).slice(2, 10);
+        var list = (cfg_CustomQuickLinks || []).slice();
+        if (typeof list === "string")
+            list = list.length ? list.split(",") : [];
+        list.push(gid + "|" + name + "|" + icon);
+        cfg_CustomQuickLinks = list;
+        writeLive("CustomQuickLinks", list);
+        root.enableExtraId(gid);
+        rebuildModel();
+        rebuildSidebarModel();
+    }
+
+    function deleteGroup(gid) {
+        var list = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
+            return String(s).split("|")[0] !== gid;
+        });
+        cfg_CustomQuickLinks = list;
+        writeLive("CustomQuickLinks", list);
+        var map = customGroupMap();
+        delete map[gid];
+        var s = JSON.stringify(map);
+        cfg_CustomGroupApps = s;
+        writeLive("CustomGroupApps", s);
+        var order = SC.normalizeList(cfg_ExtraCategoriesOrder, SC.DEFAULT_EXTRA_ORDER)
+            .filter(function (id) { return id !== gid; });
+        var enabled = enabledIds().filter(function (id) { return id !== gid; });
+        cfg_ExtraCategoriesOrder = order.slice();
+        cfg_ExtraCategoriesEnabled = enabled.slice();
+        writeLive("ExtraCategoriesOrder", order.slice());
+        writeLive("ExtraCategoriesEnabled", enabled.slice());
+        rebuildModel();
+        rebuildSidebarModel();
+    }
+
+    function toggleGroupApp(gid, appId, on) {
+        if (!gid || !appId)
+            return;
+        var map = customGroupMap();
+        var ids = Array.isArray(map[gid]) ? map[gid].slice() : [];
+        var idx = ids.indexOf(appId);
+        if (on && idx < 0)
+            ids.push(appId);
+        if (!on && idx >= 0)
+            ids.splice(idx, 1);
+        map[gid] = ids;
+        var s = JSON.stringify(map);
+        cfg_CustomGroupApps = s;
+        writeLive("CustomGroupApps", s);
+    }
+
     function resetSidebarDefaults() {
         cfg_SidebarOrder = [];
         cfg_SidebarHidden = [];
@@ -312,13 +421,155 @@ Item {
                             enabled: row.index < listModel.count - 1
                             onClicked: root.move(row.index, row.index + 1)
                         }
+                        QQC2.Button {
+                            visible: String(row.catId).indexOf("qgrp-") === 0
+                            icon.name: "document-edit"
+                            flat: true
+                            onClicked: {
+                                manageDialog.groupId = row.catId;
+                                manageFilter.text = "";
+                                manageDialog.open();
+                            }
+                        }
+                        QQC2.Button {
+                            visible: String(row.catId).indexOf("qgrp-") === 0
+                            icon.name: "list-remove"
+                            flat: true
+                            onClicked: {
+                                deleteDialog.groupId = row.catId;
+                                deleteDialog.open();
+                            }
+                        }
                     }
                     ConfigSep { visible: row.index < listModel.count - 1 }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("New custom group…")
+                subtitle: root.tr("Create a group such as AI; its apps show in the right pane")
+                iconName: "list-add"
+                accent: "green"
+                QQC2.Button {
+                    icon.name: "list-add"
+                    flat: true
+                    onClicked: {
+                        groupNameField.text = "";
+                        newGroupDialog.groupIcon = "folder-favorites";
+                        newGroupDialog.open();
+                    }
                 }
             }
         }
 
         QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
+    }
+
+    QQC2.Dialog {
+        id: newGroupDialog
+        property string groupIcon: "folder-favorites"
+        title: root.tr("New custom group…")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        width: Kirigami.Units.gridUnit * 24
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+        contentItem: ColumnLayout {
+            spacing: Kirigami.Units.smallSpacing
+            Kirigami.FormLayout {
+                Layout.fillWidth: true
+                QQC2.TextField {
+                    id: groupNameField
+                    Layout.fillWidth: true
+                    Kirigami.FormData.label: root.tr("Group name")
+                }
+                RowLayout {
+                    Kirigami.FormData.label: root.tr("Group icon")
+                    Kirigami.Icon {
+                        source: newGroupDialog.groupIcon
+                        Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                        Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                    }
+                    QQC2.Button {
+                        text: root.tr("Browse...")
+                        onClicked: iconChooser.openFor(newGroupDialog.groupIcon || "folder-favorites")
+                    }
+                }
+            }
+        }
+        onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon)
+    }
+
+    QQC2.Dialog {
+        id: deleteDialog
+        property string groupId: ""
+        title: root.tr("Delete group…")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        width: Kirigami.Units.gridUnit * 22
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+        contentItem: QQC2.Label {
+            text: root.tr("Are you sure you want to delete this group?")
+            wrapMode: Text.WordWrap
+        }
+        onAccepted: root.deleteGroup(deleteDialog.groupId)
+    }
+
+    QQC2.Dialog {
+        id: manageDialog
+        property string groupId: ""
+        title: root.tr("Manage applications…")
+        modal: true
+        standardButtons: QQC2.Dialog.Close
+        width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
+        height: Math.min((parent ? parent.height : Kirigami.Units.gridUnit * 24) * 0.8, Kirigami.Units.gridUnit * 24)
+        padding: Kirigami.Units.largeSpacing
+        anchors.centerIn: parent
+        contentItem: ColumnLayout {
+            QQC2.TextField {
+                id: manageFilter
+                Layout.fillWidth: true
+                placeholderText: root.tr("Search…")
+            }
+            ListView {
+                id: manageList
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                clip: true
+                model: {
+                    var q = String(manageFilter.text || "").toLowerCase();
+                    var apps = root.catalogApps() || [];
+                    var out = [];
+                    for (var i = 0; i < apps.length; ++i) {
+                        var a = apps[i];
+                        if (!a || !a.id)
+                            continue;
+                        if (q && String(a.name || "").toLowerCase().indexOf(q) < 0
+                            && String(a.id).toLowerCase().indexOf(q) < 0)
+                            continue;
+                        out.push(a);
+                    }
+                    return out;
+                }
+                delegate: QQC2.CheckDelegate {
+                    required property var modelData
+                    width: manageList.width
+                    text: modelData.name
+                    icon.name: modelData.icon || "application-x-executable"
+                    checked: root.groupContains(manageDialog.groupId, modelData.id)
+                    onToggled: root.toggleGroupApp(manageDialog.groupId, modelData.id, checked)
+                }
+            }
+        }
+    }
+
+    IconChooserDialog {
+        id: iconChooser
+        uiLang: root.uiLang
+        onIconChosen: (iconId, kind, filePath) => {
+            newGroupDialog.groupIcon = kind === "file" ? filePath : iconId;
+        }
     }
 
     Component.onCompleted: {
@@ -363,5 +614,8 @@ Item {
         if (sidebarListModel.count === 0)
             rebuildSidebarModel();
     }
-    onCfg_CustomQuickLinksChanged: rebuildSidebarModel()
+    onCfg_CustomQuickLinksChanged: {
+        rebuildSidebarModel();
+        rebuildModel();
+    }
 }
