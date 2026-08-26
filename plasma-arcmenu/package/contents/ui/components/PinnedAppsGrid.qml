@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -22,6 +23,8 @@ GridView {
     clip: true
     boundsBehavior: Flickable.StopAtBounds
     interactive: contentHeight > height
+    QQC2.ScrollBar.vertical: MenuScrollBar {}
+    QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
     Accessible.name: i18n("Pinned applications")
     Accessible.role: Accessible.List
 

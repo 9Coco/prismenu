@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -144,6 +145,8 @@ ColumnLayout {
         flickableDirection: Flickable.VerticalFlick
         contentWidth: width
         contentHeight: listCol.height
+        QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
 
         Column {
             id: listCol
