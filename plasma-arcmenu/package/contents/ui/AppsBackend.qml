@@ -569,29 +569,28 @@ Item {
                 return;
         }
 
+        if (root.launchDesktopEntry(app, opts))
+            return;
+
         var url = app.kickerUrl || app.entryPath || "";
-        if (url) {
-            // Prefer Qt / KIO open (no shell) for applications: and file:
+        var u = String(url);
+        var lower = u.toLowerCase();
+        var iconAsset = /\.(svg|svgz|png|xpm|ico|jpg|jpeg|webp)(\?|#|$)/.test(lower)
+            || lower.indexOf("/icons/") >= 0
+            || lower.indexOf("/pixmaps/") >= 0;
+        if (u && !iconAsset && lower.indexOf(".desktop") < 0) {
             try {
-                if (String(url).indexOf("applications:") === 0 || String(url).indexOf("file:") === 0
-                    || String(url).indexOf("preferred:") === 0) {
-                    Qt.openUrlExternally(url);
+                if (u.indexOf("preferred:") === 0) {
+                    Qt.openUrlExternally(u);
+                    return;
+                }
+                if (u.indexOf("file:") === 0 || u.indexOf("/") === 0
+                    || u.indexOf("http:") === 0 || u.indexOf("https:") === 0
+                    || u.indexOf("sftp:") === 0 || u.indexOf("smb:") === 0) {
+                    Qt.openUrlExternally(u.indexOf("/") === 0 ? ("file://" + u) : u);
                     return;
                 }
             } catch (e) {}
-            var id = String(app.id || "").replace(/\.desktop$/, "");
-            if (opts.activateExisting) {
-                exec.connectSource("kstart --activate " + shellQuote(url)
-                    + " 2>/dev/null || kstart5 --activate " + shellQuote(url)
-                    + " 2>/dev/null || kioclient exec " + shellQuote(url)
-                    + " || gtk-launch " + shellQuote(id)
-                    + " || xdg-open " + shellQuote(url));
-            } else {
-                exec.connectSource("kioclient exec " + shellQuote(url)
-                    + " || gtk-launch " + shellQuote(id)
-                    + " || xdg-open " + shellQuote(url));
-            }
-            return;
         }
 
         if (app.exec) {
@@ -610,6 +609,57 @@ Item {
             else
                 exec.connectSource(e);
         }
+    }
+
+    /**
+     * Run a .desktop application. Never xdg-open / openUrlExternally the
+     * desktop file itself — that opens Kate because .desktop is text.
+     */
+    function launchDesktopEntry(app, opts) {
+        opts = opts || {};
+        var raw = String(app.kickerUrl || app.entryPath || app.favoriteId || app.id || "");
+        var lower = raw.toLowerCase();
+        var isDesktop = lower.indexOf(".desktop") >= 0
+            || lower.indexOf("applications:") === 0
+            || /\.desktop$/i.test(String(app.id || ""));
+        if (!isDesktop)
+            return false;
+
+        var desktopFile = "";
+        var desktopId = "";
+        if (lower.indexOf("applications:") === 0) {
+            desktopId = raw.substring("applications:".length).replace(/\.desktop$/i, "");
+            desktopFile = desktopId + ".desktop";
+        } else if (lower.indexOf(".desktop") >= 0) {
+            var path = raw;
+            if (path.indexOf("file://") === 0) {
+                try { path = decodeURIComponent(path.substring(7)); } catch (e1) {
+                    path = path.substring(7);
+                }
+            }
+            var slash = path.lastIndexOf("/");
+            desktopFile = slash >= 0 ? path.substring(slash + 1) : path;
+            desktopId = desktopFile.replace(/\.desktop$/i, "");
+        } else {
+            desktopId = String(app.id || app.favoriteId || "").replace(/\.desktop$/i, "");
+            if (!desktopId || desktopId.indexOf("recent-app:") === 0 || desktopId.indexOf("runner:") === 0)
+                return false;
+            desktopFile = desktopId + ".desktop";
+        }
+        if (!desktopId)
+            return false;
+
+        var activate = opts.activateExisting
+            ? ("kstart --activate " + shellQuote(desktopId)
+                + " 2>/dev/null || kstart5 --activate " + shellQuote(desktopId) + " 2>/dev/null || ")
+            : "";
+        exec.connectSource("/bin/bash -lc " + shellQuote(
+            activate
+            + "gtk-launch " + shellQuote(desktopId)
+            + " || kioclient exec " + shellQuote("applications:" + desktopFile)
+            + " || kde-open5 " + shellQuote("applications:" + desktopFile)
+        ));
+        return true;
     }
 
     function runShell(cmd) {

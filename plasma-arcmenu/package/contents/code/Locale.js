@@ -243,6 +243,8 @@ var ZH_CN = {
     "Xfce Whisker": "Xfce Whisker",
     "elementary OS Launcher": "elementary OS · 应用启动器",
     "KDE Plasma Dashboard": "KDE Plasma · 仪表盘",
+    "Recent Applications": "最近应用程序",
+    "Power / Session": "电源 / 会话",
     "KDE Plasma (Tabbed)": "KDE Plasma · 分页菜单",
     "KDE Plasma Kickoff": "KDE Plasma · Kickoff",
     "KDE Plasma Kicker": "KDE Plasma · Kicker",
