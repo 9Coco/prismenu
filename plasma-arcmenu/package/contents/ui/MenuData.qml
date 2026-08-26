@@ -148,7 +148,7 @@ QtObject {
     readonly property var quickLinksOrder: {
         var o = (quickLinksOrderRaw !== undefined && quickLinksOrderRaw !== null)
             ? quickLinksOrderRaw
-            : cfg("QuickLinksOrder", ["favorites", "frequent", "all-apps", "pinned", "recent-files"]);
+            : cfg("QuickLinksOrder", ["frequent", "all-apps", "pinned", "recent-files"]);
         if (typeof o === "string")
             return o.length ? o.split(",") : [];
         return o || [];
@@ -267,13 +267,13 @@ QtObject {
     readonly property var enabledQuickLinks: {
         var order = quickLinksOrder.length
             ? quickLinksOrder
-            : ["favorites", "frequent", "all-apps", "pinned", "recent-files"];
+            : ["frequent", "all-apps", "pinned", "recent-files"];
         var out = [];
         for (var i = 0; i < order.length; ++i) {
             var id = order[i];
             // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
             // so a duplicate quick link only confused the menu (removed 2026-08).
-            if (id === "all-apps")
+            if (id === "all-apps" || id === "favorites")
                 continue;
             // Custom groups are appended by the defs loop below — skip them here,
             // otherwise a raw "qgrp-…" ghost row appears next to the real entry.
@@ -1036,12 +1036,11 @@ QtObject {
         var out = [];
         for (var i = 0; i < order.length; ++i) {
             var id = order[i];
-            if (!id || enabled.indexOf(id) < 0)
+            if (!id || id === "favorites" || enabled.indexOf(id) < 0)
                 continue;
             var name = id;
             var icon = "application-x-executable";
-            if (id === "favorites") { name = root.tr("Favorites"); icon = "emblem-favorite"; }
-            else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
+            if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
             else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }

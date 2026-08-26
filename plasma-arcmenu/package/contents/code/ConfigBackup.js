@@ -199,7 +199,7 @@ var CONFIG_DEFAULTS = {
     showVerticalSeparator: false,
     showExternalDevices: false,
     showBookmarks: true,
-    quickLinksOrder: ["favorites", "frequent", "all-apps", "pinned", "recent-files"],
+    quickLinksOrder: ["frequent", "all-apps", "pinned", "recent-files"],
     quickLinksEnabled: [],
     quickLinkPosition: "bottom",
     menuWidth: 620,
@@ -257,7 +257,7 @@ var CONFIG_DEFAULTS = {
     // Shortcuts
     directoryShortcuts: ["HOME", "DOCUMENTS", "DOWNLOAD", "MUSIC", "PICTURES", "VIDEOS"],
     applicationShortcuts: ["discover", "settings", "tweaks"],
-    extraCategoriesOrder: ["pinned", "all-apps", "favorites", "frequent", "recent-files"],
+    extraCategoriesOrder: ["pinned", "all-apps", "frequent", "recent-files"],
     extraCategoriesEnabled: ["pinned", "all-apps"],
     extraCategoriesUserSet: false,
     sidebarOrder: [],

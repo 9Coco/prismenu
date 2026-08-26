@@ -36,16 +36,43 @@ LayoutBase {
         && section === "applications" && activeApplicationItem
         && activeApplicationItem.kind === "favorites"
 
+    function preferenceKind(id) {
+        if (id === "pinned" || id === "favorites")
+            return "favorites";
+        if (id === "all-apps")
+            return "all";
+        if (id === "frequent")
+            return "frequent";
+        if (id === "recent-files")
+            return "recent-files";
+        if (String(id).indexOf("qgrp-") === 0 || String(id).indexOf("tgrp-") === 0)
+            return "group";
+        return "category";
+    }
+
     readonly property var applicationNavigation: {
         var _sig = menuData ? menuData.extrasSignature : "";
+        var extras = root.preferenceGroups;
         var cats = menuData && menuData.categories ? menuData.categories : [];
-        var prefGroups = menuData && menuData.enabledPreferenceGroups
-            ? menuData.enabledPreferenceGroups : [];
         var typeGroups = menuData && menuData.customTypeGroupDefs
             ? menuData.customTypeGroupDefs : [];
         var order = menuData && menuData.sidebarOrder ? menuData.sidebarOrder : [];
         var hidden = menuData && menuData.sidebarHidden ? menuData.sidebarHidden : [];
-        var pref = SidebarModel.orderedItems([], prefGroups, order, hidden, root.tr);
+        var pref = [];
+        var e;
+        for (e = 0; e < extras.length; ++e) {
+            var extra = extras[e];
+            if (!extra || !extra.id)
+                continue;
+            var kind = root.preferenceKind(extra.id);
+            pref.push({
+                id: kind === "group" ? ("group:" + extra.id) : ("special:" + extra.id),
+                kind: kind,
+                target: extra.id,
+                name: extra.name,
+                icon: extra.icon
+            });
+        }
         var types = SidebarModel.orderedItems(cats, typeGroups, order, hidden, root.tr)
             .filter(function (item) {
                 return item && item.kind !== "favorites" && item.kind !== "all";
@@ -84,6 +111,10 @@ LayoutBase {
             if (item.kind === "group")
                 return menuData && menuData.customGroupApps
                     ? menuData.customGroupApps(item.target) : [];
+            if (item.kind === "frequent")
+                return menuData && menuData.recentApps ? menuData.recentApps : [];
+            if (item.kind === "recent-files")
+                return menuData && menuData.recentFileResults ? menuData.recentFileResults : [];
             if (item.kind === "category")
                 return root.computeContentItems(item.target);
             return root.favoriteItems;
@@ -153,6 +184,8 @@ LayoutBase {
             var item = root.activeApplicationItem;
             if (item && item.kind === "category")
                 menuData.currentCategoryId = item.target;
+            if (item && item.kind === "recent-files" && menuData.requestRecentFilesRefresh)
+                menuData.requestRecentFilesRefresh();
         }
     }
 

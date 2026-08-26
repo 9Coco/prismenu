@@ -9,23 +9,22 @@ import "../components" as Components
 LayoutBase {
     id: root
 
-    property string selectedId: "favorites"
-    readonly property bool categoryPage: selectedId !== "favorites" && selectedId !== ""
+    property string selectedId: ""
+    readonly property bool categoryPage: selectedId !== ""
     readonly property var navigation: {
-        var out = [
-            { id: "favorites", name: root.tr("Favorites"), icon: "emblem-favorite" },
-            { id: "all", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
-        ];
+        var _sig = menuData ? menuData.extrasSignature : "";
+        var extras = root.preferenceGroups;
+        var out = [];
+        for (var i = 0; i < extras.length; ++i) {
+            if (extras[i] && extras[i].id)
+                out.push(extras[i]);
+        }
         return out.concat(root.typeCategories);
     }
     readonly property var items: {
         if (root.searching && menuData)
             return menuData.searchResults;
-        if (selectedId === "favorites") {
-            var pinned = menuData && menuData.pinnedApps ? menuData.pinnedApps : [];
-            return pinned.length ? pinned : root.defaultPinned;
-        }
-        if (selectedId === "all")
+        if (selectedId === "all" || selectedId === "all-apps")
             return root.allApplicationRows;
         return root.computeContentItems(selectedId);
     }
@@ -56,23 +55,17 @@ LayoutBase {
             Layout.fillWidth: true
             Layout.fillHeight: true
             clip: true
-            model: root.selectedId === "favorites" ? root.items.length : root.navigation.length
+            model: root.navigation.length
             delegate: Components.AppListItem {
                 required property int index
-                readonly property var row: root.selectedId === "favorites"
-                    ? root.items[index] : root.navigation[index]
+                readonly property var row: root.navigation[index]
                 width: ListView.view.width
                 app: row
                 iconSize: Math.max(24, root.appIconSize)
                 showDescription: false
                 selectedBg: root.selectedBg; selectedFg: root.selectedFg
                 hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
-                onActivated: {
-                    if (root.selectedId === "favorites")
-                        root.activateItem(row);
-                    else
-                        root.selectedId = row.id;
-                }
+                onActivated: root.selectedId = row.id
             }
         }
 

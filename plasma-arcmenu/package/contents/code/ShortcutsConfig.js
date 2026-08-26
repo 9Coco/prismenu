@@ -6,7 +6,7 @@
 
 var DEFAULT_DIRS = ["HOME", "DOCUMENTS", "DOWNLOAD", "MUSIC", "PICTURES", "VIDEOS"];
 var DEFAULT_APPS = ["discover", "settings", "tweaks"];
-var DEFAULT_EXTRA_ORDER = ["pinned", "all-apps", "favorites", "frequent", "recent-files"];
+var DEFAULT_EXTRA_ORDER = ["pinned", "all-apps", "frequent", "recent-files"];
 // Match GNOME ArcMenu schema default: pinned + all-apps on
 var DEFAULT_EXTRA_ON = ["pinned", "all-apps"];
 var DEFAULT_CTX = ["configure", "separator", "power", "overview", "show-desktop"];
@@ -179,7 +179,6 @@ function extraCategoryDefs(tr) {
     return [
         { id: "pinned", name: tr("Pinned Applications"), icon: "pin" },
         { id: "all-apps", name: tr("All Applications"), icon: "view-app-grid-symbolic" },
-        { id: "favorites", name: tr("Favorites"), icon: "emblem-favorite" },
         { id: "frequent", name: tr("Frequent Apps"), icon: "view-calendar" },
         { id: "recent-files", name: tr("Recent Files"), icon: "document-open-recent" }
     ];
