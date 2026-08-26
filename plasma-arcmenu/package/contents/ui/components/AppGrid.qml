@@ -12,6 +12,8 @@ GridView {
     property var menuData: null
     property int iconSize: 48
     property int columns: 6
+    /** When > 0, column count is floor(width / minCellWidth) so cells shrink/grow with the pane. */
+    property int minCellWidth: 0
     property bool showDescription: false
     property bool multiLineLabels: true
     property bool showGenericNames: false
@@ -25,8 +27,20 @@ GridView {
     signal contextMenuRequested(var app, real x, real y)
 
     model: items ? items.length : 0
-    cellWidth: Math.max(Kirigami.Units.gridUnit * 4, width / Math.max(1, columns))
-    cellHeight: iconSize + Kirigami.Units.gridUnit * 2
+    readonly property int resolvedColumns: {
+        if (minCellWidth > 0 && width > 0)
+            return Math.max(1, Math.floor(width / minCellWidth));
+        return Math.max(1, columns);
+    }
+    cellWidth: Math.max(1, width / Math.max(1, resolvedColumns))
+    readonly property int cellIconSize: minCellWidth > 0
+        ? Math.max(20, Math.min(iconSize, Math.round(cellWidth * 0.48)))
+        : iconSize
+    // Icon + up to two label lines. Too-short cells stack delegates and
+    // clicks in the "empty" gap hit the overlapping row.
+    cellHeight: minCellWidth > 0
+        ? (cellIconSize + Kirigami.Units.gridUnit * 2.5)
+        : (iconSize + Kirigami.Units.gridUnit * 2)
     clip: true
     boundsBehavior: Flickable.StopAtBounds
     QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
@@ -42,15 +56,22 @@ GridView {
         readonly property var app: root.items[index]
         width: root.cellWidth
         height: root.cellHeight
+        clip: true
 
-        // Highlight hugs the icon+label content instead of the whole cell
+        readonly property int tilePad: Kirigami.Units.smallSpacing
+        readonly property int labelWidth: Math.min(
+            del.width - Kirigami.Units.smallSpacing,
+            root.cellIconSize + Kirigami.Units.gridUnit * 2)
+
+        // Highlight hugs the icon + label, matching Application Dashboard.
         Rectangle {
+            id: tileBg
             anchors.centerIn: parent
             width: Math.min(del.width - Kirigami.Units.smallSpacing,
-                            contentCol.implicitWidth + Kirigami.Units.largeSpacing)
-            height: Math.min(del.height - Kirigami.Units.smallSpacing,
-                             contentCol.implicitHeight + Kirigami.Units.smallSpacing)
-            radius: Kirigami.Units.smallSpacing * 1.5
+                            Math.max(root.cellIconSize, del.labelWidth) + del.tilePad * 2)
+            height: Math.min(del.height - 2,
+                             root.cellIconSize + Kirigami.Units.gridUnit * 2.1 + del.tilePad)
+            radius: Kirigami.Units.smallSpacing
             color: {
                 if (root.currentIndex === del.index)
                     return root.selectedBg;
@@ -60,21 +81,23 @@ GridView {
             }
         }
 
-        ColumnLayout {
+        Column {
             id: contentCol
             anchors.centerIn: parent
+            width: del.labelWidth
             spacing: Kirigami.Units.smallSpacing / 2
 
             Kirigami.Icon {
+                anchors.horizontalCenter: parent.horizontalCenter
                 source: SearchExtras.resultIconSource(del.app)
                 fallback: (del.app && del.app.icon) ? del.app.icon : "application-x-executable"
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: root.iconSize
-                Layout.preferredHeight: root.iconSize
+                width: root.cellIconSize
+                height: root.cellIconSize
                 animated: false
             }
 
             PlasmaComponents.Label {
+                width: parent.width
                 text: {
                     if (!del.app)
                         return "";
@@ -82,10 +105,9 @@ GridView {
                         return del.app.genericName;
                     return del.app.name || "";
                 }
-                elide: root.multiLineLabels ? Text.ElideNone : Text.ElideRight
+                elide: Text.ElideRight
                 horizontalAlignment: Text.AlignHCenter
-                Layout.maximumWidth: del.width - Kirigami.Units.largeSpacing
-                wrapMode: root.multiLineLabels ? Text.WordWrap : Text.NoWrap
+                wrapMode: root.multiLineLabels ? Text.Wrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
                 color: {
                     if (root.currentIndex === del.index)
@@ -97,12 +119,16 @@ GridView {
             }
         }
 
+        // Only the tile launches. Empty padding around it does nothing.
         MouseArea {
             id: mouse
-            anchors.fill: parent
+            anchors.fill: tileBg
             hoverEnabled: true
             acceptedButtons: Qt.LeftButton | Qt.RightButton
+            cursorShape: Qt.PointingHandCursor
             onClicked: (mouse) => {
+                if (!del.app || del.app.isSection)
+                    return;
                 root.currentIndex = del.index;
                 if (mouse.button === Qt.RightButton) {
                     root.contextMenuRequested(del.app, mouse.x, mouse.y);
