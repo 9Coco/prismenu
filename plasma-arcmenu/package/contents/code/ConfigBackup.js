@@ -265,7 +265,7 @@ var CONFIG_DEFAULTS = {
     customQuickLinks: [],
     customGroupApps: "{}",
     // Search
-    providers: ["applications"],
+    providers: ["applications", "places", "files"],
     placeholder: "Search…",
     showDescription: true,
     maxResults: 5,

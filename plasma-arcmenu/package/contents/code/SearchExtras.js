@@ -126,7 +126,7 @@ function mergeSearchResults(apps, extras, maxResults) {
 
 /**
  * Classify a result into an ArcMenu-style search section.
- * @returns {"applications"|"settings"|"files"|"windows"|"other"}
+ * @returns {"applications"|"settings"|"places"|"files"|"windows"|"other"}
  */
 function classifySearchItem(item) {
     if (!item)
@@ -136,7 +136,9 @@ function classifySearchItem(item) {
     var provider = String(item.provider || "").toLowerCase();
     if (provider === "windows" || provider === "window")
         return "windows";
-    if (provider === "recent-files" || provider === "files" || provider === "kfileplaces")
+    if (provider === "kfileplaces" || provider === "places")
+        return "places";
+    if (provider === "recent-files" || provider === "files")
         return "files";
     if (provider === "settings" || provider === "kcm")
         return "settings";
@@ -166,9 +168,14 @@ function classifySearchItem(item) {
 
     var url = String(item.kickerUrl || item.entryPath || item.url || "").toLowerCase();
     var fav = String(item.favoriteId || item.id || "").toLowerCase();
+    var detail = String(item.genericName || item.description || "").trim().toLowerCase();
+    if (/^(sftp|ftp|smb|fish|webdav|remote):/.test(url)
+        || /^(sftp|ftp|smb|fish|webdav|remote):/.test(detail))
+        return "places";
     if (url.indexOf("applications:") === 0 || fav.indexOf(".desktop") >= 0)
         return "applications";
     if (url.indexOf("file:") === 0 || url.indexOf("/") === 0
+        || detail.indexOf("~/") === 0 || detail.indexOf("/") === 0
         || /\.(md|txt|pdf|png|jpg|jpeg|svg|odt|docx?|xlsx?|csv)$/i.test(url)
         || /\.(md|txt|pdf)$/i.test(String(item.name || "")))
         return "files";
@@ -191,10 +198,11 @@ function classifySearchItem(item) {
 function groupSearchResults(items, maxResults, trFn) {
     var limit = maxResults > 0 ? maxResults : 50;
     trFn = trFn || function (s) { return s; };
-    var order = ["applications", "settings", "files", "windows", "other"];
+    var order = ["applications", "settings", "places", "files", "windows", "other"];
     var labelKey = {
         applications: "Applications",
         settings: "Settings",
+        places: "Places",
         files: "Files",
         windows: "Windows",
         other: "Other"
@@ -240,6 +248,111 @@ function groupSearchResults(items, maxResults, trFn) {
             icon: "",
             isSection: true,
             sectionId: id,
+            sectionCount: all.length,
+            noDisplay: false
+        });
+        for (var s = 0; s < shown.length; ++s)
+            out.push(shown[s]);
+    }
+    return out;
+}
+
+function _resultKey(item) {
+    if (!item)
+        return "";
+    var url = String(item.kickerUrl || item.entryPath || item.url || "").toLowerCase();
+    if (url)
+        return "url:" + url;
+    var detail = String(item.genericName || item.description || "").toLowerCase();
+    if (/^(file|sftp|ftp|smb|fish|webdav|remote):/.test(detail)
+        || detail.indexOf("~/") === 0 || detail.indexOf("/") === 0)
+        return "location:" + detail;
+    var id = String(item.favoriteId || item.id || "").toLowerCase();
+    if (id)
+        return "id:" + id;
+    return "name:" + String(item.name || "").toLowerCase();
+}
+
+/**
+ * Build the shared, sectioned search model used by list layouts.
+ *
+ * `maxPerSection` deliberately applies to each provider group. Applying one
+ * global cap made application hits consume the entire budget, so Places and
+ * Recent Files never appeared even when their native models had matches.
+ */
+function composeSearchResults(primary, places, recentFiles, windows, query,
+                              maxPerSection, trFn) {
+    var cap = maxPerSection > 0 ? maxPerSection : 20;
+    trFn = trFn || function (s) { return s; };
+    var order = ["applications", "settings", "places", "files", "windows", "other"];
+    var labelKey = {
+        applications: "Applications",
+        settings: "Settings",
+        places: "Places",
+        files: "Recent Files",
+        windows: "Windows",
+        other: "Other"
+    };
+    var buckets = {};
+    var seen = {};
+    var seenNames = {};
+    for (var i = 0; i < order.length; ++i)
+        buckets[order[i]] = [];
+
+    function add(item, forcedSection) {
+        if (!item || item.isSection)
+            return;
+        var key = _resultKey(item);
+        if (key && seen[key])
+            return;
+        var nameKey = String(item.name || "").trim().toLowerCase();
+        // RunnerModel and the explicit native adapters can expose the same
+        // row with differently formatted URLs. Prefer the runner row because
+        // it retains runnerIndex activation semantics.
+        if (forcedSection && nameKey && seenNames[nameKey])
+            return;
+        if (key)
+            seen[key] = true;
+        if (nameKey)
+            seenNames[nameKey] = true;
+        var section = forcedSection || classifySearchItem(item);
+        if (!buckets[section])
+            section = "other";
+        buckets[section].push(item);
+    }
+
+    var main = primary || [];
+    for (var p = 0; p < main.length; ++p)
+        add(main[p], "");
+
+    var matchingPlaces = filterByQuery(places || [], query);
+    for (var l = 0; l < matchingPlaces.length; ++l)
+        add(matchingPlaces[l], "places");
+
+    var matchingFiles = filterByQuery(recentFiles || [], query);
+    for (var f = 0; f < matchingFiles.length; ++f)
+        add(matchingFiles[f], "files");
+
+    var matchingWindows = filterByQuery(windows || [], query);
+    for (var w = 0; w < matchingWindows.length; ++w)
+        add(matchingWindows[w], "windows");
+
+    var out = [];
+    for (var o = 0; o < order.length; ++o) {
+        var sectionId = order[o];
+        var all = buckets[sectionId];
+        if (!all.length)
+            continue;
+        var shown = all.slice(0, cap);
+        var hidden = Math.max(0, all.length - shown.length);
+        var title = trFn(labelKey[sectionId]);
+        if (hidden > 0)
+            title += " " + String(hidden) + " " + trFn("more");
+        out.push({
+            id: "section:" + sectionId,
+            name: title,
+            isSection: true,
+            sectionId: sectionId,
             sectionCount: all.length,
             noDisplay: false
         });

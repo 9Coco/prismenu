@@ -470,7 +470,7 @@ QtObject {
         var _ = searchConfigEpoch;
         if (searchRecentFilesRaw !== undefined && searchRecentFilesRaw !== null)
             return searchRecentFilesRaw === true || searchRecentFilesRaw === 1;
-        return cfgBool("SearchRecentFiles", false);
+        return cfgBool("SearchRecentFiles", true);
     }
 
     // ---- Fine-tuning ----
@@ -494,17 +494,17 @@ QtObject {
     readonly property int maxSearchResults: {
         var _ = searchConfigEpoch;
         var n = (maxResultsRaw !== undefined && maxResultsRaw !== null)
-            ? parseInt(maxResultsRaw, 10) : cfgInt("MaxResults", 5);
+            ? parseInt(maxResultsRaw, 10) : cfgInt("MaxResults", 20);
         if (isNaN(n) || n < 1)
-            n = 5;
+            n = 20;
         return n;
     }
     readonly property var searchProviders: {
-        var p = cfg("Providers", ["applications"]);
+        var p = cfg("Providers", ["applications", "places", "files"]);
         if (typeof p === "string")
-            return p.length ? p.split(",") : ["applications"];
+            return p.length ? p.split(",") : ["applications", "places", "files"];
         if (!p || p.length === undefined)
-            return ["applications"];
+            return ["applications", "places", "files"];
         var list = [];
         for (var i = 0; i < p.length; ++i)
             list.push(p[i]);
@@ -829,29 +829,24 @@ QtObject {
         var trFn = function (m) { return root.tr(m); };
         // Plasma Search (RunnerModel) first — Kickoff path
         var runners = runnerResults || [];
-        var merged;
+        var primary;
         if (runners.length) {
-            var extrasR = [];
-            if (searchRecentFiles)
-                extrasR = extrasR.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
-            if (searchWindows)
-                extrasR = extrasR.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
-            merged = SearchExtras.mergeSearchResults(runners, extrasR, maxSearchResults);
+            primary = runners;
         } else {
             // Fallback: in-memory app filter
-            var appCap = Math.max(maxSearchResults * 2, maxSearchResults + 8);
-            var apps = AppsModel.searchApps(allApps, q, appCap);
-            var extras = [];
-            if (searchRecentFiles) {
-                extras = extras.concat(SearchExtras.filterByQuery(recentFileResults || [], q));
-            }
-            if (searchWindows) {
-                extras = extras.concat(SearchExtras.filterByQuery(openWindowResults || [], q));
-            }
-            merged = SearchExtras.mergeSearchResults(apps, extras, maxSearchResults);
+            primary = AppsModel.searchApps(allApps, q, maxSearchResults * 2);
         }
-        // ArcMenu-style section headers (Applications / Files / Windows / …)
-        return SearchExtras.groupSearchResults(merged, maxSearchResults, trFn);
+        // Each provider group has its own allowance. A global cap let app
+        // results hide Places and Recent Files even when those models matched.
+        return SearchExtras.composeSearchResults(
+            primary,
+            root.places || [],
+            root.searchRecentFiles ? (recentFileResults || []) : [],
+            root.searchWindows ? (openWindowResults || []) : [],
+            q,
+            maxSearchResults,
+            trFn
+        );
     }
 
     /** Same as searchResults but without section header rows (for AppGrid layouts). */
@@ -1057,7 +1052,7 @@ QtObject {
                 path: it.path || "",
                 categories: ["Places"],
                 keywords: [],
-                genericName: it.name,
+                genericName: it.path || it.name,
                 noDisplay: false
             });
         }

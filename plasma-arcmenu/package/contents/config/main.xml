@@ -329,7 +329,7 @@
 
     <group name="Search">
         <entry name="Providers" type="StringList">
-            <default>applications</default>
+            <default>applications,places,files</default>
         </entry>
         <entry name="Placeholder" type="String">
             <default>Search…</default>
@@ -338,7 +338,7 @@
             <default>true</default>
         </entry>
         <entry name="MaxResults" type="Int">
-            <default>5</default>
+            <default>20</default>
         </entry>
         <entry name="HideSearchBar" type="Bool">
             <default>false</default>
@@ -356,7 +356,7 @@
             <default>false</default>
         </entry>
         <entry name="SearchRecentFiles" type="Bool">
-            <default>false</default>
+            <default>true</default>
         </entry>
     </group>
 

@@ -405,6 +405,7 @@ Item {
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property string display: String(model.display !== undefined ? model.display : "")
+            readonly property string description: String(model.description !== undefined ? model.description : "")
             readonly property var decoration: model.decoration
             readonly property var url: model.url !== undefined ? model.url : model.Url
             readonly property bool isHidden: !!(model.hidden || model.Hidden)
@@ -438,6 +439,10 @@ Item {
                 else if (obj.decoration && obj.decoration.name)
                     icon = String(obj.decoration.name);
             } catch (e) {}
+            var localPath = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : "";
+            var detail = String(obj.description || "").trim();
+            if (!detail)
+                detail = localPath || (menuData ? menuData.tr("Remote Location") : "Remote Location");
             out.push({
                 id: "kplace:" + uri,
                 name: name,
@@ -446,11 +451,12 @@ Item {
                 entryPath: uri,
                 exec: "",
                 place: "",
-                path: uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : "",
+                path: localPath,
                 isDevice: !!obj.isDevice,
                 categories: ["Places"],
                 keywords: [],
-                genericName: name,
+                genericName: detail,
+                description: detail,
                 provider: "kfileplaces",
                 noDisplay: false
             });

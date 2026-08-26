@@ -344,6 +344,7 @@ LayoutBase {
                     layoutRoot: root
                     items: root.listItems
                     showDescription: true
+                    inlineDescription: root.showingSearch || root.section === "places"
                     iconSize: Math.max(root.appIconSize, Kirigami.Units.iconSizes.smallMedium)
                 }
 
@@ -352,7 +353,7 @@ LayoutBase {
                     visible: root.showingFavorites
                         ? root.favoriteItems.length === 0 : root.listItems.length === 0
                     text: root.showingSearch
-                        ? root.tr("No matching applications found")
+                        ? root.tr("No matching results found")
                         : root.tr("No applications")
                     opacity: 0.55
                     color: root.fg
