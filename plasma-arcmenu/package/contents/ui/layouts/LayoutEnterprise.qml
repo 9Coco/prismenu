@@ -16,7 +16,7 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
 
     property string enterpriseSelectedId: "pinned"
     activeNavId: enterpriseSelectedId
@@ -50,7 +50,7 @@ LayoutBase {
         if (!menuData) return;
         menuData.setSearch("");
         root.refreshNavData(id);
-        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files" || String(id).indexOf("qgrp-") === 0)
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files" || String(id).indexOf("qgrp-") === 0 || String(id).indexOf("tgrp-") === 0)
             return;
         menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }

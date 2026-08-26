@@ -17,6 +17,7 @@ Item {
     property var cfg_SidebarOrder: []
     property var cfg_SidebarHidden: []
     property var cfg_CustomQuickLinks: []
+    property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
 
     readonly property string uiLanguagePref: {
@@ -150,18 +151,25 @@ Item {
         }
     }
 
-    function sidebarGroups() {
-        var raw = cfg_CustomQuickLinks || [];
+    function parseGroups(raw) {
         if (typeof raw === "string")
             raw = raw.length ? raw.split(",") : [];
         var out = [];
-        for (var i = 0; i < raw.length; ++i) {
+        for (var i = 0; i < (raw || []).length; ++i) {
             var parts = String(raw[i] || "").split("|");
             if (parts[0])
                 out.push({ id: parts[0], name: parts[1] || parts[0],
                     icon: parts[2] || "folder-favorites" });
         }
         return out;
+    }
+
+    function sidebarGroups() {
+        return parseGroups(cfg_CustomQuickLinks);
+    }
+
+    function typeGroups() {
+        return parseGroups(cfg_CustomTypeGroups);
     }
 
     function rebuildSidebarModel() {
@@ -258,29 +266,41 @@ Item {
         writeLive("ExtraCategoriesEnabled", enabled.slice());
     }
 
-    function createGroup(name, icon) {
+    function createGroup(name, icon, isType) {
         name = String(name || "").replace(/[|,]/g, " ").trim();
         if (!name)
             return;
         icon = String(icon || "folder-favorites").replace(/[|,]/g, "-").trim() || "folder-favorites";
-        var gid = "qgrp-" + Math.random().toString(36).slice(2, 10);
-        var list = (cfg_CustomQuickLinks || []).slice();
+        var prefix = isType ? "tgrp-" : "qgrp-";
+        var gid = prefix + Math.random().toString(36).slice(2, 10);
+        var key = isType ? "CustomTypeGroups" : "CustomQuickLinks";
+        var list = ((isType ? cfg_CustomTypeGroups : cfg_CustomQuickLinks) || []).slice();
         if (typeof list === "string")
             list = list.length ? list.split(",") : [];
         list.push(gid + "|" + name + "|" + icon);
-        cfg_CustomQuickLinks = list;
-        writeLive("CustomQuickLinks", list);
-        root.enableExtraId(gid);
+        if (isType)
+            cfg_CustomTypeGroups = list;
+        else
+            cfg_CustomQuickLinks = list;
+        writeLive(key, list);
+        if (!isType)
+            root.enableExtraId(gid);
         rebuildModel();
+        rebuildTypeModel();
         rebuildSidebarModel();
     }
 
     function deleteGroup(gid) {
-        var list = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
+        var pref = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
             return String(s).split("|")[0] !== gid;
         });
-        cfg_CustomQuickLinks = list;
-        writeLive("CustomQuickLinks", list);
+        var types = ((cfg_CustomTypeGroups || []).slice()).filter(function (s) {
+            return String(s).split("|")[0] !== gid;
+        });
+        cfg_CustomQuickLinks = pref;
+        cfg_CustomTypeGroups = types;
+        writeLive("CustomQuickLinks", pref);
+        writeLive("CustomTypeGroups", types);
         var map = customGroupMap();
         delete map[gid];
         var s = JSON.stringify(map);
@@ -294,6 +314,7 @@ Item {
         writeLive("ExtraCategoriesOrder", order.slice());
         writeLive("ExtraCategoriesEnabled", enabled.slice());
         rebuildModel();
+        rebuildTypeModel();
         rebuildSidebarModel();
     }
 
@@ -323,67 +344,26 @@ Item {
 
     ListModel { id: listModel }
     ListModel { id: sidebarListModel }
+    ListModel { id: typeListModel }
+
+    function rebuildTypeModel() {
+        typeListModel.clear();
+        var groups = root.typeGroups();
+        for (var i = 0; i < groups.length; ++i) {
+            typeListModel.append({
+                catId: groups[i].id,
+                catName: groups[i].name,
+                catIcon: groups[i].icon || "folder-favorites"
+            });
+        }
+    }
 
     ConfigPage {
-        title: root.tr("Sidebar Items")
-        tip: root.tr("Configure the shared application sidebar and legacy extra categories.")
+        title: root.tr("Menu Groups")
+        tip: root.tr("Preference groups appear above the split; type groups appear below it.")
 
         ConfigGroup {
-            title: root.tr("Application Sidebar")
-            Repeater {
-                model: sidebarListModel
-                ColumnLayout {
-                    id: sidebarRow
-                    required property int index
-                    required property string itemId
-                    required property string itemName
-                    required property string itemIcon
-                    required property bool itemOn
-                    Layout.fillWidth: true
-                    spacing: 0
-                    ConfigSettingRow {
-                        title: sidebarRow.itemName
-                        iconName: sidebarRow.itemIcon
-                        accent: index % 2 === 0 ? "blue" : "teal"
-                        Kirigami.Icon {
-                            source: "transform-move"
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            opacity: 0.4
-                        }
-                        QQC2.Switch {
-                            checked: sidebarRow.itemOn
-                            onToggled: root.setSidebarItemOn(sidebarRow.index, checked)
-                        }
-                        QQC2.Button {
-                            icon.name: "go-up"
-                            flat: true
-                            enabled: sidebarRow.index > 0
-                            onClicked: root.moveSidebarItem(sidebarRow.index, sidebarRow.index - 1)
-                        }
-                        QQC2.Button {
-                            icon.name: "go-down"
-                            flat: true
-                            enabled: sidebarRow.index < sidebarListModel.count - 1
-                            onClicked: root.moveSidebarItem(sidebarRow.index, sidebarRow.index + 1)
-                        }
-                    }
-                    ConfigSep { visible: sidebarRow.index < sidebarListModel.count - 1 }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Add custom item in ArcMenu layout adjustment")
-                subtitle: root.tr("Custom application groups appear here automatically.")
-                iconName: "list-add"
-                accent: "green"
-            }
-        }
-
-        QQC2.Button { text: root.tr("Reset sidebar"); onClicked: root.resetSidebarDefaults() }
-
-        ConfigGroup {
-            title: root.tr("Extra Categories")
+            title: root.tr("Preference Groups")
             Repeater {
                 model: listModel
                 ColumnLayout {
@@ -447,7 +427,7 @@ Item {
             ConfigSep {}
             ConfigSettingRow {
                 title: root.tr("New custom group…")
-                subtitle: root.tr("Create a group such as AI; its apps show in the right pane")
+                subtitle: root.tr("Shown above the split, with pinned and all-apps")
                 iconName: "list-add"
                 accent: "green"
                 QQC2.Button {
@@ -456,18 +436,76 @@ Item {
                     onClicked: {
                         groupNameField.text = "";
                         newGroupDialog.groupIcon = "folder-favorites";
+                        newGroupDialog.isType = false;
                         newGroupDialog.open();
                     }
                 }
             }
         }
 
-        QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
+        QQC2.Button { text: root.tr("Reset preference groups"); onClicked: root.resetDefaults() }
+
+        ConfigGroup {
+            title: root.tr("Type Groups")
+            Repeater {
+                model: typeListModel
+                ColumnLayout {
+                    id: typeRow
+                    required property int index
+                    required property string catId
+                    required property string catName
+                    required property string catIcon
+                    Layout.fillWidth: true
+                    spacing: 0
+                    ConfigSettingRow {
+                        title: typeRow.catName
+                        iconName: typeRow.catIcon
+                        accent: index % 2 === 0 ? "teal" : "purple"
+                        QQC2.Button {
+                            icon.name: "document-edit"
+                            flat: true
+                            onClicked: {
+                                manageDialog.groupId = typeRow.catId;
+                                manageFilter.text = "";
+                                manageDialog.open();
+                            }
+                        }
+                        QQC2.Button {
+                            icon.name: "list-remove"
+                            flat: true
+                            onClicked: {
+                                deleteDialog.groupId = typeRow.catId;
+                                deleteDialog.open();
+                            }
+                        }
+                    }
+                    ConfigSep { visible: typeRow.index < typeListModel.count - 1 }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("New custom group…")
+                subtitle: root.tr("Shown below the split, with Office, Games, and other types")
+                iconName: "list-add"
+                accent: "teal"
+                QQC2.Button {
+                    icon.name: "list-add"
+                    flat: true
+                    onClicked: {
+                        groupNameField.text = "";
+                        newGroupDialog.groupIcon = "folder-favorites";
+                        newGroupDialog.isType = true;
+                        newGroupDialog.open();
+                    }
+                }
+            }
+        }
     }
 
     QQC2.Dialog {
         id: newGroupDialog
         property string groupIcon: "folder-favorites"
+        property bool isType: false
         title: root.tr("New custom group…")
         modal: true
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
@@ -497,7 +535,7 @@ Item {
                 }
             }
         }
-        onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon)
+        onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon, newGroupDialog.isType)
     }
 
     QQC2.Dialog {
@@ -587,6 +625,7 @@ Item {
         }
         rebuildModel();
         rebuildSidebarModel();
+        rebuildTypeModel();
     }
 
     onCfg_ExtraCategoriesOrderChanged: {
@@ -618,4 +657,5 @@ Item {
         rebuildSidebarModel();
         rebuildModel();
     }
+    onCfg_CustomTypeGroupsChanged: rebuildTypeModel()
 }

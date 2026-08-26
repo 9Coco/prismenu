@@ -34,6 +34,7 @@ QtObject {
     property var quickLinksOrderRaw
     property var quickLinkPositionRaw
     property var customQuickLinksRaw
+    property var customTypeGroupsRaw
     property var customGroupAppsRaw
     property var sidebarOrderRaw
     property var sidebarHiddenRaw
@@ -177,9 +178,7 @@ QtObject {
     }
     
     // ---- Custom quick link groups (user-defined app collections) ----
-    readonly property var customQuickLinkDefs: {
-        var raw = (customQuickLinksRaw !== undefined && customQuickLinksRaw !== null)
-            ? customQuickLinksRaw : cfg("CustomQuickLinks", []);
+    function parseGroupDefs(raw) {
         if (typeof raw === "string")
             raw = raw.length ? raw.split(",") : [];
         var out = [];
@@ -191,6 +190,18 @@ QtObject {
             out.push({ id: gid, name: parts[1] || gid, icon: parts[2] || "folder-favorites" });
         }
         return out;
+    }
+
+    readonly property var customQuickLinkDefs: {
+        var raw = (customQuickLinksRaw !== undefined && customQuickLinksRaw !== null)
+            ? customQuickLinksRaw : cfg("CustomQuickLinks", []);
+        return root.parseGroupDefs(raw);
+    }
+
+    readonly property var customTypeGroupDefs: {
+        var raw = (customTypeGroupsRaw !== undefined && customTypeGroupsRaw !== null)
+            ? customTypeGroupsRaw : cfg("CustomTypeGroups", []);
+        return root.parseGroupDefs(raw);
     }
     
     readonly property var customGroupMap: {
@@ -997,6 +1008,23 @@ QtObject {
         return (extraCategoriesEnabled || []).indexOf(id) >= 0;
     }
 
+    /** Preference custom groups that are currently switched on. */
+    readonly property var enabledPreferenceGroups: {
+        var _ = root.structureEpoch;
+        var defs = root.customQuickLinkDefs || [];
+        var enabled = extraCategoriesEnabled || [];
+        var userSet = root.extraCategoriesUserSet;
+        var out = [];
+        for (var i = 0; i < defs.length; ++i) {
+            if (!defs[i] || !defs[i].id)
+                continue;
+            if (userSet && enabled.indexOf(defs[i].id) < 0)
+                continue;
+            out.push(defs[i]);
+        }
+        return out;
+    }
+
     function bumpStructure() {
         structureEpoch++;
     }
@@ -1062,6 +1090,9 @@ QtObject {
         var defs = root.customQuickLinkDefs || [];
         for (var i = 0; i < defs.length; ++i)
             gids.push(defs[i].id);
+        var tdefs = root.customTypeGroupDefs || [];
+        for (var t = 0; t < tdefs.length; ++t)
+            gids.push(tdefs[t].id);
         return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",")
             + "|g:" + gids.join(",");
     }

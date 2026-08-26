@@ -10,7 +10,7 @@ LayoutBase {
 
     readonly property bool fullMode: menuData && menuData.currentLayoutId === "deepin-full"
     property string selectedId: "all"
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
     readonly property var appItems: {
         if (root.searching && menuData)
             return menuData.searchResultsFlat;

@@ -17,7 +17,7 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
 
     // "" / "home" = pinned+shortcuts home; "all" / category id = app list
     property string selectedId: "home"

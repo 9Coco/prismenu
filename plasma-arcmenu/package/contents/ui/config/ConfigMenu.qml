@@ -329,7 +329,7 @@ Item {
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomGroupApps"],
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps"],
         "ConfigContent": ["Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "PinnedApps", "PinnedCols", "SyncWithPlasma", "Enabled", "MaxItems", "RecentApps"],
         "ConfigContextMenu": ["ContextMenuItems"]
     })
@@ -729,8 +729,8 @@ Item {
                     }
                     NavSep {}
                     NavRow {
-                        title: root.tr("Sidebar Items")
-                        subtitle: root.tr("Extra categories and custom groups such as AI")
+                        title: root.tr("Menu Groups")
+                        subtitle: root.tr("Preference groups and type groups")
                         iconName: "view-list-details-symbolic"
                         accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)
