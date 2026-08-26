@@ -301,6 +301,11 @@ def main() -> int:
         check((PKG / "contents/ui" / core).exists(), f"core ui: {core}")
 
     layout_base = (PKG / "contents/ui/layouts/LayoutBase.qml").read_text(encoding="utf-8")
+    check(
+        'categorySubset([])' in layout_base
+        and "Office\", \"Development\", \"Accessories\"" not in layout_base,
+        "layouts use full system categories",
+    )
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
