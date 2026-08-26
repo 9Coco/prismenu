@@ -245,10 +245,11 @@ LayoutBase {
             // computer/history/frequent sidebars.
             ListView {
                 id: navigation
-                Layout.preferredWidth: Math.max(150, root.sidebarW)
-                Layout.minimumWidth: 130
-                Layout.maximumWidth: Math.min(root.sidebarMax, 300)
+                Layout.preferredWidth: root.sidebarW
+                Layout.minimumWidth: root.elasticColumnMin
+                Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
+                Layout.fillWidth: false
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
@@ -324,7 +325,18 @@ LayoutBase {
                 }
             }
 
-            Kirigami.Separator { Layout.fillHeight: true }
+            Components.ColumnSplitHandle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: implicitWidth
+                z: 5
+                fg: root.fg
+                currentWidth: root.sidebarW
+                minWidth: root.sidebarMin
+                maxWidth: root.sidebarMax
+                sidebarOnRight: false
+                flipped: root.flip
+                onWidthDragged: (w) => root.setSidebarFromDrag(w)
+            }
 
             Item {
                 Layout.fillWidth: true
