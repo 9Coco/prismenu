@@ -204,6 +204,7 @@ var ZH_CN = {
     "Pinned Applications": "固定应用程序",
     "Pinned applications": "固定应用",
     "Places": "位置",
+    "Locations": "常用位置",
     "Power": "电源",
     "Other Menu Styles": "其他风格菜单",
     "Pop!_OS Launcher": "Pop!_OS · 应用启动器",

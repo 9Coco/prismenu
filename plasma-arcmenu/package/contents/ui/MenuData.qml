@@ -464,7 +464,7 @@ QtObject {
         var _ = searchConfigEpoch;
         if (searchWindowsRaw !== undefined && searchWindowsRaw !== null)
             return searchWindowsRaw === true || searchWindowsRaw === 1;
-        return cfgBool("SearchWindows", false);
+        return cfgBool("SearchWindows", true);
     }
     readonly property bool searchRecentFiles: {
         var _ = searchConfigEpoch;
@@ -824,25 +824,35 @@ QtObject {
         }
         var _cfg = searchConfigEpoch;
         var _rf = recentFilesEpoch;
+        var _bm = bookmarksEpoch;
+        var _pl = plasmaPlaces;
         var _rr = runnerResults;
+        var _ow = openWindowResults;
+        var _bmr = bookmarkResults;
         var q = searchQuery.trim();
         var trFn = function (m) { return root.tr(m); };
-        // Plasma Search (RunnerModel) first — Kickoff path
+        // Plasma Search (RunnerModel) first — Kickoff path (apps / locations /
+        // windows / bookmarks / files). In-memory app filter is only a fallback
+        // when no runner rows have arrived yet.
         var runners = runnerResults || [];
         var primary;
         if (runners.length) {
             primary = runners;
         } else {
-            // Fallback: in-memory app filter
             primary = AppsModel.searchApps(allApps, q, maxSearchResults * 2);
         }
-        // Each provider group has its own allowance. A global cap let app
-        // results hide Places and Recent Files even when those models matched.
+        var placeSrc = (plasmaPlaces && plasmaPlaces.length) ? plasmaPlaces : (root.places || []);
+        var searchPlaces = [];
+        for (var i = 0; i < placeSrc.length; ++i) {
+            if (placeSrc[i] && !placeSrc[i].special)
+                searchPlaces.push(placeSrc[i]);
+        }
         return SearchExtras.composeSearchResults(
             primary,
-            root.places || [],
+            searchPlaces,
             root.searchRecentFiles ? (recentFileResults || []) : [],
             root.searchWindows ? (openWindowResults || []) : [],
+            bookmarkResults || [],
             q,
             maxSearchResults,
             trFn

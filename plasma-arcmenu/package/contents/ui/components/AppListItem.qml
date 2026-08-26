@@ -111,9 +111,11 @@ Item {
         visible: !root.isSection
 
         Kirigami.Icon {
-            source: root.app ? root.app.icon : "application-x-executable"
+            source: SearchExtras.resultIconSource(root.app)
+            fallback: (root.app && root.app.icon) ? root.app.icon : "application-x-executable"
             Layout.preferredWidth: root.iconSize
             Layout.preferredHeight: root.iconSize
+            animated: false
         }
 
         ColumnLayout {

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import "../../code/SearchExtras.js" as SearchExtras
 
 GridView {
     id: root
@@ -61,10 +62,12 @@ GridView {
             spacing: Kirigami.Units.smallSpacing / 2
 
             Kirigami.Icon {
-                source: del.app ? (del.app.icon || "application-x-executable") : "application-x-executable"
+                source: SearchExtras.resultIconSource(del.app)
+                fallback: (del.app && del.app.icon) ? del.app.icon : "application-x-executable"
                 Layout.alignment: Qt.AlignHCenter
                 Layout.preferredWidth: root.iconSize
                 Layout.preferredHeight: root.iconSize
+                animated: false
             }
 
             PlasmaComponents.Label {

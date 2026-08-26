@@ -273,7 +273,7 @@ var CONFIG_DEFAULTS = {
     highlightSearchTerms: true,
     searchBoxRadiusEnabled: true,
     searchBoxRadius: 25,
-    searchWindows: false,
+    searchWindows: true,
     searchRecentFiles: false,
     // FineTune
     showCategorySubmenus: false,
