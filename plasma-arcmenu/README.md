@@ -63,10 +63,9 @@ A KCM stub is also installed under Workspace behavior for discovery in System Se
 
 ## Layout notes
 
-The layout picker groups menus by their source platform rather than ArcMenu's
-historical interaction-style categories. Current groups are Linux, Windows,
-ChromeOS, and original/other styles; Android is registered as a future source
-family and appears automatically when its first layout is added.
+The layout picker groups menus by source platform, then by desktop
+(KDE, GNOME, Windows 7 / 10 / 11, …). Android is registered as a future
+source family and appears automatically when its first layout is added.
 
 A catalog of start-menu structures from Windows, Plasma, GNOME, macOS, ChromeOS,
 Android, iPadOS, and other desktops — including names, structure diagrams, preview
@@ -130,7 +129,7 @@ plasma-arcmenu/
 
 **Architecture note:** `code/LayoutRegistry.js` is the single source of layout metadata, including the QML source, preview kind, capabilities, defaults, and sizing policy. All selectable layouts inherit `ui/layouts/LayoutBase.qml`, which owns shared catalog projections, activation behavior, standard categories, and idle-time preloading. Layouts use `LayoutSearchField`, `LayoutAppList`, and `LayoutAppGrid` to inherit data/theme/event wiring while remaining responsible for navigation state, chrome, sizing, and visual composition. Full-catalog sorting and A–Z grouping are computed once in `MenuData.qml`.
 
-To add a normal layout, create `ui/layouts/LayoutName.qml` inheriting `LayoutBase`, then add one metadata object to `LayoutRegistry.js`. The settings preview and structural checks discover the new layout from that object; they do not maintain separate layout-ID lists.
+To add a normal layout, create `ui/layouts/LayoutName.qml` inheriting `LayoutBase`, then add one metadata object to `LayoutRegistry.js` with a source-platform `category` and a desktop `desktop` (for example `plasma` or `win7`). The settings preview, two-level picker, and structural checks discover the new layout from that object; they do not maintain separate layout-ID lists.
 
 ## Development checks
 
