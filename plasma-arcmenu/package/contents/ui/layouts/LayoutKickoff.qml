@@ -207,14 +207,10 @@ LayoutBase {
                 Layout.minimumWidth: Layout.preferredWidth
                 spacing: 0
 
-                PlasmaComponents.ToolButton {
+                Components.ArcMenuSettingsButton {
+                    layoutRoot: root
                     Layout.preferredWidth: Kirigami.Units.gridUnit * 2
                     Layout.preferredHeight: Kirigami.Units.gridUnit * 2
-                    icon.name: "configure"
-                    Accessible.name: root.tr("ArcMenu Settings")
-                    onClicked: root.openArcMenuSettings()
-                    PlasmaComponents.ToolTip.text: Accessible.name
-                    PlasmaComponents.ToolTip.visible: hovered
                 }
 
                 PlasmaComponents.ToolButton {
