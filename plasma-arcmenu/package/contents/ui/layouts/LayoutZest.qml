@@ -16,7 +16,7 @@ import "../components" as Components
 LayoutBase {
     id: root
 
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
 
     // Middle column selection �?drives right column content
     property string selectedId: "all"
@@ -75,7 +75,7 @@ LayoutBase {
         menuData.setSearch("");
         root.refreshNavData(id);
         if (id === "pinned" || id === "favorites" || id === "frequent"
-                || id === "recent-files" || String(id).indexOf("qgrp-") === 0)
+                || id === "recent-files" || String(id).indexOf("qgrp-") === 0 || String(id).indexOf("tgrp-") === 0)
             return;
         menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }

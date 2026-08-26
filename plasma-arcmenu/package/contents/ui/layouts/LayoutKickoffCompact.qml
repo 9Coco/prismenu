@@ -16,7 +16,7 @@ LayoutBase {
             { id: "favorites", name: root.tr("Favorites"), icon: "emblem-favorite" },
             { id: "all", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" }
         ];
-        return out.concat(root.standardCategories);
+        return out.concat(root.typeCategories);
     }
     readonly property var items: {
         if (root.searching && menuData)

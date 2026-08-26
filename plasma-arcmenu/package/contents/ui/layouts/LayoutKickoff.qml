@@ -37,12 +37,28 @@ LayoutBase {
         && activeApplicationItem.kind === "favorites"
 
     readonly property var applicationNavigation: {
+        var _sig = menuData ? menuData.extrasSignature : "";
         var cats = menuData && menuData.categories ? menuData.categories : [];
-        var groups = menuData && menuData.customQuickLinkDefs
-            ? menuData.customQuickLinkDefs : [];
+        var prefGroups = menuData && menuData.enabledPreferenceGroups
+            ? menuData.enabledPreferenceGroups : [];
+        var typeGroups = menuData && menuData.customTypeGroupDefs
+            ? menuData.customTypeGroupDefs : [];
         var order = menuData && menuData.sidebarOrder ? menuData.sidebarOrder : [];
         var hidden = menuData && menuData.sidebarHidden ? menuData.sidebarHidden : [];
-        return SidebarModel.orderedItems(cats, groups, order, hidden, root.tr);
+        var pref = SidebarModel.orderedItems([], prefGroups, order, hidden, root.tr);
+        var types = SidebarModel.orderedItems(cats, typeGroups, order, hidden, root.tr)
+            .filter(function (item) {
+                return item && item.kind !== "favorites" && item.kind !== "all";
+            });
+        var out = [];
+        var i;
+        for (i = 0; i < pref.length; ++i)
+            out.push(pref[i]);
+        if (pref.length && types.length)
+            out.push({ id: "nav-sep", kind: "separator", isSeparator: true, name: "", icon: "" });
+        for (i = 0; i < types.length; ++i)
+            out.push(types[i]);
+        return out;
     }
 
     readonly property var placesNavigation: [
@@ -128,6 +144,8 @@ LayoutBase {
     }
 
     function chooseApplicationPage(id) {
+        if (!id || id === "nav-sep")
+            return;
         root.section = "applications";
         root.applicationsPage = id;
         if (menuData) {
@@ -258,12 +276,15 @@ LayoutBase {
                     id: navDelegate
                     required property int index
                     readonly property var navItem: navigation.model[index]
-                    readonly property bool selected: root.section === "applications"
+                    readonly property bool isSeparator: !!(navItem && navItem.isSeparator)
+                    readonly property bool selected: !isSeparator && (root.section === "applications"
                         ? root.applicationsPage === navItem.id
-                        : root.placesPage === navItem.id
+                        : root.placesPage === navItem.id)
                     width: navigation.width
-                    height: Math.max(Kirigami.Units.gridUnit * 2.05,
-                                     root.categoryIconSize + Kirigami.Units.smallSpacing * 2)
+                    height: isSeparator
+                        ? Kirigami.Units.smallSpacing * 2
+                        : Math.max(Kirigami.Units.gridUnit * 2.05,
+                                   root.categoryIconSize + Kirigami.Units.smallSpacing * 2)
 
                     Rectangle {
                         anchors.fill: parent
@@ -276,11 +297,12 @@ LayoutBase {
                     Kirigami.Separator {
                         anchors.left: parent.left
                         anchors.right: parent.right
-                        anchors.top: parent.top
-                        visible: root.section === "applications" && navDelegate.index === 2
+                        anchors.verticalCenter: parent.verticalCenter
+                        visible: navDelegate.isSeparator
                     }
 
                     RowLayout {
+                        visible: !navDelegate.isSeparator
                         anchors.fill: parent
                         anchors.leftMargin: Kirigami.Units.smallSpacing
                         anchors.rightMargin: Kirigami.Units.smallSpacing
@@ -310,8 +332,9 @@ LayoutBase {
                     MouseArea {
                         id: navMouse
                         anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
+                        hoverEnabled: !navDelegate.isSeparator
+                        enabled: !navDelegate.isSeparator
+                        cursorShape: navDelegate.isSeparator ? Qt.ArrowCursor : Qt.PointingHandCursor
                         onClicked: {
                             if (root.section === "applications")
                                 root.chooseApplicationPage(navDelegate.navItem.id);

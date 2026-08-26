@@ -52,6 +52,7 @@ var CONFIG_KEYS = [
     "CustomIcons",
     "CustomNames",
     "CustomQuickLinks",
+    "CustomTypeGroups",
     "CustomThemes",
     "DirectoryShortcuts",
     "Enabled",
@@ -263,6 +264,7 @@ var CONFIG_DEFAULTS = {
     sidebarHidden: [],
     contextMenuItems: ["configure", "separator", "power", "overview", "show-desktop"],
     customQuickLinks: [],
+    customTypeGroups: [],
     customGroupApps: "{}",
     // Search
     providers: ["applications", "places", "files"],

@@ -15,7 +15,7 @@ import "../../code/AppsModel.js" as AppsModel
 LayoutBase {
     id: root
 
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
 
     // Home shows category nav (matches reference). Drill-in shows apps.
     property bool showingApps: false
@@ -74,7 +74,7 @@ LayoutBase {
         if (!menuData) return;
         menuData.setSearch("");
         root.refreshNavData(id);
-        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files" || String(id).indexOf("qgrp-") === 0)
+        if (id === "pinned" || id === "favorites" || id === "frequent" || id === "recent-files" || String(id).indexOf("qgrp-") === 0 || String(id).indexOf("tgrp-") === 0)
             return;
         menuData.currentCategoryId = (id === "all-apps") ? "all" : id;
     }

@@ -121,8 +121,12 @@
         <entry name="QuickLinkPosition" type="String">
             <default>bottom</default>
         </entry>
-        <!-- Custom quick link groups: entries are "id|name|icon" -->
+        <!-- Preference custom groups (id|name|icon), shown above the category split -->
         <entry name="CustomQuickLinks" type="StringList">
+            <default></default>
+        </entry>
+        <!-- Type custom groups (id|name|icon), shown with system categories -->
+        <entry name="CustomTypeGroups" type="StringList">
             <default></default>
         </entry>
         <!-- JSON map: { "qgrp-xxx": ["app.desktop", ...] } -->

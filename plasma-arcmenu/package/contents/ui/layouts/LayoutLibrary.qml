@@ -12,7 +12,7 @@ LayoutBase {
     property string selectedCategory: ""
     readonly property bool windowsVariant: menuData
         && menuData.currentLayoutId === "win11-categories"
-    readonly property var categories: root.standardCategories
+    readonly property var categories: root.typeCategories
     readonly property var selectedItems: {
         if (!selectedCategory || !menuData)
             return [];
