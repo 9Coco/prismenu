@@ -44,7 +44,7 @@ def main() -> int:
     check(bool(layout_files), "layouts discovered from registry")
     check(len(layout_files) == len(layout_blocks), "unique layout ids")
     check("gnome" not in layout_files, "duplicate GNOME layout removed")
-    check(category_ids == {"linux", "windows", "chromeos", "android", "other"},
+    check(category_ids == {"linux", "windows", "chromeos", "android", "apple", "other"},
           "source-platform layout categories")
     check("plasma" in desktop_ids and "win7" in desktop_ids and "gnome" in desktop_ids,
           "desktop subgroups include KDE / GNOME / Windows 7")
@@ -73,7 +73,7 @@ def main() -> int:
         "insider": "Windows 10 (Early)",
         "windows": "Windows 10 (Classic)",
         "eleven": "Windows 11 (Standard)",
-        "az": "Windows 11 (Compact)",
+        "az": "Windows 11 (Pinned + A-Z)",
     }
     for layout_id, display_name in expected_windows_names.items():
         block = next((body for lid, body, _fname in layout_blocks if lid == layout_id), "")
@@ -226,7 +226,13 @@ def main() -> int:
     for page in config_pages:
         check((PKG / "contents/ui/config" / page).exists(), f"settings page: {page}")
 
-    config_model = (PKG / "contents/config/config.qml").read_text(encoding="utf-8")
+    # Static Plasma categories plus the nested menu-page model introduced by
+    # ConfigMenu.  Titles in the latter are wrapped in root.tr(...), but the
+    # source message ids remain stable and are what this contract validates.
+    config_model = "\n".join([
+        (PKG / "contents/config/config.qml").read_text(encoding="utf-8"),
+        (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8"),
+    ])
     # "About" comes from Plasma metadata, not a custom ConfigCategory
     for label in [
         "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",

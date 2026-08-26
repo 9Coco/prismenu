@@ -1,14 +1,14 @@
 # ChromeOS
 
-ChromeOS 的启动器挂在 **Shelf（货架）** 上，形态随桌面/平板模式切换。桌面模式是「从底边长出来的半屏搜索+网格」；拉满或平板模式变成接近 Android 的应用墙。现有 `chromebook` 布局是**竖长弹窗四列网格**，和真机「贴底半屏」仍有差距。
+ChromeOS 的启动器挂在 **Shelf（货架）** 上，形态随桌面/平板模式切换。桌面模式是「从底边长出来的半屏搜索+网格」；拉满或平板模式变成接近 Android 的应用墙。
 
 ## 变体一览
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `chromeos-ash-启动器半屏` | 贴底半屏 | `chromebook` 部分 |
-| `chromeos-ash-启动器全屏` | 全屏抽屉 | `plasma-dash` / `elementary` |
-| `chromeos-tablet-主屏幕` | 平板应用墙 | **无** |
+| `chromeos-ash-启动器半屏` | 贴底半屏 | `chromebook` |
+| `chromeos-ash-启动器全屏` | 全屏抽屉 | `chromeos-full` |
+| `chromeos-tablet-主屏幕` | 平板应用墙 | `chromeos-tablet` |
 
 ---
 

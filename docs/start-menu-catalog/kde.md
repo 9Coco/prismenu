@@ -11,9 +11,9 @@ Plasma 不把启动器做成单一「开始菜单」，而是同一套 Kicker �
 | `kde-plasma-kicker传统菜单` | 级联 | `kicker` |
 | `kde-plasma-kickoff经典页签` | 底栏五页签 | `plasma` 接近 |
 | `kde-plasma-kickoff标准版` | 侧栏 + 网格 | `kickoff` |
-| `kde-plasma-kickoff紧凑版` | 窄列表 | 无独立布局 |
+| `kde-plasma-kickoff紧凑版` | 窄列表 | `kickoff-compact` |
 | `kde-plasma-仪表盘全屏` | 三栏全屏 | `plasma-dash` |
-| `kde-plasma-krunner搜索` | 居中 Runner | **无（高优先）** |
+| `kde-plasma-krunner搜索` | 居中 Runner | `runner` |
 
 ---
 

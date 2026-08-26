@@ -8,8 +8,8 @@ Pop!_OS 在 GNOME 时期用「应用库」网格；新 **COSMIC** 桌面把启�
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `pop-cosmic-启动器搜索` | 居中列表 + 数字键 | **无（高优先）** |
-| `pop-cosmic-应用库` | 字母网格 + 底文件夹 | `pop` 接近 |
+| `pop-cosmic-启动器搜索` | 居中列表 + 数字键 | `cosmic-launcher` |
+| `pop-cosmic-应用库` | 字母网格 + 底文件夹 | `cosmic-library` |
 
 ---
 

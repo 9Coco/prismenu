@@ -6,9 +6,9 @@ iPad 把「所有应用」分成三层：**主屏幕（手动摆放 + 小部件�
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `ipados-主屏幕分页` | 小部件+图标+Dock | 非菜单，桌面本身 |
-| `ipados-应用资料库` | 自动分类文件夹墙 | **无（高优先）** |
-| `ipados-聚焦搜索` | 下拉 Spotlight | 与 Runner 同类 |
+| `ipados-主屏幕分页` | 小部件+图标+Dock | `ipados-home`（应用区） |
+| `ipados-应用资料库` | 自动分类文件夹墙 | `ipados-library` |
+| `ipados-聚焦搜索` | 下拉 Spotlight | `ipados-spotlight` |
 
 ---
 
