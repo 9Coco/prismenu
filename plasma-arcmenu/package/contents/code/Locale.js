@@ -589,7 +589,6 @@ var ZH_CN = {
     "Deepin Desktop": "Deepin 桌面",
     "Deepin Launcher (Window)": "Deepin 启动器（窗口）",
     "Deepin Launcher (Fullscreen)": "Deepin 启动器（全屏）",
-    "GNOME Activities Overview": "GNOME 活动概览",
     "GNOME Applications Grid": "GNOME 应用网格",
     "GNOME Classic Applications Menu": "GNOME Classic 应用程序菜单",
     "KDE Plasma KRunner": "KDE Plasma KRunner 搜索",
