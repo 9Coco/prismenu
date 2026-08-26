@@ -250,6 +250,7 @@ def main() -> int:
         "ShortcutRow.qml", "PlacesSidebar.qml", "SessionButtons.qml", "AllAppsButton.qml",
         "PinnedAppsList.qml", "VirtualizedAppList.qml",
         "LayoutSearchField.qml", "LayoutAppGrid.qml", "LayoutAppList.qml",
+        "ArcMenuSettingsButton.qml",
     ]
     for c in components:
         check((PKG / "contents/ui/components" / c).exists(), f"component: {c}")
@@ -272,7 +273,19 @@ def main() -> int:
     layout_base = (PKG / "contents/ui/layouts/LayoutBase.qml").read_text(encoding="utf-8")
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
+    layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
+    check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")
+    check("ArcMenuSettingsButton" in layout_search, "search field ArcMenu Settings")
+    check("Layout.fillHeight: false" in layout_search, "search field does not stretch layouts")
+    app_menu = layout_sources.get("LayoutApplicationMenu.qml", "")
+    check("arcmenu-settings" in app_menu, "traditional menus list ArcMenu Settings")
+    for fname, source in layout_sources.items():
+        has_search = "Components.LayoutSearchField" in source
+        has_direct = ("ArcMenuSettingsButton" in source
+                      or "requestConfigure" in source
+                      or "openArcMenuSettings" in source)
+        check(has_search or has_direct, f"layout exposes ArcMenu Settings: {fname}")
     check("Components.VirtualizedAppList" in apps_page, "apps page uses shared virtualized list")
     check("CategoryMeta.iconForCategory(" in apps_backend, "shared semantic category icons")
     check("SidebarModel.orderedItems(" in layout_sources["LayoutKickoff.qml"],
