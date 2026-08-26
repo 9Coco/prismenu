@@ -18,9 +18,6 @@ PlasmaComponents.ToolButton {
     Layout.preferredHeight: implicitHeight
     Layout.maximumWidth: implicitWidth
     Layout.maximumHeight: implicitHeight
-    icon.name: "preferences-system-windows"
-    icon.width: Kirigami.Units.iconSizes.smallMedium
-    icon.height: Kirigami.Units.iconSizes.smallMedium
     Accessible.name: root.labelText
     Accessible.role: Accessible.Button
     PlasmaComponents.ToolTip.text: root.labelText
@@ -31,6 +28,14 @@ PlasmaComponents.ToolButton {
     readonly property string labelText: layoutRoot
         ? layoutRoot.tr("ArcMenu Settings")
         : "ArcMenu Settings"
+
+    contentItem: Kirigami.Icon {
+        implicitWidth: Kirigami.Units.iconSizes.smallMedium
+        implicitHeight: implicitWidth
+        source: Qt.resolvedUrl("../../icons/arcmenu-settings.svg")
+        isMask: true
+        color: Kirigami.Theme.textColor
+    }
 
     onClicked: {
         if (layoutRoot && layoutRoot.openArcMenuSettings)
