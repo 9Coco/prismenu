@@ -16,6 +16,8 @@ Item {
     id: root
 
     property var cfg_PinnedApps: []
+    property int cfg_PinnedCols: 6
+    property bool cfg_SyncWithPlasma: true
     property var localApps: []
 
     readonly property string uiLanguagePref: {
@@ -180,6 +182,37 @@ Item {
                         customIcon.text = "application-x-executable";
                         customExec.text = "";
                         customDialog.open();
+                    }
+                }
+            }
+        }
+
+        ConfigGroup {
+            title: root.tr("Options")
+            ConfigSettingRow {
+                title: root.tr("Pinned columns:")
+                iconName: "view-grid"
+                accent: "orange"
+                QQC2.SpinBox {
+                    from: 4
+                    to: 8
+                    value: root.cfg_PinnedCols
+                    onValueModified: {
+                        root.cfg_PinnedCols = value;
+                        try { plasmoid.configuration.PinnedCols = value; } catch (e) {}
+                    }
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Sync favorites with Plasma global favorites")
+                iconName: "bookmarks"
+                accent: "green"
+                QQC2.Switch {
+                    checked: root.cfg_SyncWithPlasma
+                    onToggled: {
+                        root.cfg_SyncWithPlasma = checked;
+                        try { plasmoid.configuration.SyncWithPlasma = checked; } catch (e) {}
                     }
                 }
             }

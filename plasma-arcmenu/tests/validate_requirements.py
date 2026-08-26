@@ -163,8 +163,8 @@ def main() -> int:
     check('property string section: "applications"' in kickoff, "Kickoff applications/places sections")
     check('property string applicationsPage: "special:favorites"' in kickoff, "Kickoff applications pages")
     check('property string placesPage: "computer"' in kickoff, "Kickoff places pages")
-    check("Components.LayoutAppGrid {" in kickoff, "Kickoff shared favorites grid")
-    check("Components.LayoutAppList {" in kickoff, "Kickoff shared applications list")
+    check("Components.LayoutGroupPane {" in kickoff, "Kickoff shared favorites grid")
+    check("useGrid: root.showingGrid" in kickoff, "Kickoff shared applications list")
     check("Components.ResolvedIcon {" in kickoff, "Kickoff shared category icon resolver")
     check("signal keepOpenRequested(bool pinned)" in kickoff, "Kickoff keep-open contract")
     check(kickoff.count("Layout.maximumHeight: Layout.preferredHeight") >= 2,
@@ -234,7 +234,7 @@ def main() -> int:
         "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize",
         "FollowColorScheme",
         "PinnedApps", "PinnedCols", "SyncWithPlasma",
-        "Enabled", "MaxItems", "RecentApps",
+        "Enabled", "MaxItems", "RecentApps", "GroupViewOptions",
         "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty",
         "DirectoryShortcuts", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "SidebarOrder", "SidebarHidden", "ContextMenuItems",
@@ -266,10 +266,9 @@ def main() -> int:
     # "About" comes from Plasma metadata, not a custom ConfigCategory
     for label in [
         "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
-        "Directory Shortcuts", "Application Shortcuts", "Extra Categories",
-        "Menu Groups",
+        "Directory Shortcuts", "Application Shortcuts",
         "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
-        "Menu Content", "Search Options", "Power Options",
+        "Menu Groups", "Search Options", "Power Options",
         "Modify ArcMenu Context Menu",
     ]:
         check(label in config_model, f"settings category: {label}")
@@ -281,7 +280,7 @@ def main() -> int:
         "ShortcutRow.qml", "PlacesSidebar.qml", "SessionButtons.qml", "AllAppsButton.qml",
         "PinnedAppsList.qml", "VirtualizedAppList.qml",
         "LayoutSearchField.qml", "LayoutAppGrid.qml", "LayoutAppList.qml",
-        "ArcMenuSettingsButton.qml",
+        "LayoutGroupPane.qml", "ArcMenuSettingsButton.qml",
     ]
     for c in components:
         check((PKG / "contents/ui/components" / c).exists(), f"component: {c}")
@@ -314,6 +313,17 @@ def main() -> int:
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")
     check("sidebarShortcuts" in layout_base, "shared settings-driven sidebar shortcuts")
     check('indexOf("qgrp-")' in layout_base, "custom groups resolve in content pane")
+    check("function usesGridView" in layout_base, "per-group grid vs list display")
+    extra_cfg = (PKG / "contents/ui/config/ConfigExtraCategories.qml").read_text(encoding="utf-8")
+    check('icon.name: "settings-configure"' in extra_cfg, "menu group rows have column settings button")
+    check("Column settings" in extra_cfg, "column settings dialog")
+    check("Square icons" in extra_cfg and "Show in rows" in extra_cfg, "column view mode options")
+    check("title: root.tr(\"Recent applications\")" not in extra_cfg,
+          "recent apps settings live in the frequent column dialog")
+    check('id: "frequent", name: tr("Recent Apps")' in (PKG / "contents/code/ShortcutsConfig.js").read_text(encoding="utf-8"),
+          "recent apps is a preference group")
+    check("Components.LayoutGroupPane" in layout_sources["LayoutKickoff.qml"],
+          "Kickoff honors per-group view mode")
     check("ArcMenuSettingsButton" in layout_search, "search field ArcMenu Settings")
     check((PKG / "contents/icons/arcmenu-settings.svg").exists(), "dedicated ArcMenu Settings icon")
     settings_btn = (PKG / "contents/ui/components/ArcMenuSettingsButton.qml").read_text(encoding="utf-8")

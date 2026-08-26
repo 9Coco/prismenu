@@ -24,9 +24,7 @@ LayoutBase {
     readonly property var items: {
         if (root.searching && menuData)
             return menuData.searchResults;
-        if (selectedId === "all" || selectedId === "all-apps")
-            return root.allApplicationRows;
-        return root.computeContentItems(selectedId);
+        return root.computeContentItems(selectedId || "all-apps");
     }
 
     ColumnLayout {
@@ -39,15 +37,15 @@ LayoutBase {
             Layout.fillWidth: true
         }
 
-        Components.LayoutAppList {
+        Components.LayoutGroupPane {
             visible: root.searching || root.categoryPage
             Layout.fillWidth: true
             Layout.fillHeight: true
             layoutRoot: root
             items: root.items
+            useGrid: !root.searching && root.usesGridView(root.selectedId)
             showDescription: root.searching
             inlineDescription: false
-            iconSize: Math.max(24, root.appIconSize)
         }
 
         ListView {

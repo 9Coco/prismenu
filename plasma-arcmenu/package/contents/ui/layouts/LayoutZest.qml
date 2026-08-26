@@ -296,28 +296,18 @@ LayoutBase {
                     Layout.fillHeight: true
                     Layout.minimumWidth: Kirigami.Units.gridUnit * 8
 
-                    Components.LayoutAppList {
+                    Components.LayoutGroupPane {
                         layoutRoot: root
                         anchors.fill: parent
                         items: root.rightItems
-                        iconSize: Math.max(root.appIconSize, 28)
-                    }
-
-                    PlasmaComponents.Label {
-                        anchors.centerIn: parent
-                        visible: root.rightEmpty
-                        text: root.searching
+                        useGrid: !root.searching && root.usesGridView(root.selectedId)
+                        emptyText: root.searching
                               ? root.tr("No matching applications found")
                               : ((root.selectedId === "pinned" || root.selectedId === "favorites")
                                  ? root.tr("Pin applications from the context menu")
                                  : (root.selectedId === "recent-files"
                                     ? root.tr("No recent files")
                                     : root.tr("No applications")))
-                        opacity: 0.45
-                        color: root.fg
-                        width: parent.width * 0.8
-                        wrapMode: Text.WordWrap
-                        horizontalAlignment: Text.AlignHCenter
                     }
                 }
             }

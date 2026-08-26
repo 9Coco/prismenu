@@ -122,36 +122,16 @@ LayoutBase {
         }
 
         // Middle content �?takes all leftover height
-        ListView {
-            id: listFlick
+        Components.LayoutGroupPane {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.minimumHeight: Kirigami.Units.gridUnit * 8
-            model: root.contentItems
-            spacing: Kirigami.Units.smallSpacing / 2
-            clip: true
-            boundsBehavior: Flickable.StopAtBounds
-            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-            delegate: Components.AppListItem {
-                            required property int index
-                            menuData: menuData
-                            width: listFlick.width
-                            app: root.contentItems[index]
-                            iconSize: Math.max(root.appIconSize, 28)
-                            showDescription: root.showAppDescriptions
-                            selectedBg: root.selectedBg
-                            selectedFg: root.selectedFg
-                            hoverBg: root.hoverBg
-                            hoverFg: root.hoverFg
-                            fg: root.fg
-                            onActivated: root.activateItem(root.contentItems[index])
-                            onContextMenuRequested: (x, y) => {
-                                var a = root.contentItems[index];
-                                if (a && !a.action) root.appContextMenu(a, x, y);
-                            }
-                        }
-}
+            layoutRoot: root
+            items: root.contentItems
+            useGrid: !root.searching && ((root.plasmaTab === 0 && root.usesGridView("pinned"))
+                     || (root.plasmaTab === 1 && root.usesGridView("all-apps")))
+            showDescription: root.showAppDescriptions
+        }
 
         Kirigami.Separator {
             Layout.fillWidth: true

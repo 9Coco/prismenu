@@ -189,7 +189,7 @@ Item {
     readonly property var defaultQuickOrder: ["frequent", "pinned", "recent-files"]
 
     readonly property var quickLinkDefs: [
-        { id: "frequent", name: root.tr("Frequent Apps"), icon: "view-calendar" },
+        { id: "frequent", name: root.tr("Recent Apps"), icon: "view-history" },
         // Retired: the sidebar AllAppsButton already navigates to the all-apps view,
         // so a duplicate quick link only confused the menu (removed 2026-08).
         { id: "pinned", name: root.tr("Pinned Applications"), icon: "pin" },

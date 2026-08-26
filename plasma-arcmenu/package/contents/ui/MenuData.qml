@@ -36,6 +36,7 @@ QtObject {
     property var customQuickLinksRaw
     property var customTypeGroupsRaw
     property var customGroupAppsRaw
+    property var groupViewOptionsRaw
     property var sidebarOrderRaw
     property var sidebarHiddenRaw
 
@@ -284,7 +285,7 @@ QtObject {
             var name = id;
             var icon = "application-x-executable";
             if (id === "favorites") { name = root.tr("Favorites"); icon = "emblem-favorite"; }
-            else if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
+            else if (id === "frequent") { name = root.tr("Recent Apps"); icon = "view-history"; }
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
             else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
@@ -438,8 +439,14 @@ QtObject {
     readonly property int buttonIconSize: IconSizes.resolve(cfgInt("IconSizeButtons", -1), 22)
     readonly property int otherIconSize: IconSizes.resolve(cfgInt("IconSizeOther", -1), 22)
     readonly property int pinnedCols: Math.max(1, cfgInt("PinnedCols", 6))
-    readonly property bool recentEnabled: cfgBool("Enabled", true)
-    readonly property int recentMax: Math.max(0, cfgInt("MaxItems", 5))
+    readonly property bool recentEnabled: {
+        var _ = root.structureEpoch;
+        return cfgBool("Enabled", true);
+    }
+    readonly property int recentMax: {
+        var _ = root.structureEpoch;
+        return Math.max(0, cfgInt("MaxItems", 5));
+    }
     // Bound from main.qml for live Apply from Search Options
     property var showDescriptionRaw
     property var hideSearchBarRaw
@@ -579,6 +586,10 @@ QtObject {
     readonly property string powerDisplayStyle: cfgStr("PowerDisplayStyle", "off")
     readonly property bool syncFavorites: cfgBool("SyncWithPlasma", true)
     readonly property bool showEmptyCategories: cfgBool("ShowEmpty", true)
+    readonly property var hiddenCategoryIds: {
+        var _ = root.structureEpoch;
+        return IdList.normalizeIdList(cfg("Hidden", []));
+    }
 
     // ---- Application catalog (populated by AppsBackend / Kicker RootModel) ----
     property var allApps: []
@@ -1040,7 +1051,7 @@ QtObject {
                 continue;
             var name = id;
             var icon = "application-x-executable";
-            if (id === "frequent") { name = root.tr("Frequent Apps"); icon = "view-calendar"; }
+            if (id === "frequent") { name = root.tr("Recent Apps"); icon = "view-history"; }
             else if (id === "all-apps") { name = root.tr("All Applications"); icon = "view-app-grid-symbolic"; }
             else if (id === "pinned") { name = root.tr("Pinned Applications"); icon = "pin"; }
             else if (id === "recent-files") { name = root.tr("Recent Files"); icon = "document-open-recent"; }
@@ -1092,8 +1103,26 @@ QtObject {
         var tdefs = root.customTypeGroupDefs || [];
         for (var t = 0; t < tdefs.length; ++t)
             gids.push(tdefs[t].id);
+        var viewRaw = (groupViewOptionsRaw !== undefined && groupViewOptionsRaw !== null)
+            ? String(groupViewOptionsRaw) : cfgStr("GroupViewOptions", "{}");
+        var appsRaw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)
+            ? String(customGroupAppsRaw) : cfgStr("CustomGroupApps", "{}");
         return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",")
-            + "|g:" + gids.join(",");
+            + "|g:" + gids.join(",") + "|v:" + viewRaw + "|a:" + appsRaw;
+    }
+
+    readonly property var groupViewOptions: {
+        var _ = root.structureEpoch;
+        var raw = (groupViewOptionsRaw !== undefined && groupViewOptionsRaw !== null)
+            ? groupViewOptionsRaw : cfg("GroupViewOptions", "{}");
+        return ShortcutsConfig.parseGroupViewOptions(raw);
+    }
+
+    function groupViewMode(id) {
+        var _ = root.structureEpoch;
+        var raw = (groupViewOptionsRaw !== undefined && groupViewOptionsRaw !== null)
+            ? groupViewOptionsRaw : cfg("GroupViewOptions", "{}");
+        return ShortcutsConfig.groupViewMode(raw, id);
     }
 
     /**

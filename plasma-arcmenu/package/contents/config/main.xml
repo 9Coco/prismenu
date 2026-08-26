@@ -133,6 +133,10 @@
         <entry name="CustomGroupApps" type="String">
             <default>{}</default>
         </entry>
+        <!-- JSON map: { "<group-id>": { "view": "grid"|"list" } } -->
+        <entry name="GroupViewOptions" type="String">
+            <default>{}</default>
+        </entry>
         <entry name="MenuWidth" type="Int">
             <default>620</default>
         </entry>

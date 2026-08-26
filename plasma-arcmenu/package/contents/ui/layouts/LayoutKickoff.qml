@@ -32,9 +32,24 @@ LayoutBase {
         }
         return nav.length ? nav[0] : null;
     }
-    readonly property bool showingFavorites: !showingSearch
-        && section === "applications" && activeApplicationItem
-        && activeApplicationItem.kind === "favorites"
+    readonly property string contentNavId: {
+        if (root.showingSearch || root.section !== "applications")
+            return "";
+        var item = root.activeApplicationItem;
+        return item && item.target ? item.target : "";
+    }
+
+    readonly property bool showingGrid: !root.showingSearch
+        && root.section === "applications" && root.usesGridView(root.contentNavId)
+
+    readonly property var paneItems: {
+        if (root.showingSearch || root.section !== "applications")
+            return root.listItems;
+        var item = root.activeApplicationItem;
+        if (item && (item.kind === "favorites"))
+            return root.favoriteItems;
+        return root.listItems;
+    }
 
     function preferenceKind(id) {
         if (id === "pinned" || id === "favorites")
@@ -107,15 +122,9 @@ LayoutBase {
             if (!item)
                 return [];
             if (item.kind === "all")
-                return root.allApplicationRows;
-            if (item.kind === "group")
-                return menuData && menuData.customGroupApps
-                    ? menuData.customGroupApps(item.target) : [];
-            if (item.kind === "frequent")
-                return menuData && menuData.recentApps ? menuData.recentApps : [];
-            if (item.kind === "recent-files")
-                return menuData && menuData.recentFileResults ? menuData.recentFileResults : [];
-            if (item.kind === "category")
+                return root.computeContentItems(item.target || "all-apps");
+            if (item.kind === "group" || item.kind === "frequent"
+                    || item.kind === "recent-files" || item.kind === "category")
                 return root.computeContentItems(item.target);
             return root.favoriteItems;
         }
@@ -396,34 +405,16 @@ LayoutBase {
                 Layout.fillHeight: true
                 Layout.margins: Kirigami.Units.smallSpacing
 
-                Components.LayoutAppGrid {
+                Components.LayoutGroupPane {
                     anchors.fill: parent
-                    visible: root.showingFavorites
                     layoutRoot: root
-                    items: root.favoriteItems
-                    columns: Math.max(4, Math.floor(width / (Kirigami.Units.gridUnit * 5)))
-                    iconSize: Math.max(root.gridIconSize, Kirigami.Units.iconSizes.large)
-                }
-
-                Components.LayoutAppList {
-                    anchors.fill: parent
-                    visible: !root.showingFavorites
-                    layoutRoot: root
-                    items: root.listItems
+                    items: root.paneItems
+                    useGrid: root.showingGrid
                     showDescription: true
                     inlineDescription: root.showingSearch || root.section === "places"
-                    iconSize: Math.max(root.appIconSize, Kirigami.Units.iconSizes.smallMedium)
-                }
-
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: root.showingFavorites
-                        ? root.favoriteItems.length === 0 : root.listItems.length === 0
-                    text: root.showingSearch
+                    emptyText: root.showingSearch
                         ? root.tr("No matching results found")
                         : root.tr("No applications")
-                    opacity: 0.55
-                    color: root.fg
                 }
             }
         }
