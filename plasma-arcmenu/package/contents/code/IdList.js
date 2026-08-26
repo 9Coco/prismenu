@@ -25,5 +25,14 @@ function normalizeIdList(raw) {
 }
 
 function defaultPinnedIds() {
-    return ["org.kde.dolphin.desktop", "arcmenu-settings"];
+    return ["org.kde.dolphin.desktop"];
+}
+
+function withoutMenuSettings(list) {
+    var out = [];
+    for (var i = 0; i < (list || []).length; ++i) {
+        if (String(list[i]) !== "arcmenu-settings")
+            out.push(list[i]);
+    }
+    return out;
 }

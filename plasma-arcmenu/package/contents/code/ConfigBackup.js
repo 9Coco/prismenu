@@ -240,7 +240,7 @@ var CONFIG_DEFAULTS = {
     appIconSize: 24,
     followColorScheme: true,
     // Favorites
-    pinnedApps: ["org.kde.dolphin.desktop", "arcmenu-settings"],
+    pinnedApps: ["org.kde.dolphin.desktop"],
     pinnedCols: 6,
     syncWithPlasma: true,
     // Recent
