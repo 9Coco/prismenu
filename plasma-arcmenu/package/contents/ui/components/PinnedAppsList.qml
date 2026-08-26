@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -83,6 +84,8 @@ Item {
         contentHeight: column.height
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
+        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
         Accessible.name: Locale.tr("Pinned applications", root.uiLang)
 
         Column {
