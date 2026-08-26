@@ -31,6 +31,7 @@ Item {
     property bool cfg_Enabled: true
     property int cfg_MaxItems: 5
     property var cfg_RecentApps: []
+    property var localApps: []
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -250,6 +251,8 @@ Item {
     }
 
     function catalogApps() {
+        if (root.localApps && root.localApps.length)
+            return root.localApps;
         try {
             var md = CatalogBridge.menuData();
             return md && md.allApps ? md.allApps : [];
@@ -258,11 +261,91 @@ Item {
         }
     }
 
-    function groupContains(gid, appId) {
-        if (gid === "pinned" || gid === "favorites")
-            return (cfg_PinnedApps || []).indexOf(appId) >= 0;
+    function visibleCatalog() {
+        return AppsModel.filterVisibleApps(root.catalogApps() || []);
+    }
+
+    function resolveCatalogApp(appId) {
+        var apps = root.catalogApps() || [];
+        for (var i = 0; i < apps.length; ++i) {
+            if (apps[i] && (apps[i].id === appId || apps[i].favoriteId === appId))
+                return apps[i];
+        }
+        return { id: appId, name: appId, icon: "application-x-executable" };
+    }
+
+    function extraAssignedIds(gid) {
         var ids = customGroupMap()[gid];
-        return Array.isArray(ids) && ids.indexOf(appId) >= 0;
+        return Array.isArray(ids) ? ids.slice() : [];
+    }
+
+    function groupContains(gid, appId) {
+        return root.extraAssignedIds(gid).indexOf(appId) >= 0;
+    }
+
+    function columnApps(gid) {
+        if (!gid)
+            return [];
+        var seen = {};
+        var out = [];
+        var i;
+        var extras = root.extraAssignedIds(gid);
+        if (String(gid).indexOf("tgrp-") === 0 || String(gid).indexOf("qgrp-") === 0) {
+            for (i = 0; i < extras.length; ++i) {
+                if (!extras[i] || seen[extras[i]])
+                    continue;
+                seen[extras[i]] = true;
+                var app = root.resolveCatalogApp(extras[i]);
+                out.push({
+                    id: extras[i],
+                    name: app.name || extras[i],
+                    icon: app.icon || "application-x-executable",
+                    extra: true
+                });
+            }
+            return out;
+        }
+        var base = AppsModel.appsInCategory(root.catalogApps() || [], gid);
+        for (i = 0; i < base.length; ++i) {
+            if (!base[i] || !base[i].id || seen[base[i].id])
+                continue;
+            seen[base[i].id] = true;
+            out.push({
+                id: base[i].id,
+                name: base[i].name,
+                icon: base[i].icon || "application-x-executable",
+                extra: extras.indexOf(base[i].id) >= 0
+            });
+        }
+        for (i = 0; i < extras.length; ++i) {
+            if (!extras[i] || seen[extras[i]])
+                continue;
+            seen[extras[i]] = true;
+            var extraApp = root.resolveCatalogApp(extras[i]);
+            out.push({
+                id: extras[i],
+                name: extraApp.name || extras[i],
+                icon: extraApp.icon || "application-x-executable",
+                extra: true
+            });
+        }
+        return out;
+    }
+
+    function filteredPickerApps(query) {
+        var q = String(query || "").toLowerCase();
+        var apps = root.visibleCatalog();
+        var out = [];
+        for (var i = 0; i < apps.length; ++i) {
+            var a = apps[i];
+            if (!a || !a.id)
+                continue;
+            if (q && String(a.name || "").toLowerCase().indexOf(q) < 0
+                && String(a.id).toLowerCase().indexOf(q) < 0)
+                continue;
+            out.push(a);
+        }
+        return out;
     }
 
     function groupViewMode(id) {
@@ -275,9 +358,12 @@ Item {
         writeLive("GroupViewOptions", s);
     }
 
-    function openColumnSettings(id, name) {
+    function openColumnSettings(id, name, isType) {
         columnDialog.groupId = id;
         columnDialog.groupName = name || id;
+        columnDialog.isType = !!isType;
+        columnDialog.appsExpanded = false;
+        columnDialog.refreshApps();
         columnDialog.open();
     }
 
@@ -360,17 +446,6 @@ Item {
     function toggleGroupApp(gid, appId, on) {
         if (!gid || !appId)
             return;
-        if (gid === "pinned" || gid === "favorites") {
-            var pins = (cfg_PinnedApps || []).slice();
-            var pidx = pins.indexOf(appId);
-            if (on && pidx < 0)
-                pins.push(appId);
-            if (!on && pidx >= 0)
-                pins.splice(pidx, 1);
-            cfg_PinnedApps = pins;
-            writeLive("PinnedApps", pins);
-            return;
-        }
         var map = customGroupMap();
         var ids = Array.isArray(map[gid]) ? map[gid].slice() : [];
         var idx = ids.indexOf(appId);
@@ -382,6 +457,8 @@ Item {
         var s = JSON.stringify(map);
         cfg_CustomGroupApps = s;
         writeLive("CustomGroupApps", s);
+        if (columnDialog.visible)
+            columnDialog.refreshApps();
     }
 
     function resetSidebarDefaults() {
@@ -398,7 +475,12 @@ Item {
 
     Ui.AppsBackend {
         id: typeBackend
-        onAppsUpdated: root.rebuildTypeModel()
+        onAppsUpdated: (apps) => {
+            root.localApps = apps || [];
+            root.rebuildTypeModel();
+            if (columnDialog.visible)
+                columnDialog.refreshApps();
+        }
     }
 
     function systemCategories() {
@@ -566,7 +648,7 @@ Item {
                             QQC2.ToolTip.visible: hovered
                             QQC2.ToolTip.text: root.tr("Column settings")
                             Accessible.name: root.tr("Column settings")
-                            onClicked: root.openColumnSettings(row.catId, row.catName)
+                            onClicked: root.openColumnSettings(row.catId, row.catName, false)
                         }
                         QQC2.Button {
                             visible: String(row.catId).indexOf("qgrp-") === 0
@@ -655,7 +737,7 @@ Item {
                             QQC2.ToolTip.visible: hovered
                             QQC2.ToolTip.text: root.tr("Column settings")
                             Accessible.name: root.tr("Column settings")
-                            onClicked: root.openColumnSettings(typeRow.catId, typeRow.catName)
+                            onClicked: root.openColumnSettings(typeRow.catId, typeRow.catName, true)
                         }
                         QQC2.Button {
                             visible: typeRow.rowKind === "custom"
@@ -730,6 +812,9 @@ Item {
         id: columnDialog
         property string groupId: ""
         property string groupName: ""
+        property bool isType: false
+        property bool appsExpanded: false
+        property var appsList: []
         readonly property bool isFrequent: groupId === "frequent"
         title: root.tr("Column settings")
         modal: true
@@ -737,12 +822,17 @@ Item {
         width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
         padding: Kirigami.Units.largeSpacing
         anchors.centerIn: parent
+        function refreshApps() {
+            appsList = root.columnApps(groupId);
+        }
         onAboutToShow: {
             var view = root.groupViewMode(columnDialog.groupId);
             viewCombo.currentIndex = view === "grid" ? 0 : 1;
+            refreshApps();
         }
-        contentItem: ColumnLayout {
+        ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
+            width: parent ? parent.width : Kirigami.Units.gridUnit * 24
             QQC2.Label {
                 Layout.fillWidth: true
                 text: columnDialog.groupName
@@ -758,18 +848,91 @@ Item {
                     onActivated: root.setGroupViewMode(columnDialog.groupId, currentIndex === 0 ? "grid" : "list")
                 }
             }
-            ConfigSettingRow {
-                title: root.tr("Add applications")
-                subtitle: root.tr("Choose which applications appear in this column")
-                iconName: "list-add"
-                accent: "green"
-                QQC2.Button {
-                    text: root.tr("Add applications")
-                    icon.name: "list-add"
+            ColumnLayout {
+                visible: columnDialog.isType
+                Layout.fillWidth: true
+                spacing: Kirigami.Units.smallSpacing / 2
+                QQC2.ToolButton {
+                    Layout.fillWidth: true
+                    icon.name: columnDialog.appsExpanded ? "go-down" : "go-next"
+                    text: root.tr("Applications in this column")
+                          + " (" + columnDialog.appsList.length + ")"
+                    display: QQC2.AbstractButton.TextBesideIcon
                     onClicked: {
-                        manageDialog.groupId = columnDialog.groupId;
-                        manageFilter.text = "";
-                        manageDialog.open();
+                        columnDialog.appsExpanded = !columnDialog.appsExpanded;
+                        if (columnDialog.appsExpanded)
+                            columnDialog.refreshApps();
+                    }
+                }
+                QQC2.Label {
+                    visible: columnDialog.appsExpanded && columnDialog.appsList.length === 0
+                    Layout.fillWidth: true
+                    Layout.leftMargin: Kirigami.Units.largeSpacing
+                    text: root.localApps.length
+                          ? root.tr("No applications in this column")
+                          : root.tr("Loading applications…")
+                    opacity: 0.55
+                    wrapMode: Text.WordWrap
+                }
+                Flickable {
+                    visible: columnDialog.appsExpanded && columnDialog.appsList.length > 0
+                    Layout.fillWidth: true
+                    Layout.preferredHeight: Math.min(
+                        columnDialog.appsList.length * (Kirigami.Units.gridUnit * 2.2),
+                        Kirigami.Units.gridUnit * 14)
+                    clip: true
+                    contentWidth: width
+                    contentHeight: columnAppsCol.height
+                    boundsBehavior: Flickable.StopAtBounds
+                    Column {
+                        id: columnAppsCol
+                        width: parent.width
+                        Repeater {
+                            model: columnDialog.appsExpanded ? columnDialog.appsList : []
+                            RowLayout {
+                                id: appRow
+                                required property var modelData
+                                width: columnAppsCol.width
+                                height: Kirigami.Units.gridUnit * 2.2
+                                spacing: Kirigami.Units.smallSpacing
+                                Kirigami.Icon {
+                                    source: (appRow.modelData && appRow.modelData.icon)
+                                            ? appRow.modelData.icon : "application-x-executable"
+                                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                                }
+                                QQC2.Label {
+                                    Layout.fillWidth: true
+                                    elide: Text.ElideRight
+                                    text: appRow.modelData
+                                          ? (appRow.modelData.name || appRow.modelData.id) : ""
+                                }
+                                QQC2.Button {
+                                    visible: !!(appRow.modelData && appRow.modelData.extra)
+                                    icon.name: "list-remove"
+                                    flat: true
+                                    onClicked: {
+                                        if (appRow.modelData)
+                                            root.toggleGroupApp(columnDialog.groupId, appRow.modelData.id, false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                ConfigSettingRow {
+                    title: root.tr("Add applications")
+                    subtitle: root.tr("Choose which applications appear in this column")
+                    iconName: "list-add"
+                    accent: "green"
+                    QQC2.Button {
+                        text: root.tr("Add applications")
+                        icon.name: "list-add"
+                        onClicked: {
+                            manageDialog.groupId = columnDialog.groupId;
+                            manageFilter.text = "";
+                            manageDialog.open();
+                        }
                     }
                 }
             }
@@ -851,7 +1014,8 @@ Item {
         height: Math.min((parent ? parent.height : Kirigami.Units.gridUnit * 24) * 0.8, Kirigami.Units.gridUnit * 24)
         padding: Kirigami.Units.largeSpacing
         anchors.centerIn: parent
-        contentItem: ColumnLayout {
+        ColumnLayout {
+            anchors.fill: parent
             QQC2.TextField {
                 id: manageFilter
                 Layout.fillWidth: true
@@ -863,19 +1027,8 @@ Item {
                 Layout.fillHeight: true
                 clip: true
                 model: {
-                    var q = String(manageFilter.text || "").toLowerCase();
-                    var apps = root.catalogApps() || [];
-                    var out = [];
-                    for (var i = 0; i < apps.length; ++i) {
-                        var a = apps[i];
-                        if (!a || !a.id)
-                            continue;
-                        if (q && String(a.name || "").toLowerCase().indexOf(q) < 0
-                            && String(a.id).toLowerCase().indexOf(q) < 0)
-                            continue;
-                        out.push(a);
-                    }
-                    return out;
+                    var _apps = root.localApps;
+                    return root.filteredPickerApps(manageFilter.text);
                 }
                 delegate: QQC2.CheckDelegate {
                     required property var modelData
@@ -885,6 +1038,14 @@ Item {
                     checked: root.groupContains(manageDialog.groupId, modelData.id)
                     onToggled: root.toggleGroupApp(manageDialog.groupId, modelData.id, checked)
                 }
+            }
+            QQC2.Label {
+                visible: manageList.count === 0
+                Layout.alignment: Qt.AlignHCenter
+                opacity: 0.55
+                text: root.localApps.length
+                      ? root.tr("No applications")
+                      : root.tr("Loading applications…")
             }
         }
     }

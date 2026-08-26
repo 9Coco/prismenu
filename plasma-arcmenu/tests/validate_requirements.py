@@ -318,6 +318,9 @@ def main() -> int:
     check('icon.name: "settings-configure"' in extra_cfg, "menu group rows have column settings button")
     check("Column settings" in extra_cfg, "column settings dialog")
     check("Square icons" in extra_cfg and "Show in rows" in extra_cfg, "column view mode options")
+    check("Applications in this column" in extra_cfg, "type groups list current apps")
+    check("visible: columnDialog.isType" in extra_cfg, "preference groups do not add apps")
+    check("root.localApps" in extra_cfg, "column app picker uses AppsBackend catalog")
     check("title: root.tr(\"Recent applications\")" not in extra_cfg,
           "recent apps settings live in the frequent column dialog")
     check('id: "frequent", name: tr("Recent Apps")' in (PKG / "contents/code/ShortcutsConfig.js").read_text(encoding="utf-8"),
