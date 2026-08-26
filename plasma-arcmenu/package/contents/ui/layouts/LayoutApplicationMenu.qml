@@ -16,6 +16,9 @@ LayoutBase {
     id: root
 
     defaultSearchOnTop: false
+    readonly property string variant: menuData ? menuData.currentLayoutId : "application-menu"
+    readonly property bool pureTraditional: variant === "gnome-classic"
+        || variant === "xfce-applications"
     property int hoverIndex: -1
     property string hoverId: ""
     property real flyoutAnchorY: 0
@@ -41,10 +44,11 @@ LayoutBase {
 
     readonly property var navItems: {
         var _ = root.uiLang;
-        var out = [
-            { id: "recent", name: root.tr("Recent Applications"), icon: "clock" },
-            { id: "recent-files", name: root.tr("Recent Files"), icon: "document-open-recent" }
-        ];
+        var out = [];
+        if (!root.pureTraditional) {
+            out.push({ id: "recent", name: root.tr("Recent Applications"), icon: "clock" });
+            out.push({ id: "recent-files", name: root.tr("Recent Files"), icon: "document-open-recent" });
+        }
         var cats = (menuData && menuData.categories) ? menuData.categories : [];
         for (var i = 0; i < cats.length; ++i) {
             var c = cats[i];
@@ -52,7 +56,8 @@ LayoutBase {
                 continue;
             out.push({ id: c.id, name: c.name, icon: c.icon || "applications-other" });
         }
-        out.push({ id: "session", name: root.tr("Power / Session"), icon: "system-shutdown" });
+        if (!root.pureTraditional)
+            out.push({ id: "session", name: root.tr("Power / Session"), icon: "system-shutdown" });
         return out;
     }
 
@@ -187,6 +192,7 @@ LayoutBase {
 
         // Favorite apps — width is draggable; icons wrap into extra columns.
         ColumnLayout {
+            visible: !root.pureTraditional
             Layout.preferredWidth: root.leftColW
             Layout.minimumWidth: root.railMin
             Layout.maximumWidth: 360
@@ -296,6 +302,7 @@ LayoutBase {
         }
 
         Components.ColumnSplitHandle {
+            visible: !root.pureTraditional
             Layout.fillHeight: true
             Layout.preferredWidth: implicitWidth
             z: 5
@@ -412,6 +419,7 @@ LayoutBase {
         }
 
             Components.LayoutSearchField {
+                visible: !root.pureTraditional
                 layoutRoot: root
                 Layout.fillWidth: true
                 Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8

@@ -6,8 +6,8 @@ macOS 没有 Windows 式开始菜单。启动被拆成三件套：**Dock（常�
 
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
-| `macos-aqua-启动台` | 全屏分页网格 | `elementary` 全屏近似 |
-| `macos-spotlight-搜索` | 居中搜索 | **无（与 KRunner 同类）** |
+| `macos-aqua-启动台` | 全屏分页网格 | `macos-launchpad` |
+| `macos-spotlight-搜索` | 居中搜索 | `spotlight` |
 | `macos-dock-程序坞` | 底栏放大坞 | 面板本身，不是菜单 |
 
 ---

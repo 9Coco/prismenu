@@ -7,7 +7,7 @@ Xfce 默认是传统 Applications 级联菜单；社区主流替换是 **Whisker
 | 名称 | 形态 | 现有布局 |
 |------|------|----------|
 | `xfce-whisker-标准版` | 用户条+分类+列表 | `whisker` |
-| `xfce-applicationsmenu-传统级联` | 级联 | `kicker` |
+| `xfce-applicationsmenu-传统级联` | 级联 | `xfce-applications` |
 
 ---
 

@@ -47,8 +47,8 @@ var LAYOUTS = [
     },
     {
         id: "mint",
-        name: "Linux Mint",
-        description: "Linux Mint Menu (icon rail + categories)",
+        name: "Linux Mint Cinnamon Menu",
+        description: "Cinnamon-style icon rail, categories, and application list",
         category: "linux",
         desktop: "mint",
         hasCategories: true,
@@ -197,7 +197,7 @@ var LAYOUTS = [
     {
         id: "redmond",
         name: "Windows 7 (Two-column)",
-        description: "Windows 7-inspired two-column menu with an app grid and places",
+        description: "Windows 7-style recent program list, All Programs, places, and bottom search",
         category: "windows",
         desktop: "win7",
         hasCategories: false,
@@ -268,8 +268,8 @@ var LAYOUTS = [
     },
     {
         id: "az",
-        name: "Windows 11 (Compact)",
-        description: "Compact Windows 11-style pinned apps with an A–Z app list",
+        name: "Windows 11 (Pinned + A-Z)",
+        description: "Compact Windows 11-style pinned page with an A-Z list",
         category: "windows",
         desktop: "win11",
         hasCategories: false,
@@ -358,8 +358,8 @@ var LAYOUTS = [
     },
     {
         id: "chromebook",
-        name: "ChromeOS Launcher",
-        description: "Chromebook (portrait: search + 4-column grid)",
+        name: "ChromeOS Ash Launcher (Half)",
+        description: "Half-height launcher with search and adaptive application grid",
         category: "chromeos",
         desktop: "chromeos",
         hasCategories: false,
@@ -369,17 +369,17 @@ var LAYOUTS = [
         hasPower: false,
         supportsFlip: false,
         supportsSearchbarLocation: false,
-        defaultWidth: 420,
-        defaultHeight: 620,
+        defaultWidth: 720,
+        defaultHeight: 560,
         previewKind: "searchGrid",
-        source: "layouts/LayoutChromebook.qml"
+        source: "layouts/LayoutDrawer.qml"
     },
     {
         id: "raven",
-        name: "Budgie Raven",
-        description: "Raven (full-height rail + pinned/shortcuts panel)",
-        category: "linux",
-        desktop: "budgie",
+        name: "ArcMenu Raven (Sidebar)",
+        description: "ArcMenu Raven-inspired full-height application sidebar",
+        category: "other",
+        desktop: "arcmenu",
         hasCategories: false,
         hasPinned: true,
         hasSearch: true,
@@ -456,6 +456,7 @@ var LAYOUTS = [
         name: "KDE Plasma Application Menu",
         description: "Plasma Application Menu (compact Kicker flyouts)",
         category: "linux",
+        desktop: "plasma",
         hasCategories: true,
         hasPinned: true,
         hasSearch: true,
@@ -487,6 +488,270 @@ var LAYOUTS = [
         defaultHeight: 420,
         previewKind: "runner",
         source: "layouts/LayoutSimple.qml"
+    },
+    {
+        id: "runner",
+        name: "KDE Plasma KRunner",
+        description: "Centered Plasma Runner with grouped native search results",
+        category: "linux", desktop: "plasma",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 760, defaultHeight: 500,
+        previewKind: "runner", source: "layouts/LayoutRunner.qml"
+    },
+    {
+        id: "kickoff-compact",
+        name: "KDE Plasma Kickoff (Compact)",
+        description: "Single-column compact Kickoff for narrow screens",
+        category: "linux", desktop: "plasma",
+        hasCategories: true, hasPinned: true, hasSearch: true,
+        hasUser: true, hasPower: true,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        compactPopup: true, defaultWidth: 380, defaultHeight: 560,
+        previewKind: "plasma", source: "layouts/LayoutKickoffCompact.qml"
+    },
+    {
+        id: "gnome-overview",
+        name: "GNOME Activities Overview",
+        description: "Window overview, workspace strip, search, and Dash",
+        category: "linux", desktop: "gnome",
+        hasCategories: false, hasPinned: true, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1200, defaultHeight: 800, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutOverview.qml"
+    },
+    {
+        id: "gnome-grid",
+        name: "GNOME Applications Grid",
+        description: "Full application grid with persistent favorite Dash",
+        category: "linux", desktop: "gnome",
+        hasCategories: false, hasPinned: true, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1100, defaultHeight: 760, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "gnome-classic",
+        name: "GNOME Classic Applications Menu",
+        description: "Compact category flyout inspired by GNOME Classic",
+        category: "linux", desktop: "gnome",
+        hasCategories: true, hasPinned: false, hasSearch: false,
+        hasUser: false, hasPower: false,
+        supportsFlip: true, supportsSearchbarLocation: false,
+        compactPopup: true, defaultWidth: 360, defaultHeight: 540,
+        previewKind: "runner", source: "layouts/LayoutApplicationMenu.qml"
+    },
+    {
+        id: "cosmic-launcher",
+        name: "COSMIC Launcher",
+        description: "Search-first launcher prioritizing open windows and recent items",
+        category: "linux", desktop: "cosmic",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 760, defaultHeight: 520,
+        previewKind: "runner", source: "layouts/LayoutRunner.qml"
+    },
+    {
+        id: "cosmic-library",
+        name: "COSMIC Applications Library",
+        description: "Searchable application library organized by category",
+        category: "linux", desktop: "cosmic",
+        hasCategories: true, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 900, defaultHeight: 680,
+        previewKind: "enterprise", source: "layouts/LayoutLibrary.qml"
+    },
+    {
+        id: "deepin-window",
+        name: "Deepin Launcher (Window)",
+        description: "Resizable category sidebar and application grid",
+        category: "linux", desktop: "deepin",
+        hasCategories: true, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: true, supportsSearchbarLocation: false,
+        defaultWidth: 760, defaultHeight: 600,
+        previewKind: "enterprise", source: "layouts/LayoutDeepin.qml"
+    },
+    {
+        id: "deepin-full",
+        name: "Deepin Launcher (Fullscreen)",
+        description: "Fullscreen application grid with an A-Z index",
+        category: "linux", desktop: "deepin",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1200, defaultHeight: 800, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDeepin.qml"
+    },
+    {
+        id: "win11-categories",
+        name: "Windows 11 (Category View)",
+        description: "Top-level application category cards with grid drill-down",
+        category: "windows", desktop: "win11",
+        hasCategories: true, hasPinned: false, hasSearch: true,
+        hasUser: true, hasPower: true,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 860, defaultHeight: 680,
+        previewKind: "enterprise", source: "layouts/LayoutLibrary.qml"
+    },
+    {
+        id: "win11-compact-grid",
+        name: "Windows 11 (Compact Grid)",
+        description: "Search, dense all-applications grid, and no recommendation area",
+        category: "windows", desktop: "win11",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: true, hasPower: true,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 700, defaultHeight: 620,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "android-pixel",
+        name: "Android Pixel App Drawer",
+        description: "Suggested applications followed by an A-Z application grid",
+        category: "android", desktop: "android",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 620, defaultHeight: 760,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "android-oneui",
+        name: "Samsung One UI App Drawer",
+        description: "Paged customizable application grid",
+        category: "android", desktop: "android",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 620, defaultHeight: 720,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "android-dex",
+        name: "Samsung DeX Desktop Launcher",
+        description: "Desktop popup application grid with optional session actions",
+        category: "android", desktop: "android",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: true,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 660, defaultHeight: 580,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "chromeos-full",
+        name: "ChromeOS Ash Launcher (Fullscreen)",
+        description: "Fullscreen searchable application grid",
+        category: "chromeos", desktop: "chromeos",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1100, defaultHeight: 760, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "chromeos-tablet",
+        name: "ChromeOS Tablet Home",
+        description: "Paged tablet application grid",
+        category: "chromeos", desktop: "chromeos",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1000, defaultHeight: 720, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "macos-launchpad",
+        name: "macOS Launchpad",
+        description: "Paged full-screen application grid",
+        category: "apple", desktop: "macos",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1100, defaultHeight: 760, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "spotlight",
+        name: "macOS Spotlight",
+        description: "Compact centered search and result list",
+        category: "apple", desktop: "macos",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 680, defaultHeight: 420,
+        previewKind: "runner", source: "layouts/LayoutRunner.qml"
+    },
+    {
+        id: "ipados-home",
+        name: "iPadOS Home Screen",
+        description: "Paged touch-oriented application grid",
+        category: "apple", desktop: "ipados",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1000, defaultHeight: 720, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
+    },
+    {
+        id: "ipados-library",
+        name: "iPadOS App Library",
+        description: "Automatic application category wall",
+        category: "apple", desktop: "ipados",
+        hasCategories: true, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 900, defaultHeight: 700,
+        previewKind: "enterprise", source: "layouts/LayoutLibrary.qml"
+    },
+    {
+        id: "ipados-spotlight",
+        name: "iPadOS Spotlight",
+        description: "Centered touch-friendly search results",
+        category: "apple", desktop: "ipados",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 720, defaultHeight: 480,
+        previewKind: "runner", source: "layouts/LayoutRunner.qml"
+    },
+    {
+        id: "xfce-applications",
+        name: "Xfce Applications Menu",
+        description: "Compact traditional category flyout",
+        category: "linux", desktop: "xfce",
+        hasCategories: true, hasPinned: false, hasSearch: false,
+        hasUser: false, hasPower: false,
+        supportsFlip: true, supportsSearchbarLocation: false,
+        compactPopup: true, defaultWidth: 360, defaultHeight: 540,
+        previewKind: "runner", source: "layouts/LayoutApplicationMenu.qml"
+    },
+    {
+        id: "cinnamenu-grid",
+        name: "Linux Mint Cinnamenu (Grid)",
+        description: "Category sidebar with a searchable application grid",
+        category: "linux", desktop: "mint",
+        hasCategories: true, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: true, supportsSearchbarLocation: false,
+        defaultWidth: 760, defaultHeight: 600,
+        previewKind: "enterprise", source: "layouts/LayoutDeepin.qml"
+    },
+    {
+        id: "elementary-full",
+        name: "elementary OS Applications (Fullscreen)",
+        description: "Fullscreen Pantheon-style searchable application grid",
+        category: "linux", desktop: "elementary",
+        hasCategories: false, hasPinned: false, hasSearch: true,
+        hasUser: false, hasPower: false,
+        supportsFlip: false, supportsSearchbarLocation: false,
+        defaultWidth: 1100, defaultHeight: 760, heightPolicy: "available", maxHeight: 1600,
+        previewKind: "searchGrid", source: "layouts/LayoutDrawer.qml"
     }
 ];
 
@@ -496,6 +761,7 @@ var CATEGORIES = [
     { id: "chromeos", name: "ChromeOS-style Menus", icon: "computer-laptop" },
     // Extensibility point: empty categories remain hidden until first use.
     { id: "android", name: "Android-style Menus", icon: "phone" },
+    { id: "apple", name: "Apple-style Menus", icon: "computer-laptop" },
     { id: "other", name: "Other Menu Styles", icon: "applications-other" }
 ];
 
@@ -513,11 +779,15 @@ var DESKTOPS = [
     { id: "unity", category: "linux", name: "Ubuntu Unity Desktop", icon: "computer" },
     { id: "elementary", category: "linux", name: "elementary Desktop", icon: "desktop" },
     { id: "pop", category: "linux", name: "Pop!_OS Desktop", icon: "desktop" },
+    { id: "cosmic", category: "linux", name: "COSMIC Desktop", icon: "desktop" },
+    { id: "deepin", category: "linux", name: "Deepin Desktop", icon: "desktop" },
     { id: "win7", category: "windows", name: "Windows 7 Desktop", icon: "computer" },
     { id: "win10", category: "windows", name: "Windows 10 Desktop", icon: "computer" },
     { id: "win11", category: "windows", name: "Windows 11 Desktop", icon: "computer" },
     { id: "chromeos", category: "chromeos", name: "ChromeOS Desktop", icon: "computer-laptop" },
     { id: "android", category: "android", name: "Android Desktop", icon: "phone" },
+    { id: "macos", category: "apple", name: "macOS Desktop", icon: "computer-laptop" },
+    { id: "ipados", category: "apple", name: "iPadOS Desktop", icon: "tablet" },
     { id: "arcmenu", category: "other", name: "ArcMenu Original", icon: "applications-other" },
     { id: "generic", category: "other", name: "Other Desktops", icon: "applications-other" }
 ];

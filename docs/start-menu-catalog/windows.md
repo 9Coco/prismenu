@@ -12,8 +12,8 @@ Windows 的开始菜单是「桌面启动器」里被模仿最多的一条线：
 | `windows-start-win8全屏磁贴` | Win8 / 8.1 | F 全屏 | 无 |
 | `windows-start-win10磁贴混合` | Win10 | E 列表+磁贴 | `windows` |
 | `windows-start-win11固定推荐` | Win11 21H2–24H2 | D 固定+推荐 | `eleven` |
-| `windows-start-win11全应用分类` | Win11 2025 | J 自动分类 | **无（高优先）** |
-| `windows-start-win11紧凑网格` | Win11 2025 可配 | I 抽屉 | `az` 部分接近 |
+| `windows-start-win11全应用分类` | Win11 2025 | J 自动分类 | `win11-categories` |
+| `windows-start-win11紧凑网格` | Win11 2025 可配 | I 抽屉 | `win11-compact-grid` |
 
 WinXP 与 Win7 同属双栏（左常用 + 右位置 + 底栏「所有程序」），不单列预览。Vista 把搜索条做进左栏底部，Win7 沿用。
 
