@@ -17,20 +17,8 @@ LayoutBase {
     property bool showAllPrograms: false
 
 
-    readonly property var placeItems: [
-        { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
-        { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
-        { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
-        { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
-        { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
-        { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS" }
-    ]
-
-    readonly property var shortcutItems: [
-        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
-    ]
+    readonly property var placeItems: root.placeShortcuts
+    readonly property var shortcutItems: root.applicationShortcuts
 
     readonly property var programItems: {
         if (root.searching)

@@ -4,9 +4,9 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/SidebarModel.js" as SidebarModel
 
 /**
+
  * Plasma 6 Kickoff layout.
  *
  * The chrome follows Plasma's current default launcher while application,
@@ -68,11 +68,6 @@ LayoutBase {
     readonly property var applicationNavigation: {
         var _sig = menuData ? menuData.extrasSignature : "";
         var extras = root.preferenceGroups;
-        var cats = menuData && menuData.categories ? menuData.categories : [];
-        var typeGroups = menuData && menuData.customTypeGroupDefs
-            ? menuData.customTypeGroupDefs : [];
-        var order = menuData && menuData.sidebarOrder ? menuData.sidebarOrder : [];
-        var hidden = menuData && menuData.sidebarHidden ? menuData.sidebarHidden : [];
         var pref = [];
         var e;
         for (e = 0; e < extras.length; ++e) {
@@ -88,10 +83,22 @@ LayoutBase {
                 icon: extra.icon
             });
         }
-        var types = SidebarModel.orderedItems(cats, typeGroups, order, hidden, root.tr)
-            .filter(function (item) {
-                return item && item.kind !== "favorites" && item.kind !== "all";
+        var typeCats = root.typeCategories;
+        var types = [];
+        var t;
+        for (t = 0; t < typeCats.length; ++t) {
+            var cat = typeCats[t];
+            if (!cat || !cat.id)
+                continue;
+            var isGroup = String(cat.id).indexOf("tgrp-") === 0;
+            types.push({
+                id: isGroup ? ("group:" + cat.id) : ("cat:" + cat.id),
+                kind: isGroup ? "group" : "category",
+                target: cat.id,
+                name: cat.name,
+                icon: cat.icon
             });
+        }
         var out = [];
         var i;
         for (i = 0; i < pref.length; ++i)

@@ -22,7 +22,7 @@ LayoutBase {
     activeNavId: enterpriseSelectedId
 
     readonly property bool showPinnedGrid: !root.searching
-        && (enterpriseSelectedId === "pinned" || enterpriseSelectedId === "favorites")
+        && root.usesGridView(enterpriseSelectedId)
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
     readonly property int gridCellWidth: Kirigami.Units.gridUnit * 5.5
     readonly property int gridCellHeight: gridIconSize + Kirigami.Units.gridUnit * 1.8
@@ -199,131 +199,18 @@ LayoutBase {
                 onWidthDragged: (w) => root.setSidebarFromDrag(w)
             }
 
-            // Right content
-            Item {
+            Components.LayoutGroupPane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-
-                // Pinned icon grid
-                Flow {
-                    id: pinnedFlow
-                    anchors.fill: parent
-                    anchors.margins: 0
-                    visible: root.showPinnedGrid
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: root.showPinnedGrid ? root.contentItems.length : 0
-                        Item {
-                            required property int index
-                            readonly property var app: root.contentItems[index]
-                            width: root.gridCellWidth
-                            height: root.gridCellHeight
-
-                            Rectangle {
-                                anchors.fill: parent
-                                anchors.margins: 1
-                                radius: Kirigami.Units.smallSpacing
-                                color: pinMouse.containsMouse ? root.selectedBg : "transparent"
-                            }
-
-                            ColumnLayout {
-                                anchors.centerIn: parent
-                                width: parent.width - Kirigami.Units.smallSpacing * 2
-                                spacing: Kirigami.Units.smallSpacing / 2
-
-                                Kirigami.Icon {
-                                    source: app.icon || "application-x-executable"
-                                    Layout.alignment: Qt.AlignHCenter
-                                    Layout.preferredWidth: root.gridIconSize
-                                    Layout.preferredHeight: root.gridIconSize
-                                }
-
-                                PlasmaComponents.Label {
-                                    text: app.name || ""
-                                    elide: Text.ElideRight
-                                    horizontalAlignment: Text.AlignHCenter
-                                    Layout.fillWidth: true
-                                    maximumLineCount: 2
-                                    wrapMode: Text.WordWrap
-                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                    color: pinMouse.containsMouse ? root.selectedFg : root.fg
-                                }
-                            }
-
-                            MouseArea {
-                                id: pinMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: (mouse) => {
-                                    if (mouse.button === Qt.RightButton) {
-                                        if (app && !app.action)
-                                            root.appContextMenu(app, mouse.x, mouse.y);
-                                    } else {
-                                        root.activateItem(app);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // List for all / categories / search
-                Flickable {
-                    id: listFlick
-                    anchors.fill: parent
-                    visible: !root.showPinnedGrid
-                    contentWidth: width
-                    contentHeight: listCol.height
-                    clip: true
-                    boundsBehavior: Flickable.StopAtBounds
-                    QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-                    QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-
-                    Column {
-                        id: listCol
-                        width: listFlick.width
-                        spacing: Kirigami.Units.smallSpacing / 2
-
-                        Repeater {
-                            model: root.showPinnedGrid ? 0 : root.contentItems.length
-                            Components.AppListItem {
-                                required property int index
-                                menuData: menuData
-                                width: listCol.width
-                                app: root.contentItems[index]
-                                iconSize: Math.max(root.appIconSize, 28)
-                                showDescription: root.showAppDescriptions
-                                selectedBg: root.selectedBg
-                                selectedFg: root.selectedFg
-                                hoverBg: root.hoverBg
-                                hoverFg: root.hoverFg
-                                fg: root.fg
-                                onActivated: root.activateItem(root.contentItems[index])
-                                onContextMenuRequested: (x, y) => {
-                                    var a = root.contentItems[index];
-                                    if (a && !a.action) root.appContextMenu(a, x, y);
-                                }
-                            }
-                        }
-                    }
-                }
-
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: root.contentItems.length === 0
-                    text: root.searching
-                          ? root.tr("No matching applications found")
-                          : (root.enterpriseSelectedId === "pinned"
-                             ? root.tr("Pin applications from the context menu")
-                             : root.tr("No applications"))
-                    opacity: 0.45
-                    color: root.fg
-                    width: parent.width * 0.8
-                    wrapMode: Text.WordWrap
-                    horizontalAlignment: Text.AlignHCenter
-                }
+                layoutRoot: root
+                items: root.contentItems
+                useGrid: root.showPinnedGrid
+                showDescription: root.searching || root.showAppDescriptions
+                emptyText: root.searching
+                           ? root.tr("No matching applications found")
+                           : (root.enterpriseSelectedId === "pinned"
+                              ? root.tr("Pin applications from the context menu")
+                              : root.tr("No applications"))
             }
         }
     }

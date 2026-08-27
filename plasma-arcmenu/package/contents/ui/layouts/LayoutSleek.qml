@@ -85,20 +85,13 @@ LayoutBase {
                 Layout.fillHeight: true
                 Layout.minimumHeight: Kirigami.Units.gridUnit * 10
 
-                Components.LayoutAppGrid {
+                Components.LayoutGroupPane {
                     layoutRoot: root
                     anchors.fill: parent
                     items: root.gridItems
-                    columns: root.gridColumns
-                    iconSize: root.gridIconSize
-                    cellWidth: Math.max(Kirigami.Units.gridUnit * 5, width / Math.max(1, columns))
-                    cellHeight: root.gridCellHeight
-                    multiLineLabels: true
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
+                    useGrid: !root.searching && root.usesGridView(
+                        root.showPinned ? "pinned" : "all-apps")
+                    showDescription: root.searching
                 }
 
                 PlasmaComponents.Label {
