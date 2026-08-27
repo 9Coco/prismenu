@@ -298,6 +298,11 @@ def main() -> int:
     check("Show category submenus" not in fine_cfg
           and "Scrollview fade effects" not in fine_cfg,
           "unused GNOME leftover toggles removed from fine-tuning")
+    setting_row = (PKG / "contents/ui/config/ConfigSettingRow.qml").read_text(encoding="utf-8")
+    extra_cfg = (PKG / "contents/ui/config/ConfigExtraCategories.qml").read_text(encoding="utf-8")
+    check("Components.ResolvedIcon" in setting_row
+          and "iconName: newGroupDialog.groupIcon" in extra_cfg,
+          "custom group preset icons resolve in dialogs and settings rows")
     check("function toQmlColor" in (PKG / "contents/code/Theme.js").read_text(encoding="utf-8"),
           "theme colors convert rgb() for QML swatches")
     dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
