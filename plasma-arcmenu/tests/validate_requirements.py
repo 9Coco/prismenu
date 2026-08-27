@@ -323,6 +323,14 @@ def main() -> int:
     )
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
+    pin_backend = apps_backend.split("function pinToTaskManager", 1)[1].split("function addDesktopShortcut", 1)[0]
+    check('sourceModel.trigger(sourceRow, "addToTaskManager", undefined)' in pin_backend,
+          "taskbar pin uses Kicker native action")
+    check("evaluateScript" not in pin_backend and "writeConfig('launchers'" not in pin_backend,
+          "taskbar pin does not edit Plasma panel configuration")
+    check("appletInterface: root.appletInterface" in apps_backend
+          and "appletInterface: root" in (PKG / "contents/ui/main.qml").read_text(encoding="utf-8"),
+          "Kicker receives the ArcMenu PlasmoidItem like Kickoff")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")

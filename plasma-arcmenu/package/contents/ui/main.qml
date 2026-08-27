@@ -219,6 +219,7 @@ PlasmoidItem {
     AppsBackend {
         id: backend
         menuData: menuData
+        appletInterface: root
         onAppsUpdated: (apps) => {
             menuData.allApps = apps;
             menuData.catalogEpoch += 1;
@@ -788,7 +789,8 @@ PlasmoidItem {
             }
             onAddToPanelRequested: (app) => {
                 backend.pinToTaskManager(app);
-                root.closeMenu();
+                // Match Kickoff: addToTaskManager returns false specifically
+                // to keep the launcher open after pinning (KDE BUG 390585).
             }
             onEditRequested: (app) => backend.editDesktop(app)
             onDetailsRequested: (app) => {

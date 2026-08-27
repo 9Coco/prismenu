@@ -707,46 +707,6 @@ QtObject {
     /** Config list, or defaults when never saved — used by display + toggle */
     function effectivePinnedIds() {
         var local = IdList.normalizeIdList(cfg("PinnedApps", []));
-        // Sync with Plasma global favorites (Kickoff / KAStats)
-        if (root.syncFavorites && root.plasmaFavoriteIds && root.plasmaFavoriteIds.length) {
-            var merged = [];
-            var seen = {};
-            // Keep ArcMenu-only pins from local config first
-            for (var i = 0; i < local.length; ++i) {
-                var lid = String(local[i] || "");
-                if (!lid)
-                    continue;
-                if (lid === "arcmenu-settings")
-                    continue;
-                if (lid.indexOf("custom:") === 0
-                    || lid.indexOf("shortcut-") === 0) {
-                    if (!seen[lid]) {
-                        seen[lid] = true;
-                        merged.push(lid);
-                    }
-                }
-            }
-            for (var p = 0; p < root.plasmaFavoriteIds.length; ++p) {
-                var pid = String(root.plasmaFavoriteIds[p] || "");
-                if (!pid || seen[pid])
-                    continue;
-                seen[pid] = true;
-                merged.push(pid);
-            }
-            // Local desktop pins not yet in Plasma (migration)
-            for (var j = 0; j < local.length; ++j) {
-                var id = String(local[j] || "");
-                if (!id || seen[id])
-                    continue;
-                if (id === "arcmenu-settings" || id.indexOf("custom:") === 0
-                    || id.indexOf("shortcut-") === 0)
-                    continue;
-                seen[id] = true;
-                merged.push(id);
-            }
-            if (merged.length)
-                return IdList.withoutMenuSettings(merged);
-        }
         if (local.length === 0)
             return IdList.defaultPinnedIds().slice();
         return IdList.withoutMenuSettings(local);
@@ -1289,48 +1249,33 @@ QtObject {
         var pinId = root.resolvePinId(app);
         if (!pinId)
             pinId = app.id;
+        var current = IdList.normalizeIdList(cfg("PinnedApps", []));
+        if (current.length === 0)
+            current = IdList.defaultPinnedIds().slice();
+        var next = Favorites.toggleFavorite(current, pinId);
+        plasmoidConfig.PinnedApps = next;
+        try { plasmoidConfig.writeConfig(); } catch (e) {}
+        try { root.bumpStructure(); } catch (e2) {}
         var favId = app.favoriteId || pinId;
         var isSpecial = String(pinId).indexOf("custom:") === 0
             || String(pinId).indexOf("shortcut-") === 0
             || pinId === "arcmenu-settings";
-
-        // Kickoff path: KAStats global favorites for real apps
-        if (root.syncFavorites && !isSpecial && appsBackend
-            && appsBackend.togglePlasmaFavorite) {
-            var wasFav = appsBackend.isPlasmaFavorite
-                ? appsBackend.isPlasmaFavorite(favId) : false;
-            if (appsBackend.togglePlasmaFavorite(favId)) {
-                var cur = IdList.normalizeIdList(cfg("PinnedApps", []));
-                if (cur.length === 0)
-                    cur = IdList.defaultPinnedIds().slice();
-                var nowFav = !wasFav;
-                var locally = Favorites.isFavorite(cur, pinId);
-                if (nowFav !== locally)
-                    plasmoidConfig.PinnedApps = Favorites.toggleFavorite(cur, pinId);
-                return;
-            }
+        if (root.syncFavorites && !isSpecial && appsBackend && appsBackend.togglePlasmaFavorite) {
+            var want = Favorites.isFavorite(next, pinId);
+            var have = appsBackend.isPlasmaFavorite ? appsBackend.isPlasmaFavorite(favId) : !want;
+            if (want !== have)
+                appsBackend.togglePlasmaFavorite(favId);
         }
-
-        var current = IdList.normalizeIdList(cfg("PinnedApps", []));
-        if (current.length === 0)
-            current = IdList.defaultPinnedIds().slice();
-        plasmoidConfig.PinnedApps = Favorites.toggleFavorite(current, pinId);
+        console.log("ArcMenu toggleFavorite", pinId, "pinned=", Favorites.isFavorite(next, pinId));
     }
 
     function isFavorite(appOrId) {
         var ids = root.effectivePinnedIds();
         if (appOrId && typeof appOrId === "object") {
             var pinId = root.resolvePinId(appOrId);
-            var favId = appOrId.favoriteId || pinId;
-            if (root.syncFavorites && appsBackend && appsBackend.isPlasmaFavorite
-                && favId && appsBackend.isPlasmaFavorite(favId))
-                return true;
             return Favorites.isFavorite(ids, pinId)
                 || Favorites.isFavorite(ids, appOrId.id);
         }
-        if (root.syncFavorites && appsBackend && appsBackend.isPlasmaFavorite
-            && appsBackend.isPlasmaFavorite(appOrId))
-            return true;
         return Favorites.isFavorite(ids, appOrId);
     }
 
