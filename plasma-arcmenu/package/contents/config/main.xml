@@ -304,7 +304,7 @@
     </group>
 
     <group name="Shortcuts">
-        <!-- Builtin place keys (HOME/…) or custom:Name|icon|/path -->
+        <!-- Builtin place keys (HOME/…) or custom:Name|icon|/path (folder or file) -->
         <entry name="DirectoryShortcuts" type="StringList">
             <default>HOME,DOCUMENTS,DOWNLOAD,MUSIC,PICTURES,VIDEOS</default>
         </entry>

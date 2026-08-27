@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
+import QtQuick.Dialogs as Dialogs
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
@@ -45,12 +46,62 @@ Item {
     }
     function resetDefaults() { writeLive(SC.DEFAULT_DIRS.slice()); }
 
+    function pathFromUrl(url) {
+        var s = String(url || "");
+        if (s.indexOf("file://") === 0)
+            s = decodeURIComponent(s.substring(7));
+        return s;
+    }
+
+    function basename(path) {
+        var p = String(path || "").replace(/\/+$/, "");
+        var i = Math.max(p.lastIndexOf("/"), p.lastIndexOf("\\"));
+        return i >= 0 ? p.substring(i + 1) : p;
+    }
+
+    function iconForFile(path) {
+        var lower = String(path || "").toLowerCase();
+        if (/\.(png|jpe?g|gif|webp|svg|bmp|ico)$/.test(lower))
+            return "image-x-generic";
+        if (/\.(mp3|flac|ogg|wav|m4a|aac)$/.test(lower))
+            return "audio-x-generic";
+        if (/\.(mp4|mkv|avi|webm|mov)$/.test(lower))
+            return "video-x-generic";
+        if (/\.pdf$/.test(lower))
+            return "application-pdf";
+        if (/\.(zip|tar|gz|7z|rar|xz)$/.test(lower))
+            return "package-x-generic";
+        if (/\.(txt|md|log|csv)$/.test(lower))
+            return "text-x-generic";
+        return "text-x-generic";
+    }
+
+    function hasPath(path) {
+        path = String(path || "");
+        for (var i = 0; i < items.length; ++i) {
+            if (items[i] && String(items[i].path || "") === path)
+                return true;
+        }
+        return false;
+    }
+
+    function addCustomPath(path, icon) {
+        path = String(path || "").trim();
+        if (!path || hasPath(path))
+            return;
+        var name = basename(path) || path;
+        icon = String(icon || "folder").trim() || "folder";
+        var encoded = "custom:" + name.replace(/\|/g, "-") + "|"
+                + icon.replace(/\|/g, "-") + "|" + path.replace(/\|/g, " ");
+        writeLive(ids.concat([encoded]));
+    }
+
     ConfigPage {
-        title: root.tr("Directory Shortcuts")
-        tip: root.tr("Folders shown in the places sidebar")
+        title: root.tr("Frequent Locations")
+        tip: root.tr("Folders and files shown in the places sidebar")
 
         ConfigGroup {
-            title: root.tr("Directory Shortcuts")
+            title: root.tr("Frequent Locations")
             Repeater {
                 model: root.items
                 ColumnLayout {
@@ -87,12 +138,39 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
-                title: root.tr("Add custom shortcut")
+                title: root.tr("Add custom folder")
+                subtitle: root.tr("Choose a folder to pin in the places sidebar")
+                iconName: "folder-add"
+                accent: "teal"
+                QQC2.Button {
+                    icon.name: "list-add"; flat: true
+                    onClicked: folderPicker.open()
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Add custom file")
+                subtitle: root.tr("Choose a file to pin in the places sidebar")
                 iconName: "document-new"
                 accent: "orange"
                 QQC2.Button {
                     icon.name: "list-add"; flat: true
-                    onClicked: { customName.text = ""; customIcon.text = "folder"; customPath.text = ""; customDialog.open(); }
+                    onClicked: filePicker.open()
+                }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Add custom shortcut")
+                iconName: "document-edit"
+                accent: "orange"
+                QQC2.Button {
+                    icon.name: "list-add"; flat: true
+                    onClicked: {
+                        customName.text = "";
+                        customIcon.text = "folder";
+                        customPath.text = "";
+                        customDialog.open();
+                    }
                 }
             }
         }
@@ -133,14 +211,61 @@ Item {
         Kirigami.FormLayout {
             QQC2.TextField { id: customName; Kirigami.FormData.label: root.tr("Name:") }
             QQC2.TextField { id: customIcon; Kirigami.FormData.label: root.tr("Icon name"); text: "folder" }
-            QQC2.TextField { id: customPath; Kirigami.FormData.label: root.tr("Path:"); placeholderText: "/home" }
+            RowLayout {
+                Kirigami.FormData.label: root.tr("Path:")
+                QQC2.TextField {
+                    id: customPath
+                    Layout.fillWidth: true
+                    placeholderText: "/home"
+                }
+                QQC2.Button {
+                    text: root.tr("Browse...")
+                    onClicked: customBrowse.open()
+                }
+            }
         }
         onAccepted: {
             var name = String(customName.text || "").trim().replace(/\|/g, "-");
             var icon = String(customIcon.text || "folder").trim().replace(/\|/g, "-");
             var path = String(customPath.text || "").trim().replace(/\|/g, " ");
-            if (!name || !path) return;
+            if (!path)
+                return;
+            if (!name)
+                name = root.basename(path) || path;
+            if (root.hasPath(path))
+                return;
             writeLive(ids.concat(["custom:" + name + "|" + icon + "|" + path]));
+        }
+    }
+
+    Dialogs.FileDialog {
+        id: filePicker
+        title: root.tr("Add custom file")
+        fileMode: Dialogs.FileDialog.OpenFile
+        nameFilters: [root.tr("All files (*)")]
+        onAccepted: {
+            var path = root.pathFromUrl(selectedFile);
+            root.addCustomPath(path, root.iconForFile(path));
+        }
+    }
+
+    Dialogs.FolderDialog {
+        id: folderPicker
+        title: root.tr("Add custom folder")
+        onAccepted: root.addCustomPath(root.pathFromUrl(selectedFolder), "folder")
+    }
+
+    Dialogs.FileDialog {
+        id: customBrowse
+        title: root.tr("Add custom file")
+        fileMode: Dialogs.FileDialog.OpenFile
+        nameFilters: [root.tr("All files (*)")]
+        onAccepted: {
+            var path = root.pathFromUrl(selectedFile);
+            customPath.text = path;
+            if (!String(customName.text || "").trim())
+                customName.text = root.basename(path);
+            customIcon.text = root.iconForFile(path);
         }
     }
 }
