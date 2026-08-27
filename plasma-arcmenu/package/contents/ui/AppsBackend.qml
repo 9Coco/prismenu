@@ -17,6 +17,8 @@ Item {
     id: root
 
     property var menuData: null
+    /** PlasmoidItem required by Kicker context actions (same object Kickoff uses). */
+    property var appletInterface: null
     property string lastScanError: ""
     property string scanBackend: "kicker"
     property int lastAppCount: 0
@@ -120,7 +122,7 @@ Item {
 
     Kicker.RootModel {
         id: rootModel
-        appletInterface: plasmoid
+        appletInterface: root.appletInterface
         appNameFormat: 0
         flat: false
         showSeparators: false
@@ -204,8 +206,10 @@ Item {
                             width: 0
                             height: 0
                             visible: false
+                            readonly property int row: index
                             readonly property string display: String(model.display !== undefined ? model.display : "")
                             readonly property bool hasChildren: !!(model.hasChildren)
+                            readonly property string description: String(model.description !== undefined ? model.description : "")
                             readonly property var decoration: model.decoration
                             readonly property var url: model.url
                             readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
@@ -290,7 +294,8 @@ Item {
         return display ? String(display).replace(/\s+/g, "_") + ".desktop" : "";
     }
 
-    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp, genericName, catRow, appRow) {
+    function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp,
+                     genericName, kickerPath) {
         display = String(display || "").trim();
         if (!display)
             return;
@@ -302,9 +307,9 @@ Item {
                 seenApp[id].categories.push(catId);
             if (genericName && !seenApp[id].genericName)
                 seenApp[id].genericName = String(genericName);
-            if (seenApp[id].kickerCatRow === undefined && catRow !== undefined) {
-                seenApp[id].kickerCatRow = catRow;
-                seenApp[id].kickerAppRow = appRow;
+            if ((!seenApp[id].kickerModelPath || seenApp[id].kickerModelPath.length < 2)
+                    && kickerPath && kickerPath.length >= 2) {
+                seenApp[id].kickerModelPath = kickerPath;
             }
             return;
         }
@@ -321,8 +326,10 @@ Item {
             entryPath: String(url || ""),
             favoriteId: favoriteId ? String(favoriteId) : id,
             kickerUrl: url ? String(url) : "",
-            kickerCatRow: catRow,
-            kickerAppRow: appRow
+            // The official Kickoff menu invokes context actions on the Kicker
+            // model that produced the row. Keep the complete model path so
+            // nested application-menu groups resolve to the correct row too.
+            kickerModelPath: kickerPath || []
         };
         seenApp[id] = app;
         apps.push(app);
@@ -342,12 +349,14 @@ Item {
                         continue;
                     var ng = "";
                     try { ng = nested.genericName || nested.description || ""; } catch (e1) {}
-                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration, catId, apps, seenApp, ng, catRow, i);
+                    pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration,
+                            catId, apps, seenApp, ng, [catRow, i, j]);
                 }
             } else if (!row.hasChildren) {
                 var g = "";
                 try { g = row.genericName || row.description || ""; } catch (e2) {}
-                pushApp(row.display, row.url, row.favoriteId, row.decoration, catId, apps, seenApp, g, catRow, i);
+                pushApp(row.display, row.url, row.favoriteId, row.decoration,
+                        catId, apps, seenApp, g, [catRow, i]);
             }
         }
     }
@@ -787,39 +796,51 @@ Item {
     }
 
     /**
-     * Pin application to Plasma Task Manager / Icon Tasks (快捷栏).
-     * Writes launchers=… on the first matching panel widget.
+     * Trigger the same Kicker context action used by KDE's official Kickoff.
+     * AbstractModel.trigger(row, actionId, argument) delegates task-manager
+     * selection and launcher persistence to Plasma instead of editing panel
+     * configuration or calling plasmashell.evaluateScript ourselves.
      */
     function pinToTaskManager(app) {
         if (!app)
-            return;
-        var id = desktopFileId(app);
-        if (!id)
-            return;
-        var entry = "applications:" + id;
-        // plasmashell JS: append to Icon Tasks / Task Manager launchers
-        var js = ""
-            + "var entry = " + JSON.stringify(entry) + ";"
-            + "var panels = panels();"
-            + "for (var i = 0; i < panels.length; ++i) {"
-            + "  var ws = panels[i].widgets();"
-            + "  for (var j = 0; j < ws.length; ++j) {"
-            + "    var t = ws[j].type;"
-            + "    if (t !== 'org.kde.plasma.icontasks' && t !== 'org.kde.plasma.taskmanager') continue;"
-            + "    ws[j].currentConfigGroup = ['General'];"
-            + "    var cur = String(ws[j].readConfig('launchers', ''));"
-            + "    if (cur.indexOf(entry) >= 0) return;"
-            + "    var next = cur.length ? (cur + ',' + entry) : entry;"
-            + "    ws[j].writeConfig('launchers', next);"
-            + "    ws[j].reloadConfig();"
-            + "    return;"
-            + "  }"
-            + "}";
-        console.log("ArcMenu pinToTaskManager", entry);
-        runShell("qdbus org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
-            + shellQuote(js)
-            + " || qdbus6 org.kde.plasmashell /PlasmaShell org.kde.PlasmaShell.evaluateScript "
-            + shellQuote(js));
+            return false;
+
+        var sourceApp = app;
+        if (!sourceApp.kickerModelPath || sourceApp.kickerModelPath.length < 2) {
+            // Sidebar shortcuts may represent a real catalog application. Use
+            // that Kicker row so they still go through Plasma's native action.
+            var wantedId = desktopFileId(app);
+            var catalog = menuData && menuData.allApps ? menuData.allApps : [];
+            for (var c = 0; c < catalog.length; ++c) {
+                if (desktopFileId(catalog[c]) === wantedId
+                        && catalog[c].kickerModelPath && catalog[c].kickerModelPath.length >= 2) {
+                    sourceApp = catalog[c];
+                    break;
+                }
+            }
+        }
+
+        var path = sourceApp.kickerModelPath || [];
+        if (path.length < 2) {
+            console.warn("ArcMenu pinToTaskManager: Kicker action unavailable for", app.id);
+            return false;
+        }
+
+        try {
+            var sourceModel = rootModel;
+            for (var p = 0; p < path.length - 1; ++p) {
+                sourceModel = sourceModel.modelForRow(path[p]);
+                if (!sourceModel)
+                    throw new Error("missing Kicker model at path index " + p);
+            }
+            var sourceRow = path[path.length - 1];
+            var triggered = sourceModel.trigger(sourceRow, "addToTaskManager", undefined);
+            console.log("ArcMenu pinToTaskManager: Kicker trigger", app.id, triggered);
+            return triggered;
+        } catch (e) {
+            console.warn("ArcMenu pinToTaskManager: Kicker trigger failed for", app.id, e);
+            return false;
+        }
     }
 
     function addDesktopShortcut(app) {
