@@ -323,12 +323,12 @@ PlasmoidItem {
         var sessionIds = ["shutdown", "restart", "logout", "lock", "suspend", "hibernate", "switchuser", "hybridsleep"];
         var confMode = plasmoid.configuration.Confirm ? "force" : "skip";
         if (sessionIds.indexOf(actionId) >= 0) {
-            // Still allow ArcMenu dialog as an extra gate when ForcePrompt unsupported
-            if (plasmoid.configuration.Confirm && ["shutdown", "restart", "logout"].indexOf(actionId) >= 0) {
-                confirmDialog.openFor(actionId);
-                return;
-            }
-            backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, confMode);
+            // Close first: the system leave dialog (and polkit) sit behind this
+            // popup, so keeping the menu open looks like the button did nothing.
+            closeMenu();
+            Qt.callLater(function () {
+                backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, confMode);
+            });
             return;
         }
         backend.runPower(actionId, plasmoid.configuration.SoftwareCenterCmd, confMode);
