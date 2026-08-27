@@ -735,6 +735,9 @@ PlasmoidItem {
             onAppActivated: (app) => root.launchApp(app)
             onAppContextMenu: (app, x, y) => {
                 contextMenu.app = app;
+                // Read actionList lazily for only the selected stable Kicker
+                // row; this is the same native list Kickoff presents.
+                contextMenu.systemActions = backend.systemActions(app);
                 contextMenu.isFavorite = root.catalog.isFavorite(app);
                 contextMenu.canUninstall = !(app && (app.action || app.place
                     || String(app.id || "").indexOf("shortcut-") === 0));
@@ -799,6 +802,13 @@ PlasmoidItem {
             }
             onUninstallRequested: (app) => backend.uninstall(app)
             onRunInTerminalRequested: (app) => backend.runInTerminal(app)
+            onSystemActionRequested: (app, actionId, actionArgument) => {
+                backend.triggerSystemAction(app, actionId, actionArgument);
+                // Match Kickoff's behavior: task-manager pinning deliberately
+                // keeps the launcher open, other native actions close it.
+                if (actionId !== "addToTaskManager")
+                    root.closeMenu();
+            }
         }
 
         Components.ConfirmDialog {

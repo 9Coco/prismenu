@@ -17,11 +17,16 @@ Item {
 
     property var menuData: null
     property var rootModel: null
+    property var appletInterface: null
 
     property var runnerResults: []
     property var recentApps: []
     property var placesEntries: []
     property var plasmaFavoriteIds: []
+    readonly property var favoritesSourceModel: {
+        try { return root.rootModel ? root.rootModel.favoritesModel : null; }
+        catch (e) { return null; }
+    }
 
     signal runnerResultsUpdated(var results)
     signal recentAppsUpdated(var apps)
@@ -106,7 +111,7 @@ Item {
     // which is why Locations/Bookmarks never appeared.
     Kicker.RunnerModel {
         id: runnerModel
-        appletInterface: plasmoid
+        appletInterface: root.appletInterface
         query: (menuData && menuData.searchQuery) ? String(menuData.searchQuery) : ""
         mergeResults: true
         onCountChanged: root.bindMatchesModel()
@@ -378,11 +383,7 @@ Item {
 
     // ---- Global favorites (KAStatsFavoritesModel via RootModel) ----
     function favoritesModel() {
-        try {
-            if (root.rootModel && root.rootModel.favoritesModel)
-                return root.rootModel.favoritesModel;
-        } catch (e) {}
-        return null;
+        return root.favoritesSourceModel;
     }
 
     function refreshPlasmaFavorites() {
@@ -427,7 +428,7 @@ Item {
 
     Instantiator {
         id: favInst
-        model: root.favoritesModel()
+        model: root.favoritesSourceModel
         asynchronous: false
         delegate: Item {
             width: 0; height: 0; visible: false
@@ -437,6 +438,17 @@ Item {
         onObjectAdded: root.refreshPlasmaFavorites()
         onObjectRemoved: root.refreshPlasmaFavorites()
         onModelChanged: root.refreshPlasmaFavorites()
+    }
+
+    Connections {
+        target: root.favoritesSourceModel
+        ignoreUnknownSignals: true
+        function onCountChanged() { root.refreshPlasmaFavorites(); }
+        function onDataChanged() { root.refreshPlasmaFavorites(); }
+        function onModelReset() { root.refreshPlasmaFavorites(); }
+        function onRowsInserted() { root.refreshPlasmaFavorites(); }
+        function onRowsRemoved() { root.refreshPlasmaFavorites(); }
+        function onRowsMoved() { root.refreshPlasmaFavorites(); }
     }
 
     function isPlasmaFavorite(favoriteId) {
@@ -460,6 +472,39 @@ Item {
             return true;
         } catch (e) {
             console.warn("ArcMenu favorites toggle failed", e);
+            return false;
+        }
+    }
+
+    function setPlasmaFavorite(favoriteId, favorite) {
+        var fm = favoritesModel();
+        if (!fm || !favoriteId)
+            return false;
+        try {
+            var id = String(favoriteId);
+            var current = !!fm.isFavorite(id);
+            if (favorite && !current)
+                fm.addFavorite(id);
+            else if (!favorite && current)
+                fm.removeFavorite(id);
+            Qt.callLater(root.refreshPlasmaFavorites);
+            return true;
+        } catch (e) {
+            console.warn("ArcMenu setPlasmaFavorite failed:", favoriteId, e);
+            return false;
+        }
+    }
+
+    function movePlasmaFavorite(from, to) {
+        var fm = favoritesModel();
+        if (!fm || from < 0 || to < 0 || from === to)
+            return false;
+        try {
+            fm.moveRow(from, to);
+            Qt.callLater(root.refreshPlasmaFavorites);
+            return true;
+        } catch (e) {
+            console.warn("ArcMenu movePlasmaFavorite failed:", from, to, e);
             return false;
         }
     }

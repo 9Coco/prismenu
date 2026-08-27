@@ -644,6 +644,7 @@ QtObject {
     property var plasmaFavoriteIds: []
     property var plasmaPlaces: []
     property var appsBackend: null
+    property bool _legacyFavoritesMigrationAttempted: false
 
     /** Visible apps sorted once — shared by every layout's "all" view */
     readonly property var sortedVisibleApps: AppsModel.sortAppsByName(AppsModel.filterVisibleApps(allApps))
@@ -704,12 +705,74 @@ QtObject {
 
     readonly property var categoryApps: AppsModel.appsInCategory(allApps, currentCategoryId)
 
-    /** Config list, or defaults when never saved — used by display + toggle */
+    function isArcMenuOnlyPinId(id) {
+        id = String(id || "");
+        return id === "arcmenu-settings" || id.indexOf("shortcut-") === 0
+            || id.indexOf("custom:") === 0;
+    }
+
+    function appForPlasmaFavoriteId(favoriteId) {
+        var fid = String(favoriteId || "");
+        var plain = fid.indexOf("applications:") === 0
+            ? fid.substring("applications:".length) : fid;
+        for (var i = 0; i < (allApps || []).length; ++i) {
+            var app = allApps[i];
+            if (!app)
+                continue;
+            if (String(app.favoriteId || "") === fid || String(app.id || "") === fid
+                    || String(app.id || "") === plain)
+                return app;
+        }
+        return null;
+    }
+
+    function plasmaFavoriteIdForApp(app) {
+        if (!app)
+            return "";
+        var source = root.appForPlasmaFavoriteId(app.favoriteId || app.id);
+        return String((source && source.favoriteId) || app.favoriteId || app.id || "");
+    }
+
+    /**
+     * One-way compatibility migration: older ArcMenu versions stored normal
+     * applications in PinnedApps. Import them into Kicker's global favorites;
+     * leave ArcMenu-only shortcuts in the local list.
+     */
+    function migrateLegacyFavoritesToPlasma() {
+        if (root._legacyFavoritesMigrationAttempted || !appsBackend
+                || !appsBackend.setPlasmaFavorite || !(allApps || []).length)
+            return;
+        root._legacyFavoritesMigrationAttempted = true;
+        var local = IdList.normalizeIdList(cfg("PinnedApps", []));
+        for (var i = 0; i < local.length; ++i) {
+            if (root.isArcMenuOnlyPinId(local[i]))
+                continue;
+            var app = AppsModel.findAppById(allApps, local[i])
+                || root.appForPlasmaFavoriteId(local[i]);
+            if (!app)
+                continue;
+            var favId = root.plasmaFavoriteIdForApp(app);
+            if (favId)
+                appsBackend.setPlasmaFavorite(favId, true);
+        }
+    }
+
+    /** Plasma global favorites first; ArcMenu-only shortcuts stay local. */
     function effectivePinnedIds() {
         var local = IdList.normalizeIdList(cfg("PinnedApps", []));
-        if (local.length === 0)
-            return IdList.defaultPinnedIds().slice();
-        return IdList.withoutMenuSettings(local);
+        var out = [];
+        var global = IdList.normalizeIdList(root.plasmaFavoriteIds || []);
+        for (var i = 0; i < global.length; ++i) {
+            var app = root.appForPlasmaFavoriteId(global[i]);
+            if (app && out.indexOf(app.id) < 0)
+                out.push(app.id);
+        }
+        for (var j = 0; j < local.length; ++j) {
+            if (root.isArcMenuOnlyPinId(local[j]) && local[j] !== "arcmenu-settings"
+                    && out.indexOf(local[j]) < 0)
+                out.push(local[j]);
+        }
+        return out;
     }
 
     /** Map sidebar shortcuts → pin ids (prefer real .desktop when known) */
@@ -814,17 +877,6 @@ QtObject {
                     noDisplay: false
                 });
             }
-        }
-        if (result.length === 0) {
-            result = [
-                {
-                    id: "org.kde.dolphin.desktop",
-                    name: Locale.tr("Files", lang),
-                    icon: "system-file-manager",
-                    exec: "dolphin",
-                    noDisplay: false
-                }
-            ];
         }
         return result;
     }
@@ -1249,34 +1301,38 @@ QtObject {
         var pinId = root.resolvePinId(app);
         if (!pinId)
             pinId = app.id;
+        if (!root.isArcMenuOnlyPinId(pinId)) {
+            var favId = root.plasmaFavoriteIdForApp(app);
+            if (appsBackend && appsBackend.setPlasmaFavorite && favId) {
+                var have = appsBackend.isPlasmaFavorite
+                    ? appsBackend.isPlasmaFavorite(favId) : root.isFavorite(app);
+                appsBackend.setPlasmaFavorite(favId, !have);
+                console.log("ArcMenu Plasma favorite", favId, "pinned=", !have);
+            }
+            return;
+        }
         var current = IdList.normalizeIdList(cfg("PinnedApps", []));
-        if (current.length === 0)
-            current = IdList.defaultPinnedIds().slice();
         var next = Favorites.toggleFavorite(current, pinId);
         plasmoidConfig.PinnedApps = next;
         try { plasmoidConfig.writeConfig(); } catch (e) {}
         try { root.bumpStructure(); } catch (e2) {}
-        var favId = app.favoriteId || pinId;
-        var isSpecial = String(pinId).indexOf("custom:") === 0
-            || String(pinId).indexOf("shortcut-") === 0
-            || pinId === "arcmenu-settings";
-        if (root.syncFavorites && !isSpecial && appsBackend && appsBackend.togglePlasmaFavorite) {
-            var want = Favorites.isFavorite(next, pinId);
-            var have = appsBackend.isPlasmaFavorite ? appsBackend.isPlasmaFavorite(favId) : !want;
-            if (want !== have)
-                appsBackend.togglePlasmaFavorite(favId);
-        }
-        console.log("ArcMenu toggleFavorite", pinId, "pinned=", Favorites.isFavorite(next, pinId));
+        console.log("ArcMenu local favorite", pinId, "pinned=", Favorites.isFavorite(next, pinId));
     }
 
     function isFavorite(appOrId) {
-        var ids = root.effectivePinnedIds();
         if (appOrId && typeof appOrId === "object") {
             var pinId = root.resolvePinId(appOrId);
-            return Favorites.isFavorite(ids, pinId)
-                || Favorites.isFavorite(ids, appOrId.id);
+            if (!root.isArcMenuOnlyPinId(pinId)) {
+                var favId = root.plasmaFavoriteIdForApp(appOrId);
+                return !!(appsBackend && appsBackend.isPlasmaFavorite
+                    && appsBackend.isPlasmaFavorite(favId));
+            }
+            return Favorites.isFavorite(IdList.normalizeIdList(cfg("PinnedApps", [])), pinId);
         }
-        return Favorites.isFavorite(ids, appOrId);
+        var app = AppsModel.findAppById(allApps, String(appOrId || ""));
+        if (app)
+            return root.isFavorite(app);
+        return Favorites.isFavorite(IdList.normalizeIdList(cfg("PinnedApps", [])), appOrId);
     }
 
     /** Settings lives on the search bar — drop the old in-menu pin. */
@@ -1290,11 +1346,23 @@ QtObject {
     }
 
     function reorderPinned(from, to) {
-        if (!plasmoidConfig) {
+        if (!plasmoidConfig || from === to) {
             return;
         }
-        var current = root.effectivePinnedIds();
-        plasmoidConfig.PinnedApps = Favorites.moveItem(current, from, to);
+        var globalCount = 0;
+        var global = IdList.normalizeIdList(root.plasmaFavoriteIds || []);
+        for (var i = 0; i < global.length; ++i) {
+            if (root.appForPlasmaFavoriteId(global[i]))
+                globalCount++;
+        }
+        if (from < globalCount && to < globalCount && appsBackend && appsBackend.movePlasmaFavorite) {
+            appsBackend.movePlasmaFavorite(from, to);
+            return;
+        }
+        if (from >= globalCount && to >= globalCount) {
+            var current = IdList.normalizeIdList(cfg("PinnedApps", [])).filter(root.isArcMenuOnlyPinId);
+            plasmoidConfig.PinnedApps = Favorites.moveItem(current, from - globalCount, to - globalCount);
+        }
     }
 
     function recordLaunch(app) {

@@ -135,6 +135,15 @@ Item {
             function setOpt(obj, key, value) {
                 try { obj[key] = value; } catch (e) {}
             }
+            // Required by KAStatsFavoritesModel. Kickoff initializes the same
+            // model with a per-applet client id before reading or modifying
+            // global favorites.
+            try {
+                rootModel.favoritesModel.initForClient(
+                    "org.kde.plasma.arcmenu.favorites.instance-" + Plasmoid.id);
+            } catch (favoritesError) {
+                console.warn("ArcMenu favorites init failed:", favoritesError);
+            }
             setOpt(rootModel, "sorted", true);
             setOpt(rootModel, "showRecentContacts", false);
             setOpt(rootModel, "showFavoritesPlaceholder", false);
@@ -153,6 +162,7 @@ Item {
         id: plasmaNative
         menuData: root.menuData
         rootModel: rootModel
+        appletInterface: root.appletInterface
     }
 
     // Nested Instantiators materialize the same roles Kickoff ListViews see.
@@ -197,12 +207,21 @@ Item {
                         ? catDel.childModel.modelForRow(index) : null
                     property alias nestedInst: nestedInst
 
+                    // actionList is deliberately read only when the context
+                    // menu opens. Binding it for every row while RootModel is
+                    // rebuilding can ask Kicker for actions on stale indexes.
+                    function systemActions() {
+                        try { return Array.from(model.actionList || []); }
+                        catch (e) { return []; }
+                    }
+
                     Instantiator {
                         id: nestedInst
                         model: appDel.nestedModel
                         asynchronous: false
 
                         delegate: Item {
+                            id: nestedDel
                             width: 0
                             height: 0
                             visible: false
@@ -213,6 +232,11 @@ Item {
                             readonly property var decoration: model.decoration
                             readonly property var url: model.url
                             readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : "")
+
+                            function systemActions() {
+                                try { return Array.from(model.actionList || []); }
+                                catch (e) { return []; }
+                            }
                         }
 
                         onObjectAdded: root.scheduleRebuild()
@@ -295,7 +319,7 @@ Item {
     }
 
     function pushApp(display, url, favoriteId, decoration, catId, apps, seenApp,
-                     genericName, kickerPath) {
+                     genericName, kickerPath, kickerSource) {
         display = String(display || "").trim();
         if (!display)
             return;
@@ -310,6 +334,7 @@ Item {
             if ((!seenApp[id].kickerModelPath || seenApp[id].kickerModelPath.length < 2)
                     && kickerPath && kickerPath.length >= 2) {
                 seenApp[id].kickerModelPath = kickerPath;
+                seenApp[id].kickerSource = kickerSource;
             }
             return;
         }
@@ -329,7 +354,8 @@ Item {
             // The official Kickoff menu invokes context actions on the Kicker
             // model that produced the row. Keep the complete model path so
             // nested application-menu groups resolve to the correct row too.
-            kickerModelPath: kickerPath || []
+            kickerModelPath: kickerPath || [],
+            kickerSource: kickerSource || null
         };
         seenApp[id] = app;
         apps.push(app);
@@ -350,13 +376,13 @@ Item {
                     var ng = "";
                     try { ng = nested.genericName || nested.description || ""; } catch (e1) {}
                     pushApp(nested.display, nested.url, nested.favoriteId, nested.decoration,
-                            catId, apps, seenApp, ng, [catRow, i, j]);
+                            catId, apps, seenApp, ng, [catRow, i, j], nested);
                 }
             } else if (!row.hasChildren) {
                 var g = "";
                 try { g = row.genericName || row.description || ""; } catch (e2) {}
                 pushApp(row.display, row.url, row.favoriteId, row.decoration,
-                        catId, apps, seenApp, g, [catRow, i]);
+                        catId, apps, seenApp, g, [catRow, i], row);
             }
         }
     }
@@ -436,6 +462,7 @@ Item {
             if (cats.length > 0)
                 menuData.rawCategories = cats;
             menuData.allApps = apps;
+            Qt.callLater(menuData.migrateLegacyFavoritesToPlasma);
         }
         appsUpdated(apps);
 
@@ -572,11 +599,10 @@ Item {
                 return;
         }
 
-        // Kickoff-style: AppsModel.trigger(row, "", null)
-        if (typeof app.kickerCatRow === "number" && typeof app.kickerAppRow === "number") {
-            if (plasmaNative.triggerRootApp(app.kickerCatRow, app.kickerAppRow))
-                return;
-        }
+        // Kickoff-style: invoke the originating AppsModel row. Synthetic
+        // shortcuts and non-Kicker providers continue through the fallbacks.
+        if (root.triggerSystemAction(app, "", undefined))
+            return;
 
         if (root.launchDesktopEntry(app, opts))
             return;
@@ -742,6 +768,63 @@ Item {
         return plasmaNative.isPlasmaFavorite(favoriteId);
     }
 
+    function setPlasmaFavorite(favoriteId, favorite) {
+        return plasmaNative.setPlasmaFavorite(favoriteId, favorite);
+    }
+
+    function movePlasmaFavorite(from, to) {
+        return plasmaNative.movePlasmaFavorite(from, to);
+    }
+
+    function kickerSourceApp(app) {
+        if (!app)
+            return null;
+        if (app.kickerModelPath && app.kickerModelPath.length >= 2)
+            return app;
+        var wantedId = desktopFileId(app);
+        var catalog = menuData && menuData.allApps ? menuData.allApps : [];
+        for (var i = 0; i < catalog.length; ++i) {
+            if (desktopFileId(catalog[i]) === wantedId
+                    && catalog[i].kickerModelPath
+                    && catalog[i].kickerModelPath.length >= 2)
+                return catalog[i];
+        }
+        return null;
+    }
+
+    /** Return Kicker's native context actions for one stable catalog row. */
+    function systemActions(app) {
+        var sourceApp = kickerSourceApp(app);
+        if (!sourceApp || !sourceApp.kickerSource || !sourceApp.kickerSource.systemActions)
+            return [];
+        try { return sourceApp.kickerSource.systemActions(); }
+        catch (e) {
+            console.warn("ArcMenu systemActions failed for", app ? app.id : "", e);
+            return [];
+        }
+    }
+
+    /** Invoke AppsModel.trigger exactly as Kickoff's ActionMenu does. */
+    function triggerSystemAction(app, actionId, actionArgument) {
+        var sourceApp = kickerSourceApp(app);
+        var path = sourceApp ? (sourceApp.kickerModelPath || []) : [];
+        if (path.length < 2)
+            return false;
+        try {
+            var sourceModel = rootModel;
+            for (var p = 0; p < path.length - 1; ++p) {
+                sourceModel = sourceModel.modelForRow(path[p]);
+                if (!sourceModel)
+                    throw new Error("missing Kicker model at path index " + p);
+            }
+            sourceModel.trigger(path[path.length - 1], String(actionId || ""), actionArgument);
+            return true;
+        } catch (e) {
+            console.warn("ArcMenu Kicker trigger failed for", app ? app.id : "", actionId, e);
+            return false;
+        }
+    }
+
     function desktopFileId(app) {
         if (!app)
             return "";
@@ -802,45 +885,7 @@ Item {
      * configuration or calling plasmashell.evaluateScript ourselves.
      */
     function pinToTaskManager(app) {
-        if (!app)
-            return false;
-
-        var sourceApp = app;
-        if (!sourceApp.kickerModelPath || sourceApp.kickerModelPath.length < 2) {
-            // Sidebar shortcuts may represent a real catalog application. Use
-            // that Kicker row so they still go through Plasma's native action.
-            var wantedId = desktopFileId(app);
-            var catalog = menuData && menuData.allApps ? menuData.allApps : [];
-            for (var c = 0; c < catalog.length; ++c) {
-                if (desktopFileId(catalog[c]) === wantedId
-                        && catalog[c].kickerModelPath && catalog[c].kickerModelPath.length >= 2) {
-                    sourceApp = catalog[c];
-                    break;
-                }
-            }
-        }
-
-        var path = sourceApp.kickerModelPath || [];
-        if (path.length < 2) {
-            console.warn("ArcMenu pinToTaskManager: Kicker action unavailable for", app.id);
-            return false;
-        }
-
-        try {
-            var sourceModel = rootModel;
-            for (var p = 0; p < path.length - 1; ++p) {
-                sourceModel = sourceModel.modelForRow(path[p]);
-                if (!sourceModel)
-                    throw new Error("missing Kicker model at path index " + p);
-            }
-            var sourceRow = path[path.length - 1];
-            var triggered = sourceModel.trigger(sourceRow, "addToTaskManager", undefined);
-            console.log("ArcMenu pinToTaskManager: Kicker trigger", app.id, triggered);
-            return triggered;
-        } catch (e) {
-            console.warn("ArcMenu pinToTaskManager: Kicker trigger failed for", app.id, e);
-            return false;
-        }
+        return triggerSystemAction(app, "addToTaskManager", undefined);
     }
 
     function addDesktopShortcut(app) {
