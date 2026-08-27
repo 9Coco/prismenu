@@ -21,6 +21,8 @@ QtObject {
     /** Width ceiling, bound from main.qml to a screen-fit value (MenuData is
      *  a QtObject without a window, so it cannot read Screen itself). */
     property int maxMenuWidth: 900
+    property int maxMenuHeight: 800
+    property var layoutSizesRaw
     // Bound directly from main.qml → plasmoid.configuration.MenuLayoutId
     property string currentLayoutId: "arcmenu"
     /**
@@ -316,23 +318,19 @@ QtObject {
         -200, 400, 0)
     /** Traditional panels (+ chrome) + optional width offset for non-traditional layouts */
     readonly property int menuWidth: {
-        var meta = root.layoutInfo;
-        if (meta && meta.compactPopup) {
-            var defW = meta.defaultWidth || 280;
-            return LayoutRegistry.clampSize(cfgInt("MenuWidth", defW), 220, 420, defW);
-        }
-        return LayoutRegistry.clampSize(
-            leftPanelWidth + rightPanelWidth + 24 + widthOffset, 400, root.maxMenuWidth, 620);
+        var stored = (plasmoidConfig && plasmoidConfig.MenuWidth !== undefined
+            && plasmoidConfig.MenuWidth !== null)
+            ? plasmoidConfig.MenuWidth : LayoutRegistry.SHARED_DEFAULT_WIDTH;
+        var fromPanels = leftPanelWidth + rightPanelWidth + 24 + widthOffset;
+        var w = stored > 0 ? stored : fromPanels;
+        return LayoutRegistry.clampSize(w, 400, root.maxMenuWidth, LayoutRegistry.SHARED_DEFAULT_WIDTH);
     }
-    // Shared MenuHeight max is 800; Raven uses runtime fill height in main.qml instead
     readonly property int menuHeight: {
         var stored = (plasmoidConfig && plasmoidConfig.MenuHeight !== undefined
             && plasmoidConfig.MenuHeight !== null)
-            ? plasmoidConfig.MenuHeight : 540;
-        var meta = root.layoutInfo;
-        if (meta && meta.compactPopup)
-            return LayoutRegistry.clampSize(stored, 360, 800, meta.defaultHeight || 540);
-        return LayoutRegistry.clampSize(stored, 400, 800, 540);
+            ? plasmoidConfig.MenuHeight : LayoutRegistry.SHARED_DEFAULT_HEIGHT;
+        return LayoutRegistry.clampSize(stored, 400, root.maxMenuHeight,
+            LayoutRegistry.SHARED_DEFAULT_HEIGHT);
     }
     /** Places / categories side column — synced with right panel for ArcMenu-style shells */
     readonly property int sidebarWidth: LayoutRegistry.clampSize(
@@ -342,28 +340,61 @@ QtObject {
     readonly property string overrideMenuPosition: cfgStr("OverrideMenuPosition", "off")
     readonly property bool overrideMenuRise: cfgBool("OverrideMenuRise", false)
     readonly property int menuRiseDistance: LayoutRegistry.clampSize(cfgInt("MenuRiseDistance", 6), 0, 64, 6)
-    readonly property int defaultMenuWidth: {
-        var meta = layoutInfo;
-        return meta && meta.defaultWidth ? meta.defaultWidth : 620;
-    }
-    readonly property int defaultMenuHeight: {
-        var meta = layoutInfo;
-        var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
-        return h > 800 ? 800 : h;
-    }
+    readonly property int defaultMenuWidth: LayoutRegistry.SHARED_DEFAULT_WIDTH
+    readonly property int defaultMenuHeight: LayoutRegistry.SHARED_DEFAULT_HEIGHT
     readonly property int defaultSidebarWidth: {
         var meta = layoutInfo;
         return meta && meta.defaultSidebarWidth ? meta.defaultSidebarWidth : 220;
     }
     readonly property int defaultCategoryColumnWidth: 220
 
+    function layoutSizesJson() {
+        if (layoutSizesRaw !== undefined && layoutSizesRaw !== null)
+            return String(layoutSizesRaw);
+        return cfgStr("LayoutSizes", "{}");
+    }
+
+    function currentSizeSnapshot() {
+        return {
+            w: root.menuWidth,
+            h: root.menuHeight,
+            sidebar: root.sidebarWidth,
+            category: root.categoryColumnWidth,
+            left: root.leftPanelWidth,
+            right: root.rightPanelWidth,
+            offset: root.widthOffset
+        };
+    }
+
+    function snapshotLayoutSize(layoutId) {
+        if (!plasmoidConfig || !layoutId)
+            return;
+        var s = LayoutRegistry.setSizeForLayout(root.layoutSizesJson(), layoutId, root.currentSizeSnapshot());
+        plasmoidConfig.LayoutSizes = s;
+        try { plasmoidConfig.writeConfig(); } catch (e) {}
+    }
+
+    function applyLayoutSize(layoutId) {
+        if (!plasmoidConfig || !layoutId)
+            return;
+        var size = LayoutRegistry.sizeForLayout(root.layoutSizesJson(), layoutId);
+        plasmoidConfig.MenuWidth = size.w;
+        plasmoidConfig.MenuHeight = size.h;
+        plasmoidConfig.SidebarWidth = size.sidebar;
+        plasmoidConfig.CategoryColumnWidth = size.category;
+        plasmoidConfig.LeftPanelWidth = size.left;
+        plasmoidConfig.RightPanelWidth = size.right;
+        plasmoidConfig.WidthOffset = size.offset;
+        try { plasmoidConfig.writeConfig(); } catch (e) {}
+    }
+
     function setMenuWidth(w) {
         if (!plasmoidConfig)
             return;
-        var c = LayoutRegistry.clampSize(w, 400, root.maxMenuWidth, 620);
+        var c = LayoutRegistry.clampSize(w, 400, root.maxMenuWidth, LayoutRegistry.SHARED_DEFAULT_WIDTH);
         plasmoidConfig.MenuWidth = c;
         // Keep right panel; adjust left so panels stay consistent with drag-resize
-        var left = LayoutRegistry.clampSize(c - rightPanelWidth - 24 - widthOffset, 180, 1600, 380);
+        var left = LayoutRegistry.clampSize(c - rightPanelWidth - 24 - widthOffset, 180, 1600, LayoutRegistry.SHARED_DEFAULT_LEFT);
         plasmoidConfig.LeftPanelWidth = left;
         // The left-panel clamp (180–1600) can leave the derived menuWidth short
         // of / beyond the requested width — absorb the remainder in widthOffset
@@ -371,12 +402,14 @@ QtObject {
         var residual = c - (left + rightPanelWidth + 24 + widthOffset);
         if (residual !== 0)
             plasmoidConfig.WidthOffset = LayoutRegistry.clampSize(widthOffset + residual, -200, 400, 0);
+        root.snapshotLayoutSize(root.currentLayoutId);
     }
 
     function setMenuHeight(h) {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.MenuHeight = LayoutRegistry.clampSize(h, 400, 800, 540);
+        plasmoidConfig.MenuHeight = LayoutRegistry.clampSize(h, 400, root.maxMenuHeight, LayoutRegistry.SHARED_DEFAULT_HEIGHT);
+        root.snapshotLayoutSize(root.currentLayoutId);
     }
 
     function setSidebarWidth(w) {
@@ -385,6 +418,7 @@ QtObject {
         var c = LayoutRegistry.clampSize(w, 160, 360, 220);
         plasmoidConfig.SidebarWidth = c;
         plasmoidConfig.RightPanelWidth = c;
+        root.snapshotLayoutSize(root.currentLayoutId);
     }
 
     function setCategoryColumnWidth(w) {
@@ -415,13 +449,15 @@ QtObject {
     function resetLayoutSizesToDefaults() {
         if (!plasmoidConfig)
             return;
-        plasmoidConfig.MenuWidth = defaultMenuWidth;
-        plasmoidConfig.MenuHeight = defaultMenuHeight;
-        plasmoidConfig.SidebarWidth = defaultSidebarWidth;
-        plasmoidConfig.CategoryColumnWidth = defaultCategoryColumnWidth;
-        plasmoidConfig.LeftPanelWidth = Math.max(180, defaultMenuWidth - defaultSidebarWidth - 24);
-        plasmoidConfig.RightPanelWidth = defaultSidebarWidth;
-        plasmoidConfig.WidthOffset = 0;
+        var size = LayoutRegistry.sharedDefaultSize();
+        plasmoidConfig.MenuWidth = size.w;
+        plasmoidConfig.MenuHeight = size.h;
+        plasmoidConfig.SidebarWidth = size.sidebar;
+        plasmoidConfig.CategoryColumnWidth = size.category;
+        plasmoidConfig.LeftPanelWidth = size.left;
+        plasmoidConfig.RightPanelWidth = size.right;
+        plasmoidConfig.WidthOffset = size.offset;
+        root.snapshotLayoutSize(root.currentLayoutId);
     }
 
     readonly property int baseAppIconSize: Math.max(16, cfgInt("AppIconSize", 24))

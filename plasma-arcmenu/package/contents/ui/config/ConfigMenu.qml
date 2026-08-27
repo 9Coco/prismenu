@@ -108,6 +108,7 @@ Item {
     property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
     property string cfg_GroupViewOptions: "{}"
+    property string cfg_LayoutSizes: "{}"
 
     property var cfg_Providers: ["applications", "places", "files"]
     property string cfg_Placeholder
@@ -152,6 +153,7 @@ Item {
     property alias cfg_leftPanelWidth: root.cfg_LeftPanelWidth
     property alias cfg_rightPanelWidth: root.cfg_RightPanelWidth
     property alias cfg_widthOffset: root.cfg_WidthOffset
+    property alias cfg_layoutSizes: root.cfg_LayoutSizes
     property alias cfg_themeMode: root.cfg_ThemeMode
     property alias cfg_overrideMenuTheme: root.cfg_OverrideMenuTheme
     property alias cfg_menuThemeName: root.cfg_MenuThemeName
@@ -246,7 +248,7 @@ Item {
     property alias cfg_recentApps: root.cfg_RecentApps
 
     readonly property var cfgKeys: [
-        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight",
+        "MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight", "LayoutSizes",
         "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset",
         "ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes",
         "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize",
@@ -323,7 +325,7 @@ Item {
      *  Only these get pushed as initial properties; pushing all 96 keys
      *  spammed "Cannot assign to non-existent property" errors per open. */
     readonly property var subPageKeys: ({
-        "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset"],
+        "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "LayoutSizes"],
         "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
         "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],

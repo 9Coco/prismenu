@@ -362,6 +362,19 @@ def main() -> int:
     check("root.preferenceGroups" in layout_sources["LayoutKickoff.qml"],
           "Kickoff uses shared preference groups")
     check("placeShortcuts" in layout_base, "shared frequent-locations list")
+    registry_src = (PKG / "contents/code/LayoutRegistry.js").read_text(encoding="utf-8")
+    check("SHARED_DEFAULT_WIDTH = 620" in registry_src
+          and "function sizeForLayout" in registry_src,
+          "layouts share one default size and remember per-layout resizes")
+    config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")
+    check("meta.defaultWidth" not in config_layout
+          and "sizeForLayout" in config_layout,
+          "switching layouts does not apply per-layout default sizes")
+    main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
+    check("layoutFillsAvailableHeight: false" in main_qml,
+          "layouts do not open at full desktop height")
+    check('name="LayoutSizes"' in (PKG / "contents/config/main.xml").read_text(encoding="utf-8"),
+          "per-layout size map is persisted")
     check("applicationShortcuts" in layout_base, "shared application-shortcut list")
     for fname, needle, msg in [
         ("LayoutRedmond.qml", "root.placeShortcuts", "Redmond uses frequent locations"),
