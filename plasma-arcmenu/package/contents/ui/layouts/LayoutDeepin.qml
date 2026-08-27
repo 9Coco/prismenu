@@ -92,6 +92,7 @@ LayoutBase {
                 Layout.fillHeight: true
                 layoutRoot: root
                 items: root.appItems
+                navId: root.selectedId === "all" ? "all-apps" : root.selectedId
                 useGrid: !root.searching && root.usesGridView(
                     root.selectedId === "all" ? "all-apps" : root.selectedId)
                 showDescription: root.searching

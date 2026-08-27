@@ -43,6 +43,7 @@ LayoutBase {
             Layout.fillHeight: true
             layoutRoot: root
             items: root.items
+            navId: root.selectedId
             useGrid: !root.searching && root.usesGridView(root.selectedId)
             showDescription: root.searching
             inlineDescription: false

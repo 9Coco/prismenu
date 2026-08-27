@@ -89,6 +89,7 @@ LayoutBase {
                     layoutRoot: root
                     anchors.fill: parent
                     items: root.gridItems
+                    navId: root.showPinned ? "pinned" : "all-apps"
                     useGrid: !root.searching && root.usesGridView(
                         root.showPinned ? "pinned" : "all-apps")
                     showDescription: root.searching

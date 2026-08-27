@@ -128,6 +128,7 @@ LayoutBase {
             Layout.minimumHeight: Kirigami.Units.gridUnit * 8
             layoutRoot: root
             items: root.contentItems
+            navId: root.plasmaTab === 0 ? "pinned" : "all-apps"
             useGrid: !root.searching && ((root.plasmaTab === 0 && root.usesGridView("pinned"))
                      || (root.plasmaTab === 1 && root.usesGridView("all-apps")))
             showDescription: root.showAppDescriptions

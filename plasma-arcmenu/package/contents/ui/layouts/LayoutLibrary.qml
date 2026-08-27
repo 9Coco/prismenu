@@ -65,6 +65,7 @@ LayoutBase {
             Layout.fillHeight: true
             layoutRoot: root
             items: root.selectedItems
+            navId: root.selectedCategory
             useGrid: root.usesGridView(root.selectedCategory)
             showDescription: false
         }
