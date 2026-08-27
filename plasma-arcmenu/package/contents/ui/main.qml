@@ -110,20 +110,9 @@ PlasmoidItem {
 
     readonly property var currentLayoutInfo: LayoutRegistry.getLayout(
         plasmoid.configuration.MenuLayoutId || "arcmenu")
-    readonly property bool layoutFillsAvailableHeight: currentLayoutInfo
-        && currentLayoutInfo.heightPolicy === "available"
-    readonly property int availableLayoutHeight: {
-        var h = Screen.desktopAvailableHeight;
-        if (!h || h < 400)
-            h = Screen.height;
-        var maxH = (root.currentLayoutInfo && root.currentLayoutInfo.maxHeight)
-            ? root.currentLayoutInfo.maxHeight : 800;
-        var fallbackH = (root.currentLayoutInfo && root.currentLayoutInfo.defaultHeight)
-            ? root.currentLayoutInfo.defaultHeight : 540;
-        return LayoutRegistry.clampSize(h, 400, maxH, fallbackH);
-    }
-    readonly property int effectiveMenuHeight: root.layoutFillsAvailableHeight
-        ? root.availableLayoutHeight : menuData.menuHeight
+    readonly property bool layoutFillsAvailableHeight: false
+    readonly property int availableLayoutHeight: menuData.menuHeight
+    readonly property int effectiveMenuHeight: menuData.menuHeight
 
     MenuData {
         id: menuData
@@ -131,6 +120,9 @@ PlasmoidItem {
         currentLayoutId: plasmoid.configuration.MenuLayoutId || "arcmenu"
         // Width ceiling follows the screen (drag handles cap at the same fit)
         maxMenuWidth: Math.max(900, Screen.width - 80)
+        maxMenuHeight: Math.max(800, Screen.desktopAvailableHeight
+            ? (Screen.desktopAvailableHeight - 80) : (Screen.height - 80))
+        layoutSizesRaw: plasmoid.configuration.LayoutSizes
         // Direct bindings — required for live Extra Categories / Search Options toggles
         extraCategoriesEnabledRaw: plasmoid.configuration.ExtraCategoriesEnabled
         extraCategoriesOrderRaw: plasmoid.configuration.ExtraCategoriesOrder
@@ -848,7 +840,10 @@ PlasmoidItem {
         target: plasmoid.configuration
         function onMenuLayoutIdChanged() {
             console.log("ArcMenu: layout ->", plasmoid.configuration.MenuLayoutId);
-            menuData.currentLayoutId = plasmoid.configuration.MenuLayoutId || "arcmenu";
+            var nextId = plasmoid.configuration.MenuLayoutId || "arcmenu";
+            menuData.currentLayoutId = nextId;
+            if (lastLayoutId !== nextId)
+                menuData.applyLayoutSize(nextId);
             if (root.expanded && lastLayoutId !== plasmoid.configuration.MenuLayoutId) {
                 root.expanded = false;
                 Qt.callLater(() => {

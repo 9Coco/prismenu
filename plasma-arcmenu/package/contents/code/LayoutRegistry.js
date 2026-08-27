@@ -840,12 +840,22 @@ function getDesktop(id) {
 }
 
 function getLayout(id) {
+    var found = LAYOUTS[0];
     for (var i = 0; i < LAYOUTS.length; ++i) {
         if (LAYOUTS[i].id === id) {
-            return LAYOUTS[i];
+            found = LAYOUTS[i];
+            break;
         }
     }
-    return LAYOUTS[0];
+    var copy = {};
+    for (var k in found)
+        copy[k] = found[k];
+    copy.defaultWidth = SHARED_DEFAULT_WIDTH;
+    copy.defaultHeight = SHARED_DEFAULT_HEIGHT;
+    // First open is the shared popup size; users can still drag it larger.
+    if (copy.heightPolicy === "available")
+        copy.heightPolicy = "";
+    return copy;
 }
 
 function supportsOption(layoutId, option) {
@@ -882,4 +892,68 @@ function clampSize(value, min, max, fallback) {
         return fallback;
     }
     return Math.max(min, Math.min(max, n));
+}
+
+/** Shared first-open size for every layout. Per-layout user resizes are stored separately. */
+var SHARED_DEFAULT_WIDTH = 620;
+var SHARED_DEFAULT_HEIGHT = 540;
+var SHARED_DEFAULT_SIDEBAR = 220;
+var SHARED_DEFAULT_LEFT = 380;
+
+function sharedDefaultSize() {
+    return {
+        w: SHARED_DEFAULT_WIDTH,
+        h: SHARED_DEFAULT_HEIGHT,
+        sidebar: SHARED_DEFAULT_SIDEBAR,
+        category: SHARED_DEFAULT_SIDEBAR,
+        left: SHARED_DEFAULT_LEFT,
+        right: SHARED_DEFAULT_SIDEBAR,
+        offset: 0
+    };
+}
+
+function parseLayoutSizes(raw) {
+    try {
+        var obj = typeof raw === "string" ? JSON.parse(String(raw || "{}")) : (raw || {});
+        return (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function sizeForLayout(raw, layoutId) {
+    var defaults = sharedDefaultSize();
+    var map = parseLayoutSizes(raw);
+    var entry = layoutId && map[layoutId] ? map[layoutId] : null;
+    if (!entry || typeof entry !== "object")
+        return defaults;
+    var w = clampSize(entry.w, 400, 2400, defaults.w);
+    var h = clampSize(entry.h, 400, 2000, defaults.h);
+    return {
+        w: w,
+        h: h,
+        sidebar: clampSize(entry.sidebar, 160, 360, defaults.sidebar),
+        category: clampSize(entry.category, 160, 360, defaults.category),
+        left: clampSize(entry.left, 180, 1600, defaults.left),
+        right: clampSize(entry.right, 160, 360, defaults.right),
+        offset: clampSize(entry.offset, -200, 400, defaults.offset)
+    };
+}
+
+function setSizeForLayout(raw, layoutId, size) {
+    if (!layoutId)
+        return typeof raw === "string" ? raw : JSON.stringify(parseLayoutSizes(raw));
+    var map = parseLayoutSizes(raw);
+    var defaults = sharedDefaultSize();
+    var src = size || {};
+    map[layoutId] = {
+        w: clampSize(src.w, 400, 2400, defaults.w),
+        h: clampSize(src.h, 400, 2000, defaults.h),
+        sidebar: clampSize(src.sidebar, 160, 360, defaults.sidebar),
+        category: clampSize(src.category, 160, 360, defaults.category),
+        left: clampSize(src.left, 180, 1600, defaults.left),
+        right: clampSize(src.right, 160, 360, defaults.right),
+        offset: clampSize(src.offset, -200, 400, defaults.offset)
+    };
+    return JSON.stringify(map);
 }
