@@ -319,6 +319,8 @@ LayoutBase {
                         items: menuData ? menuData.pinnedApps : []
                         columns: menuData ? menuData.pinnedCols : 6
                         iconSize: root.groupIconSize("pinned")
+                        minCellWidth: Math.max(Kirigami.Units.gridUnit * 4,
+                            root.groupIconSize("pinned") + Kirigami.Units.gridUnit * 1.25)
                     }
 
                     QuickLinksBlock {
