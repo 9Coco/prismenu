@@ -327,7 +327,7 @@ Item {
     readonly property var subPageKeys: ({
         "ConfigLayout": ["MenuLayoutId", "FlipHorizontal", "SearchbarLocation", "SearchbarLocationUserSet", "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "LayoutSizes"],
         "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
-        "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
+        "ConfigVisual": ["OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
         "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
@@ -665,7 +665,7 @@ Item {
                     NavSep {}
                     NavRow {
                         title: root.tr("Menu Visual Appearance")
-                        subtitle: root.tr("Change menu height, width, location, and icon sizes")
+                        subtitle: root.tr("Menu position and icon sizes")
                         iconName: "preferences-desktop-display-symbolic"
                         accent: "teal"
                         onActivated: root.openSubPage(pageVisual, title)
