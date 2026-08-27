@@ -29,8 +29,23 @@ Item {
         return Locale.resolveLanguage("system", Qt.locale().name, Qt.locale().uiLanguages);
     }
 
-    readonly property color bg: themeStyle.bg || Kirigami.Theme.backgroundColor
-    readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
+    readonly property color bg: themeStyle.bg || "#2a2e32"
+    readonly property color fg: {
+        var c = themeStyle.fg || "#f2f2f2";
+        var b = root.bg;
+        var lumF = c.r * 0.299 + c.g * 0.587 + c.b * 0.114;
+        var lumB = b.r * 0.299 + b.g * 0.587 + b.b * 0.114;
+        if (Math.abs(lumF - lumB) < 0.28)
+            return lumB < 0.5 ? "#f2f2f2" : "#1c1c1c";
+        return c;
+    }
+
+    Kirigami.Theme.inherit: false
+    Kirigami.Theme.colorSet: Kirigami.Theme.Window
+    Kirigami.Theme.backgroundColor: root.bg
+    Kirigami.Theme.textColor: root.fg
+    Kirigami.Theme.highlightColor: root.activeBg
+    Kirigami.Theme.highlightedTextColor: root.activeFg
     readonly property color borderColor: themeStyle.border || Kirigami.Theme.disabledTextColor
     readonly property int borderWidth: themeStyle.borderWidth !== undefined ? themeStyle.borderWidth : 1
     readonly property real radius: themeStyle.radius !== undefined ? themeStyle.radius : Kirigami.Units.cornerRadius

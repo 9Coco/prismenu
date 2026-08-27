@@ -132,6 +132,8 @@ Item {
                 maximumLineCount: root.multiLineLabels ? 2 : 1
                 Layout.fillWidth: true
                 color: root.chipFg
+                Kirigami.Theme.inherit: false
+                Kirigami.Theme.textColor: root.chipFg
                 font.weight: Font.Medium
             }
 

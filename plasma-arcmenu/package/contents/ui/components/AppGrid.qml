@@ -109,13 +109,16 @@ GridView {
                 horizontalAlignment: Text.AlignHCenter
                 wrapMode: root.multiLineLabels ? Text.Wrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
-                color: {
+                readonly property color labelColor: {
                     if (root.currentIndex === del.index)
                         return root.selectedFg;
                     if (mouse.containsMouse)
                         return root.hoverFg;
                     return root.fg;
                 }
+                color: labelColor
+                Kirigami.Theme.inherit: false
+                Kirigami.Theme.textColor: labelColor
             }
         }
 
