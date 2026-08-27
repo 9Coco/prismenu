@@ -205,6 +205,7 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
+                visible: false // compatibility key; Plasma favorites are now always native
                 title: root.tr("Sync favorites with Plasma global favorites")
                 iconName: "bookmarks"
                 accent: "green"

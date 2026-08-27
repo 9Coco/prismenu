@@ -293,6 +293,7 @@ LayoutBase {
                     }
 
                     Components.PinnedAppsList {
+                        visible: !root.usesGridView("pinned")
                         menuData: root.menuData
                         Layout.fillWidth: true
                         Layout.fillHeight: true
@@ -308,6 +309,16 @@ LayoutBase {
                         multiLineLabels: root.multiLineLabels
                         onAppActivated: (app) => root.activateShortcut(app)
                         onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                    }
+
+                    Components.LayoutAppGrid {
+                        visible: root.usesGridView("pinned")
+                        layoutRoot: root
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        items: menuData ? menuData.pinnedApps : []
+                        columns: menuData ? menuData.pinnedCols : 6
+                        iconSize: root.groupIconSize("pinned")
                     }
 
                     QuickLinksBlock {
@@ -416,6 +427,7 @@ LayoutBase {
 
             Components.PlacesSidebar {
                 menuData: root.menuData
+                showSystemShortcuts: false
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 iconSize: root.shortcutIconSize

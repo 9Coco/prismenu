@@ -324,13 +324,18 @@ def main() -> int:
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
     pin_backend = apps_backend.split("function pinToTaskManager", 1)[1].split("function addDesktopShortcut", 1)[0]
-    check('sourceModel.trigger(sourceRow, "addToTaskManager", undefined)' in pin_backend,
+    check('triggerSystemAction(app, "addToTaskManager", undefined)' in pin_backend
+          and "sourceModel.trigger(path[path.length - 1]" in apps_backend,
           "taskbar pin uses Kicker native action")
     check("evaluateScript" not in pin_backend and "writeConfig('launchers'" not in pin_backend,
           "taskbar pin does not edit Plasma panel configuration")
     check("appletInterface: root.appletInterface" in apps_backend
           and "appletInterface: root" in (PKG / "contents/ui/main.qml").read_text(encoding="utf-8"),
           "Kicker receives the ArcMenu PlasmoidItem like Kickoff")
+    check("favoritesModel.initForClient" in apps_backend,
+          "Kicker global favorites model is initialized")
+    check("model.actionList" in apps_backend and "triggerSystemAction" in apps_backend,
+          "context menu uses Kicker native action list")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")
@@ -408,6 +413,15 @@ def main() -> int:
         ("LayoutSleek.qml", "usesGridView", "Sleek honors pinned/all-apps view mode"),
     ]:
         check(needle in layout_sources[fname], msg)
+
+    arc_layout = layout_sources["LayoutArcMenu.qml"]
+    arc_apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
+    check('showSystemShortcuts: false' in arc_layout,
+          "ArcMenu layout omits redundant software/settings/tweaks block")
+    check('root.usesGridView("pinned")' in arc_layout
+          and "host.groupViewMode(root.activeGroupId)" in arc_apps_page
+          and "Components.AppGrid {" in arc_apps_page,
+          "ArcMenu home and category pages honor per-group grid mode")
 
     layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
     config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")

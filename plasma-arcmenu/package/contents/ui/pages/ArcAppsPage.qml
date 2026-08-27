@@ -60,6 +60,20 @@ Item {
         return (!n || isNaN(n)) ? 24 : Math.max(16, n);
     }
     readonly property string uiLang: (dataHost && dataHost.uiLang) ? dataHost.uiLang : "zh_CN"
+    readonly property string activeGroupId: root.specialListId.length
+        ? root.specialListId : root.drillCategoryId
+    readonly property bool usesGridView: {
+        var host = root.dataHost;
+        var sig = host ? host.extrasSignature : "";
+        return !!(host && host.groupViewMode && root.activeGroupId
+            && host.groupViewMode(root.activeGroupId) === "grid");
+    }
+    readonly property int groupIconSize: {
+        var host = root.dataHost;
+        var sig = host ? host.extrasSignature : "";
+        return host && host.groupIconSize && root.activeGroupId
+            ? host.groupIconSize(root.activeGroupId) : 48;
+    }
 
     // Prefer MenuData categories; fall back to a short fixed list while scanning.
     readonly property var categoryItems: {
@@ -590,9 +604,9 @@ Item {
             Components.VirtualizedAppList {
                 id: appList
                 anchors.fill: parent
-                visible: true
-                opacity: root.showingCategories ? 0 : 1
-                enabled: !root.showingCategories
+                visible: !root.usesGridView
+                opacity: root.showingCategories || root.usesGridView ? 0 : 1
+                enabled: !root.showingCategories && !root.usesGridView
                 z: enabled ? 1 : 0
                 Accessible.name: root.categoryTitle()
 
@@ -638,14 +652,39 @@ Item {
                 onAppActivated: (app) => root.appActivated(app)
                 onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
 
-                PlasmaComponents.Label {
-                    anchors.centerIn: parent
-                    visible: root.drilledApps.length === 0
-                    horizontalAlignment: Text.AlignHCenter
-                    opacity: 0.55
-                    text: Locale.tr("No applications", root.uiLang)
-                    color: root.fg
-                }
+            }
+
+            Components.AppGrid {
+                id: appGrid
+                anchors.fill: parent
+                visible: root.usesGridView
+                opacity: !root.showingCategories && root.usesGridView ? 1 : 0
+                enabled: !root.showingCategories && root.usesGridView
+                z: enabled ? 1 : 0
+                items: root.drilledApps
+                menuData: root.menuData || root.dataHost
+                minCellWidth: Math.max(Kirigami.Units.gridUnit * 4,
+                    root.groupIconSize + Kirigami.Units.gridUnit * 2)
+                iconSize: root.groupIconSize
+                multiLineLabels: !(root.dataHost) || root.dataHost.multiLineLabels !== false
+                showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
+                selectedBg: root.selectedBg
+                selectedFg: root.selectedFg
+                hoverBg: root.hoverBg
+                hoverFg: root.hoverFg
+                fg: root.fg
+                onAppActivated: (app) => root.appActivated(app)
+                onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
+            }
+
+            PlasmaComponents.Label {
+                anchors.centerIn: parent
+                visible: !root.showingCategories && root.drilledApps.length === 0
+                z: 2
+                horizontalAlignment: Text.AlignHCenter
+                opacity: 0.55
+                text: Locale.tr("No applications", root.uiLang)
+                color: root.fg
             }
         }
     }
