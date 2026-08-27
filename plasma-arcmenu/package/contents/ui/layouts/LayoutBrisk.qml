@@ -35,13 +35,7 @@ LayoutBase {
 
     /** Upstream brisk-layout-extra-shortcuts — configurable application
      * shortcuts above the power row (fallback: Software / Settings). */
-    readonly property var briskShortcuts: (menuData && menuData.systemShortcuts
-        && menuData.systemShortcuts.length)
-        ? menuData.systemShortcuts
-        : [
-            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
-        ]
+    readonly property var briskShortcuts: root.applicationShortcuts
 
 
 

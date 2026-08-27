@@ -24,20 +24,8 @@ LayoutBase {
 
     readonly property int railWidth: Kirigami.Units.gridUnit * 2.8
 
-    readonly property var placeActions: [
-        { id: "place-home", icon: "user-home", tip: root.tr("Home"), place: "HOME" },
-        { id: "place-docs", icon: "folder-documents", tip: root.tr("Documents"), place: "DOCUMENTS" },
-        { id: "place-dl", icon: "folder-download", tip: root.tr("Downloads"), place: "DOWNLOAD" },
-        { id: "place-music", icon: "folder-music", tip: root.tr("Music"), place: "MUSIC" },
-        { id: "place-pics", icon: "folder-pictures", tip: root.tr("Pictures"), place: "PICTURES" },
-        { id: "place-videos", icon: "folder-videos", tip: root.tr("Videos"), place: "VIDEOS" }
-    ]
-
-    readonly property var systemActions: [
-        { id: "shortcut-software", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
-        { id: "shortcut-settings", icon: "preferences-system", tip: root.tr("Settings"), action: "settings" },
-        { id: "shortcut-tweaks", icon: "preferences-desktop-display", tip: root.tr("Tweaks"), exec: "systemsettings kcm_lookandfeel" }
-    ]
+    readonly property var placeActions: root.asRailItems(root.placeShortcuts)
+    readonly property var systemActions: root.asRailItems(root.applicationShortcuts)
 
 
 

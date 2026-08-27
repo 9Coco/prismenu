@@ -246,22 +246,64 @@ Item {
         ];
     }
 
-    /** Places + application shortcuts from settings (Directory / Application Shortcuts). */
-    readonly property var sidebarShortcuts: {
+    /** Places from Frequent Locations settings (folders and custom files). */
+    readonly property var placeShortcuts: {
         var _ = root.uiLang;
+        var _sig = menuData ? menuData.extrasSignature : "";
         var places = (menuData && menuData.places && menuData.places.length)
             ? menuData.places : [];
-        var apps = (menuData && menuData.systemShortcuts && menuData.systemShortcuts.length)
-            ? menuData.systemShortcuts : [];
-        if (places.length || apps.length)
-            return places.concat(apps);
+        if (places.length)
+            return places;
         return [
             { id: "place-home", name: root.tr("Home"), icon: "user-home", place: "HOME" },
             { id: "place-docs", name: root.tr("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
             { id: "place-dl", name: root.tr("Downloads"), icon: "folder-download", place: "DOWNLOAD" },
-            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" }
+            { id: "place-music", name: root.tr("Music"), icon: "folder-music", place: "MUSIC" },
+            { id: "place-pics", name: root.tr("Pictures"), icon: "folder-pictures", place: "PICTURES" },
+            { id: "place-videos", name: root.tr("Videos"), icon: "folder-videos", place: "VIDEOS" }
         ];
+    }
+
+    /** Application shortcuts from settings. */
+    readonly property var applicationShortcuts: {
+        var _ = root.uiLang;
+        var _sig = menuData ? menuData.extrasSignature : "";
+        var apps = (menuData && menuData.systemShortcuts && menuData.systemShortcuts.length)
+            ? menuData.systemShortcuts : [];
+        if (apps.length)
+            return apps;
+        return [
+            { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
+            { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
+            { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
+        ];
+    }
+
+    /** Places + application shortcuts from settings (Directory / Application Shortcuts). */
+    readonly property var sidebarShortcuts: {
+        return root.placeShortcuts.concat(root.applicationShortcuts);
+    }
+
+    /** Icon-rail copy of a shortcut list (tip from name). */
+    function asRailItems(list) {
+        var out = [];
+        for (var i = 0; i < (list || []).length; ++i) {
+            var it = list[i];
+            if (!it)
+                continue;
+            out.push({
+                id: it.id,
+                name: it.name || "",
+                icon: it.icon || "folder",
+                tip: it.name || it.tip || "",
+                place: it.place || "",
+                exec: it.exec || "",
+                action: it.action || "",
+                path: it.path || "",
+                kickerUrl: it.kickerUrl || ""
+            });
+        }
+        return out;
     }
 
     function appsModel() {

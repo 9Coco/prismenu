@@ -12,7 +12,10 @@ LayoutBase {
     property string selectedCategory: ""
     readonly property bool windowsVariant: menuData
         && menuData.currentLayoutId === "win11-categories"
-    readonly property var categories: root.typeCategories
+    readonly property var categories: {
+        var _sig = menuData ? menuData.extrasSignature : "";
+        return root.preferenceGroups.concat(root.typeCategories);
+    }
     readonly property var selectedItems: {
         if (!selectedCategory || !menuData)
             return [];
@@ -56,14 +59,14 @@ LayoutBase {
             inlineDescription: true
         }
 
-        Components.LayoutAppGrid {
+        Components.LayoutGroupPane {
             visible: !root.searching && root.selectedCategory.length > 0
             Layout.fillWidth: true
             Layout.fillHeight: true
             layoutRoot: root
             items: root.selectedItems
-            columns: Math.max(4, Math.floor(width / (Kirigami.Units.gridUnit * 5.5)))
-            iconSize: Math.max(42, root.gridIconSize)
+            useGrid: root.usesGridView(root.selectedCategory)
+            showDescription: false
         }
 
         GridView {

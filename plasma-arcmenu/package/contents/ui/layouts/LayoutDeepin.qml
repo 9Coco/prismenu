@@ -11,20 +11,26 @@ LayoutBase {
     readonly property bool fullMode: menuData && menuData.currentLayoutId === "deepin-full"
     property string selectedId: "all"
     readonly property var categories: root.typeCategories
+    readonly property var extraCategories: root.preferenceGroups
     readonly property var appItems: {
         if (root.searching && menuData)
             return menuData.searchResultsFlat;
         if (selectedId === "all")
-            return root.allApplications;
+            return root.computeContentItems("all-apps");
         return root.computeContentItems(selectedId);
     }
 
     function selectCategory(id) {
         selectedId = id;
-        if (menuData) {
-            menuData.setSearch("");
-            menuData.currentCategoryId = id;
-        }
+        if (!menuData)
+            return;
+        menuData.setSearch("");
+        root.refreshNavData(id);
+        if (id === "pinned" || id === "favorites" || id === "frequent"
+                || id === "recent-files" || String(id).indexOf("qgrp-") === 0
+                || String(id).indexOf("tgrp-") === 0)
+            return;
+        menuData.currentCategoryId = (id === "all-apps" || id === "all") ? "all" : id;
     }
 
     ColumnLayout {
@@ -49,15 +55,20 @@ LayoutBase {
                 Layout.preferredWidth: root.sidebarW
                 Layout.minimumWidth: root.elasticColumnMin
                 Layout.fillHeight: true
-                Components.ShortcutRow {
-                    Layout.fillWidth: true
-                    iconName: "view-app-grid-symbolic"
-                    label: root.tr("All Applications")
-                    selected: root.selectedId === "all"
-                    selectedBg: root.selectedBg; selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
-                    onActivated: root.selectCategory("all")
+                Repeater {
+                    model: root.extraCategories.length
+                    Components.ShortcutRow {
+                        required property int index
+                        Layout.fillWidth: true
+                        iconName: root.extraCategories[index].icon
+                        label: root.extraCategories[index].name
+                        selected: root.selectedId === root.extraCategories[index].id
+                        selectedBg: root.selectedBg; selectedFg: root.selectedFg
+                        hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
+                        onActivated: root.selectCategory(root.extraCategories[index].id)
+                    }
                 }
+                Kirigami.Separator { Layout.fillWidth: true; visible: root.extraCategories.length > 0 }
                 Repeater {
                     model: root.categories.length
                     Components.ShortcutRow {
@@ -76,14 +87,14 @@ LayoutBase {
 
             Kirigami.Separator { visible: !root.fullMode; Layout.fillHeight: true }
 
-            Components.LayoutAppGrid {
+            Components.LayoutGroupPane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
                 layoutRoot: root
                 items: root.appItems
-                columns: Math.max(root.fullMode ? 7 : 4,
-                    Math.floor(width / (Kirigami.Units.gridUnit * 5.5)))
-                iconSize: Math.max(44, root.gridIconSize)
+                useGrid: !root.searching && root.usesGridView(
+                    root.selectedId === "all" ? "all-apps" : root.selectedId)
+                showDescription: root.searching
             }
 
             ColumnLayout {

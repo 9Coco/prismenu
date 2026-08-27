@@ -357,8 +357,25 @@ def main() -> int:
         check(has_search or has_direct, f"layout exposes ArcMenu Settings: {fname}")
     check("Components.VirtualizedAppList" in apps_page, "apps page uses shared virtualized list")
     check("CategoryMeta.iconForCategory(" in apps_backend, "shared semantic category icons")
-    check("SidebarModel.orderedItems(" in layout_sources["LayoutKickoff.qml"],
-          "Kickoff shared configurable sidebar")
+    check("root.typeCategories" in layout_sources["LayoutKickoff.qml"],
+          "Kickoff uses shared type groups")
+    check("root.preferenceGroups" in layout_sources["LayoutKickoff.qml"],
+          "Kickoff uses shared preference groups")
+    check("placeShortcuts" in layout_base, "shared frequent-locations list")
+    check("applicationShortcuts" in layout_base, "shared application-shortcut list")
+    for fname, needle, msg in [
+        ("LayoutRedmond.qml", "root.placeShortcuts", "Redmond uses frequent locations"),
+        ("LayoutWindows.qml", "root.placeShortcuts", "Windows uses frequent locations"),
+        ("LayoutTognee.qml", "root.placeShortcuts", "Tognee uses frequent locations"),
+        ("LayoutUnity.qml", "root.placeShortcuts", "Unity uses frequent locations"),
+        ("LayoutDeepin.qml", "root.usesGridView", "Deepin honors column view mode"),
+        ("LayoutEnterprise.qml", "LayoutGroupPane", "Enterprise honors column view mode"),
+        ("LayoutLibrary.qml", "LayoutGroupPane", "Library honors column view mode"),
+        ("LayoutPlasmaDash.qml", "root.preferenceGroups", "Plasma Dash uses preference groups"),
+        ("LayoutApplicationMenu.qml", "root.preferenceGroups", "Application Menu uses preference groups"),
+        ("LayoutSleek.qml", "usesGridView", "Sleek honors pinned/all-apps view mode"),
+    ]:
+        check(needle in layout_sources[fname], msg)
 
     layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
     config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")
