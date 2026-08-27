@@ -77,16 +77,6 @@ Item {
         ConfigGroup {
             title: root.tr("General")
             ConfigSettingRow {
-                title: root.tr("Show category submenus")
-                iconName: "view-list-tree"
-                accent: "blue"
-                QQC2.Switch {
-                    checked: cfg_ShowCategorySubmenus
-                    onToggled: { cfg_ShowCategorySubmenus = checked; writeLive("ShowCategorySubmenus", checked); }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
                 title: root.tr("Show application descriptions")
                 iconName: "text-x-generic"
                 accent: "purple"
@@ -103,16 +93,6 @@ Item {
                 QQC2.Switch {
                     checked: cfg_ShowGenericNames
                     onToggled: { cfg_ShowGenericNames = checked; writeLive("ShowGenericNames", checked); }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Show hidden recent files")
-                iconName: "view-hidden"
-                accent: "orange"
-                QQC2.Switch {
-                    checked: cfg_ShowHiddenRecentFiles
-                    onToggled: { cfg_ShowHiddenRecentFiles = checked; writeLive("ShowHiddenRecentFiles", checked); }
                 }
             }
             ConfigSep {}
@@ -149,17 +129,6 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
-                title: root.tr("Group apps alphabetically on grid views")
-                subtitle: root.tr("For All Apps sections.")
-                iconName: "view-app-grid-symbolic"
-                accent: "pink"
-                QQC2.Switch {
-                    checked: cfg_GroupAppsAlphabeticallyGrid
-                    onToggled: { cfg_GroupAppsAlphabeticallyGrid = checked; writeLive("GroupAppsAlphabeticallyGrid", checked); }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
                 title: root.tr("Activate app window on launch")
                 subtitle: root.tr("Launching an app activates its existing window if one is open; otherwise, it launches a new instance. Hold Ctrl while launching or middle-click to open a new window.")
                 iconName: "window"
@@ -184,16 +153,6 @@ Item {
 
         ConfigGroup {
             title: root.tr("Scrollview options")
-            ConfigSettingRow {
-                title: root.tr("Scrollview fade effects")
-                iconName: "preferences-desktop-effects"
-                accent: "blue"
-                QQC2.Switch {
-                    checked: cfg_ScrollviewFadeEffects
-                    onToggled: { cfg_ScrollviewFadeEffects = checked; writeLive("ScrollviewFadeEffects", checked); }
-                }
-            }
-            ConfigSep {}
             ConfigSettingRow {
                 title: root.tr("Show scrollbars")
                 iconName: "view-fullscreen"

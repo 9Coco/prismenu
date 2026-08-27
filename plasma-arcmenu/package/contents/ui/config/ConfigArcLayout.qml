@@ -292,33 +292,6 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
-                title: root.tr("Search bar location")
-                iconName: "edit-find"
-                accent: "orange"
-                QQC2.ComboBox {
-                    model: [root.tr("Top"), root.tr("Bottom")]
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 8
-                    Component.onCompleted: currentIndex = cfg_SearchbarLocation === "bottom" ? 1 : 0
-                    onActivated: {
-                        cfg_SearchbarLocation = currentIndex === 1 ? "bottom" : "top";
-                        cfg_SearchbarLocationUserSet = true;
-                        writeLive("SearchbarLocation", cfg_SearchbarLocation);
-                        writeLive("SearchbarLocationUserSet", true);
-                    }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Flip layout horizontally")
-                iconName: "object-flip-horizontal"
-                accent: "green"
-                QQC2.Switch {
-                    checked: cfg_FlipHorizontal
-                    onToggled: { cfg_FlipHorizontal = checked; writeLive("FlipHorizontal", checked); }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
                 title: root.tr("Vertical separator")
                 iconName: "view-split-left-right"
                 accent: "cyan"

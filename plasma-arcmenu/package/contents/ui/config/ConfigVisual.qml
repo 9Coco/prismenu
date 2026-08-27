@@ -36,19 +36,6 @@ Item {
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
     function writeLive(key, value) { try { plasmoid.configuration[key] = value; } catch (e) {} }
 
-    function syncWidthFromPanels() {
-        var w = cfg_LeftPanelWidth + cfg_RightPanelWidth + 24 + cfg_WidthOffset;
-        if (w < 400) w = 400;
-        if (w > 900) w = 900;
-        cfg_MenuWidth = w;
-        cfg_SidebarWidth = cfg_RightPanelWidth;
-        writeLive("MenuWidth", w);
-        writeLive("SidebarWidth", cfg_RightPanelWidth);
-        writeLive("LeftPanelWidth", cfg_LeftPanelWidth);
-        writeLive("RightPanelWidth", cfg_RightPanelWidth);
-        writeLive("WidthOffset", cfg_WidthOffset);
-    }
-
     readonly property var iconLevelModel: [
         root.tr("Off"),
         root.tr("Extra Small"),
@@ -67,10 +54,6 @@ Item {
     }
 
     function resetDefaults() {
-        cfg_MenuHeight = 540;
-        cfg_LeftPanelWidth = 380;
-        cfg_RightPanelWidth = 220;
-        cfg_WidthOffset = 0;
         cfg_OverrideMenuPosition = "off";
         cfg_OverrideMenuRise = false;
         cfg_MenuRiseDistance = 6;
@@ -80,15 +63,9 @@ Item {
         cfg_IconSizeCategories = -1;
         cfg_IconSizeButtons = -1;
         cfg_IconSizeOther = -1;
-        heightSpin.value = 540;
-        leftSpin.value = 380;
-        rightSpin.value = 220;
-        offsetSpin.value = 0;
         riseSwitch.checked = false;
         riseSpin.value = 6;
         posCombo.currentIndex = 0;
-        syncWidthFromPanels();
-        writeLive("MenuHeight", 540);
         writeLive("OverrideMenuPosition", "off");
         writeLive("OverrideMenuRise", false);
         writeLive("MenuRiseDistance", 6);
@@ -102,77 +79,7 @@ Item {
 
     ConfigPage {
         title: root.tr("Menu Visual Appearance")
-        tip: root.tr("Change menu height, width, location, and icon sizes")
-
-        ConfigGroup {
-            title: root.tr("Menu size")
-            ConfigSettingRow {
-                title: root.tr("Height")
-                iconName: "resizecol"
-                accent: "blue"
-                QQC2.SpinBox {
-                    id: heightSpin
-                    from: 400; to: 800; stepSize: 10
-                    value: cfg_MenuHeight
-                    onValueModified: {
-                        cfg_MenuHeight = value;
-                        writeLive("MenuHeight", value);
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Left panel width")
-                subtitle: root.tr("Traditional layouts")
-                iconName: "view-split-left-right"
-                accent: "purple"
-                QQC2.SpinBox {
-                    id: leftSpin
-                    from: 180; to: 600; stepSize: 5
-                    value: cfg_LeftPanelWidth
-                    onValueModified: {
-                        cfg_LeftPanelWidth = value;
-                        root.syncWidthFromPanels();
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Right panel width")
-                subtitle: root.tr("Traditional layouts")
-                iconName: "view-split-left-right"
-                accent: "teal"
-                QQC2.SpinBox {
-                    id: rightSpin
-                    from: 160; to: 360; stepSize: 5
-                    value: cfg_RightPanelWidth
-                    onValueModified: {
-                        cfg_RightPanelWidth = value;
-                        root.syncWidthFromPanels();
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Width offset")
-                subtitle: root.tr("Non-traditional layouts")
-                iconName: "transform-move-horizontal"
-                accent: "orange"
-                QQC2.SpinBox {
-                    id: offsetSpin
-                    from: -200; to: 400; stepSize: 10
-                    value: cfg_WidthOffset
-                    onValueModified: {
-                        cfg_WidthOffset = value;
-                        root.syncWidthFromPanels();
-                    }
-                    textFromValue: (v) => v + " px"
-                }
-            }
-        }
+        tip: root.tr("Menu position and icon sizes. Drag the menu edges to resize.")
 
         ConfigGroup {
             title: root.tr("Menu position")
@@ -333,41 +240,7 @@ Item {
         }
     }
 
-    Connections {
-        target: plasmoid.configuration
-        function onMenuHeightChanged() {
-            var v = plasmoid.configuration.MenuHeight;
-            if (heightSpin.value !== v) heightSpin.value = v;
-            cfg_MenuHeight = v;
-        }
-        function onLeftPanelWidthChanged() {
-            var v = plasmoid.configuration.LeftPanelWidth;
-            if (leftSpin.value !== v) leftSpin.value = v;
-            cfg_LeftPanelWidth = v;
-        }
-        function onRightPanelWidthChanged() {
-            var v = plasmoid.configuration.RightPanelWidth;
-            if (rightSpin.value !== v) rightSpin.value = v;
-            cfg_RightPanelWidth = v;
-        }
-        function onSidebarWidthChanged() {
-            var v = plasmoid.configuration.SidebarWidth;
-            if (rightSpin.value !== v) {
-                rightSpin.value = v;
-                cfg_RightPanelWidth = v;
-            }
-        }
-    }
-
     Component.onCompleted: {
-        heightSpin.value = cfg_MenuHeight || 540;
-        leftSpin.value = cfg_LeftPanelWidth || 380;
-        rightSpin.value = cfg_RightPanelWidth || cfg_SidebarWidth || 220;
-        offsetSpin.value = cfg_WidthOffset || 0;
         riseSpin.value = cfg_MenuRiseDistance >= 0 ? cfg_MenuRiseDistance : 6;
-        if (!cfg_LeftPanelWidth)
-            cfg_LeftPanelWidth = 380;
-        if (!cfg_RightPanelWidth)
-            cfg_RightPanelWidth = cfg_SidebarWidth || 220;
     }
 }

@@ -476,7 +476,7 @@ Item {
                     Layout.fillWidth: true
                     wrapMode: Text.WordWrap
                     opacity: 0.75
-                    text: root.tr("Menu size, position, and icon overrides are in Menu Visual Appearance.")
+                    text: root.tr("Menu position and icon sizes are in Menu Visual Appearance.")
                 }
 
                 QQC2.Label {

@@ -274,6 +274,13 @@ def main() -> int:
         check(label in config_model, f"settings category: {label}")
     check('title: root.tr("Pinned Applications")' not in config_model,
           "pinned apps page removed from menu hub")
+    visual_cfg = (PKG / "contents/ui/config/ConfigVisual.qml").read_text(encoding="utf-8")
+    check("Left panel width" not in visual_cfg and "Width offset" not in visual_cfg,
+          "visual settings no longer include drag-resized panel widths")
+    fine_cfg = (PKG / "contents/ui/config/ConfigFineTune.qml").read_text(encoding="utf-8")
+    check("Show category submenus" not in fine_cfg
+          and "Scrollview fade effects" not in fine_cfg,
+          "unused GNOME leftover toggles removed from fine-tuning")
     dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
     check("Frequent Locations" in dirs_page, "places page uses Frequent Locations title")
     check("Add custom file" in dirs_page and "FileDialog" in dirs_page,
