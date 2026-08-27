@@ -3,7 +3,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Pop layout (ArcMenu Pop / Pop!_OS launcher style).
@@ -33,10 +32,10 @@ LayoutBase {
         if (!menuData || !menuData.allApps)
             return [];
         if (popTab === 1)
-            return AppsModel.appsInCategory(menuData.allApps, "System");
+            return root.computeContentItems("System");
         if (popTab === 2)
-            return AppsModel.appsInCategory(menuData.allApps, "Utility");
-        return root.allApplications;
+            return root.computeContentItems("Utility");
+        return root.computeContentItems("all-apps");
     }
 
 
@@ -62,20 +61,13 @@ LayoutBase {
             Layout.fillHeight: true
             Layout.minimumHeight: Kirigami.Units.gridUnit * 10
 
-            Components.LayoutAppGrid {
+            Components.LayoutGroupPane {
                 layoutRoot: root
                 anchors.fill: parent
                 items: root.gridItems
-                columns: root.gridColumns
-                iconSize: root.gridIconSize
-                cellWidth: Math.max(Kirigami.Units.gridUnit * 4, width / Math.max(1, columns))
-                cellHeight: root.gridCellHeight
-                multiLineLabels: true
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                hoverBg: root.hoverBg
-                hoverFg: root.hoverFg
-                fg: root.fg
+                useGrid: !root.searching && root.usesGridView(
+                    root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : "all-apps"))
+                showDescription: root.searching
             }
 
             PlasmaComponents.Label {

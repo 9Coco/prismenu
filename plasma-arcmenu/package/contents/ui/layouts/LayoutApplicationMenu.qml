@@ -44,13 +44,22 @@ LayoutBase {
 
     readonly property var navItems: {
         var _ = root.uiLang;
+        var _sig = menuData ? menuData.extrasSignature : "";
         var out = [];
+        var i;
         if (!root.pureTraditional) {
-            out.push({ id: "recent", name: root.tr("Recent Applications"), icon: "clock" });
-            out.push({ id: "recent-files", name: root.tr("Recent Files"), icon: "document-open-recent" });
+            var extras = root.preferenceGroups;
+            for (i = 0; i < extras.length; ++i) {
+                if (extras[i] && extras[i].id)
+                    out.push({
+                        id: extras[i].id,
+                        name: extras[i].name,
+                        icon: extras[i].icon || "applications-other"
+                    });
+            }
         }
-        var cats = (menuData && menuData.categories) ? menuData.categories : [];
-        for (var i = 0; i < cats.length; ++i) {
+        var cats = root.typeCategories;
+        for (i = 0; i < cats.length; ++i) {
             var c = cats[i];
             if (!c || !c.id || c.id === "all" || c.id === "all-apps")
                 continue;
@@ -118,20 +127,20 @@ LayoutBase {
     readonly property var flyoutItems: {
         if (root.searching || !root.hoverId)
             return [];
-        if (root.hoverId === "recent")
-            return (menuData && menuData.recentApps) ? menuData.recentApps : [];
+        if (root.hoverId === "recent" || root.hoverId === "frequent")
+            return root.computeContentItems("frequent");
         if (root.hoverId === "recent-files")
-            return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
+            return root.computeContentItems("recent-files");
         if (root.hoverId === "session")
             return root.sessionActions;
         return root.computeContentItems(root.hoverId);
     }
 
     function itemHasChildren(id) {
-        if (id === "recent")
-            return !!(menuData && menuData.recentApps && menuData.recentApps.length);
+        if (id === "recent" || id === "frequent")
+            return !!(root.computeContentItems("frequent") || []).length;
         if (id === "recent-files")
-            return !!(menuData && menuData.recentFileResults && menuData.recentFileResults.length);
+            return !!(root.computeContentItems("recent-files") || []).length;
         if (id === "session")
             return root.sessionActions.length > 0;
         var apps = root.computeContentItems(id);

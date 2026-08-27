@@ -22,17 +22,7 @@ LayoutBase {
 
     // Top group: places / shortcuts — upstream mint-layout-extra-shortcuts
     // is user configurable; fall back to the standard set when empty.
-    readonly property var railTopActions: (menuData && menuData.systemShortcuts
-        && menuData.systemShortcuts.length)
-        ? menuData.systemShortcuts.map(function (s) {
-            return { id: s.id, icon: s.icon, tip: s.name, exec: s.exec, action: s.action,
-                     kickerUrl: s.kickerUrl, entryPath: s.entryPath };
-        })
-        : [
-            { id: "settings", icon: "preferences-system", tip: root.tr("Settings"), action: "settings" },
-            { id: "software", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
-            { id: "files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
-        ]
+    readonly property var railTopActions: root.asRailItems(root.applicationShortcuts)
 
     // Bottom group: session (separated from folder by a larger gap)
     readonly property var railSessionActions: [

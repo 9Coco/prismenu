@@ -986,9 +986,11 @@ QtObject {
     }
 
     readonly property var directoryShortcutIds: {
+        var _ = root.structureEpoch;
         return ShortcutsConfig.normalizeList(cfg("DirectoryShortcuts", ShortcutsConfig.DEFAULT_DIRS), ShortcutsConfig.DEFAULT_DIRS);
     }
     readonly property var applicationShortcutIds: {
+        var _ = root.structureEpoch;
         return ShortcutsConfig.normalizeList(cfg("ApplicationShortcuts", ShortcutsConfig.DEFAULT_APPS), ShortcutsConfig.DEFAULT_APPS);
     }
     readonly property bool extraCategoriesUserSet: {
@@ -1107,8 +1109,11 @@ QtObject {
             ? String(groupViewOptionsRaw) : cfgStr("GroupViewOptions", "{}");
         var appsRaw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)
             ? String(customGroupAppsRaw) : cfgStr("CustomGroupApps", "{}");
+        var dirs = root.directoryShortcutIds || [];
+        var apps = root.applicationShortcutIds || [];
         return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",")
-            + "|g:" + gids.join(",") + "|v:" + viewRaw + "|a:" + appsRaw;
+            + "|g:" + gids.join(",") + "|v:" + viewRaw + "|a:" + appsRaw
+            + "|d:" + dirs.join(",") + "|s:" + apps.join(",");
     }
 
     readonly property var groupViewOptions: {
@@ -1133,6 +1138,7 @@ QtObject {
      */
     readonly property var places: {
         var _ = root.uiLang;
+        var __ = root.structureEpoch;
         var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
         var plasmaByPlace = {};
         var plasmaByPath = {};

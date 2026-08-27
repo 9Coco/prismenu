@@ -4,7 +4,6 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import "../../code/AppsModel.js" as AppsModel
 
 /**
  * Unity layout (ArcMenu Unity compact menu �?not Unity Dash).
@@ -31,19 +30,8 @@ LayoutBase {
 
 
 
-    readonly property var shortcutItems: [
-        { id: "shortcut-software", name: root.tr("Software"), icon: "plasmadiscover", action: "discover" },
-        { id: "shortcut-settings", name: root.tr("Settings"), icon: "preferences-system", action: "settings" },
-        { id: "shortcut-tweaks", name: root.tr("Tweaks"), icon: "preferences-desktop-display", exec: "systemsettings kcm_lookandfeel" }
-    ]
-
-    readonly property var footPlaces: [
-        { id: "place-home", icon: "user-home", tip: root.tr("Home"), place: "HOME" },
-        { id: "place-docs", icon: "folder-documents", tip: root.tr("Documents"), place: "DOCUMENTS" },
-        { id: "place-dl", icon: "folder-download", tip: root.tr("Downloads"), place: "DOWNLOAD" },
-        { id: "shortcut-software-foot", icon: "plasmadiscover", tip: root.tr("Software"), action: "discover" },
-        { id: "place-files", icon: "system-file-manager", tip: root.tr("Files"), exec: "dolphin" }
-    ]
+    readonly property var shortcutItems: root.applicationShortcuts
+    readonly property var footPlaces: root.asRailItems(root.placeShortcuts)
 
     readonly property var pinnedItems: {
         if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
@@ -65,11 +53,10 @@ LayoutBase {
         if (root.searching) {
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
         }
-        if (selectedId === "all") {
-            return root.allApplications;
-        }
-        if (selectedId !== "" && selectedId !== "home" && menuData && menuData.allApps)
-            return AppsModel.appsInCategory(menuData.allApps, selectedId);
+        if (selectedId === "all")
+            return root.computeContentItems("all-apps");
+        if (selectedId !== "" && selectedId !== "home")
+            return root.computeContentItems(selectedId);
         return [];
     }
 
@@ -368,11 +355,13 @@ LayoutBase {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
 
-                Components.LayoutAppList {
+                Components.LayoutGroupPane {
                     layoutRoot: root
                     anchors.fill: parent
                     items: root.allAppsItems
-                    iconSize: Math.max(root.appIconSize, 28)
+                    useGrid: !root.searching && root.usesGridView(
+                        root.selectedId === "all" ? "all-apps" : root.selectedId)
+                    showDescription: root.searching
                 }
 
                 PlasmaComponents.Label {

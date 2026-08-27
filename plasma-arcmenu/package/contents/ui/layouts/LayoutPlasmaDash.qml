@@ -21,7 +21,7 @@ LayoutBase {
     id: root
 
     defaultSearchOnTop: true
-    property string selectedId: "recent"
+    property string selectedId: "frequent"
 
     readonly property int dashIcon: Kirigami.Units.iconSizes.medium
     readonly property int dashCellH: dashIcon + Kirigami.Units.gridUnit * 1.7
@@ -38,19 +38,20 @@ LayoutBase {
 
     readonly property var navItems: {
         var _ = root.uiLang;
-        var out = [
-            { id: "recent", name: root.tr("Recent Applications") },
-            { id: "recent-files", name: root.tr("Recent Files") },
-            { id: "all", name: root.tr("All Applications") }
-        ];
-        var cats = (menuData && menuData.categories) ? menuData.categories : [];
-        for (var i = 0; i < cats.length; ++i) {
-            var c = cats[i];
-            if (!c || !c.id || c.id === "all" || c.id === "all-apps")
-                continue;
-            out.push({ id: c.id, name: c.name });
+        var _sig = menuData ? menuData.extrasSignature : "";
+        var out = [];
+        var extras = root.preferenceGroups;
+        var i;
+        for (i = 0; i < extras.length; ++i) {
+            if (extras[i] && extras[i].id)
+                out.push({ id: extras[i].id, name: extras[i].name, icon: extras[i].icon });
         }
-        out.push({ id: "session", name: root.tr("Power / Session") });
+        var cats = root.typeCategories;
+        for (i = 0; i < cats.length; ++i) {
+            if (cats[i] && cats[i].id)
+                out.push({ id: cats[i].id, name: cats[i].name, icon: cats[i].icon });
+        }
+        out.push({ id: "session", name: root.tr("Power / Session"), icon: "system-shutdown" });
         return out;
     }
 
@@ -61,7 +62,7 @@ LayoutBase {
             return root.tr("Files");
         if (root.selectedId === "session")
             return root.tr("System Actions");
-        if (root.selectedId === "all")
+        if (root.selectedId === "all" || root.selectedId === "all-apps")
             return "";
         return root.tr("Applications");
     }
@@ -69,14 +70,10 @@ LayoutBase {
     readonly property var centerItems: {
         if (root.searching)
             return [];
-        if (root.selectedId === "recent")
-            return (menuData && menuData.recentApps && menuData.recentApps.length)
-                ? menuData.recentApps : root.favoriteItems;
-        if (root.selectedId === "recent-files")
-            return (menuData && menuData.recentFileResults) ? menuData.recentFileResults : [];
-        if (root.selectedId === "all" || root.selectedId === "session")
+        if (root.selectedId === "all" || root.selectedId === "all-apps"
+                || root.selectedId === "session")
             return [];
-        return root.computeContentItems(root.selectedId);
+        return root.computeContentItems(root.selectedId === "recent" ? "frequent" : root.selectedId);
     }
 
     readonly property var azSections: root.allApplicationSections
@@ -347,21 +344,20 @@ LayoutBase {
                 }
 
                 // Category / recent / files grid
-                Components.LayoutAppGrid {
-                    visible: !root.searching && root.selectedId !== "all" && root.selectedId !== "session"
+                Components.LayoutGroupPane {
+                    visible: !root.searching && root.selectedId !== "all"
+                             && root.selectedId !== "all-apps" && root.selectedId !== "session"
                     layoutRoot: root
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     items: root.centerItems
-                    columns: 6
-                    minCellWidth: root.centerMinCell
-                    iconSize: root.dashIcon
-                    multiLineLabels: true
+                    useGrid: root.usesGridView(root.selectedId === "recent" ? "frequent" : root.selectedId)
+                    showDescription: false
                 }
 
                 // All applications A–Z
                 ListView {
-                    visible: !root.searching && root.selectedId === "all"
+                    visible: !root.searching && (root.selectedId === "all" || root.selectedId === "all-apps")
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     clip: true
@@ -512,7 +508,7 @@ LayoutBase {
                     visible: {
                         if (root.searching)
                             return root.searchGroups.length === 0;
-                        if (root.selectedId === "all")
+                        if (root.selectedId === "all" || root.selectedId === "all-apps")
                             return root.azSections.length === 0;
                         if (root.selectedId === "session")
                             return root.sessionActions.length === 0;
