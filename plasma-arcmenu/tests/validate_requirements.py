@@ -422,6 +422,9 @@ def main() -> int:
           and "host.groupViewMode(root.activeGroupId)" in arc_apps_page
           and "Components.AppGrid {" in arc_apps_page,
           "ArcMenu home and category pages honor per-group grid mode")
+    app_grid = (PKG / "contents/ui/components/AppGrid.qml").read_text(encoding="utf-8")
+    check("currentIndex: -1" in app_grid and "minCellWidth:" in arc_layout,
+          "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
 
     layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
     config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")
