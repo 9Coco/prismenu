@@ -65,6 +65,8 @@ Item {
             text: root.label
             elide: Text.ElideRight
             color: root.chipFg
+            Kirigami.Theme.inherit: false
+            Kirigami.Theme.textColor: root.chipFg
         }
     }
 
