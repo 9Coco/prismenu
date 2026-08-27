@@ -15,6 +15,8 @@ QQC2.Menu {
     property bool canUninstall: false
     property bool canEditDesktop: true
     property var menuData: null
+    /** Native Kicker actionList for the selected application. */
+    property var systemActions: []
 
     signal launchRequested(var app)
     signal newWindowRequested(var app)
@@ -25,6 +27,7 @@ QQC2.Menu {
     signal detailsRequested(var app)
     signal uninstallRequested(var app)
     signal runInTerminalRequested(var app)
+    signal systemActionRequested(var app, string actionId, var actionArgument)
     signal toggleCustomGroupRequested(var app, string groupId)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
@@ -57,6 +60,39 @@ QQC2.Menu {
     readonly property bool canDesktopActions: isDesktopApp
         || (isExtraShortcut && (app.action === "discover" || app.action === "settings"
             || appId === "shortcut-software" || appId === "shortcut-settings"))
+
+    readonly property bool hasSystemActions: root.isDesktopApp
+        && root.systemActions && root.systemActions.length > 0
+
+    // QQC2 nested menus are unstable on the Plasma/Qt version this applet
+    // targets. Flatten native sub-actions while preserving the exact Kicker
+    // action id and argument; separators/titles do not trigger anything.
+    readonly property var flatSystemActions: {
+        var out = [];
+        var list = root.systemActions || [];
+        for (var i = 0; i < list.length; ++i) {
+            var a = list[i];
+            if (!a || a.type === "separator" || a.type === "title")
+                continue;
+            if (a.subActions && a.subActions.length) {
+                for (var j = 0; j < a.subActions.length; ++j) {
+                    var sub = a.subActions[j];
+                    if (!sub || sub.type === "separator" || sub.type === "title")
+                        continue;
+                    out.push({
+                        text: (a.text ? String(a.text) + " — " : "") + String(sub.text || ""),
+                        icon: sub.icon || a.icon || "application-x-executable",
+                        enabled: sub.enabled !== false,
+                        actionId: sub.actionId,
+                        actionArgument: sub.actionArgument
+                    });
+                }
+            } else if (a.actionId) {
+                out.push(a);
+            }
+        }
+        return out;
+    }
     
     /** Pin id used for group-membership checks (matches MenuData.resolvePinId) */
     readonly property string contextPinId: {
@@ -145,7 +181,7 @@ QQC2.Menu {
     }
 
     QQC2.MenuItem {
-        visible: root.isDesktopApp
+        visible: root.isDesktopApp && !root.hasSystemActions
         text: root.t("New Window")
         icon.name: "window-new"
         onTriggered: root.newWindowRequested(root.app)
@@ -163,18 +199,18 @@ QQC2.Menu {
     }
 
     QQC2.MenuItem {
-        visible: root.canDesktopActions
+        visible: root.canDesktopActions && !root.hasSystemActions
         text: root.t("Create Desktop Shortcut")
         icon.name: "user-desktop"
         onTriggered: root.addToDesktopRequested(root.app)
     }
 
     QQC2.MenuSeparator {
-        visible: root.canDesktopActions
+        visible: root.canDesktopActions && !root.hasSystemActions
     }
 
     QQC2.MenuItem {
-        visible: root.canDesktopActions
+        visible: root.canDesktopActions && !root.hasSystemActions
         text: root.t("Pin to Taskbar")
         icon.name: "pin"
         onTriggered: root.addToPanelRequested(root.app)
@@ -182,39 +218,61 @@ QQC2.Menu {
 
     QQC2.MenuItem {
         visible: root.canPinToMenu && !root.isFavorite
-        text: root.t("Pin to ArcMenu")
+        text: root.isDesktopApp ? root.t("Pin to Favorites") : root.t("Pin to ArcMenu")
         icon.name: "bookmark-new"
         onTriggered: root.toggleFavoriteRequested(root.app)
     }
 
     QQC2.MenuItem {
         visible: root.canPinToMenu && root.isFavorite && !root.isArcMenuSettings
-        text: root.t("Unpin from ArcMenu")
+        text: root.isDesktopApp ? root.t("Remove from Favorites") : root.t("Unpin from ArcMenu")
         icon.name: "unpin"
         onTriggered: root.toggleFavoriteRequested(root.app)
     }
     
     QQC2.MenuSeparator {
-        visible: root.isDesktopApp && (root.canEditDesktop || root.canUninstall)
+        visible: root.isDesktopApp && !root.hasSystemActions
+            && (root.canEditDesktop || root.canUninstall)
     }
 
     QQC2.MenuItem {
-        visible: root.isDesktopApp && root.canEditDesktop
+        visible: root.isDesktopApp && !root.hasSystemActions && root.canEditDesktop
         text: root.t("Edit Application…")
         icon.name: "document-edit"
         onTriggered: root.editRequested(root.app)
     }
     QQC2.MenuItem {
-        visible: root.isDesktopApp
+        visible: root.isDesktopApp && !root.hasSystemActions
         text: root.t("Show Details")
         icon.name: "dialog-information"
         onTriggered: root.detailsRequested(root.app)
     }
     QQC2.MenuItem {
-        visible: root.isDesktopApp && root.canUninstall
+        visible: root.isDesktopApp && !root.hasSystemActions && root.canUninstall
         text: root.t("Uninstall…")
         icon.name: "edit-delete"
         onTriggered: root.uninstallRequested(root.app)
+    }
+
+    // Every action here (desktop shortcut, panel/task-manager pinning,
+    // desktop-entry actions, menu editor and Discover management) comes from
+    // the same Kicker actionList consumed by KDE's official Kickoff.
+    Instantiator {
+        active: root.visible && root.hasSystemActions
+        model: active ? root.flatSystemActions : []
+        delegate: QQC2.MenuItem {
+            required property var modelData
+            text: String(modelData.text || "")
+            icon.name: typeof modelData.icon === "string" ? modelData.icon : ""
+            enabled: modelData.enabled !== false
+            onTriggered: root.systemActionRequested(
+                root.app, String(modelData.actionId || ""), modelData.actionArgument)
+        }
+        onObjectAdded: (index, object) => {
+            root.addItem(object);
+            root.repositionWithinBounds();
+        }
+        onObjectRemoved: (index, object) => root.removeItem(object)
     }
 
     // "Add to…" — quick add the app to favorites or a custom quick link group.

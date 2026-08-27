@@ -21,6 +21,7 @@ ColumnLayout {
     property color fg: Kirigami.Theme.textColor
     property bool preferSymbolic: true
     property bool showTooltips: true
+    property bool showSystemShortcuts: true
 
     signal userClicked()
     signal itemActivated(var item)
@@ -173,6 +174,7 @@ ColumnLayout {
             }
 
             Kirigami.Separator {
+                visible: root.showSystemShortcuts && root.shortcutItems.length > 0
                 width: listCol.width
                 Layout.topMargin: Kirigami.Units.smallSpacing / 2
                 Layout.bottomMargin: Kirigami.Units.smallSpacing / 2
@@ -181,7 +183,7 @@ ColumnLayout {
             }
 
             Repeater {
-                model: root.shortcutItems
+                model: root.showSystemShortcuts ? root.shortcutItems : []
                 ShortcutRow {
                     required property var modelData
                     width: listCol.width

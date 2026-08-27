@@ -19,6 +19,8 @@ var ZH_CN = {
     "Pin to Taskbar": "固定到快捷栏",
     "Pin to ArcMenu": "固定到 ArcMenu",
     "Unpin from ArcMenu": "从 ArcMenu 取消固定",
+    "Pin to Favorites": "固定到收藏夹",
+    "Remove from Favorites": "从收藏夹移除",
     "Add world clock…": "添加世界时钟…",
     "All Applications": "所有应用程序",
     "All apps": "全部应用",
