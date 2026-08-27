@@ -1185,86 +1185,131 @@ QtObject {
         return ShortcutsConfig.groupIconSize(raw, id);
     }
 
-    /**
-     * Configurable directory shortcuts (sidebar places).
-     * Directory Shortcuts settings is the order/source of truth, including
-     * custom:Name|icon|path entries. Plasma places fill in real URLs when
-     * a built-in folder is present.
-     */
-    readonly property var places: {
+    function placeKey(item) {
+        return String(item ? (item.customPlaceKey || item.kickerUrl || item.entryPath || item.id || "") : "");
+    }
+
+    function configuredPlaces(source, orderKey, hiddenKey) {
+        var items = (source || []).slice();
+        var order = ShortcutsConfig.normalizeList(cfg(orderKey, []), []);
+        var hidden = ShortcutsConfig.normalizeList(cfg(hiddenKey, []), []);
+        var rank = {};
+        for (var r = 0; r < order.length; ++r)
+            rank[String(order[r])] = r;
+        items.sort(function (a, b) {
+            var ak = root.placeKey(a), bk = root.placeKey(b);
+            var ar = rank[ak] !== undefined ? rank[ak] : 100000;
+            var br = rank[bk] !== undefined ? rank[bk] : 100000;
+            return ar === br ? 0 : ar - br;
+        });
+        return items.filter(function (item) { return hidden.indexOf(root.placeKey(item)) < 0; });
+    }
+
+    readonly property var allSystemPlaces: {
         var _ = root.uiLang;
         var __ = root.structureEpoch;
-        var raw = ShortcutsConfig.resolveDirectories(directoryShortcutIds, function (m) { return root.tr(m); });
-        var plasmaByPlace = {};
-        var plasmaByPath = {};
-        var k;
         if (plasmaPlaces && plasmaPlaces.length) {
-            for (k = 0; k < plasmaPlaces.length; ++k) {
-                var pp = plasmaPlaces[k];
-                if (!pp)
-                    continue;
-                if (pp.place)
-                    plasmaByPlace[String(pp.place).toUpperCase()] = pp;
-                if (pp.path)
-                    plasmaByPath[String(pp.path)] = pp;
-                if (pp.id)
-                    plasmaByPlace[String(pp.id)] = pp;
+            var system = [];
+            for (var i = 0; i < plasmaPlaces.length; ++i) {
+                if (plasmaPlaces[i] && plasmaPlaces[i].isSystemPlace === true)
+                    system.push(plasmaPlaces[i]);
             }
+            return system;
         }
+        // Defensive fallback for systems where the private Kicker model is
+        // unavailable: use only standard XDG locations, never synthetic tabs.
+        return ShortcutsConfig.resolveDirectories(
+            ShortcutsConfig.DEFAULT_DIRS, function (m) { return root.tr(m); });
+    }
+
+    readonly property var systemPlaces: configuredPlaces(
+        allSystemPlaces, "SystemPlaceOrder", "HiddenSystemPlaces")
+
+    readonly property var allDolphinPlaces: {
+        var _ = root.uiLang;
+        var __ = root.structureEpoch;
         var out = [];
-        var seen = {};
-        for (var i = 0; i < raw.length; ++i) {
-            var it = raw[i];
+        var nativePlaces = root.plasmaPlaces || [];
+        for (var p = 0; p < nativePlaces.length; ++p) {
+            var nativePlace = nativePlaces[p];
+            if (!nativePlace || nativePlace.isSystemPlace === true)
+                continue;
+            out.push(nativePlace);
+        }
+        return out;
+    }
+
+    readonly property var dolphinPlaces: configuredPlaces(
+        allDolphinPlaces, "DolphinPlaceOrder", "HiddenDolphinPlaces")
+
+    readonly property var allUserCustomPlaces: {
+        var _ = root.uiLang;
+        var __ = root.structureEpoch;
+        var out = [];
+        var ids = root.directoryShortcutIds || [];
+        for (var i = 0; i < ids.length; ++i) {
+            var shortcutId = String(ids[i] || "");
+            if (shortcutId.indexOf("app:") === 0) {
+                var appId = shortcutId.substring(4);
+                var app = AppsModel.findAppById(root.allApps, appId);
+                if (app) {
+                    var appCopy = Object.assign({}, app);
+                    appCopy.id = shortcutId;
+                    appCopy.customPlaceKey = shortcutId;
+                    out.push(appCopy);
+                }
+                continue;
+            }
+            if (shortcutId.indexOf("custom:") !== 0)
+                continue;
+            var it = ShortcutsConfig.resolveDirectory(shortcutId, function (m) { return root.tr(m); });
             if (!it || it.invalid)
                 continue;
-            var sid = String(it.id || "");
-            if (seen[sid])
-                continue;
-            seen[sid] = true;
-            var matched = null;
-            if (it.place && plasmaByPlace[String(it.place).toUpperCase()])
-                matched = plasmaByPlace[String(it.place).toUpperCase()];
-            else if (it.path && plasmaByPath[String(it.path)])
-                matched = plasmaByPath[String(it.path)];
-            else if (plasmaByPlace[sid])
-                matched = plasmaByPlace[sid];
-            if (matched) {
-                var copy = Object.assign({}, matched);
-                copy.name = it.name || copy.name;
-                copy.icon = it.icon || copy.icon;
-                out.push(copy);
-                continue;
-            }
+            var customUrl = it.kickerUrl || (it.path ? ("file://" + it.path) : "");
             out.push({
                 id: it.id,
+                customPlaceKey: it.id,
                 name: it.name,
                 icon: it.icon,
                 place: it.place || "",
                 exec: it.exec || "",
                 path: it.path || "",
-                kickerUrl: it.kickerUrl || (it.path ? ("file://" + it.path) : ""),
+                kickerUrl: customUrl,
                 categories: ["Places"],
                 keywords: [],
                 genericName: it.path || it.name,
                 noDisplay: false
             });
         }
-        if (root.showBookmarks && !seen["place-bookmarks"]) {
-            out.push({
-                id: "place-bookmarks", name: root.tr("Bookmarks"), icon: "bookmarks",
-                special: "bookmarks",
-                categories: ["Places"], keywords: [], genericName: root.tr("Bookmarks"), noDisplay: false
-            });
-        }
-        if (root.showExternalDevices && !seen["place-devices"]) {
-            out.push({
-                id: "place-devices", name: root.tr("External devices"), icon: "drive-removable-media",
-                special: "devices",
-                categories: ["Places"], keywords: [], genericName: root.tr("External devices"), noDisplay: false
-            });
-        }
         return out;
     }
+
+    readonly property var userCustomPlaces: configuredPlaces(
+        allUserCustomPlaces, "DirectoryShortcuts", "HiddenCustomPlaces")
+
+    /** Compatibility union for layouts that do not render the three sections. */
+    readonly property var customPlaces: dolphinPlaces.concat(userCustomPlaces)
+
+    readonly property var placeSections: {
+        var _ = root.structureEpoch;
+        var wanted = ShortcutsConfig.normalizeList(
+            cfg("PlaceSectionOrder", ["system", "dolphin", "custom"]),
+            ["system", "dolphin", "custom"]);
+        var ids = [];
+        for (var i = 0; i < wanted.length; ++i) {
+            if (["system", "dolphin", "custom"].indexOf(wanted[i]) >= 0 && ids.indexOf(wanted[i]) < 0)
+                ids.push(wanted[i]);
+        }
+        ["system", "dolphin", "custom"].forEach(function (id) {
+            if (ids.indexOf(id) < 0) ids.push(id);
+        });
+        var map = { system: systemPlaces, dolphin: dolphinPlaces, custom: userCustomPlaces };
+        return ids.map(function (id) { return { id: id, items: map[id] || [] }; });
+    }
+
+    readonly property var places: placeSections.reduce(function (out, section) {
+        return out.concat(section.items || []);
+    }, [])
 
     readonly property var systemShortcuts: {
         var _ = root.uiLang;

@@ -312,6 +312,14 @@
         <entry name="DirectoryShortcuts" type="StringList">
             <default>HOME,DOCUMENTS,DOWNLOAD,MUSIC,PICTURES,VIDEOS</default>
         </entry>
+        <entry name="PlaceSectionOrder" type="StringList">
+            <default>system,dolphin,custom</default>
+        </entry>
+        <entry name="SystemPlaceOrder" type="StringList"><default></default></entry>
+        <entry name="HiddenSystemPlaces" type="StringList"><default></default></entry>
+        <entry name="DolphinPlaceOrder" type="StringList"><default></default></entry>
+        <entry name="HiddenDolphinPlaces" type="StringList"><default></default></entry>
+        <entry name="HiddenCustomPlaces" type="StringList"><default></default></entry>
         <!-- Builtin: discover|settings|tweaks|overview — or desktop id — or custom:Name|icon|exec -->
         <entry name="ApplicationShortcuts" type="StringList">
             <default>discover,settings,tweaks</default>
