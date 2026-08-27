@@ -72,9 +72,8 @@ QQC2.Menu {
 
     readonly property int customGroupCount: (root.menuData && root.menuData.customQuickLinkDefs)
         ? root.menuData.customQuickLinkDefs.length : 0
-    /** "Add to" section only makes sense when there is at least one target */
-    readonly property bool hasAddTargets: root.canPinToMenu
-        && (!root.isFavorite || root.customGroupCount > 0)
+    /** Extra "Add to …" rows are only for custom groups (pin/unpin is above). */
+    readonly property bool hasAddTargets: root.canPinToMenu && root.customGroupCount > 0
 
     function t(msgid) {
         return Locale.tr(msgid, root.uiLang);
@@ -225,12 +224,6 @@ QQC2.Menu {
     // only while this menu is open (inserting into a closed menu also crashed).
     QQC2.MenuSeparator {
         visible: root.hasAddTargets
-    }
-    QQC2.MenuItem {
-        visible: root.hasAddTargets && !root.isFavorite
-        text: root.t("Add to Favorites")
-        icon.name: "emblem-favorite"
-        onTriggered: root.toggleFavoriteRequested(root.app)
     }
     Instantiator {
         active: root.visible && root.customGroupCount > 0
