@@ -226,11 +226,7 @@ Item {
             radius: 3
             border.width: 1
             border.color: Kirigami.Theme.disabledTextColor
-            color: {
-                if (!colorRow.colorValue || colorRow.colorValue === "")
-                    return "transparent";
-                try { return colorRow.colorValue; } catch (e) { return "transparent"; }
-            }
+            color: ThemeHelper.toQmlColor(colorRow.colorValue, "transparent")
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
@@ -247,7 +243,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     colorDialog.targetProp = colorRow.propKey;
-                    colorDialog.selectedColor = colorRow.colorValue || "#808080";
+                    colorDialog.selectedColor = ThemeHelper.toQmlColor(colorRow.colorValue, "#808080");
                     colorDialog.open();
                 }
             }
@@ -519,9 +515,13 @@ Item {
                     anchors.fill: parent
                     anchors.margins: Kirigami.Units.largeSpacing
                     radius: cfg_CornerRadius < 0 ? Kirigami.Units.cornerRadius : cfg_CornerRadius
-                    color: root.overrideOn && cfg_BgColor ? cfg_BgColor : Kirigami.Theme.backgroundColor
+                    color: root.overrideOn && cfg_BgColor
+                           ? ThemeHelper.toQmlColor(cfg_BgColor, Kirigami.Theme.backgroundColor)
+                           : Kirigami.Theme.backgroundColor
                     border.width: cfg_BorderWidth
-                    border.color: root.overrideOn && cfg_BorderColor ? cfg_BorderColor : Kirigami.Theme.disabledTextColor
+                    border.color: root.overrideOn && cfg_BorderColor
+                                  ? ThemeHelper.toQmlColor(cfg_BorderColor, Kirigami.Theme.disabledTextColor)
+                                  : Kirigami.Theme.disabledTextColor
 
                     ColumnLayout {
                         anchors.fill: parent
@@ -531,35 +531,47 @@ Item {
                         QQC2.Label {
                             text: root.tr("Preview")
                             font.bold: true
-                            color: root.overrideOn && cfg_FgColor ? cfg_FgColor : Kirigami.Theme.textColor
+                            color: root.overrideOn && cfg_FgColor
+                                   ? ThemeHelper.toQmlColor(cfg_FgColor, Kirigami.Theme.textColor)
+                                   : Kirigami.Theme.textColor
                             font.pointSize: cfg_FontSize > 0 ? cfg_FontSize : Kirigami.Theme.defaultFont.pointSize
                         }
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
                             radius: 4
-                            color: root.overrideOn && cfg_HoverBg ? cfg_HoverBg : Kirigami.Theme.highlightColor
+                            color: root.overrideOn && cfg_HoverBg
+                                   ? ThemeHelper.toQmlColor(cfg_HoverBg, Kirigami.Theme.highlightColor)
+                                   : Kirigami.Theme.highlightColor
                             QQC2.Label {
                                 anchors.centerIn: parent
                                 text: root.tr("Hover item")
-                                color: root.overrideOn && cfg_HoverFg ? cfg_HoverFg : Kirigami.Theme.highlightedTextColor
+                                color: root.overrideOn && cfg_HoverFg
+                                       ? ThemeHelper.toQmlColor(cfg_HoverFg, Kirigami.Theme.highlightedTextColor)
+                                       : Kirigami.Theme.highlightedTextColor
                             }
                         }
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: Kirigami.Units.gridUnit * 1.8
                             radius: 4
-                            color: root.overrideOn && cfg_ActiveBg ? cfg_ActiveBg : Kirigami.Theme.highlightColor
+                            color: root.overrideOn && cfg_ActiveBg
+                                   ? ThemeHelper.toQmlColor(cfg_ActiveBg, Kirigami.Theme.highlightColor)
+                                   : Kirigami.Theme.highlightColor
                             QQC2.Label {
                                 anchors.centerIn: parent
                                 text: root.tr("Active item")
-                                color: root.overrideOn && cfg_ActiveFg ? cfg_ActiveFg : Kirigami.Theme.highlightedTextColor
+                                color: root.overrideOn && cfg_ActiveFg
+                                       ? ThemeHelper.toQmlColor(cfg_ActiveFg, Kirigami.Theme.highlightedTextColor)
+                                       : Kirigami.Theme.highlightedTextColor
                             }
                         }
                         Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredHeight: 1
-                            color: root.overrideOn && cfg_SeparatorColor ? cfg_SeparatorColor : Kirigami.Theme.disabledTextColor
+                            color: root.overrideOn && cfg_SeparatorColor
+                                   ? ThemeHelper.toQmlColor(cfg_SeparatorColor, Kirigami.Theme.disabledTextColor)
+                                   : Kirigami.Theme.disabledTextColor
                             opacity: root.overrideOn && cfg_SeparatorColor ? 1 : 0.4
                         }
                     }

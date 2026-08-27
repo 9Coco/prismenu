@@ -9,7 +9,46 @@
 function parseColor(value, fallback) {
     if (value === undefined || value === null || value === "")
         return fallback;
-    return value;
+    return toQmlColor(value, fallback);
+}
+
+function _hexByte(n) {
+    var h = Math.round(Math.max(0, Math.min(255, n))).toString(16);
+    return h.length < 2 ? "0" + h : h;
+}
+
+/**
+ * Turn #hex / rgb() / rgba() / named CSS into a QML-safe color string.
+ * Invalid input becomes fallback (default transparent). Qt 6 Color
+ * properties treat unparsed rgb() as black — that is the swatch bug.
+ */
+function toQmlColor(value, fallback) {
+    if (value === undefined || value === null || value === "")
+        return fallback !== undefined ? fallback : "transparent";
+    var s = String(value).trim();
+    if (!s || s === "transparent")
+        return "transparent";
+    if (s.charAt(0) === "#") {
+        if (s.length === 4 || s.length === 7 || s.length === 9)
+            return s;
+        return fallback !== undefined ? fallback : "transparent";
+    }
+    var m = s.match(/^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/i);
+    if (m) {
+        var r = parseFloat(m[1]);
+        var g = parseFloat(m[2]);
+        var b = parseFloat(m[3]);
+        var a = m[4] !== undefined && m[4] !== "" ? parseFloat(m[4]) : 1;
+        if (isNaN(r) || isNaN(g) || isNaN(b) || isNaN(a))
+            return fallback !== undefined ? fallback : "transparent";
+        if (a > 1)
+            a = a / 255;
+        a = Math.max(0, Math.min(1, a));
+        if (a < 0.999)
+            return "#" + _hexByte(a * 255) + _hexByte(r) + _hexByte(g) + _hexByte(b);
+        return "#" + _hexByte(r) + _hexByte(g) + _hexByte(b);
+    }
+    return s;
 }
 
 function relativeLuminance(hex) {

@@ -281,6 +281,8 @@ def main() -> int:
     check("Show category submenus" not in fine_cfg
           and "Scrollview fade effects" not in fine_cfg,
           "unused GNOME leftover toggles removed from fine-tuning")
+    check("function toQmlColor" in (PKG / "contents/code/Theme.js").read_text(encoding="utf-8"),
+          "theme colors convert rgb() for QML swatches")
     dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
     check("Frequent Locations" in dirs_page, "places page uses Frequent Locations title")
     check("Add custom file" in dirs_page and "FileDialog" in dirs_page,
