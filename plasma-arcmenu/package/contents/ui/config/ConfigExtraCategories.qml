@@ -358,6 +358,16 @@ Item {
         writeLive("GroupViewOptions", s);
     }
 
+    function groupIconSize(id) {
+        return SC.groupIconSize(cfg_GroupViewOptions, id);
+    }
+
+    function setGroupIconSize(id, size) {
+        var s = SC.setGroupIconSize(cfg_GroupViewOptions, id, size);
+        cfg_GroupViewOptions = s;
+        writeLive("GroupViewOptions", s);
+    }
+
     function openColumnSettings(id, name, isType) {
         columnDialog.groupId = id;
         columnDialog.groupName = name || id;
@@ -836,6 +846,7 @@ Item {
         onAboutToShow: {
             var view = root.groupViewMode(columnDialog.groupId);
             viewCombo.currentIndex = view === "grid" ? 0 : 1;
+            iconSizeSpin.value = root.groupIconSize(columnDialog.groupId);
             refreshApps();
         }
         contentItem: ColumnLayout {
@@ -851,8 +862,44 @@ Item {
                 QQC2.ComboBox {
                     id: viewCombo
                     Kirigami.FormData.label: root.tr("Icon display")
-                    model: [root.tr("Square icons"), root.tr("Show in rows")]
+                    model: [root.tr("Icon grid"), root.tr("List")]
                     onActivated: root.setGroupViewMode(columnDialog.groupId, currentIndex === 0 ? "grid" : "list")
+                }
+                RowLayout {
+                    visible: viewCombo.currentIndex === 0
+                    Kirigami.FormData.label: root.tr("Icon size")
+                    QQC2.Slider {
+                        id: iconSizeSlider
+                        Layout.fillWidth: true
+                        from: 24
+                        to: 80
+                        stepSize: 4
+                        value: iconSizeSpin.value
+                        onMoved: {
+                            var n = Math.round(value);
+                            if (iconSizeSpin.value !== n)
+                                iconSizeSpin.value = n;
+                            root.setGroupIconSize(columnDialog.groupId, n);
+                        }
+                    }
+                    QQC2.SpinBox {
+                        id: iconSizeSpin
+                        from: 24
+                        to: 80
+                        stepSize: 4
+                        value: 48
+                        onValueModified: {
+                            iconSizeSlider.value = value;
+                            root.setGroupIconSize(columnDialog.groupId, value);
+                        }
+                    }
+                }
+                QQC2.Label {
+                    visible: viewCombo.currentIndex === 0
+                    Layout.fillWidth: true
+                    wrapMode: Text.WordWrap
+                    opacity: 0.55
+                    text: root.tr("Smaller icons show more applications")
                 }
             }
             ColumnLayout {
