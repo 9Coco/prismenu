@@ -97,6 +97,12 @@ Item {
 
     property var cfg_PinnedApps: []
     property var cfg_DirectoryShortcuts: []
+    property var cfg_PlaceSectionOrder: []
+    property var cfg_SystemPlaceOrder: []
+    property var cfg_HiddenSystemPlaces: []
+    property var cfg_DolphinPlaceOrder: []
+    property var cfg_HiddenDolphinPlaces: []
+    property var cfg_HiddenCustomPlaces: []
     property var cfg_ApplicationShortcuts: []
     property var cfg_ExtraCategoriesOrder
     property var cfg_ExtraCategoriesEnabled
@@ -210,6 +216,12 @@ Item {
     property alias cfg_quickLinkPosition: root.cfg_QuickLinkPosition
     property alias cfg_pinnedApps: root.cfg_PinnedApps
     property alias cfg_directoryShortcuts: root.cfg_DirectoryShortcuts
+    property alias cfg_placeSectionOrder: root.cfg_PlaceSectionOrder
+    property alias cfg_systemPlaceOrder: root.cfg_SystemPlaceOrder
+    property alias cfg_hiddenSystemPlaces: root.cfg_HiddenSystemPlaces
+    property alias cfg_dolphinPlaceOrder: root.cfg_DolphinPlaceOrder
+    property alias cfg_hiddenDolphinPlaces: root.cfg_HiddenDolphinPlaces
+    property alias cfg_hiddenCustomPlaces: root.cfg_HiddenCustomPlaces
     property alias cfg_applicationShortcuts: root.cfg_ApplicationShortcuts
     property alias cfg_extraCategoriesOrder: root.cfg_ExtraCategoriesOrder
     property alias cfg_extraCategoriesEnabled: root.cfg_ExtraCategoriesEnabled
@@ -263,7 +275,8 @@ Item {
         "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType",
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
         "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
-        "PinnedApps", "DirectoryShortcuts", "ApplicationShortcuts",
+        "PinnedApps", "DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder",
+        "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
         "SidebarOrder", "SidebarHidden", "ContextMenuItems",
         "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions",
@@ -330,12 +343,11 @@ Item {
         "ConfigVisual": ["OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
         "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
-        "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
+        "ConfigDirectoryShortcuts": ["DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder", "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "PinnedApps", "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "Enabled", "MaxItems", "RecentApps"],
-        "ConfigContextMenu": ["ContextMenuItems"]
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "PinnedApps", "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "Enabled", "MaxItems", "RecentApps"]
     })
 
     function subPageKeyFor(component) {
@@ -349,7 +361,6 @@ Item {
         if (component === pageSearch) return "ConfigSearch";
         if (component === pagePower) return "ConfigPower";
         if (component === pageExtra) return "ConfigExtraCategories";
-        if (component === pageContext) return "ConfigContextMenu";
         return "";
     }
 
@@ -646,48 +657,13 @@ Item {
                 }
 
                 NavGroup {
-                    title: root.tr("How should the menu look?")
+                    title: root.tr("What should show on the menu?")
                     NavRow {
                         title: root.tr("Menu Layout")
                         subtitle: root.tr("Choose a layout style for the menu")
                         iconName: "view-grid-symbolic"
                         accent: "blue"
                         onActivated: root.openSubPage(pageLayout, title)
-                    }
-                    NavSep {}
-                    NavRow {
-                        title: root.tr("Menu Theme")
-                        subtitle: root.tr("Modify menu colors, font size, and border")
-                        iconName: "preferences-desktop-theme-symbolic"
-                        accent: "purple"
-                        onActivated: root.openSubPage(pageTheme, title)
-                    }
-                    NavSep {}
-                    NavRow {
-                        title: root.tr("Menu Visual Appearance")
-                        subtitle: root.tr("Menu position and icon sizes")
-                        iconName: "preferences-desktop-display-symbolic"
-                        accent: "teal"
-                        onActivated: root.openSubPage(pageVisual, title)
-                    }
-                    NavSep {}
-                    NavRow {
-                        title: root.tr("Fine-tuning")
-                        subtitle: root.tr("Adjust less commonly used settings")
-                        iconName: "preferences-other-symbolic"
-                        accent: "orange"
-                        onActivated: root.openSubPage(pageFineTune, title)
-                    }
-                }
-
-                NavGroup {
-                    title: root.tr("What should show on the menu?")
-                    NavRow {
-                        title: root.tr("ArcMenu layout adjustment")
-                        subtitle: root.tr("Settings specific to the current menu layout")
-                        iconName: "settings-configure-symbolic"
-                        accent: "indigo"
-                        onActivated: root.openSubPage(pageArcLayout, title)
                     }
                     NavSep {}
                     NavRow {
@@ -715,30 +691,54 @@ Item {
                     }
                     NavSep {}
                     NavRow {
-                        title: root.tr("Power Options")
-                        subtitle: root.tr("Select power options and display style")
-                        iconName: "system-shutdown-symbolic"
-                        accent: "red"
-                        onActivated: root.openSubPage(pagePower, title)
-                    }
-                    NavSep {}
-                    NavRow {
                         title: root.tr("Menu Groups")
                         subtitle: root.tr("Preference groups and type groups")
                         iconName: "view-list-details-symbolic"
                         accent: "purple"
                         onActivated: root.openSubPage(pageExtra, title)
                     }
+                    NavSep {}
+                    NavRow {
+                        title: root.tr("ArcMenu layout adjustment")
+                        subtitle: root.tr("Settings specific to the current menu layout")
+                        iconName: "settings-configure-symbolic"
+                        accent: "indigo"
+                        onActivated: root.openSubPage(pageArcLayout, title)
+                    }
+                    NavSep {}
+                    NavRow {
+                        title: root.tr("Power Options")
+                        subtitle: root.tr("Select power options and display style")
+                        iconName: "system-shutdown-symbolic"
+                        accent: "red"
+                        onActivated: root.openSubPage(pagePower, title)
+                    }
                 }
 
                 NavGroup {
-                    title: root.tr("What should show on the context menu?")
+                    title: root.tr("How should the menu look?")
                     NavRow {
-                        title: root.tr("Modify ArcMenu Context Menu")
-                        subtitle: root.tr("Actions shown when right-clicking an app")
-                        iconName: "open-menu-symbolic"
+                        title: root.tr("Menu Theme")
+                        subtitle: root.tr("Modify menu colors, font size, and border")
+                        iconName: "preferences-desktop-theme-symbolic"
+                        accent: "purple"
+                        onActivated: root.openSubPage(pageTheme, title)
+                    }
+                    NavSep {}
+                    NavRow {
+                        title: root.tr("Menu Visual Appearance")
+                        subtitle: root.tr("Menu position and icon sizes")
+                        iconName: "preferences-desktop-display-symbolic"
+                        accent: "teal"
+                        onActivated: root.openSubPage(pageVisual, title)
+                    }
+                    NavSep {}
+                    NavRow {
+                        title: root.tr("Fine-tuning")
+                        subtitle: root.tr("Adjust less commonly used settings")
+                        iconName: "preferences-other-symbolic"
                         accent: "orange"
-                        onActivated: root.openSubPage(pageContext, title)
+                        onActivated: root.openSubPage(pageFineTune, title)
                     }
                 }
 
@@ -757,7 +757,6 @@ Item {
     Component { id: pageSearch; ConfigSearch {} }
     Component { id: pagePower; ConfigPower {} }
     Component { id: pageExtra; ConfigExtraCategories {} }
-    Component { id: pageContext; ConfigContextMenu {} }
 
     Component.onCompleted: {
         // Never leave Extra Categories as [] before Plasma injects — that made

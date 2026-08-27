@@ -160,7 +160,10 @@ PlasmoidItem {
                 || key === "SidebarHidden" || key === "CustomQuickLinks"
                 || key === "CustomTypeGroups"
                 || key === "CustomGroupApps" || key === "GroupViewOptions"
-                || key === "DirectoryShortcuts"
+                || key === "DirectoryShortcuts" || key === "PlaceSectionOrder"
+                || key === "SystemPlaceOrder" || key === "HiddenSystemPlaces"
+                || key === "DolphinPlaceOrder" || key === "HiddenDolphinPlaces"
+                || key === "HiddenCustomPlaces"
                 || key === "ApplicationShortcuts" || key === "Order"
                 || key === "Hidden" || key === "ShowEmpty" || key === "CustomNames"
                 || key === "CustomIcons" || key === "Enabled" || key === "MaxItems"
@@ -197,6 +200,12 @@ PlasmoidItem {
         function onRecentAppsChanged() { menuData.bumpStructure(); }
         function onPinnedAppsChanged() { menuData.bumpStructure(); }
         function onDirectoryShortcutsChanged() { menuData.bumpStructure(); }
+        function onPlaceSectionOrderChanged() { menuData.bumpStructure(); }
+        function onSystemPlaceOrderChanged() { menuData.bumpStructure(); }
+        function onHiddenSystemPlacesChanged() { menuData.bumpStructure(); }
+        function onDolphinPlaceOrderChanged() { menuData.bumpStructure(); }
+        function onHiddenDolphinPlacesChanged() { menuData.bumpStructure(); }
+        function onHiddenCustomPlacesChanged() { menuData.bumpStructure(); }
         function onApplicationShortcutsChanged() { menuData.bumpStructure(); }
         function onShowDescriptionChanged() { menuData.bumpSearchConfig(); }
         function onHideSearchBarChanged() { menuData.bumpSearchConfig(); }

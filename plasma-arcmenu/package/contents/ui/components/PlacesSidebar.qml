@@ -37,10 +37,10 @@ ColumnLayout {
         return Locale.tr(msgid, root.uiLang);
     }
 
-    readonly property var placeItems: {
+    readonly property var systemPlaceItems: {
         var _ = root.uiLang;
-        if (menuData && menuData.places && menuData.places.length)
-            return menuData.places;
+        if (menuData && menuData.systemPlaces && menuData.systemPlaces.length)
+            return menuData.systemPlaces;
         return [
             { id: "place-home", name: root.t("Home"), icon: "user-home", place: "HOME" },
             { id: "place-docs", name: root.t("Documents"), icon: "folder-documents", place: "DOCUMENTS" },
@@ -50,6 +50,14 @@ ColumnLayout {
             { id: "place-videos", name: root.t("Videos"), icon: "folder-videos", place: "VIDEOS" }
         ];
     }
+
+
+    readonly property var placeSections: (menuData && menuData.placeSections)
+        ? menuData.placeSections : [
+            { id: "system", items: systemPlaceItems },
+            { id: "dolphin", items: [] },
+            { id: "custom", items: [] }
+        ]
 
     readonly property var shortcutItems: {
         var _ = root.uiLang;
@@ -155,21 +163,40 @@ ColumnLayout {
             spacing: root.spacing
 
             Repeater {
-                model: root.placeItems
-                ShortcutRow {
+                model: root.placeSections
+                Column {
                     required property var modelData
+                    required property int index
                     width: listCol.width
-                    iconName: modelData.icon
-                    label: modelData.name
-                    iconSize: root.iconSize
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
-                    preferSymbolic: root.preferSymbolic
-                    showTooltips: root.showTooltips
-                    onActivated: root.itemActivated(modelData)
+                    spacing: root.spacing
+
+                    Repeater {
+                        model: modelData.items || []
+                        ShortcutRow {
+                            required property var modelData
+                            width: listCol.width
+                            iconName: modelData.icon
+                            label: modelData.name
+                            iconSize: root.iconSize
+                            selectedBg: root.selectedBg
+                            selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg
+                            hoverFg: root.hoverFg
+                            fg: root.fg
+                            preferSymbolic: root.preferSymbolic
+                            showTooltips: root.showTooltips
+                            onActivated: root.itemActivated(modelData)
+                        }
+                    }
+
+                    // Exactly two permanent boundaries separate the three blocks,
+                    // even when one of the blocks has no visible rows.
+                    Kirigami.Separator {
+                        visible: index < root.placeSections.length - 1
+                        width: listCol.width
+                        color: root.separatorColor
+                        opacity: 1
+                    }
                 }
             }
 
