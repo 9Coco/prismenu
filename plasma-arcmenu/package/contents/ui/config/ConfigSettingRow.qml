@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
+import "../components" as Components
 
 /**
  * Settings row: optional accent icon badge + title/subtitle + trailing control.
@@ -49,12 +50,13 @@ Item {
             radius: Kirigami.Units.smallSpacing
             color: Qt.rgba(root.badgeColor.r, root.badgeColor.g, root.badgeColor.b, 0.22)
 
-            Kirigami.Icon {
+            Components.ResolvedIcon {
                 anchors.centerIn: parent
                 width: Kirigami.Units.iconSizes.smallMedium
                 height: width
-                source: root.iconName
-                color: root.badgeColor
+                iconName: root.iconName
+                tintColor: root.badgeColor
+                preferSymbolic: false
             }
         }
 
