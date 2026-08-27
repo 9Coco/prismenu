@@ -27,6 +27,9 @@ GridView {
     signal contextMenuRequested(var app, real x, real y)
 
     model: items ? items.length : 0
+    // GridView otherwise selects row 0 automatically, leaving the first tile
+    // blue even while another tile is merely hovered.
+    currentIndex: -1
     readonly property int resolvedColumns: {
         if (minCellWidth > 0 && width > 0)
             return Math.max(1, Math.floor(width / minCellWidth));
@@ -39,7 +42,7 @@ GridView {
     // Icon + up to two label lines. Too-short cells stack delegates and
     // clicks in the "empty" gap hit the overlapping row.
     cellHeight: minCellWidth > 0
-        ? (cellIconSize + Kirigami.Units.gridUnit * 2.5)
+        ? (cellIconSize + Kirigami.Units.gridUnit * 3)
         : (iconSize + Kirigami.Units.gridUnit * 2)
     clip: true
     boundsBehavior: Flickable.StopAtBounds
@@ -60,20 +63,20 @@ GridView {
 
         readonly property int tilePad: Kirigami.Units.smallSpacing
         readonly property int labelWidth: Math.min(
-            del.width - Kirigami.Units.smallSpacing,
+            del.width - Kirigami.Units.largeSpacing,
             root.cellIconSize + Kirigami.Units.gridUnit * 2)
 
         // Highlight hugs the icon + label, matching Application Dashboard.
         Rectangle {
             id: tileBg
             anchors.centerIn: parent
-            width: Math.min(del.width - Kirigami.Units.smallSpacing,
+            width: Math.min(del.width - Kirigami.Units.largeSpacing,
                             Math.max(root.cellIconSize, del.labelWidth) + del.tilePad * 2)
-            height: Math.min(del.height - 2,
-                             root.cellIconSize + Kirigami.Units.gridUnit * 2.1 + del.tilePad)
+            height: Math.min(del.height - Kirigami.Units.largeSpacing,
+                             contentCol.implicitHeight + del.tilePad * 2)
             radius: Kirigami.Units.smallSpacing
             color: {
-                if (root.currentIndex === del.index)
+                if (root.activeFocus && root.currentIndex === del.index)
                     return root.selectedBg;
                 if (mouse.containsMouse)
                     return root.hoverBg;
@@ -110,7 +113,7 @@ GridView {
                 wrapMode: root.multiLineLabels ? Text.Wrap : Text.NoWrap
                 maximumLineCount: root.multiLineLabels ? 2 : 1
                 readonly property color labelColor: {
-                    if (root.currentIndex === del.index)
+                    if (root.activeFocus && root.currentIndex === del.index)
                         return root.selectedFg;
                     if (mouse.containsMouse)
                         return root.hoverFg;
