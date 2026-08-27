@@ -214,11 +214,32 @@ function groupViewMode(raw, id) {
     return defaultGroupView(id);
 }
 
+function defaultGroupIconSize() {
+    return 48;
+}
+
+function groupIconSize(raw, id) {
+    var map = parseGroupViewOptions(raw);
+    var entry = map[id];
+    var n = entry ? parseInt(entry.iconSize, 10) : 0;
+    if (isNaN(n) || n <= 0)
+        return defaultGroupIconSize();
+    return Math.max(24, Math.min(80, n));
+}
+
 function setGroupView(raw, id, view) {
     var map = parseGroupViewOptions(raw);
     if (!map[id] || typeof map[id] !== "object")
         map[id] = {};
     map[id].view = (view === "grid") ? "grid" : "list";
+    return JSON.stringify(map);
+}
+
+function setGroupIconSize(raw, id, size) {
+    var map = parseGroupViewOptions(raw);
+    if (!map[id] || typeof map[id] !== "object")
+        map[id] = {};
+    map[id].iconSize = Math.max(24, Math.min(80, parseInt(size, 10) || defaultGroupIconSize()));
     return JSON.stringify(map);
 }
 

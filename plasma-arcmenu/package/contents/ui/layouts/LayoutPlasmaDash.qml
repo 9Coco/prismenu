@@ -351,6 +351,7 @@ LayoutBase {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     items: root.centerItems
+                    navId: root.selectedId === "recent" ? "frequent" : root.selectedId
                     useGrid: root.usesGridView(root.selectedId === "recent" ? "frequent" : root.selectedId)
                     showDescription: false
                 }

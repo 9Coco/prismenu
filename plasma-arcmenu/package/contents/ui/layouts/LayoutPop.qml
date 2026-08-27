@@ -65,6 +65,7 @@ LayoutBase {
                 layoutRoot: root
                 anchors.fill: parent
                 items: root.gridItems
+                navId: root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : "all-apps")
                 useGrid: !root.searching && root.usesGridView(
                     root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : "all-apps"))
                 showDescription: root.searching

@@ -12,15 +12,29 @@ Item {
     property bool showDescription: false
     property bool inlineDescription: false
     property string emptyText: ""
+    property string navId: (layoutRoot && layoutRoot.activeNavId) ? layoutRoot.activeNavId : ""
+
+    readonly property int paneIconSize: {
+        var custom = 0;
+        if (root.layoutRoot && root.navId && root.layoutRoot.groupIconSize)
+            custom = root.layoutRoot.groupIconSize(root.navId);
+        if (custom > 0)
+            return custom;
+        return Math.max(root.layoutRoot ? root.layoutRoot.gridIconSize : 48,
+                        Kirigami.Units.iconSizes.large);
+    }
 
     LayoutAppGrid {
         anchors.fill: parent
         visible: root.useGrid
         layoutRoot: root.layoutRoot
         items: root.items
-        columns: Math.max(4, Math.floor(width / (Kirigami.Units.gridUnit * 5)))
-        iconSize: Math.max(root.layoutRoot ? root.layoutRoot.gridIconSize : 48,
-                           Kirigami.Units.iconSizes.large)
+        iconSize: root.paneIconSize
+        columns: {
+            var cell = Math.max(root.paneIconSize + Kirigami.Units.gridUnit * 1.8,
+                                Kirigami.Units.gridUnit * 3.2);
+            return Math.max(2, Math.floor(Math.max(width, cell) / cell));
+        }
     }
 
     LayoutAppList {

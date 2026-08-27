@@ -158,6 +158,13 @@ Item {
         return root.groupViewMode(navId) === "grid";
     }
 
+    function groupIconSize(navId) {
+        var _sig = menuData ? menuData.extrasSignature : "";
+        if (menuData && menuData.groupIconSize)
+            return menuData.groupIconSize(navId);
+        return 48;
+    }
+
     function computeContentItems(navId) {
         if (root.searching)
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];

@@ -323,7 +323,9 @@ def main() -> int:
     extra_cfg = (PKG / "contents/ui/config/ConfigExtraCategories.qml").read_text(encoding="utf-8")
     check('icon.name: "settings-configure"' in extra_cfg, "menu group rows have column settings button")
     check("Column settings" in extra_cfg, "column settings dialog")
-    check("Square icons" in extra_cfg and "Show in rows" in extra_cfg, "column view mode options")
+    check("Icon grid" in extra_cfg and "List" in extra_cfg, "column view mode options")
+    check("setGroupIconSize" in extra_cfg and "Icon size" in extra_cfg,
+          "grid columns can change icon size")
     check("Applications in this column" in extra_cfg, "type groups list current apps")
     check("columnAppsList" in extra_cfg and "QQC2.ScrollBar.AlwaysOn" in extra_cfg,
           "column apps list has a visible scrollbar")

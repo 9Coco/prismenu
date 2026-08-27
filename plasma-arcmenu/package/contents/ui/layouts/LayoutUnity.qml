@@ -359,6 +359,7 @@ LayoutBase {
                     layoutRoot: root
                     anchors.fill: parent
                     items: root.allAppsItems
+                    navId: root.selectedId === "all" ? "all-apps" : root.selectedId
                     useGrid: !root.searching && root.usesGridView(
                         root.selectedId === "all" ? "all-apps" : root.selectedId)
                     showDescription: root.searching

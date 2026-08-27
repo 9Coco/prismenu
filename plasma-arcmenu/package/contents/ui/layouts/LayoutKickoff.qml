@@ -415,6 +415,7 @@ LayoutBase {
                 Components.LayoutGroupPane {
                     anchors.fill: parent
                     layoutRoot: root
+                    navId: root.contentNavId
                     items: root.paneItems
                     useGrid: root.showingGrid
                     showDescription: true

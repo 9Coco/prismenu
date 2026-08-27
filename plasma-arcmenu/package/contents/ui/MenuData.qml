@@ -1166,6 +1166,13 @@ QtObject {
         return ShortcutsConfig.groupViewMode(raw, id);
     }
 
+    function groupIconSize(id) {
+        var _ = root.structureEpoch;
+        var raw = (groupViewOptionsRaw !== undefined && groupViewOptionsRaw !== null)
+            ? groupViewOptionsRaw : cfg("GroupViewOptions", "{}");
+        return ShortcutsConfig.groupIconSize(raw, id);
+    }
+
     /**
      * Configurable directory shortcuts (sidebar places).
      * Directory Shortcuts settings is the order/source of truth, including
