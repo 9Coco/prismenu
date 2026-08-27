@@ -21,6 +21,7 @@ Item {
     property int cfg_LeftPanelWidth
     property int cfg_RightPanelWidth
     property int cfg_WidthOffset
+    property string cfg_LayoutSizes: "{}"
 
     property var layouts: LayoutRegistry.allLayouts()
     property var categories: LayoutRegistry.layoutCategories()
@@ -39,6 +40,41 @@ Item {
         return Locale.tr(msgid, uiLang);
     }
 
+    function writeSizeCfg(size) {
+        cfg_MenuWidth = size.w;
+        cfg_MenuHeight = size.h;
+        cfg_SidebarWidth = size.sidebar;
+        cfg_CategoryColumnWidth = size.category;
+        cfg_LeftPanelWidth = size.left;
+        cfg_RightPanelWidth = size.right;
+        cfg_WidthOffset = size.offset;
+        try {
+            plasmoid.configuration.MenuWidth = size.w;
+            plasmoid.configuration.MenuHeight = size.h;
+            plasmoid.configuration.SidebarWidth = size.sidebar;
+            plasmoid.configuration.CategoryColumnWidth = size.category;
+            plasmoid.configuration.LeftPanelWidth = size.left;
+            plasmoid.configuration.RightPanelWidth = size.right;
+            plasmoid.configuration.WidthOffset = size.offset;
+        } catch (e) {}
+    }
+
+    function snapshotCurrentSize(layoutId) {
+        if (!layoutId)
+            return;
+        var s = LayoutRegistry.setSizeForLayout(cfg_LayoutSizes, layoutId, {
+            w: cfg_MenuWidth,
+            h: cfg_MenuHeight,
+            sidebar: cfg_SidebarWidth,
+            category: cfg_CategoryColumnWidth,
+            left: cfg_LeftPanelWidth,
+            right: cfg_RightPanelWidth,
+            offset: cfg_WidthOffset
+        });
+        cfg_LayoutSizes = s;
+        try { plasmoid.configuration.LayoutSizes = s; } catch (e) {}
+    }
+
     function selectLayout(id) {
         if (!id) {
             return;
@@ -46,66 +82,24 @@ Item {
         cfg_MenuLayoutId = id;
 
         var meta = LayoutRegistry.getLayout(id);
-        if (meta) {
-            var sidebarWidth = meta.defaultSidebarWidth || 220;
-            cfg_MenuWidth = meta.defaultWidth;
-            cfg_SidebarWidth = sidebarWidth;
-            cfg_CategoryColumnWidth = 220;
-            cfg_RightPanelWidth = sidebarWidth;
-            cfg_LeftPanelWidth = Math.max(180, meta.defaultWidth - sidebarWidth - 24);
-            cfg_WidthOffset = 0;
-            // Layouts using the available desktop height own runtime height.
-            if (meta.heightPolicy !== "available") {
-                var h = meta.defaultHeight;
-                if (h > 800)
-                    h = 800;
-                cfg_MenuHeight = h;
-            }
-
-            // Keep the selected layout's platform and desktop groups open
+        if (meta)
             ensureLayoutGroupsExpanded(meta);
-        }
+
+        var size = LayoutRegistry.sizeForLayout(cfg_LayoutSizes, id);
+        root.writeSizeCfg(size);
+        root.snapshotCurrentSize(id);
 
         try {
             plasmoid.configuration.MenuLayoutId = id;
-            if (meta) {
-                plasmoid.configuration.MenuWidth = meta.defaultWidth;
-                if (meta.heightPolicy !== "available")
-                    plasmoid.configuration.MenuHeight = cfg_MenuHeight;
-                plasmoid.configuration.SidebarWidth = sidebarWidth;
-                plasmoid.configuration.CategoryColumnWidth = 220;
-                plasmoid.configuration.RightPanelWidth = sidebarWidth;
-                plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
-                plasmoid.configuration.WidthOffset = 0;
-            }
         } catch (e) {
             console.warn("ArcMenu ConfigLayout: direct write failed", e);
         }
     }
 
     function resetSizesToDefaults() {
-        var meta = LayoutRegistry.getLayout(cfg_MenuLayoutId || "arcmenu");
-        var w = meta && meta.defaultWidth ? meta.defaultWidth : 620;
-        var h = meta && meta.defaultHeight ? meta.defaultHeight : 540;
-        var sidebarWidth = meta && meta.defaultSidebarWidth ? meta.defaultSidebarWidth : 220;
-        if (h > 800)
-            h = 800;
-        cfg_MenuWidth = w;
-        cfg_MenuHeight = h;
-        cfg_SidebarWidth = sidebarWidth;
-        cfg_CategoryColumnWidth = 220;
-        cfg_RightPanelWidth = sidebarWidth;
-        cfg_LeftPanelWidth = Math.max(180, w - sidebarWidth - 24);
-        cfg_WidthOffset = 0;
-        try {
-            plasmoid.configuration.MenuWidth = w;
-            plasmoid.configuration.MenuHeight = h;
-            plasmoid.configuration.SidebarWidth = sidebarWidth;
-            plasmoid.configuration.CategoryColumnWidth = 220;
-            plasmoid.configuration.RightPanelWidth = sidebarWidth;
-            plasmoid.configuration.LeftPanelWidth = cfg_LeftPanelWidth;
-            plasmoid.configuration.WidthOffset = 0;
-        } catch (e) {}
+        var size = LayoutRegistry.sharedDefaultSize();
+        root.writeSizeCfg(size);
+        root.snapshotCurrentSize(cfg_MenuLayoutId || "arcmenu");
     }
 
     function ensureCategoryExpanded(categoryId) {
@@ -526,11 +520,5 @@ Item {
             cfg_MenuLayoutId = "arcmenu";
         }
         initExpanded();
-        var h = cfg_MenuHeight || 540;
-        if (h > 800) {
-            h = 800;
-            cfg_MenuHeight = h;
-            try { plasmoid.configuration.MenuHeight = h; } catch (e) {}
-        }
     }
 }

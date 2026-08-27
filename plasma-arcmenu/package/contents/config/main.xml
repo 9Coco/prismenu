@@ -143,6 +143,10 @@
         <entry name="MenuHeight" type="Int">
             <default>540</default>
         </entry>
+        <!-- JSON map: { "<layout-id>": { "w", "h", "sidebar", "category", "left", "right", "offset" } } -->
+        <entry name="LayoutSizes" type="String">
+            <default>{}</default>
+        </entry>
         <!-- Side / places / categories column width (px) for multi-column layouts -->
         <entry name="SidebarWidth" type="Int">
             <default>220</default>
