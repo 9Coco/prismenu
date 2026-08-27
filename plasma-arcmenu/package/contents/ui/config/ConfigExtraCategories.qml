@@ -9,6 +9,7 @@ import "../../code/SidebarModel.js" as SidebarModel
 import "../../code/CatalogBridge.js" as CatalogBridge
 import "../../code/AppsModel.js" as AppsModel
 import ".." as Ui
+import "../components" as Components
 
 Item {
     id: root
@@ -803,8 +804,10 @@ Item {
                 }
                 RowLayout {
                     Kirigami.FormData.label: root.tr("Group icon")
-                    Kirigami.Icon {
-                        source: newGroupDialog.groupIcon
+                    Components.ResolvedIcon {
+                        iconName: newGroupDialog.groupIcon
+                        tintColor: Kirigami.Theme.textColor
+                        preferSymbolic: false
                         Layout.preferredWidth: Kirigami.Units.iconSizes.medium
                         Layout.preferredHeight: Kirigami.Units.iconSizes.medium
                     }
