@@ -6,11 +6,42 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Locale.js" as Locale
 import "../../code/ShortcutsConfig.js" as SC
+import ".." as Ui
 
 Item {
     id: root
 
     property var cfg_DirectoryShortcuts: []
+    property var cfg_PlaceSectionOrder: []
+    property var cfg_SystemPlaceOrder: []
+    property var cfg_HiddenSystemPlaces: []
+    property var cfg_DolphinPlaceOrder: []
+    property var cfg_HiddenDolphinPlaces: []
+    property var cfg_HiddenCustomPlaces: []
+    property var localApps: []
+    property var pendingDolphinRemoval: null
+
+    // Use the same native places backend as the menu so this page never
+    // presents the legacy DirectoryShortcuts defaults as a separate truth.
+    QtObject {
+        id: placesData
+        property string searchQuery: ""
+        property var runnerResults: []
+        property var plasmaRecentApps: []
+        property var plasmaFavoriteIds: []
+        property var plasmaPlaces: []
+        function tr(msgid) { return root.tr(msgid); }
+    }
+
+    Ui.PlasmaNative {
+        id: placesBackend
+        menuData: placesData
+        appletInterface: plasmoid
+    }
+
+    Ui.AppsBackend {
+        onAppsUpdated: (apps) => { root.localApps = apps || []; }
+    }
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -24,27 +55,144 @@ Item {
         try { plasmoid.configuration.DirectoryShortcuts = list; } catch (e) {}
     }
 
-    readonly property var ids: SC.normalizeList(cfg_DirectoryShortcuts, SC.DEFAULT_DIRS)
+    function writeOption(key, value) {
+        root["cfg_" + key] = value;
+        try { plasmoid.configuration[key] = value; } catch (e) {}
+    }
 
-    readonly property var items: {
+    readonly property var sectionOrder: {
+        var raw = SC.normalizeList(cfg_PlaceSectionOrder, ["system", "dolphin", "custom"]);
         var out = [];
-        for (var i = 0; i < ids.length; ++i)
-            out.push(SC.resolveDirectory(ids[i], root.tr));
+        raw.concat(["system", "dolphin", "custom"]).forEach(function (id) {
+            if (["system", "dolphin", "custom"].indexOf(id) >= 0 && out.indexOf(id) < 0) out.push(id);
+        });
         return out;
     }
 
-    function move(from, to) { writeLive(SC.moveItem(ids, from, to)); }
+    function itemKey(item) { return String(item ? (item.customPlaceKey || item.kickerUrl || item.entryPath || item.id || "") : ""); }
+    function optionList(key) { return SC.normalizeList(root["cfg_" + key], []); }
+    function ordered(items, key) {
+        var out = (items || []).slice(), order = optionList(key), rank = {};
+        for (var i = 0; i < order.length; ++i) rank[order[i]] = i;
+        out.sort(function (a, b) {
+            var ar = rank[root.itemKey(a)] !== undefined ? rank[root.itemKey(a)] : 100000;
+            var br = rank[root.itemKey(b)] !== undefined ? rank[root.itemKey(b)] : 100000;
+            return ar - br;
+        });
+        return out;
+    }
+    function sectionItems(id) {
+        if (id === "system") return ordered(systemItems, "SystemPlaceOrder");
+        if (id === "dolphin") return ordered(dolphinCustomItems, "DolphinPlaceOrder");
+        return arcCustomItems;
+    }
+    function sectionTitle(id) {
+        if (id === "system") return root.tr("System Locations");
+        if (id === "dolphin") return root.tr("File Manager Locations");
+        return root.tr("User Custom Locations");
+    }
+    function orderKey(id) { return id === "system" ? "SystemPlaceOrder" : (id === "dolphin" ? "DolphinPlaceOrder" : "DirectoryShortcuts"); }
+    function hiddenKey(id) { return id === "system" ? "HiddenSystemPlaces" : (id === "dolphin" ? "HiddenDolphinPlaces" : "HiddenCustomPlaces"); }
+    function isShown(id, item) { return optionList(hiddenKey(id)).indexOf(itemKey(item)) < 0; }
+    function toggleShown(id, item) {
+        var key = hiddenKey(id), list = optionList(key), value = itemKey(item), pos = list.indexOf(value);
+        if (pos >= 0) list.splice(pos, 1); else list.push(value);
+        writeOption(key, list);
+    }
+    function moveSection(from, to) { writeOption("PlaceSectionOrder", SC.moveItem(sectionOrder, from, to)); }
+    function moveSectionItem(id, from, to) {
+        var items = sectionItems(id), keys = items.map(function (x) { return root.itemKey(x); });
+        var moved = SC.moveItem(keys, from, to);
+        if (id === "custom") writeLive(moved); else writeOption(orderKey(id), moved);
+    }
+
+    readonly property var ids: SC.normalizeList(cfg_DirectoryShortcuts, SC.DEFAULT_DIRS)
+
+    readonly property var arcCustomIds: {
+        var out = [];
+        for (var i = 0; i < ids.length; ++i) {
+            if (String(ids[i] || "").indexOf("custom:") === 0
+                    || String(ids[i] || "").indexOf("app:") === 0)
+                out.push(ids[i]);
+        }
+        return out;
+    }
+
+    readonly property var arcCustomItems: {
+        var out = [];
+        for (var i = 0; i < arcCustomIds.length; ++i) {
+            var shortcutId = String(arcCustomIds[i]);
+            var item = null;
+            if (shortcutId.indexOf("app:") === 0) {
+                var appId = shortcutId.substring(4);
+                for (var a = 0; a < root.localApps.length; ++a) {
+                    if (root.localApps[a].id === appId || root.localApps[a].favoriteId === appId) {
+                        item = Object.assign({}, root.localApps[a]);
+                        item.id = shortcutId;
+                        item.customPlaceKey = shortcutId;
+                        break;
+                    }
+                }
+            } else {
+                item = SC.resolveDirectory(shortcutId, root.tr);
+            }
+            if (!item)
+                item = { id: shortcutId, name: shortcutId, icon: "dialog-warning", invalid: true, customPlaceKey: shortcutId };
+            item.sourceKind = "arcmenu";
+            item.arcIndex = i;
+            out.push(item);
+        }
+        return out;
+    }
+
+    readonly property var systemItems: {
+        var source = placesData.plasmaPlaces || [];
+        var out = [];
+        for (var i = 0; i < source.length; ++i) {
+            if (source[i] && source[i].isSystemPlace === true)
+                out.push(source[i]);
+        }
+        if (out.length)
+            return out;
+        return SC.resolveDirectories(SC.DEFAULT_DIRS, root.tr);
+    }
+
+    readonly property var dolphinCustomItems: {
+        var source = placesData.plasmaPlaces || [];
+        var out = [];
+        for (var i = 0; i < source.length; ++i) {
+            if (source[i] && source[i].isSystemPlace !== true) {
+                var copy = Object.assign({}, source[i]);
+                copy.sourceKind = "dolphin";
+                out.push(copy);
+            }
+        }
+        return out;
+    }
+
+    readonly property var userItems: {
+        var out = dolphinCustomItems.slice();
+        var seen = {};
+        for (var i = 0; i < out.length; ++i) {
+            var nativeKey = String(out[i].kickerUrl || out[i].path || out[i].id || "");
+            if (nativeKey.length)
+                seen[nativeKey] = true;
+        }
+        for (var j = 0; j < arcCustomItems.length; ++j) {
+            var custom = arcCustomItems[j];
+            var customKey = String(custom.kickerUrl || custom.path || custom.id || "");
+            if (!customKey.length || !seen[customKey])
+                out.push(custom);
+        }
+        return out;
+    }
+
+    function move(from, to) { writeLive(SC.moveItem(arcCustomIds, from, to)); }
     function removeAt(index) {
-        var list = ids.slice();
+        var list = arcCustomIds.slice();
         list.splice(index, 1);
         writeLive(list);
     }
-    function addDefaultDir(key) {
-        if (ids.indexOf(key) >= 0)
-            return;
-        writeLive(ids.concat([key]));
-    }
-    function resetDefaults() { writeLive(SC.DEFAULT_DIRS.slice()); }
 
     function pathFromUrl(url) {
         var s = String(url || "");
@@ -78,8 +226,8 @@ Item {
 
     function hasPath(path) {
         path = String(path || "");
-        for (var i = 0; i < items.length; ++i) {
-            if (items[i] && String(items[i].path || "") === path)
+        for (var i = 0; i < userItems.length; ++i) {
+            if (userItems[i] && String(userItems[i].path || "") === path)
                 return true;
         }
         return false;
@@ -93,7 +241,7 @@ Item {
         icon = String(icon || "folder").trim() || "folder";
         var encoded = "custom:" + name.replace(/\|/g, "-") + "|"
                 + icon.replace(/\|/g, "-") + "|" + path.replace(/\|/g, " ");
-        writeLive(ids.concat([encoded]));
+        writeLive(arcCustomIds.concat([encoded]));
     }
 
     ConfigPage {
@@ -101,42 +249,83 @@ Item {
         tip: root.tr("Folders and files shown in the places sidebar")
 
         ConfigGroup {
-            title: root.tr("Frequent Locations")
+            title: root.tr("Location Section Order")
             Repeater {
-                model: root.items
+                model: root.sectionOrder
                 ColumnLayout {
                     required property var modelData
                     required property int index
                     Layout.fillWidth: true
                     spacing: 0
                     ConfigSettingRow {
-                        title: modelData.invalid ? (root.tr("Invalid shortcut") + " - " + modelData.id) : modelData.name
-                        iconName: modelData.icon || "folder"
-                        accent: modelData.invalid ? "red" : (index % 2 === 0 ? "blue" : "teal")
-                        Kirigami.Icon {
-                            source: "transform-move"
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            opacity: 0.4
-                        }
-                        QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.move(index, index - 1) }
-                        QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < root.items.length - 1; onClicked: root.move(index, index + 1) }
-                        QQC2.Button { icon.name: "list-remove"; flat: true; onClicked: root.removeAt(index) }
+                        title: root.sectionTitle(modelData)
+                        iconName: "transform-move"
+                        accent: "blue"
+                        QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.moveSection(index, index - 1) }
+                        QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < root.sectionOrder.length - 1; onClicked: root.moveSection(index, index + 1) }
                     }
-                    ConfigSep { visible: index < root.items.length - 1 }
+                    ConfigSep { visible: index < root.sectionOrder.length - 1 }
+                }
+            }
+        }
+
+        Repeater {
+            model: root.sectionOrder
+            ConfigGroup {
+                id: sectionGroup
+                required property var modelData
+                readonly property string sectionId: String(modelData)
+                readonly property var rows: root.sectionItems(sectionId)
+                title: root.sectionTitle(sectionId)
+                ConfigSettingRow {
+                    visible: sectionGroup.rows.length === 0
+                    title: root.tr("No locations in this section")
+                    iconName: "dialog-information"
+                    accent: "yellow"
+                }
+                Repeater {
+                    model: sectionGroup.rows
+                    ColumnLayout {
+                        required property var modelData
+                        required property int index
+                        Layout.fillWidth: true
+                        spacing: 0
+                        ConfigSettingRow {
+                            title: modelData.invalid ? (root.tr("Invalid shortcut") + " - " + modelData.id) : modelData.name
+                            subtitle: sectionGroup.sectionId === "system" ? root.tr("Provided by KDE Places")
+                                : (sectionGroup.sectionId === "dolphin" ? root.tr("Managed in Dolphin Places") : root.tr("Managed by ArcMenu"))
+                            iconName: modelData.icon || "folder"
+                            accent: sectionGroup.sectionId === "system" ? "blue"
+                                : (sectionGroup.sectionId === "dolphin" ? "purple" : "green")
+                            QQC2.Button {
+                                icon.name: root.isShown(sectionGroup.sectionId, modelData) ? "view-visible" : "view-hidden"
+                                flat: true
+                                onClicked: root.toggleShown(sectionGroup.sectionId, modelData)
+                            }
+                            QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.moveSectionItem(sectionGroup.sectionId, index, index - 1) }
+                            QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < sectionGroup.rows.length - 1; onClicked: root.moveSectionItem(sectionGroup.sectionId, index, index + 1) }
+                            QQC2.Button {
+                                visible: sectionGroup.sectionId !== "system"
+                                icon.name: "list-remove"
+                                flat: true
+                                onClicked: {
+                                    if (sectionGroup.sectionId === "dolphin") {
+                                        root.pendingDolphinRemoval = modelData;
+                                        removeDolphinDialog.open();
+                                    } else {
+                                        root.removeAt(Number(modelData.arcIndex));
+                                    }
+                                }
+                            }
+                        }
+                        ConfigSep { visible: index < sectionGroup.rows.length - 1 }
+                    }
                 }
             }
         }
 
         ConfigGroup {
             title: root.tr("Add")
-            ConfigSettingRow {
-                title: root.tr("Add default user directory")
-                iconName: "folder-add"
-                accent: "green"
-                QQC2.Button { icon.name: "list-add"; flat: true; onClicked: defaultDirDialog.open() }
-            }
-            ConfigSep {}
             ConfigSettingRow {
                 title: root.tr("Add custom folder")
                 subtitle: root.tr("Choose a folder to pin in the places sidebar")
@@ -146,6 +335,14 @@ Item {
                     icon.name: "list-add"; flat: true
                     onClicked: folderPicker.open()
                 }
+            }
+            ConfigSep {}
+            ConfigSettingRow {
+                title: root.tr("Add custom application")
+                subtitle: root.tr("Choose an installed application")
+                iconName: "application-x-executable"
+                accent: "green"
+                QQC2.Button { icon.name: "list-add"; flat: true; onClicked: appDialog.open() }
             }
             ConfigSep {}
             ConfigSettingRow {
@@ -175,28 +372,48 @@ Item {
             }
         }
 
-        QQC2.Button { text: root.tr("Reset to defaults"); onClicked: root.resetDefaults() }
     }
 
     QQC2.Dialog {
-        id: defaultDirDialog
-        title: root.tr("Add default user directory")
+        id: removeDolphinDialog
+        title: root.tr("Remove from Dolphin Places")
+        modal: true
+        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
+        anchors.centerIn: parent
+        QQC2.Label {
+            width: Math.min(implicitWidth, Kirigami.Units.gridUnit * 24)
+            wrapMode: Text.WordWrap
+            text: root.tr("This removes the location from Dolphin and other KDE applications.")
+        }
+        onAccepted: {
+            if (root.pendingDolphinRemoval)
+                placesBackend.removeDolphinPlace(root.itemKey(root.pendingDolphinRemoval));
+            root.pendingDolphinRemoval = null;
+        }
+        onRejected: root.pendingDolphinRemoval = null
+    }
+
+    QQC2.Dialog {
+        id: appDialog
+        title: root.tr("Add custom application")
         modal: true
         standardButtons: QQC2.Dialog.Close
         anchors.centerIn: parent
-        width: Math.min(parent.width * 0.9, Kirigami.Units.gridUnit * 22)
-
-        ColumnLayout {
+        width: Math.min(parent.width * 0.92, Kirigami.Units.gridUnit * 26)
+        height: Math.min(parent.height * 0.78, Kirigami.Units.gridUnit * 24)
+        ListView {
             anchors.fill: parent
-            Repeater {
-                model: SC.DEFAULT_DIRS
-                QQC2.ItemDelegate {
-                    required property var modelData
-                    Layout.fillWidth: true
-                    enabled: root.ids.indexOf(modelData) < 0
-                    text: SC.resolveDirectory(modelData, root.tr).name
-                    icon.name: SC.resolveDirectory(modelData, root.tr).icon
-                    onClicked: { root.addDefaultDir(modelData); defaultDirDialog.close(); }
+            clip: true
+            model: root.localApps
+            delegate: QQC2.ItemDelegate {
+                required property var modelData
+                width: ListView.view.width
+                text: modelData.name
+                icon.name: modelData.icon || "application-x-executable"
+                enabled: root.arcCustomIds.indexOf("app:" + modelData.id) < 0
+                onClicked: {
+                    root.writeLive(root.arcCustomIds.concat(["app:" + modelData.id]));
+                    appDialog.close();
                 }
             }
         }
@@ -234,7 +451,7 @@ Item {
                 name = root.basename(path) || path;
             if (root.hasPath(path))
                 return;
-            writeLive(ids.concat(["custom:" + name + "|" + icon + "|" + path]));
+            writeLive(arcCustomIds.concat(["custom:" + name + "|" + icon + "|" + path]));
         }
     }
 

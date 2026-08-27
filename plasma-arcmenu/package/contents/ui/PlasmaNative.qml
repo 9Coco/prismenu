@@ -2,6 +2,7 @@ import QtQuick
 import org.kde.plasma.plasmoid
 import org.kde.plasma.private.kicker as Kicker
 import org.kde.plasma.private.sessions as Sessions
+import org.kde.plasma.plasma5support as P5Support
 
 /**
  * Thin wrappers around Kickoff-shared Plasma APIs:
@@ -22,6 +23,10 @@ Item {
     property var runnerResults: []
     property var recentApps: []
     property var placesEntries: []
+    property var systemPlaceUrls: ({})
+    property bool systemPlaceMetadataReady: false
+    property bool systemPlaceMetadataPending: false
+    property string pendingDolphinRemovalUrl: ""
     property var plasmaFavoriteIds: []
     readonly property var favoritesSourceModel: {
         try { return root.rootModel ? root.rootModel.favoritesModel : null; }
@@ -31,6 +36,7 @@ Item {
     signal runnerResultsUpdated(var results)
     signal recentAppsUpdated(var apps)
     signal placesUpdated(var places)
+    signal dolphinPlaceRemovalFinished(bool success, string url)
     signal plasmaFavoritesUpdated(var ids)
 
     // ---- Session (Kickoff Leave) ----
@@ -509,51 +515,155 @@ Item {
         }
     }
 
-    // ---- Places (KFilePlacesModel when KIO QML is present) ----
-    property var filePlacesModel: null
-
-    Timer {
-        interval: 0
-        running: true
-        repeat: false
-        onTriggered: root._initPlaces()
+    // ---- Places (the same Kicker.ComputerModel used by official Kickoff) ----
+    // ComputerModel intentionally combines KDE's built-in places with bookmarks
+    // added by the user in Dolphin. Its public roles do not expose the XBEL
+    // isSystemItem bit, so read that bit from KDE's own user-places.xbel file.
+    P5Support.DataSource {
+        id: placesMetadataExec
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            placesMetadataExec.disconnectSource(sourceName);
+            root.systemPlaceMetadataPending = false;
+            var urls = {};
+            try {
+                var out = String((data && data.stdout) || "");
+                var rx = /href="([^"]*)"/g;
+                var match;
+                while ((match = rx.exec(out)) !== null) {
+                    var uri = root.decodeXmlAttribute(match[1]);
+                    if (uri.length)
+                        urls[root.normalizedPlaceUrl(uri)] = true;
+                }
+            } catch (e) {
+                console.warn("ArcMenu system-place metadata parse failed:", e);
+            }
+            root.systemPlaceUrls = urls;
+            root.systemPlaceMetadataReady = true;
+            root.rebuildPlaces();
+        }
     }
 
-    property bool _placesTried: false
-
-    function _initPlaces() {
-        if (root._placesTried)
-            return;
-        root._placesTried = true;
-        // Many Plasma installs lack org.kde.kio QML; fall back to XDG places quietly.
-        var candidates = [
-            'import org.kde.kio as KIO; KIO.KFilePlacesModel {}',
-            'import org.kde.plasma.private.fileplacesmodel as FP; FP.FilePlacesModel {}'
-        ];
-        for (var i = 0; i < candidates.length; ++i) {
-            try {
-                var obj = Qt.createQmlObject(candidates[i], root, "ArcMenuKFilePlaces");
-                root.filePlacesModel = obj;
-                placesInst.model = obj;
-                Qt.callLater(root.rebuildPlaces);
-                return;
-            } catch (e) {}
+    P5Support.DataSource {
+        id: placesMutationExec
+        engine: "executable"
+        connectedSources: []
+        onNewData: (sourceName, data) => {
+            placesMutationExec.disconnectSource(sourceName);
+            var ok = String((data && data.stdout) || "").indexOf("ARCMENU_PLACE_REMOVED") >= 0;
+            var uri = root.pendingDolphinRemovalUrl;
+            root.pendingDolphinRemovalUrl = "";
+            root.dolphinPlaceRemovalFinished(ok, uri);
+            root.scheduleSystemPlaceMetadataRefresh();
         }
-        root.filePlacesModel = null;
+    }
+
+    Timer {
+        id: placesMetadataTimer
+        interval: 80
+        repeat: false
+        onTriggered: root.refreshSystemPlaceMetadata()
+    }
+
+    function shellQuotePlaceMetadata(value) {
+        return "'" + String(value || "").replace(/'/g, "'\\''") + "'";
+    }
+
+    function decodeXmlAttribute(value) {
+        return String(value || "")
+            .replace(/&quot;/g, "\"")
+            .replace(/&apos;/g, "'")
+            .replace(/&lt;/g, "<")
+            .replace(/&gt;/g, ">")
+            .replace(/&amp;/g, "&");
+    }
+
+    function normalizedPlaceUrl(value) {
+        var uri = String(value || "").trim();
+        try { uri = decodeURI(uri); } catch (e) {}
+        while (uri.length > 1 && uri.endsWith("/") && !/^[a-z][a-z0-9+.-]*:\/$/i.test(uri))
+            uri = uri.substring(0, uri.length - 1);
+        return uri;
+    }
+
+    function refreshSystemPlaceMetadata() {
+        if (root.systemPlaceMetadataPending)
+            return;
+        root.systemPlaceMetadataPending = true;
+        var xpath = "//*[local-name()='bookmark'][*[local-name()='info']//*[local-name()='isSystemItem' and normalize-space(text())='true']]/@href";
+        var script = "f=\"$HOME/.local/share/user-places.xbel\"; "
+            + "[ -r \"$f\" ] && xmllint --xpath " + root.shellQuotePlaceMetadata(xpath)
+            + " \"$f\" 2>/dev/null || true";
+        placesMetadataExec.connectSource("/bin/bash -lc " + root.shellQuotePlaceMetadata(script));
+    }
+
+    function scheduleSystemPlaceMetadataRefresh() {
+        placesMetadataTimer.restart();
+    }
+
+    function isSystemPlaceUrl(uri) {
+        return root.systemPlaceUrls[root.normalizedPlaceUrl(uri)] === true;
+    }
+
+    function removeDolphinPlace(uri) {
+        uri = String(uri || "");
+        if (!uri.length || root.isSystemPlaceUrl(uri))
+            return false;
+        root.pendingDolphinRemovalUrl = uri;
+        var py = "import os,sys,shutil,tempfile,xml.etree.ElementTree as E; "
+            + "p=os.path.expanduser('~/.local/share/user-places.xbel'); u=sys.argv[1]; "
+            + "E.register_namespace('bookmark','http://www.freedesktop.org/standards/desktop-bookmarks'); "
+            + "E.register_namespace('kdepriv','http://www.kde.org/kdepriv'); E.register_namespace('mime','http://www.freedesktop.org/standards/shared-mime-info'); "
+            + "t=E.parse(p); r=t.getroot(); hit=None; "
+            + "hit=next((b for b in r.findall('bookmark') if b.get('href','').rstrip('/')==u.rstrip('/') and not any(x.tag.endswith('isSystemItem') and (x.text or '').strip()=='true' for x in b.iter())),None); "
+            + "assert hit is not None; r.remove(hit); shutil.copy2(p,p+'.arcmenu-backup'); "
+            + "fd,tmp=tempfile.mkstemp(prefix='.user-places-',dir=os.path.dirname(p)); os.close(fd); "
+            + "t.write(tmp,encoding='UTF-8',xml_declaration=True); d=open(tmp,'rb').read(); open(tmp,'wb').write(d.replace(b'?>',b'?>\\n<!DOCTYPE xbel>',1)); os.replace(tmp,p); print('ARCMENU_PLACE_REMOVED')";
+        var command = "/bin/bash -lc " + root.shellQuotePlaceMetadata(
+            "python3 -c " + root.shellQuotePlaceMetadata(py) + " " + root.shellQuotePlaceMetadata(uri));
+        placesMutationExec.connectSource(command);
+        return true;
+    }
+
+    Kicker.ComputerModel {
+        id: computerModel
+        appletInterface: root.appletInterface
+        favoritesModel: root.favoritesSourceModel
+        // The right rail is a places list, so omit ComputerModel's optional
+        // System Settings application. Rows without a URL (KRunner/apps) are
+        // filtered below as well.
+        systemApplications: []
+        Component.onCompleted: {
+            root.scheduleSystemPlaceMetadataRefresh();
+            Qt.callLater(root.rebuildPlaces);
+        }
+        onCountChanged: {
+            root.rebuildPlaces();
+            root.scheduleSystemPlaceMetadataRefresh();
+        }
+        onDataChanged: {
+            root.rebuildPlaces();
+            root.scheduleSystemPlaceMetadataRefresh();
+        }
+        onModelReset: {
+            root.rebuildPlaces();
+            root.scheduleSystemPlaceMetadataRefresh();
+        }
     }
 
     Instantiator {
         id: placesInst
-        model: null
+        model: computerModel
         asynchronous: false
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property string display: String(model.display !== undefined ? model.display : "")
             readonly property string description: String(model.description !== undefined ? model.description : "")
             readonly property var decoration: model.decoration
-            readonly property var url: model.url !== undefined ? model.url : model.Url
-            readonly property bool isHidden: !!(model.hidden || model.Hidden)
-            readonly property bool isDevice: !!(model.isDevice || model.IsDevice)
+            readonly property var url: model.url
+            readonly property string group: String(model.group !== undefined ? model.group : "")
+            readonly property int computerRow: index
         }
         onObjectAdded: root.rebuildPlaces()
         onObjectRemoved: root.rebuildPlaces()
@@ -561,21 +671,15 @@ Item {
 
     function rebuildPlaces() {
         var out = [];
-        if (!root.filePlacesModel) {
-            root.placesEntries = out;
-            placesUpdated(out);
-            return;
-        }
         var n = placesInst.count;
         for (var i = 0; i < n && out.length < 40; ++i) {
             var obj = placesInst.objectAt(i);
-            if (!obj || obj.isHidden)
+            if (!obj)
                 continue;
             var name = String(obj.display || "").trim();
             var uri = obj.url !== undefined && obj.url !== null ? String(obj.url) : "";
             if (!name || !uri)
                 continue;
-            // Skip root / trash noise optionally — keep standard user places
             var icon = "folder";
             try {
                 if (typeof obj.decoration === "string" && obj.decoration.length)
@@ -584,7 +688,9 @@ Item {
                     icon = String(obj.decoration.name);
             } catch (e) {}
             var localPath = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : "";
-            var detail = String(obj.description || "").trim();
+            var modelDescription = String(obj.description || "").trim();
+            var isDevice = modelDescription.length > 0;
+            var detail = modelDescription;
             if (!detail)
                 detail = localPath || (menuData ? menuData.tr("Remote Location") : "Remote Location");
             out.push({
@@ -598,12 +704,15 @@ Item {
                 exec: "",
                 place: "",
                 path: localPath,
-                isDevice: !!obj.isDevice,
+                isDevice: isDevice,
+                isSystemPlace: isDevice || root.isSystemPlaceUrl(uri),
+                placeGroup: obj.group,
+                computerRow: obj.computerRow,
                 categories: ["Places"],
                 keywords: [],
                 genericName: detail,
                 description: detail,
-                provider: "kfileplaces",
+                provider: "kicker-computer",
                 noDisplay: false
             });
         }
@@ -613,11 +722,20 @@ Item {
             menuData.plasmaPlaces = out;
     }
 
+    function triggerComputerAt(row) {
+        try {
+            computerModel.trigger(row, "", undefined);
+            return true;
+        } catch (e) {
+            console.warn("ArcMenu ComputerModel trigger failed:", row, e);
+            return false;
+        }
+    }
+
     function openPlaceUrl(url) {
         if (!url)
             return false;
         try {
-            // KFilePlacesModel / KIO open via kioclient is still valid; prefer Qt.openUrlExternally for file:
             var u = String(url);
             Qt.openUrlExternally(u);
             return true;

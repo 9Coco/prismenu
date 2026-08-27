@@ -580,7 +580,13 @@ Item {
             return;
         }
 
-        // KFilePlaces / file URL
+        // Official Kickoff ComputerModel place — preserve its KIO/device setup behavior.
+        if (app.provider === "kicker-computer" && typeof app.computerRow === "number") {
+            if (plasmaNative.triggerComputerAt(app.computerRow))
+                return;
+        }
+
+        // Other file/bookmark URLs
         if ((app.provider === "kfileplaces" || app.provider === "bookmarks") && app.kickerUrl) {
             if (plasmaNative.openPlaceUrl(app.kickerUrl))
                 return;

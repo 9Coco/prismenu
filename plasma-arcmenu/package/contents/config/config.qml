@@ -22,16 +22,16 @@ ConfigModel {
         return Locale.tr(msgid, uiLang);
     }
 
-    // Top-level matches GNOME ArcMenu: General / Menu / Menu Button (+ Plasma About).
-    ConfigCategory {
-        name: configModel.tr("General")
-        icon: "preferences-desktop"
-        source: "config/ConfigGeneral.qml"
-    }
+    // Put functional menu configuration first; appearance-oriented pages follow.
     ConfigCategory {
         name: configModel.tr("Menu")
         icon: "settings-configure"
         source: "config/ConfigMenu.qml"
+    }
+    ConfigCategory {
+        name: configModel.tr("General")
+        icon: "preferences-desktop"
+        source: "config/ConfigGeneral.qml"
     }
     ConfigCategory {
         name: configModel.tr("Menu Button")

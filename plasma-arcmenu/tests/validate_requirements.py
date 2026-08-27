@@ -236,7 +236,8 @@ def main() -> int:
         "PinnedApps", "PinnedCols", "SyncWithPlasma",
         "Enabled", "MaxItems", "RecentApps", "GroupViewOptions",
         "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty",
-        "DirectoryShortcuts", "ApplicationShortcuts",
+        "DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder", "HiddenSystemPlaces",
+        "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "SidebarOrder", "SidebarHidden", "ContextMenuItems",
         "Providers", "Placeholder", "ShowDescription", "MaxResults",
         "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled",
@@ -269,9 +270,25 @@ def main() -> int:
         "Frequent Locations", "Application Shortcuts",
         "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
         "Menu Groups", "Search Options", "Power Options",
-        "Modify ArcMenu Context Menu",
     ]:
         check(label in config_model, f"settings category: {label}")
+    check("Modify ArcMenu Context Menu" not in config_model
+          and "pageContext" not in config_model,
+          "obsolete context-menu settings entry removed")
+    top_config = (PKG / "contents/config/config.qml").read_text(encoding="utf-8")
+    check(top_config.index('tr("Menu")') < top_config.index('tr("General")')
+          < top_config.index('tr("Menu Button")'),
+          "top-level settings put functional menu pages before appearance")
+    check(config_model.index('tr("What should show on the menu?")')
+          < config_model.index('tr("How should the menu look?")'),
+          "menu settings put functional content before appearance")
+    menu_config = (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8")
+    check(menu_config.index('title: root.tr("Menu Layout")')
+          < menu_config.index('title: root.tr("Frequent Locations")')
+          < menu_config.index('title: root.tr("ArcMenu layout adjustment")')
+          < menu_config.index('title: root.tr("Power Options")')
+          < menu_config.index('title: root.tr("How should the menu look?")'),
+          "menu layout leads while ArcMenu adjustment and power stay lower")
     check('title: root.tr("Pinned Applications")' not in config_model,
           "pinned apps page removed from menu hub")
     visual_cfg = (PKG / "contents/ui/config/ConfigVisual.qml").read_text(encoding="utf-8")
@@ -285,6 +302,17 @@ def main() -> int:
           "theme colors convert rgb() for QML swatches")
     dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
     check("Frequent Locations" in dirs_page, "places page uses Frequent Locations title")
+    check("Ui.PlasmaNative" in dirs_page
+          and "System Locations" in dirs_page
+          and "File Manager Locations" in dirs_page
+          and "User Custom Locations" in dirs_page
+          and "Managed in Dolphin Places" in dirs_page
+          and "Add default user directory" not in dirs_page,
+          "places settings mirrors KDE system and user location groups")
+    check("PlaceSectionOrder" in dirs_page and "HiddenSystemPlaces" in dirs_page
+          and "HiddenDolphinPlaces" in dirs_page and "HiddenCustomPlaces" in dirs_page
+          and "removeDolphinPlace" in dirs_page and "Add custom application" in dirs_page,
+          "three place blocks support order visibility removal and app additions")
     check("Add custom file" in dirs_page and "FileDialog" in dirs_page,
           "places page can add custom files")
 
@@ -425,6 +453,24 @@ def main() -> int:
     app_grid = (PKG / "contents/ui/components/AppGrid.qml").read_text(encoding="utf-8")
     check("currentIndex: -1" in app_grid and "minCellWidth:" in arc_layout,
           "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
+    plasma_native = (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
+    menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
+    places_sidebar = (PKG / "contents/ui/components/PlacesSidebar.qml").read_text(encoding="utf-8")
+    check("Kicker.ComputerModel {" in plasma_native
+          and 'provider: "kicker-computer"' in plasma_native,
+          "places use the same Kicker ComputerModel as Kickoff")
+    check("isSystemItem" in plasma_native
+          and "isSystemPlace:" in plasma_native
+          and "xmllint --xpath" in plasma_native,
+          "KDE built-in places are separated from Dolphin user bookmarks")
+    check("readonly property var systemPlaces" in menu_data
+          and "readonly property var customPlaces" in menu_data
+          and 'id: "place-bookmarks"' not in menu_data,
+          "system and custom places are separate without a synthetic bookmarks tab")
+    check("Exactly two permanent boundaries" in places_sidebar
+          and "model: root.placeSections" in places_sidebar
+          and "placeSections.length - 1" in places_sidebar,
+          "places sidebar always separates all three configurable blocks")
 
     layout_preview = (PKG / "contents/ui/config/LayoutPreview.qml").read_text(encoding="utf-8")
     config_layout = (PKG / "contents/ui/config/ConfigLayout.qml").read_text(encoding="utf-8")
