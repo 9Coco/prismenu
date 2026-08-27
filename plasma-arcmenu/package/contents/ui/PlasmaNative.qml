@@ -69,6 +69,8 @@ Item {
             case "logout":
                 return callRequest("requestLogout");
             case "shutdown":
+                if (session.canShutdown === false)
+                    console.warn("ArcMenu: SessionManagement.canShutdown is false");
                 return callRequest("requestShutdown");
             case "restart":
             case "reboot":
