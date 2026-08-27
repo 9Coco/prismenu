@@ -6,6 +6,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.plasmoid
 import "../../code/Distro.js" as Distro
 import "../../code/Locale.js" as Locale
+import "../../code/Theme.js" as ThemeHelper
 
 /**
  * Menu Button — panel icon, click actions, and chrome style.
@@ -187,11 +188,7 @@ Item {
             border.width: 1
             border.color: Kirigami.Theme.disabledTextColor
             opacity: srow.enabledFlag ? 1 : 0.45
-            color: {
-                if (!srow.colorValue || srow.colorValue === "" || srow.colorValue === "transparent")
-                    return "transparent";
-                try { return srow.colorValue; } catch (e) { return "transparent"; }
-            }
+            color: ThemeHelper.toQmlColor(srow.colorValue, "transparent")
             Rectangle {
                 anchors.fill: parent
                 anchors.margins: 1
@@ -208,7 +205,7 @@ Item {
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     root._colorTarget = srow.colorKey;
-                    colorDialog.selectedColor = srow.colorValue || "#808080";
+                    colorDialog.selectedColor = ThemeHelper.toQmlColor(srow.colorValue, "#808080");
                     colorDialog.open();
                 }
             }
