@@ -818,10 +818,18 @@ Item {
         readonly property bool isFrequent: groupId === "frequent"
         title: root.tr("Column settings")
         modal: true
+        dim: true
         standardButtons: QQC2.Dialog.Close
         width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
         padding: Kirigami.Units.largeSpacing
         anchors.centerIn: parent
+        clip: true
+        background: Rectangle {
+            color: Kirigami.Theme.backgroundColor
+            radius: Kirigami.Units.cornerRadius
+            border.width: 1
+            border.color: Qt.alpha(Kirigami.Theme.textColor, 0.18)
+        }
         function refreshApps() {
             appsList = root.columnApps(groupId);
         }
@@ -830,9 +838,8 @@ Item {
             viewCombo.currentIndex = view === "grid" ? 0 : 1;
             refreshApps();
         }
-        ColumnLayout {
+        contentItem: ColumnLayout {
             spacing: Kirigami.Units.smallSpacing
-            width: parent ? parent.width : Kirigami.Units.gridUnit * 24
             QQC2.Label {
                 Layout.fillWidth: true
                 text: columnDialog.groupName
@@ -874,49 +881,65 @@ Item {
                     opacity: 0.55
                     wrapMode: Text.WordWrap
                 }
-                Flickable {
+                Rectangle {
                     visible: columnDialog.appsExpanded && columnDialog.appsList.length > 0
                     Layout.fillWidth: true
                     Layout.preferredHeight: Math.min(
                         columnDialog.appsList.length * (Kirigami.Units.gridUnit * 2.2),
                         Kirigami.Units.gridUnit * 14)
+                    color: Kirigami.Theme.alternateBackgroundColor
+                    radius: Kirigami.Units.cornerRadius
+                    border.width: 1
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
                     clip: true
-                    contentWidth: width
-                    contentHeight: columnAppsCol.height
-                    boundsBehavior: Flickable.StopAtBounds
-                    Column {
-                        id: columnAppsCol
-                        width: parent.width
-                        Repeater {
-                            model: columnDialog.appsExpanded ? columnDialog.appsList : []
-                            RowLayout {
-                                id: appRow
-                                required property var modelData
-                                width: columnAppsCol.width
-                                height: Kirigami.Units.gridUnit * 2.2
-                                spacing: Kirigami.Units.smallSpacing
-                                Kirigami.Icon {
-                                    source: (appRow.modelData && appRow.modelData.icon)
-                                            ? appRow.modelData.icon : "application-x-executable"
-                                    Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
-                                    Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
-                                }
-                                QQC2.Label {
-                                    Layout.fillWidth: true
-                                    elide: Text.ElideRight
-                                    text: appRow.modelData
-                                          ? (appRow.modelData.name || appRow.modelData.id) : ""
-                                }
-                                QQC2.Button {
-                                    visible: !!(appRow.modelData && appRow.modelData.extra)
-                                    icon.name: "list-remove"
-                                    flat: true
-                                    onClicked: {
-                                        if (appRow.modelData)
-                                            root.toggleGroupApp(columnDialog.groupId, appRow.modelData.id, false);
-                                    }
+                    ListView {
+                        id: columnAppsList
+                        anchors.fill: parent
+                        anchors.margins: 1
+                        anchors.rightMargin: Kirigami.Units.gridUnit * 0.85
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        spacing: 0
+                        model: columnDialog.appsExpanded ? columnDialog.appsList : []
+                        delegate: RowLayout {
+                            id: appRow
+                            required property var modelData
+                            width: ListView.view ? ListView.view.width : columnAppsList.width
+                            height: Kirigami.Units.gridUnit * 2.2
+                            spacing: Kirigami.Units.smallSpacing
+                            Kirigami.Icon {
+                                source: (appRow.modelData && appRow.modelData.icon)
+                                        ? appRow.modelData.icon : "application-x-executable"
+                                Layout.preferredWidth: Kirigami.Units.iconSizes.smallMedium
+                                Layout.preferredHeight: Kirigami.Units.iconSizes.smallMedium
+                            }
+                            QQC2.Label {
+                                Layout.fillWidth: true
+                                elide: Text.ElideRight
+                                text: appRow.modelData
+                                      ? (appRow.modelData.name || appRow.modelData.id) : ""
+                            }
+                            QQC2.Button {
+                                visible: !!(appRow.modelData && appRow.modelData.extra)
+                                icon.name: "list-remove"
+                                flat: true
+                                onClicked: {
+                                    if (appRow.modelData)
+                                        root.toggleGroupApp(columnDialog.groupId, appRow.modelData.id, false);
                                 }
                             }
+                        }
+                        QQC2.ScrollBar.vertical: QQC2.ScrollBar {
+                            parent: columnAppsList.parent
+                            anchors.top: columnAppsList.top
+                            anchors.bottom: columnAppsList.bottom
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            policy: QQC2.ScrollBar.AlwaysOn
+                            implicitWidth: Kirigami.Units.gridUnit * 0.7
+                        }
+                        QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                            policy: QQC2.ScrollBar.AlwaysOff
                         }
                     }
                 }
@@ -1007,45 +1030,84 @@ Item {
     QQC2.Dialog {
         id: manageDialog
         property string groupId: ""
-        title: root.tr("Manage applications…")
+        title: root.tr("Add applications")
         modal: true
+        dim: true
         standardButtons: QQC2.Dialog.Close
-        width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.95, Kirigami.Units.gridUnit * 28)
-        height: Math.min((parent ? parent.height : Kirigami.Units.gridUnit * 24) * 0.8, Kirigami.Units.gridUnit * 24)
+        width: Math.min((parent ? parent.width : Kirigami.Units.gridUnit * 28) * 0.92, Kirigami.Units.gridUnit * 28)
         padding: Kirigami.Units.largeSpacing
         anchors.centerIn: parent
-        ColumnLayout {
-            anchors.fill: parent
-            QQC2.TextField {
-                id: manageFilter
-                Layout.fillWidth: true
-                placeholderText: root.tr("Search…")
-            }
-            ListView {
-                id: manageList
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                clip: true
-                model: {
-                    var _apps = root.localApps;
-                    return root.filteredPickerApps(manageFilter.text);
+        clip: true
+        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
+        background: Rectangle {
+            color: Kirigami.Theme.backgroundColor
+            radius: Kirigami.Units.cornerRadius
+            border.width: 1
+            border.color: Qt.alpha(Kirigami.Theme.textColor, 0.18)
+        }
+        contentItem: Rectangle {
+            color: Kirigami.Theme.backgroundColor
+            implicitWidth: Kirigami.Units.gridUnit * 26
+            implicitHeight: Kirigami.Units.gridUnit * 22
+            ColumnLayout {
+                anchors.fill: parent
+                spacing: Kirigami.Units.smallSpacing
+                QQC2.TextField {
+                    id: manageFilter
+                    Layout.fillWidth: true
+                    placeholderText: root.tr("Search…")
                 }
-                delegate: QQC2.CheckDelegate {
-                    required property var modelData
-                    width: manageList.width
-                    text: modelData.name
-                    icon.name: modelData.icon || "application-x-executable"
-                    checked: root.groupContains(manageDialog.groupId, modelData.id)
-                    onToggled: root.toggleGroupApp(manageDialog.groupId, modelData.id, checked)
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    Layout.preferredHeight: Kirigami.Units.gridUnit * 18
+                    Layout.minimumHeight: Kirigami.Units.gridUnit * 12
+                    color: Kirigami.Theme.alternateBackgroundColor
+                    radius: Kirigami.Units.cornerRadius
+                    border.width: 1
+                    border.color: Qt.alpha(Kirigami.Theme.textColor, 0.12)
+                    clip: true
+                    ListView {
+                        id: manageList
+                        anchors.fill: parent
+                        anchors.margins: 1
+                        anchors.rightMargin: Kirigami.Units.gridUnit * 0.85
+                        clip: true
+                        boundsBehavior: Flickable.StopAtBounds
+                        model: {
+                            var _apps = root.localApps;
+                            return root.filteredPickerApps(manageFilter.text);
+                        }
+                        delegate: QQC2.CheckDelegate {
+                            required property var modelData
+                            width: manageList.width
+                            text: modelData.name
+                            icon.name: modelData.icon || "application-x-executable"
+                            checked: root.groupContains(manageDialog.groupId, modelData.id)
+                            onToggled: root.toggleGroupApp(manageDialog.groupId, modelData.id, checked)
+                        }
+                        QQC2.ScrollBar.vertical: QQC2.ScrollBar {
+                            parent: manageList.parent
+                            anchors.top: manageList.top
+                            anchors.bottom: manageList.bottom
+                            anchors.right: parent.right
+                            anchors.rightMargin: 1
+                            policy: QQC2.ScrollBar.AlwaysOn
+                            implicitWidth: Kirigami.Units.gridUnit * 0.7
+                        }
+                        QQC2.ScrollBar.horizontal: QQC2.ScrollBar {
+                            policy: QQC2.ScrollBar.AlwaysOff
+                        }
+                    }
+                    QQC2.Label {
+                        anchors.centerIn: parent
+                        visible: manageList.count === 0
+                        opacity: 0.55
+                        text: root.localApps.length
+                              ? root.tr("No applications")
+                              : root.tr("Loading applications…")
+                    }
                 }
-            }
-            QQC2.Label {
-                visible: manageList.count === 0
-                Layout.alignment: Qt.AlignHCenter
-                opacity: 0.55
-                text: root.localApps.length
-                      ? root.tr("No applications")
-                      : root.tr("Loading applications…")
             }
         }
     }

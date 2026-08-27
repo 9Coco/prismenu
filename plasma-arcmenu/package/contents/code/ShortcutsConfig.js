@@ -61,6 +61,23 @@ function dirMeta(key, tr) {
     return map[key] || null;
 }
 
+function fileUrlForPath(path) {
+    path = String(path || "");
+    if (!path)
+        return "";
+    if (path.indexOf("file:") === 0)
+        return path;
+    return "file://" + encodeURI(path);
+}
+
+function quotedOpenExec(path) {
+    path = String(path || "");
+    if (!path)
+        return "";
+    var q = "'" + path.replace(/'/g, "'\\''") + "'";
+    return "kioclient exec " + q + " || xdg-open " + q;
+}
+
 function resolveDirectory(id, tr) {
     id = String(id || "");
     if (id.indexOf("custom:") === 0) {
@@ -72,8 +89,9 @@ function resolveDirectory(id, tr) {
             id: id,
             name: name,
             icon: icon,
-            exec: path ? ("xdg-open " + path) : "",
-            path: path
+            exec: quotedOpenExec(path),
+            path: path,
+            kickerUrl: fileUrlForPath(path)
         };
     }
     var key = id.indexOf("place-") === 0 ? id.replace("place-", "").toUpperCase() : id.toUpperCase();

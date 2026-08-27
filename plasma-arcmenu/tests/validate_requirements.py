@@ -265,13 +265,19 @@ def main() -> int:
     ])
     # "About" comes from Plasma metadata, not a custom ConfigCategory
     for label in [
-        "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment", "Pinned Applications",
-        "Directory Shortcuts", "Application Shortcuts",
+        "General", "Menu Button", "Menu Layout", "ArcMenu layout adjustment",
+        "Frequent Locations", "Application Shortcuts",
         "Menu Visual Appearance", "Menu Theme", "Fine-tuning",
         "Menu Groups", "Search Options", "Power Options",
         "Modify ArcMenu Context Menu",
     ]:
         check(label in config_model, f"settings category: {label}")
+    check('title: root.tr("Pinned Applications")' not in config_model,
+          "pinned apps page removed from menu hub")
+    dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
+    check("Frequent Locations" in dirs_page, "places page uses Frequent Locations title")
+    check("Add custom file" in dirs_page and "FileDialog" in dirs_page,
+          "places page can add custom files")
 
     components = [
         "SearchField.qml", "AppListItem.qml", "CategoryList.qml", "PinnedAppsGrid.qml",
@@ -319,8 +325,14 @@ def main() -> int:
     check("Column settings" in extra_cfg, "column settings dialog")
     check("Square icons" in extra_cfg and "Show in rows" in extra_cfg, "column view mode options")
     check("Applications in this column" in extra_cfg, "type groups list current apps")
+    check("columnAppsList" in extra_cfg and "QQC2.ScrollBar.AlwaysOn" in extra_cfg,
+          "column apps list has a visible scrollbar")
     check("visible: columnDialog.isType" in extra_cfg, "preference groups do not add apps")
     check("root.localApps" in extra_cfg, "column app picker uses AppsBackend catalog")
+    check('id: manageDialog' in extra_cfg
+          and "contentItem: Rectangle" in extra_cfg
+          and "Kirigami.Theme.backgroundColor" in extra_cfg,
+          "add-app dialog fills with an opaque pane")
     check("title: root.tr(\"Recent applications\")" not in extra_cfg,
           "recent apps settings live in the frequent column dialog")
     check('id: "frequent", name: tr("Recent Apps")' in (PKG / "contents/code/ShortcutsConfig.js").read_text(encoding="utf-8"),

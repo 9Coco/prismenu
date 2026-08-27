@@ -1181,6 +1181,7 @@ QtObject {
                 place: it.place || "",
                 exec: it.exec || "",
                 path: it.path || "",
+                kickerUrl: it.kickerUrl || (it.path ? ("file://" + it.path) : ""),
                 categories: ["Places"],
                 keywords: [],
                 genericName: it.path || it.name,

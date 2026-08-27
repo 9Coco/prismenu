@@ -328,7 +328,6 @@ Item {
         "ConfigVisual": ["MenuHeight", "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "SidebarWidth", "MenuWidth", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
         "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
-        "ConfigPinned": ["PinnedApps", "PinnedCols", "SyncWithPlasma"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
@@ -343,7 +342,6 @@ Item {
         if (component === pageVisual) return "ConfigVisual";
         if (component === pageFineTune) return "ConfigFineTune";
         if (component === pageArcLayout) return "ConfigArcLayout";
-        if (component === pagePinned) return "ConfigPinned";
         if (component === pageDirs) return "ConfigDirectoryShortcuts";
         if (component === pageApps) return "ConfigAppShortcuts";
         if (component === pageSearch) return "ConfigSearch";
@@ -691,17 +689,9 @@ Item {
                     }
                     NavSep {}
                     NavRow {
-                        title: root.tr("Pinned Applications")
-                        subtitle: root.tr("Reorder and manage pinned apps")
-                        iconName: "pin"
-                        accent: "pink"
-                        onActivated: root.openSubPage(pagePinned, title)
-                    }
-                    NavSep {}
-                    NavRow {
-                        title: root.tr("Directory Shortcuts")
-                        subtitle: root.tr("Folders and custom paths on the left sidebar")
-                        iconName: "folder-symbolic"
+                        title: root.tr("Frequent Locations")
+                        subtitle: root.tr("Folders and files on the left sidebar")
+                        iconName: "folder-favorites"
                         accent: "cyan"
                         onActivated: root.openSubPage(pageDirs, title)
                     }
@@ -760,7 +750,6 @@ Item {
     Component { id: pageVisual; ConfigVisual {} }
     Component { id: pageFineTune; ConfigFineTune {} }
     Component { id: pageArcLayout; ConfigArcLayout {} }
-    Component { id: pagePinned; ConfigPinned {} }
     Component { id: pageDirs; ConfigDirectoryShortcuts {} }
     Component { id: pageApps; ConfigAppShortcuts {} }
     Component { id: pageSearch; ConfigSearch {} }
