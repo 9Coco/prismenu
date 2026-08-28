@@ -55,6 +55,10 @@ PlasmoidItem {
 
     onExpandedChanged: function (expanded) {
         if (expanded) {
+            // Match Plasma Kickoff: every open starts from pinned/home,
+            // regardless of whether the popup was opened by click, shortcut,
+            // or after losing focus.
+            menuData.resetView();
             root.applyKUserMeta();
             // os-release already probed at startup; face/name from KUser above
             if (plasmoid.configuration.SearchRecentFiles
@@ -290,7 +294,6 @@ PlasmoidItem {
         if (root.expanded) {
             root.expanded = false;
         } else {
-            menuData.resetView();
             root.expanded = true;
         }
     }
@@ -667,7 +670,9 @@ PlasmoidItem {
         Connections {
             target: root
             function onExpandedChanged() {
-                if (!root.expanded)
+                if (root.expanded)
+                    host.resetForOpen();
+                else
                     contextMenu.dismissAndClear();
             }
         }
@@ -703,6 +708,8 @@ PlasmoidItem {
         }
 
         Component.onCompleted: {
+            root.catalog.resetView();
+            host.resetForOpen();
             var targetY = -fullRep.risePx + fullRep.posShiftY;
             if (plasmoid.configuration.PopupAnimation === "fade") {
                 opacity = 0;
