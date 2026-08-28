@@ -107,9 +107,15 @@ Item {
         return items || [];
     }
 
-    /** Shared column width (persisted SidebarWidth); used by multi-column layouts */
-    readonly property int sidebarW: (menuData && menuData.sidebarWidth) ? menuData.sidebarWidth : 220
-    readonly property int categoryColW: (menuData && menuData.categoryColumnWidth) ? menuData.categoryColumnWidth : 220
+    /** Shared column widths. During a split-handle drag these use an in-memory
+     * preview so pointer motion never performs synchronous KConfig writes. */
+    property int liveSidebarW: -1
+    property int liveCategoryColW: -1
+    readonly property int storedSidebarW: (menuData && menuData.sidebarWidth) ? menuData.sidebarWidth : 220
+    readonly property int storedCategoryColW: (menuData && menuData.categoryColumnWidth)
+        ? menuData.categoryColumnWidth : 220
+    readonly property int sidebarW: liveSidebarW >= 0 ? liveSidebarW : storedSidebarW
+    readonly property int categoryColW: liveCategoryColW >= 0 ? liveCategoryColW : storedCategoryColW
     readonly property int sidebarMin: 160
     readonly property int sidebarMax: 360
     /** Elastic column floor: sidebarMin clamped to ~30% of the menu width so
@@ -117,14 +123,42 @@ Item {
      * (fixed 160 minimums pushed columns outside the menu when narrowed). */
     readonly property int elasticColumnMin: Math.min(sidebarMin, Math.max(96, Math.round(root.width * 0.3)))
 
+    Timer {
+        id: sidebarDragCommitTimer
+        interval: 250
+        repeat: false
+        onTriggered: {
+            var width = root.liveSidebarW;
+            if (width < 0)
+                return;
+            if (menuData && menuData.setSidebarWidth)
+                menuData.setSidebarWidth(width);
+            root.liveSidebarW = -1;
+        }
+    }
+
+    Timer {
+        id: categoryDragCommitTimer
+        interval: 250
+        repeat: false
+        onTriggered: {
+            var width = root.liveCategoryColW;
+            if (width < 0)
+                return;
+            if (menuData && menuData.setCategoryColumnWidth)
+                menuData.setCategoryColumnWidth(width);
+            root.liveCategoryColW = -1;
+        }
+    }
+
     function setSidebarFromDrag(w) {
-        if (menuData && menuData.setSidebarWidth)
-            menuData.setSidebarWidth(w);
+        root.liveSidebarW = Math.round(w);
+        sidebarDragCommitTimer.restart();
     }
 
     function setCategoryColumnFromDrag(w) {
-        if (menuData && menuData.setCategoryColumnWidth)
-            menuData.setCategoryColumnWidth(w);
+        root.liveCategoryColW = Math.round(w);
+        categoryDragCommitTimer.restart();
     }
 
     function tr(msgid) {
