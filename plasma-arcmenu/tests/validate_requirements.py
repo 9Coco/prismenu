@@ -213,7 +213,7 @@ def main() -> int:
     required_keys = [
         "ButtonIcon", "ButtonLabelVisible", "ButtonLabelText", "MenuHotkey", "PopupAnimation",
         "UiLanguage",
-        "PanelButtonIconSize", "PanelButtonPadding",
+        "PanelButtonIconSize",
         "LeftClickAction", "RightClickAction", "MiddleClickAction",
         "ButtonStyleFgEnabled", "ButtonStyleBgEnabled", "ButtonStyleHoverBgEnabled",
         "ButtonStyleHoverFgEnabled", "ButtonStyleActiveBgEnabled", "ButtonStyleActiveFgEnabled",
@@ -580,6 +580,22 @@ def main() -> int:
     check('title: root.tr("Right click")' not in menu_button_cfg
           and 'writeLive("RightClickAction"' not in menu_button_cfg,
           "obsolete configurable right-click action is hidden")
+    check("PanelButtonPadding" not in cfg
+          and "PanelButtonPositionOffset" not in cfg
+          and "PanelButtonPadding" not in menu_button_cfg
+          and "PanelButtonPositionOffset" not in menu_button_cfg
+          and "PanelButtonPadding" not in compact_source
+          and "PanelButtonPositionOffset" not in compact_source,
+          "obsolete panel padding and position controls are removed")
+    check('"context"' not in menu_button_cfg.split("readonly property var clickKeys:", 1)[1].split("]", 1)[0]
+          and "id: buttonContextMenu" not in compact_source
+          and 'LeftClickAction === "context"' in main_qml
+          and 'MiddleClickAction === "context"' in main_qml,
+          "legacy custom context click action migrates to ArcMenu")
+    check("Layout.minimumWidth: desiredWidth" in compact_source
+          and "Layout.preferredWidth: desiredWidth" in compact_source
+          and "Layout.maximumWidth: desiredWidth" in compact_source,
+          "panel reserves the dynamic icon and text button width")
 
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
     for item in ["Launch", "Favorites", "Desktop", "Panel", "Edit", "Details", "Uninstall", "Terminal"]:

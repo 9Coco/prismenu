@@ -110,8 +110,6 @@ var CONFIG_KEYS = [
     "OverrideMenuRise",
     "OverrideMenuTheme",
     "PanelButtonIconSize",
-    "PanelButtonPadding",
-    "PanelButtonPositionOffset",
     "PinnedApps",
     "PinnedCols",
     "Placeholder",
