@@ -54,43 +54,36 @@ QtObject {
     /** Secondary search providers (filled by AppsBackend) */
     property var recentFileResults: []
     property var openWindowResults: []
-    property var bookmarkResults: []
-    /** Removable devices scanned from /media (fallback when KFilePlacesModel
-     *  QML is unavailable) — filled by AppsBackend.refreshDevices() */
-    property var deviceResults: []
+    /** User-created KDE Places, supplied by Kicker.ComputerModel. */
+    readonly property var bookmarkResults: {
+        var source = plasmaPlaces || [];
+        var out = [];
+        for (var i = 0; i < source.length; ++i) {
+            var place = source[i];
+            if (place && !place.isDevice && place.isSystemPlace !== true)
+                out.push(place);
+        }
+        return out;
+    }
     /** Bumped when recent-file list is refreshed — forces UI list bindings */
     property int recentFilesEpoch: 0
-    property int bookmarksEpoch: 0
-    property int devicesEpoch: 0
     /** Increment to ask AppsBackend to re-read recently-used.xbel */
     property int recentFilesRequest: 0
-    property int bookmarksRequest: 0
-    property int devicesRequest: 0
 
     function requestRecentFilesRefresh() {
         recentFilesRequest++;
     }
-    function requestBookmarksRefresh() {
-        bookmarksRequest++;
-    }
-    function requestDevicesRefresh() {
-        devicesRequest++;
-    }
-
-    /** Device list for the "External devices" drill-down: prefer live
-     *  KFilePlacesModel device entries, fall back to the /media scan. */
+    /** Device list supplied by Kicker.ComputerModel/KFilePlacesModel. */
     readonly property var deviceEntries: {
-        var _e = root.devicesEpoch; // refresh tick
         if (plasmaPlaces && plasmaPlaces.length) {
             var out = [];
             for (var i = 0; i < plasmaPlaces.length; ++i) {
                 if (plasmaPlaces[i].isDevice)
                     out.push(plasmaPlaces[i]);
             }
-            if (out.length)
-                return out;
+            return out;
         }
-        return deviceResults || [];
+        return [];
     }
 
     /**
@@ -147,8 +140,6 @@ QtObject {
     readonly property bool showUserAvatar: cfgBool("ShowUserAvatar", true)
     readonly property string avatarShape: cfgStr("AvatarShape", "circle")
     readonly property bool showVerticalSeparator: cfgBool("ShowVerticalSeparator", false)
-    readonly property bool showExternalDevices: cfgBool("ShowExternalDevices", false)
-    readonly property bool showBookmarks: cfgBool("ShowBookmarks", true)
     readonly property var quickLinksOrder: {
         var o = (quickLinksOrderRaw !== undefined && quickLinksOrderRaw !== null)
             ? quickLinksOrderRaw
@@ -1021,11 +1012,9 @@ QtObject {
         }
         var _cfg = searchConfigEpoch;
         var _rf = recentFilesEpoch;
-        var _bm = bookmarksEpoch;
         var _pl = plasmaPlaces;
         var _rr = runnerResults;
         var _ow = openWindowResults;
-        var _bmr = bookmarkResults;
         var q = searchQuery.trim();
         var trFn = function (m) { return root.tr(m); };
         // Plasma Search (RunnerModel) first — Kickoff path (apps / locations /
@@ -1049,7 +1038,7 @@ QtObject {
             searchPlaces,
             root.searchRecentFiles ? (recentFileResults || []) : [],
             root.searchWindows ? (openWindowResults || []) : [],
-            bookmarkResults || [],
+            runners.length ? [] : (bookmarkResults || []),
             q,
             maxSearchResults,
             trFn

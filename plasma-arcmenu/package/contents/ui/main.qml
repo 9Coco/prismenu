@@ -64,8 +64,6 @@ PlasmoidItem {
                 || menuData.isExtraCategoryEnabled("recent-files"))
                 backend.refreshRecentFiles();
             backend.refreshOpenWindows();
-            if (!menuData.bookmarkResults || !menuData.bookmarkResults.length)
-                backend.refreshBookmarks();
         }
     }
 
@@ -78,17 +76,9 @@ PlasmoidItem {
                 backend.refreshRecentFiles();
             if (!menuData.openWindowResults || !menuData.openWindowResults.length)
                 backend.refreshOpenWindows();
-            if (!menuData.bookmarkResults || !menuData.bookmarkResults.length)
-                backend.refreshBookmarks();
         }
         function onRecentFilesRequestChanged() {
             backend.refreshRecentFiles();
-        }
-        function onBookmarksRequestChanged() {
-            backend.refreshBookmarks();
-        }
-        function onDevicesRequestChanged() {
-            backend.refreshDevices();
         }
     }
 
@@ -96,12 +86,6 @@ PlasmoidItem {
         target: backend
         function onRecentFilesUpdated() {
             menuData.recentFilesEpoch++;
-        }
-        function onBookmarksUpdated() {
-            menuData.bookmarksEpoch++;
-        }
-        function onDevicesUpdated() {
-            menuData.devicesEpoch++;
         }
     }
 
@@ -308,13 +292,9 @@ PlasmoidItem {
         var mods = 0;
         try { mods = Qt.keyboardModifiers; } catch (e) {}
         var ctrl = (mods & Qt.ControlModifier) !== 0;
-        if (ctrl && backend.openNewWindow) {
-            backend.openNewWindow(app);
-        } else {
-            backend.launch(app, {
-                activateExisting: !!plasmoid.configuration.ActivateExistingWindow && !ctrl
-            });
-        }
+        backend.launch(app, {
+            activateExisting: !!plasmoid.configuration.ActivateExistingWindow && !ctrl
+        });
         menuData.recordLaunch(app);
         if (ctrl && plasmoid.configuration.KeepOpenOnCtrlClick)
             return;
@@ -667,9 +647,7 @@ PlasmoidItem {
                 // row; this is the same native list Kickoff presents.
                 contextMenu.systemActions = backend.systemActions(app);
                 contextMenu.isFavorite = root.catalog.isFavorite(app);
-                contextMenu.canUninstall = !(app && (app.action || app.place
-                    || String(app.id || "").indexOf("shortcut-") === 0));
-                contextMenu.popup();
+                contextMenu.popup(x, y);
             }
             onPowerAction: (id) => root.handlePower(id)
             onKeepOpenRequested: (pinned) => root.menuPinnedOpen = pinned
@@ -698,10 +676,6 @@ PlasmoidItem {
             boundsItem: fullRep
             menuData: root.catalog
             onLaunchRequested: (app) => root.launchApp(app)
-            onNewWindowRequested: (app) => {
-                backend.openNewWindow(app);
-                root.closeMenu();
-            }
             onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
             onToggleCustomGroupRequested: (app, groupId) => {
                 var appId = root.catalog.customGroupAppId(app);
@@ -714,27 +688,14 @@ PlasmoidItem {
                 else
                     root.catalog.addToCustomGroup(groupId, appId);
             }
-            onAddToDesktopRequested: (app) => {
-                backend.addDesktopShortcut(app);
-                root.closeMenu();
-            }
-            onAddToPanelRequested: (app) => {
-                backend.pinToTaskManager(app);
-                // Match Kickoff: addToTaskManager returns false specifically
-                // to keep the launcher open after pinning (KDE BUG 390585).
-            }
-            onEditRequested: (app) => backend.editDesktop(app)
             onDetailsRequested: (app) => {
                 detailsDialog.app = app;
                 detailsDialog.open();
             }
-            onUninstallRequested: (app) => backend.uninstall(app)
-            onRunInTerminalRequested: (app) => backend.runInTerminal(app)
             onSystemActionRequested: (app, actionId, actionArgument) => {
-                backend.triggerSystemAction(app, actionId, actionArgument);
-                // Match Kickoff's behavior: task-manager pinning deliberately
-                // keeps the launcher open, other native actions close it.
-                if (actionId !== "addToTaskManager")
+                // Kicker decides whether the launcher should close. This also
+                // preserves the official task-manager pinning exception.
+                if (backend.triggerSystemActionAndShouldClose(app, actionId, actionArgument))
                     root.closeMenu();
             }
         }

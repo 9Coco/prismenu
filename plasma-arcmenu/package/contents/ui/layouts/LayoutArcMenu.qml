@@ -58,13 +58,11 @@ LayoutBase {
             root.handleQuickLink(String(item.action).substring(10));
             return;
         }
-        // Bookmarks → in-menu list from GTK bookmarks (not bookmarks:/ KIO)
+        // Bookmarks → live user-created KDE Places from Kicker.ComputerModel.
         if (item && (item.special === "bookmarks" || item.id === "place-bookmarks")) {
             root.showingApps = true;
             if (menuData) {
                 menuData.navigateTo("apps");
-                if (menuData.requestBookmarksRefresh)
-                    menuData.requestBookmarksRefresh();
             }
             Qt.callLater(function () {
                 if (appsLoader.item)
@@ -72,14 +70,11 @@ LayoutBase {
             });
             return;
         }
-        // External devices → in-menu device list (computer:/ does not exist
-        // on Plasma 5/6, so never launch it as a URL)
+        // External devices → live Kicker/KFilePlacesModel device list.
         if (item && (item.special === "devices" || item.id === "place-devices")) {
             root.showingApps = true;
             if (menuData) {
                 menuData.navigateTo("apps");
-                if (menuData.requestDevicesRefresh)
-                    menuData.requestDevicesRefresh();
             }
             Qt.callLater(function () {
                 if (appsLoader.item)
