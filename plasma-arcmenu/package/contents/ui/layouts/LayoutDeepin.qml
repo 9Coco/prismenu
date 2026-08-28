@@ -9,6 +9,12 @@ LayoutBase {
     id: root
 
     readonly property bool fullMode: menuData && menuData.currentLayoutId === "deepin-full"
+    readonly property int categorySidebarMax: Math.max(
+        root.elasticColumnMin,
+        Math.min(root.sidebarMax, root.width - Kirigami.Units.gridUnit * 12))
+    readonly property int categorySidebarWidth: Math.max(
+        root.elasticColumnMin,
+        Math.min(root.sidebarW, root.categorySidebarMax))
     property string selectedId: "all"
     function resetForOpen() { root.selectedId = root.homeGroupId; }
     readonly property var categories: root.typeCategories
@@ -50,11 +56,18 @@ LayoutBase {
             Layout.fillWidth: true
             Layout.fillHeight: true
             spacing: Kirigami.Units.smallSpacing
+            layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
             ColumnLayout {
                 visible: !root.fullMode
-                Layout.preferredWidth: root.sidebarW
-                Layout.minimumWidth: root.elasticColumnMin
+                // ShortcutRow children fill this column. Without an explicit
+                // maximum the RowLayout lets their implicit width grow the
+                // category column across the whole popup and pushes the app
+                // grid outside the visible menu.
+                Layout.fillWidth: false
+                Layout.preferredWidth: root.categorySidebarWidth
+                Layout.minimumWidth: root.categorySidebarWidth
+                Layout.maximumWidth: root.categorySidebarWidth
                 Layout.fillHeight: true
                 Repeater {
                     model: root.extraCategories.length
@@ -86,11 +99,24 @@ LayoutBase {
                 Item { Layout.fillHeight: true }
             }
 
-            Kirigami.Separator { visible: !root.fullMode; Layout.fillHeight: true }
+            Components.ColumnSplitHandle {
+                visible: !root.fullMode
+                Layout.fillHeight: true
+                Layout.preferredWidth: implicitWidth
+                z: 5
+                fg: root.fg
+                currentWidth: root.categorySidebarWidth
+                minWidth: root.elasticColumnMin
+                maxWidth: root.categorySidebarMax
+                sidebarOnRight: false
+                flipped: root.flip
+                onWidthDragged: (w) => root.setSidebarFromDrag(w)
+            }
 
             Components.LayoutGroupPane {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumWidth: 0
                 layoutRoot: root
                 items: root.appItems
                 navId: root.selectedId === "all" ? "all-apps" : root.selectedId
