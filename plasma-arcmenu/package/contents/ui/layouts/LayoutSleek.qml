@@ -192,6 +192,7 @@ LayoutBase {
                 id: sideFlick
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 0
                 contentWidth: width
                 contentHeight: sideCol.height
                 clip: true

@@ -148,6 +148,7 @@ LayoutBase {
             visible: root.onHome
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             contentWidth: width
             contentHeight: homeCol.height
             clip: true

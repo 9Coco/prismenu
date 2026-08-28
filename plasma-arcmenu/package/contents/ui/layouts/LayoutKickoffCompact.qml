@@ -54,8 +54,12 @@ LayoutBase {
             visible: !root.searching && !root.categoryPage
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
             model: root.navigation.length
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
             delegate: Components.AppListItem {
                 required property int index
                 readonly property var row: root.navigation[index]

@@ -76,7 +76,11 @@ LayoutBase {
             visible: !root.searching && !root.selectedCategory
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
+            boundsBehavior: Flickable.StopAtBounds
+            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
             model: root.categories.length
             cellWidth: Math.max(210, width / 3)
             cellHeight: Math.max(165, height / 2)
