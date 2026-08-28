@@ -10,6 +10,7 @@ LayoutBase {
     id: root
 
     property string selectedId: ""
+    function resetForOpen() { root.selectedId = root.homeGroupId; }
     readonly property bool categoryPage: selectedId !== ""
     readonly property var navigation: {
         var _sig = menuData ? menuData.extrasSignature : "";

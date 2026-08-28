@@ -13,6 +13,7 @@ LayoutBase {
     id: root
 
     property int popTab: 0 // 0 home, 1 system, 2 utilities
+    function resetForOpen() { root.popTab = 0; }
 
     readonly property int gridColumns: 6
     readonly property int gridIconSize: (menuData && menuData.gridIconOverride) ? menuData.gridIconSize : Math.max(40, root.appIconSize + 12)
@@ -35,7 +36,7 @@ LayoutBase {
             return root.computeContentItems("System");
         if (popTab === 2)
             return root.computeContentItems("Utility");
-        return root.computeContentItems("all-apps");
+        return root.homeItems;
     }
 
 
@@ -65,9 +66,9 @@ LayoutBase {
                 layoutRoot: root
                 anchors.fill: parent
                 items: root.gridItems
-                navId: root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : "all-apps")
+                navId: root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : root.homeGroupId)
                 useGrid: !root.searching && root.usesGridView(
-                    root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : "all-apps"))
+                    root.popTab === 1 ? "System" : (root.popTab === 2 ? "Utility" : root.homeGroupId))
                 showDescription: root.searching
             }
 

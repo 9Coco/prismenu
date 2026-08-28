@@ -19,6 +19,7 @@ LayoutBase {
 
     property string whiskerSelectedId: "pinned"
     activeNavId: whiskerSelectedId
+    function resetForOpen() { root.whiskerSelectedId = root.homeGroupId; }
 
 
     readonly property var sessionActions: [

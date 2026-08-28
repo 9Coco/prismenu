@@ -21,7 +21,7 @@ LayoutBase {
 
         PlasmaComponents.Label {
             visible: !root.searching && pinnedModel.count > 0
-            text: root.tr("Frequent")
+            text: root.homeGroupName
             font.bold: true
             color: root.fg
         }
@@ -64,5 +64,5 @@ LayoutBase {
         }
     }
 
-    Ui.ListModelBridge { id: pinnedModel; source: menuData ? menuData.pinnedApps : [] }
+    Ui.ListModelBridge { id: pinnedModel; source: root.homeItems }
 }

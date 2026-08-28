@@ -18,6 +18,7 @@ LayoutBase {
 
     property string mintSelectedId: "pinned"
     activeNavId: mintSelectedId
+    function resetForOpen() { root.mintSelectedId = root.homeGroupId; }
 
 
     // Top group: places / shortcuts — upstream mint-layout-extra-shortcuts

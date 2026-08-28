@@ -19,15 +19,13 @@ LayoutBase {
     readonly property bool hasDash: gnome
     readonly property int columns: width >= 900 ? 8 : (width >= 680 ? 6 : 5)
     readonly property var allItems: root.searching && menuData
-        ? menuData.searchResultsFlat : root.allApplications
+        ? menuData.searchResultsFlat : root.homeItems
     readonly property var predicted: {
         var recent = menuData && menuData.recentApps ? menuData.recentApps : [];
-        var pinned = menuData && menuData.pinnedApps ? menuData.pinnedApps : [];
-        return (recent.length ? recent : pinned.length ? pinned : root.defaultPinned).slice(0, 5);
+        return (recent.length ? recent : root.homeItems).slice(0, 5);
     }
     readonly property var dashItems: {
-        var pinned = menuData && menuData.pinnedApps ? menuData.pinnedApps : [];
-        return (pinned.length ? pinned : root.defaultPinned).slice(0, 9);
+        return root.homeItems.slice(0, 9);
     }
 
     ColumnLayout {

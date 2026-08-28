@@ -182,7 +182,7 @@ LayoutBase {
         }
     }
 
-    Ui.ListModelBridge { id: pinnedModel; source: menuData ? menuData.pinnedApps : [] }
+    Ui.ListModelBridge { id: pinnedModel; source: root.homeItems }
     Ui.ListModelBridge { id: categoryModel; source: menuData ? menuData.categories : [] }
     Ui.ListModelBridge { id: appModel; source: menuData ? menuData.searchResults : [] }
     Ui.ListModelBridge { id: cascadeAppModel; source: menuData ? menuData.categoryApps : [] }

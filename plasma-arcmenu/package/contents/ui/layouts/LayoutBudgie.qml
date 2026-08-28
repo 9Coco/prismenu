@@ -19,6 +19,7 @@ LayoutBase {
 
     property string budgieSelectedId: "pinned"
     activeNavId: budgieSelectedId
+    function resetForOpen() { root.budgieSelectedId = root.homeGroupId; }
 
 
 

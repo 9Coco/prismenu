@@ -22,6 +22,7 @@ LayoutBase {
 
     defaultSearchOnTop: true
     property string selectedId: "frequent"
+    function resetForOpen() { root.selectedId = root.homeGroupId; }
 
     readonly property int dashIcon: Kirigami.Units.iconSizes.medium
     readonly property int dashCellH: dashIcon + Kirigami.Units.gridUnit * 1.7

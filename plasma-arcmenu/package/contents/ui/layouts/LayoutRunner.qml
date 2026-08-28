@@ -12,11 +12,7 @@ LayoutBase {
     readonly property bool cosmic: variant === "cosmic-launcher"
     readonly property bool spotlight: variant === "spotlight"
     readonly property var idleItems: {
-        if (cosmic && menuData && menuData.openWindowResults && menuData.openWindowResults.length)
-            return menuData.openWindowResults.concat(menuData.recentApps || []);
-        if (menuData && menuData.recentApps && menuData.recentApps.length)
-            return menuData.recentApps;
-        return menuData && menuData.pinnedApps ? menuData.pinnedApps : root.defaultPinned;
+        return root.homeItems;
     }
     readonly property var resultItems: root.searching && menuData
         ? menuData.searchResults : root.idleItems
@@ -45,7 +41,7 @@ LayoutBase {
         PlasmaComponents.Label {
             Layout.fillWidth: true
             text: root.searching ? root.tr("Results")
-                : (root.cosmic ? root.tr("Open Windows and Recent") : root.tr("Recent"))
+                : root.homeGroupName
             font.weight: Font.DemiBold
             color: root.fg
             opacity: 0.72

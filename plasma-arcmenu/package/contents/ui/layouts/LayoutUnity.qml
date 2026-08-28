@@ -34,9 +34,12 @@ LayoutBase {
     readonly property var footPlaces: root.asRailItems(root.placeShortcuts)
 
     readonly property var pinnedItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
+        return root.homeItems;
+    }
+
+    function resetForOpen() {
+        root.selectedId = "home";
+        root.categoryPanelOpen = false;
     }
 
     readonly property string appsTitle: {

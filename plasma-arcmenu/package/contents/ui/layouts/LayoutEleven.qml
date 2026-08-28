@@ -48,10 +48,10 @@ LayoutBase {
     ]
 
     readonly property var pinnedItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
+        return root.homeItems;
     }
+
+    function resetForOpen() { root.showAllApps = false; }
 
     readonly property var frequentItems: {
         if (menuData && menuData.recentApps && menuData.recentApps.length)

@@ -37,9 +37,7 @@ LayoutBase {
     }
 
     readonly property var favoriteItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
+        return root.homeItems;
     }
 
     readonly property var navItems: {

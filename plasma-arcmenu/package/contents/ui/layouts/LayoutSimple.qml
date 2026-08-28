@@ -61,8 +61,7 @@ LayoutBase {
         source: {
             if (!menuData) return [];
             if (menuData.isSearching) return menuData.searchResults;
-            // Simple layout shows all apps when not searching
-            return menuData.categoryApps;
+            return root.homeItems;
         }
     }
 }

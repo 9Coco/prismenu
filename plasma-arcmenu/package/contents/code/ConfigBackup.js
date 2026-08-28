@@ -50,6 +50,7 @@ var CONFIG_KEYS = [
     "CustomButtonIcon",
     "CustomGroupApps",
     "GroupViewOptions",
+    "HomeGroupId",
     "CustomIcons",
     "CustomNames",
     "CustomQuickLinks",

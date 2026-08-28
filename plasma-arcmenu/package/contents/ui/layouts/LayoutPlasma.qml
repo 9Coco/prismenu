@@ -29,7 +29,7 @@ LayoutBase {
     ]
 
     readonly property var tabs: [
-        { id: 0, name: root.tr("Pinned"), icon: "preferences-system-windows" },
+        { id: 0, name: root.homeGroupName, icon: root.homeGroupIcon },
         { id: 1, name: root.tr("Applications"), icon: "view-app-grid-symbolic" },
         { id: 2, name: root.tr("Computer"), icon: "computer" },
         { id: 3, name: root.tr("Leave"), icon: "system-shutdown" }
@@ -40,8 +40,7 @@ LayoutBase {
             return (menuData && menuData.searchResults) ? menuData.searchResults : [];
         }
         if (plasmaTab === 0) {
-            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
-            return pinned.length ? pinned : root.defaultPinned;
+            return root.homeItems;
         }
         if (plasmaTab === 1) {
             return root.allApplications;
@@ -51,6 +50,8 @@ LayoutBase {
         }
         return root.leaveItems;
     }
+
+    function resetForOpen() { root.plasmaTab = 0; }
 
 
     function selectTab(id) {
