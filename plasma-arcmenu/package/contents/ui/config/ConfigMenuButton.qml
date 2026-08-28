@@ -20,8 +20,6 @@ Item {
     property string cfg_ButtonLabelText
     property bool cfg_ButtonLabelVisible
     property int cfg_PanelButtonIconSize
-    property int cfg_PanelButtonPadding
-    property int cfg_PanelButtonPositionOffset
     property string cfg_LeftClickAction
     property string cfg_RightClickAction
     property string cfg_MiddleClickAction
@@ -55,8 +53,6 @@ Item {
     property alias cfg_buttonLabelText: root.cfg_ButtonLabelText
     property alias cfg_buttonLabelVisible: root.cfg_ButtonLabelVisible
     property alias cfg_panelButtonIconSize: root.cfg_PanelButtonIconSize
-    property alias cfg_panelButtonPadding: root.cfg_PanelButtonPadding
-    property alias cfg_panelButtonPositionOffset: root.cfg_PanelButtonPositionOffset
     property alias cfg_leftClickAction: root.cfg_LeftClickAction
     property alias cfg_rightClickAction: root.cfg_RightClickAction
     property alias cfg_middleClickAction: root.cfg_MiddleClickAction
@@ -142,19 +138,12 @@ Item {
         applyAppearance("icon");
         cfg_ButtonLabelText = "Applications";
         writeLive("ButtonLabelText", "Applications");
-        cfg_PanelButtonPadding = -1;
-        writeLive("PanelButtonPadding", -1);
-        paddingSpin.value = -1;
-        cfg_PanelButtonPositionOffset = 0;
-        writeLive("PanelButtonPositionOffset", 0);
-        offsetSpin.value = 0;
         appearanceCombo.currentIndex = 0;
     }
 
-    readonly property var clickKeys: ["arcmenu", "context", "overview", "configure", "show-desktop", "nothing"]
+    readonly property var clickKeys: ["arcmenu", "overview", "configure", "show-desktop", "nothing"]
     readonly property var clickLabels: [
         "ArcMenu",
-        tr("Context Menu"),
         tr("Activities Overview"),
         tr("ArcMenu Settings"),
         tr("Show Desktop"),
@@ -284,39 +273,6 @@ Item {
                     onTextEdited: {
                         cfg_ButtonLabelText = text;
                         writeLive("ButtonLabelText", text);
-                    }
-                }
-            }
-            ConfigSep { visible: root.appearanceShowsChrome }
-            ConfigSettingRow {
-                visible: root.appearanceShowsChrome
-                title: root.tr("Padding")
-                subtitle: root.tr("%1 Default Theme Value").replace("%1", "-1")
-                iconName: "transform-move-horizontal"
-                accent: "teal"
-                QQC2.SpinBox {
-                    id: paddingSpin
-                    from: -1; to: 25
-                    value: cfg_PanelButtonPadding
-                    onValueModified: {
-                        cfg_PanelButtonPadding = value;
-                        writeLive("PanelButtonPadding", value);
-                    }
-                }
-            }
-            ConfigSep { visible: root.appearanceShowsChrome }
-            ConfigSettingRow {
-                visible: root.appearanceShowsChrome
-                title: root.tr("Position in Panel")
-                iconName: "align-horizontal-left"
-                accent: "orange"
-                QQC2.SpinBox {
-                    id: offsetSpin
-                    from: 0; to: 10
-                    value: cfg_PanelButtonPositionOffset
-                    onValueModified: {
-                        cfg_PanelButtonPositionOffset = value;
-                        writeLive("PanelButtonPositionOffset", value);
                     }
                 }
             }
@@ -559,17 +515,17 @@ Item {
                 applyAppearance("icon");
         }
         if (!cfg_PanelButtonIconSize) cfg_PanelButtonIconSize = 20;
-        if (cfg_PanelButtonPadding === undefined || cfg_PanelButtonPadding === null)
-            cfg_PanelButtonPadding = -1;
-        if (cfg_PanelButtonPositionOffset === undefined || cfg_PanelButtonPositionOffset === null)
-            cfg_PanelButtonPositionOffset = 0;
-        paddingSpin.value = cfg_PanelButtonPadding;
-        offsetSpin.value = cfg_PanelButtonPositionOffset;
         if (!cfg_ButtonLabelText) cfg_ButtonLabelText = "Applications";
         buttonTextField.text = cfg_ButtonLabelText;
-        if (!cfg_LeftClickAction) cfg_LeftClickAction = "arcmenu";
+        if (!cfg_LeftClickAction || cfg_LeftClickAction === "context") {
+            cfg_LeftClickAction = "arcmenu";
+            writeLive("LeftClickAction", "arcmenu");
+        }
         if (!cfg_RightClickAction) cfg_RightClickAction = "context";
-        if (!cfg_MiddleClickAction) cfg_MiddleClickAction = "arcmenu";
+        if (!cfg_MiddleClickAction || cfg_MiddleClickAction === "context") {
+            cfg_MiddleClickAction = "arcmenu";
+            writeLive("MiddleClickAction", "arcmenu");
+        }
         if (cfg_ButtonStyleRadius === undefined || cfg_ButtonStyleRadius === null) cfg_ButtonStyleRadius = 20;
         if (cfg_ButtonStyleBorderWidth === undefined || cfg_ButtonStyleBorderWidth === null) cfg_ButtonStyleBorderWidth = 3;
     }
