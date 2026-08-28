@@ -569,6 +569,17 @@ def main() -> int:
 
     for needle in ["Keys.onPressed", "Plasmoid.onActivated", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
         check(needle in main_qml, f"main.qml contains {needle}")
+    menu_button_cfg = (PKG / "contents/ui/config/ConfigMenuButton.qml").read_text(encoding="utf-8")
+    compact_source = main_qml.split("compactRepresentation:", 1)[1].split("fullRepresentation:", 1)[0]
+    check("acceptedButtons: Qt.LeftButton | Qt.MiddleButton" in compact_source
+          and "Qt.RightButton" not in compact_source
+          and 'i18ndc("plasma_applet_org.kde.plasma.kicker"' in main_qml
+          and '"@action:inmenu launches kmenuedit", "Edit Applications…")' in main_qml
+          and 'backend.runShell("kmenuedit")' in main_qml,
+          "panel right click uses Plasma native launcher menu")
+    check('title: root.tr("Right click")' not in menu_button_cfg
+          and 'writeLive("RightClickAction"' not in menu_button_cfg,
+          "obsolete configurable right-click action is hidden")
 
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
     for item in ["Launch", "Favorites", "Desktop", "Panel", "Edit", "Details", "Uninstall", "Terminal"]:
