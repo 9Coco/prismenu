@@ -332,6 +332,7 @@ LayoutBase {
             visible: root.searching
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
             model: searchModel
             boundsBehavior: Flickable.StopAtBounds
@@ -359,6 +360,7 @@ LayoutBase {
             visible: !root.searching
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
             model: root.navItems
             spacing: 0

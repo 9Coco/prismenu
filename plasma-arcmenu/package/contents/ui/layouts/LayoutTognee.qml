@@ -83,59 +83,71 @@ LayoutBase {
             Layout.fillWidth: false
             spacing: Kirigami.Units.smallSpacing / 2
 
-            Repeater {
-                model: root.placeActions.length
-                PlasmaComponents.ToolButton {
-                    required property int index
-                    readonly property var def: root.placeActions[index]
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-                    flat: true
-                    icon.name: def.icon
-                    icon.width: Kirigami.Units.iconSizes.smallMedium
-                    icon.height: Kirigami.Units.iconSizes.smallMedium
-                    Accessible.name: def.tip
-                    onClicked: root.activateItem(def)
-                    PlasmaComponents.ToolTip.text: def.tip
-                    PlasmaComponents.ToolTip.visible: hovered
-                    PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+            Flickable {
+                id: railFlick
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+                Layout.minimumHeight: 0
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+                contentWidth: width
+                contentHeight: railCol.height
+                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+
+                Column {
+                    id: railCol
+                    width: railFlick.width
+                    spacing: Kirigami.Units.smallSpacing / 2
+
+                    Repeater {
+                        model: root.placeActions.length
+                        PlasmaComponents.ToolButton {
+                            required property int index
+                            readonly property var def: root.placeActions[index]
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: Kirigami.Units.gridUnit * 2.2
+                            height: Kirigami.Units.gridUnit * 2.2
+                            flat: true
+                            icon.name: def.icon
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            Accessible.name: def.tip
+                            onClicked: root.activateItem(def)
+                            PlasmaComponents.ToolTip.text: def.tip
+                            PlasmaComponents.ToolTip.visible: hovered
+                            PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+                    }
+
+                    Kirigami.Separator {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: Kirigami.Units.gridUnit * 1.4
+                        opacity: 0.35
+                    }
+
+                    Repeater {
+                        model: root.systemActions.length
+                        PlasmaComponents.ToolButton {
+                            required property int index
+                            readonly property var def: root.systemActions[index]
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: Kirigami.Units.gridUnit * 2.2
+                            height: Kirigami.Units.gridUnit * 2.2
+                            flat: true
+                            icon.name: def.icon
+                            icon.width: Kirigami.Units.iconSizes.smallMedium
+                            icon.height: Kirigami.Units.iconSizes.smallMedium
+                            Accessible.name: def.tip
+                            onClicked: root.activateItem(def)
+                            PlasmaComponents.ToolTip.text: def.tip
+                            PlasmaComponents.ToolTip.visible: hovered
+                            PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
+                    }
                 }
             }
-
-            Kirigami.Separator {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 1.4
-                opacity: 0.35
-            }
-
-            Repeater {
-                model: root.systemActions.length
-                PlasmaComponents.ToolButton {
-                    required property int index
-                    readonly property var def: root.systemActions[index]
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 2.2
-                    Layout.preferredHeight: Kirigami.Units.gridUnit * 2.2
-                    flat: true
-                    icon.name: def.icon
-                    icon.width: Kirigami.Units.iconSizes.smallMedium
-                    icon.height: Kirigami.Units.iconSizes.smallMedium
-                    Accessible.name: def.tip
-                    onClicked: root.activateItem(def)
-                    PlasmaComponents.ToolTip.text: def.tip
-                    PlasmaComponents.ToolTip.visible: hovered
-                    PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
-                }
-            }
-
-            Kirigami.Separator {
-                Layout.alignment: Qt.AlignHCenter
-                Layout.preferredWidth: Kirigami.Units.gridUnit * 1.4
-                opacity: 0.35
-            }
-
-            Item { Layout.fillHeight: true }
 
             PlasmaComponents.ToolButton {
                 Layout.alignment: Qt.AlignHCenter

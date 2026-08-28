@@ -53,79 +53,90 @@ LayoutBase {
         spacing: Kirigami.Units.smallSpacing
         layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
-        // ---- Far-left icon rail: vertically centered, gap between files & logout ----
+        // ---- Far-left icon rail: centered when it fits, scrollable when not ----
         ColumnLayout {
             Layout.fillHeight: true
             Layout.preferredWidth: Kirigami.Units.gridUnit * 3
             Layout.maximumWidth: Kirigami.Units.gridUnit * 3.5
             spacing: 0
 
-            // Equal flex spacers �?whole icon stack is vertically centered
-            Item { Layout.fillHeight: true }
-
-            ColumnLayout {
-                Layout.alignment: Qt.AlignHCenter
+            Flickable {
+                id: railFlick
                 Layout.fillWidth: true
-                spacing: Kirigami.Units.smallSpacing
+                Layout.fillHeight: true
+                Layout.minimumHeight: 0
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+                contentWidth: width
+                contentHeight: Math.max(height, railCol.height)
+                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
 
-                Repeater {
-                    model: root.railTopActions.length
-                    PlasmaComponents.ToolButton {
-                        required property int index
-                        readonly property var def: root.railTopActions[index]
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 2.4
-                        Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-                        flat: true
-                        icon.name: def.icon
-                        icon.width: Kirigami.Units.iconSizes.medium
-                        icon.height: Kirigami.Units.iconSizes.medium
-                        Accessible.name: def.tip
-                        onClicked: root.activateItem(def)
-                        PlasmaComponents.ToolTip.text: def.tip
-                        PlasmaComponents.ToolTip.visible: hovered
-                        PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                Column {
+                    id: railCol
+                    width: railFlick.width
+                    y: Math.max(0, (railFlick.height - height) / 2)
+                    spacing: Kirigami.Units.smallSpacing
+
+                    Repeater {
+                        model: root.railTopActions.length
+                        PlasmaComponents.ToolButton {
+                            required property int index
+                            readonly property var def: root.railTopActions[index]
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: Kirigami.Units.gridUnit * 2.4
+                            height: Kirigami.Units.gridUnit * 2.4
+                            flat: true
+                            icon.name: def.icon
+                            icon.width: Kirigami.Units.iconSizes.medium
+                            icon.height: Kirigami.Units.iconSizes.medium
+                            Accessible.name: def.tip
+                            onClicked: root.activateItem(def)
+                            PlasmaComponents.ToolTip.text: def.tip
+                            PlasmaComponents.ToolTip.visible: hovered
+                            PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
                     }
-                }
 
-                // Distinct gap between folder and session buttons (Mint style)
-                Item {
-                    Layout.preferredHeight: Kirigami.Units.largeSpacing * 2
-                    Layout.minimumHeight: Kirigami.Units.gridUnit
-                }
+                    // Distinct gap between folder and session buttons (Mint style)
+                    Item {
+                        width: 1
+                        height: Kirigami.Units.largeSpacing * 2
+                    }
 
-                Kirigami.Separator {
-                    Layout.alignment: Qt.AlignHCenter
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 1.6
-                    opacity: 0.35
-                }
+                    Kirigami.Separator {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        width: Kirigami.Units.gridUnit * 1.6
+                        opacity: 0.35
+                    }
 
-                Item {
-                    Layout.preferredHeight: Kirigami.Units.smallSpacing
-                }
+                    Item {
+                        width: 1
+                        height: Kirigami.Units.smallSpacing
+                    }
 
-                Repeater {
-                    model: root.railSessionActions.length
-                    PlasmaComponents.ToolButton {
-                        required property int index
-                        readonly property var def: root.railSessionActions[index]
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.preferredWidth: Kirigami.Units.gridUnit * 2.4
-                        Layout.preferredHeight: Kirigami.Units.gridUnit * 2.4
-                        flat: true
-                        icon.name: def.icon
-                        icon.width: Kirigami.Units.iconSizes.medium
-                        icon.height: Kirigami.Units.iconSizes.medium
-                        Accessible.name: def.tip
-                        onClicked: root.activateItem(def)
-                        PlasmaComponents.ToolTip.text: def.tip
-                        PlasmaComponents.ToolTip.visible: hovered
-                        PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                    Repeater {
+                        model: root.railSessionActions.length
+                        PlasmaComponents.ToolButton {
+                            required property int index
+                            readonly property var def: root.railSessionActions[index]
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            width: Kirigami.Units.gridUnit * 2.4
+                            height: Kirigami.Units.gridUnit * 2.4
+                            flat: true
+                            icon.name: def.icon
+                            icon.width: Kirigami.Units.iconSizes.medium
+                            icon.height: Kirigami.Units.iconSizes.medium
+                            Accessible.name: def.tip
+                            onClicked: root.activateItem(def)
+                            PlasmaComponents.ToolTip.text: def.tip
+                            PlasmaComponents.ToolTip.visible: hovered
+                            PlasmaComponents.ToolTip.delay: Kirigami.Units.toolTipDelay
+                        }
                     }
                 }
             }
-
-            Item { Layout.fillHeight: true }
         }
 
         // ---- Main body: search + categories | content ----
@@ -159,6 +170,7 @@ LayoutBase {
                     Layout.maximumWidth: root.sidebarMax
                     Layout.fillHeight: true
                     Layout.fillWidth: false
+                    Layout.minimumHeight: 0
                     contentWidth: width
                     contentHeight: sideCol.height
                     clip: true

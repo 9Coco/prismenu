@@ -140,6 +140,7 @@ LayoutBase {
                 Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
                 Layout.fillWidth: false
+                Layout.minimumHeight: 0
                 contentWidth: width
                 contentHeight: sideCol.height
                 clip: true

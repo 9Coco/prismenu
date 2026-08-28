@@ -41,6 +41,7 @@ LayoutBase {
             visible: root.searching
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
             model: appModel
             boundsBehavior: Flickable.StopAtBounds
@@ -68,6 +69,7 @@ LayoutBase {
             visible: !root.searching
             Layout.fillWidth: true
             Layout.fillHeight: true
+            Layout.minimumHeight: 0
             clip: true
             model: categoryModel
             boundsBehavior: Flickable.StopAtBounds
