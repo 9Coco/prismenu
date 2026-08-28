@@ -542,6 +542,16 @@ def main() -> int:
           and "onClosed: root.clearSelection()" in ctx
           and "contextMenu.dismissAndClear()" in main_qml,
           "context menu closes and clears selection with the launcher")
+    layout_host = (PKG / "contents/ui/LayoutHost.qml").read_text(encoding="utf-8")
+    check("menuData.resetView();" in main_qml.split("onExpandedChanged", 1)[1]
+          and "host.resetForOpen();" in main_qml,
+          "every popup-open path resets to the default page")
+    check("function resetForOpen" in layout_host
+          and "_resetForOpenPending" in layout_host
+          and "function resetForOpen" in arc_layout
+          and "root.showingApps = false" in arc_layout
+          and "resetToCategories()" in arc_layout,
+          "ArcMenu resets layout-local app/category navigation without reload")
 
     langs = [
         "zh_CN", "zh_TW", "fr", "de", "es", "pt_BR", "ru", "ja", "ko", "it", "tr",

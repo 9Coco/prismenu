@@ -119,6 +119,10 @@ Item {
         return Locale.tr(msgid, root.uiLang);
     }
 
+    /** Called by LayoutHost whenever the Plasma popup opens. Layouts with
+     * local navigation state override this; shared MenuData is reset by main. */
+    function resetForOpen() {}
+
     /** Fallback pinned list shown until the catalog / user pins are ready */
     property var defaultPinned: [
         {

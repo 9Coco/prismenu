@@ -47,6 +47,7 @@ Item {
     }
 
     property string _loadedLayoutId: ""
+    property bool _resetForOpenPending: false
 
     function resolvedMenuData() {
         if (root.menuData)
@@ -110,6 +111,17 @@ Item {
                     md && md.allApps ? md.allApps.length : 0);
     }
 
+    /** Reset layout-local navigation without destroying/reloading the layout. */
+    function resetForOpen() {
+        var item = layoutLoader.item;
+        if (!item || !item.resetForOpen) {
+            root._resetForOpenPending = true;
+            return;
+        }
+        root._resetForOpenPending = false;
+        item.resetForOpen();
+    }
+
     Loader {
         id: layoutLoader
         anchors.fill: parent
@@ -119,7 +131,11 @@ Item {
             if (status === Loader.Error)
                 console.error("ArcMenu LayoutHost failed:", source, "layoutId=", root.layoutId);
         }
-        onLoaded: root.wireItem()
+        onLoaded: {
+            root.wireItem();
+            if (root._resetForOpenPending)
+                root.resetForOpen();
+        }
     }
 
     Rectangle {
