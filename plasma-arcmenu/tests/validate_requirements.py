@@ -452,6 +452,12 @@ def main() -> int:
         ("LayoutSleek.qml", "usesGridView", "Sleek honors pinned/all-apps view mode"),
     ]:
         check(needle in layout_sources[fname], msg)
+    deepin_layout = layout_sources["LayoutDeepin.qml"]
+    check("Layout.maximumWidth: root.categorySidebarWidth" in deepin_layout
+          and "Layout.minimumWidth: 0" in deepin_layout
+          and "Components.ColumnSplitHandle" in deepin_layout
+          and "onWidthDragged: (w) => root.setSidebarFromDrag(w)" in deepin_layout,
+          "Cinnamenu grid keeps its app pane inside the popup and resizes its sidebar")
 
     arc_layout = layout_sources["LayoutArcMenu.qml"]
     arc_apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
