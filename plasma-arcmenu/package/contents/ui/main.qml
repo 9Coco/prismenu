@@ -388,7 +388,6 @@ PlasmoidItem {
             || buttonAppearance === "text-icon"
         readonly property bool buttonHidden: buttonAppearance === "hidden"
         readonly property string leftAction: plasmoid.configuration.LeftClickAction || "arcmenu"
-        readonly property string rightAction: plasmoid.configuration.RightClickAction || "context"
         readonly property string middleAction: plasmoid.configuration.MiddleClickAction || "arcmenu"
 
         readonly property bool styleFgOn: !!plasmoid.configuration.ButtonStyleFgEnabled
@@ -433,8 +432,9 @@ PlasmoidItem {
         opacity: compact.buttonHidden ? 0 : 1
         enabled: !compact.buttonHidden
         hoverEnabled: true
-        // Swallow right-click so Plasma's applet menu (Configure / Remove / …) does not appear
-        acceptedButtons: Qt.LeftButton | Qt.MiddleButton | Qt.RightButton
+        // Leave RightButton unaccepted: the containment then builds the same
+        // native applet menu used by Kickoff/Kicker.
+        acceptedButtons: Qt.LeftButton | Qt.MiddleButton
 
         Accessible.name: compact.showButtonText
             ? (plasmoid.configuration.ButtonLabelText || i18n("Arc Menu"))
@@ -463,18 +463,10 @@ PlasmoidItem {
 
         property bool wasExpanded: false
         onPressed: (mouse) => {
-            if (mouse.button === Qt.RightButton) {
-                mouse.accepted = true;
-                return;
-            }
             wasExpanded = root.expanded;
         }
         onClicked: (mouse) => {
             mouse.accepted = true;
-            if (mouse.button === Qt.RightButton) {
-                compact.runClickAction(compact.rightAction, mouse);
-                return;
-            }
             if (mouse.button === Qt.MiddleButton) {
                 compact.runClickAction(compact.middleAction, mouse);
                 return;
@@ -900,8 +892,16 @@ PlasmoidItem {
         }
     }
 
-    // Panel-button right-click is swallowed by compactRepresentation; edit mode needs Remove.
-    Plasmoid.contextualActions: []
+    // Kickoff/Kicker expose this launcher-specific action before Plasma's
+    // standard Configure / Alternatives / Widgets / Panel actions.
+    Plasmoid.contextualActions: [
+        PlasmaCore.Action {
+            text: i18ndc("plasma_applet_org.kde.plasma.kicker",
+                "@action:inmenu launches kmenuedit", "Edit Applications…")
+            icon.name: "kmenuedit"
+            onTriggered: backend.runShell("kmenuedit")
+        }
+    ]
 
     Component.onCompleted: {
         // GNOME used to duplicate Budgie. Keep existing installations valid

@@ -375,21 +375,6 @@ Item {
             }
             ConfigSep {}
             ConfigSettingRow {
-                title: root.tr("Right click")
-                iconName: "input-mouse-click-right"
-                accent: "purple"
-                QQC2.ComboBox {
-                    model: root.clickLabels
-                    Layout.preferredWidth: Kirigami.Units.gridUnit * 10
-                    Component.onCompleted: currentIndex = root.clickIndex(cfg_RightClickAction)
-                    onActivated: {
-                        cfg_RightClickAction = root.clickKeys[currentIndex];
-                        writeLive("RightClickAction", cfg_RightClickAction);
-                    }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
                 title: root.tr("Middle click")
                 iconName: "input-mouse-click-middle"
                 accent: "teal"
