@@ -303,6 +303,12 @@ def main() -> int:
     check("Components.ResolvedIcon" in setting_row
           and "iconName: newGroupDialog.groupIcon" in extra_cfg,
           "custom group preset icons resolve in dialogs and settings rows")
+    check("groupCreationPending" in extra_cfg
+          and "submitLocked" in extra_cfg
+          and "duplicate custom group ignored" in extra_cfg
+          and "writeConfig()" not in extra_cfg
+          and "scheduleGroupModelsRebuild" in extra_cfg,
+          "custom group creation is single-shot, deduplicated, and coalesced")
     check("function toQmlColor" in (PKG / "contents/code/Theme.js").read_text(encoding="utf-8"),
           "theme colors convert rgb() for QML swatches")
     dirs_page = (PKG / "contents/ui/config/ConfigDirectoryShortcuts.qml").read_text(encoding="utf-8")
@@ -455,6 +461,9 @@ def main() -> int:
           and "host.groupViewMode(root.activeGroupId)" in arc_apps_page
           and "Components.AppGrid {" in arc_apps_page,
           "ArcMenu home and category pages honor per-group grid mode")
+    check("customById[eid]" in arc_apps_page
+          and "Never expose an internal qgrp-* id" in arc_apps_page,
+          "custom preference groups resolve their configured name and icon")
     app_grid = (PKG / "contents/ui/components/AppGrid.qml").read_text(encoding="utf-8")
     check("currentIndex: -1" in app_grid and "minCellWidth:" in arc_layout,
           "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
@@ -503,6 +512,36 @@ def main() -> int:
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
     for item in ["Launch", "Favorites", "Desktop", "Panel", "Edit", "Details", "Uninstall", "Terminal"]:
         check(item.lower() in ctx.lower() or item in ctx, f"context menu: {item}")
+    menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
+    main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
+    arc_cfg = (PKG / "contents/ui/config/ConfigArcLayout.qml").read_text(encoding="utf-8")
+    check("PresetIcons.isPreset" in ctx and "icon.source: root.groupIconSource" in ctx,
+          "custom group context rows resolve bundled preset icons")
+    check("function customGroupAppId" in menu_data
+          and "function customGroupAppByStoredId" in menu_data
+          and "root.catalog.customGroupAppId(app)" in main_qml,
+          "custom group writes and reads canonical catalog app ids")
+    check("plasmoid.configuration.CustomGroupApps" in arc_apps_page
+          and "host.extrasSignature" in arc_apps_page
+          and "root.refreshTick++" in arc_apps_page,
+          "custom group pages refresh after live membership writes")
+    for source, label in [(extra_cfg, "menu groups"), (arc_cfg, "ArcMenu layout")]:
+        check(all(key in source for key in [
+            'writeLive("CustomGroupApps"', 'writeLive("ExtraCategoriesOrder"',
+            'writeLive("ExtraCategoriesEnabled"', 'writeLive("SidebarOrder"',
+            'writeLive("SidebarHidden"', 'writeLive("QuickLinksOrder"',
+            'writeLive("QuickLinksEnabled"', 'writeLive("GroupViewOptions"',
+        ]), f"deleted custom groups clean every reference: {label}")
+    check("activeCustomGroupExists" in arc_apps_page,
+          "deleting an open custom group returns to categories")
+    check('indexOf("qgrp-") === 0' in arc_apps_page
+          and "root.openSpecialList(String(id))" in arc_apps_page
+          and "root.dataHost.customGroupAppIds(id)" in arc_apps_page,
+          "custom group category clicks resolve explicit member ids")
+    check("function dismissAndClear" in ctx
+          and "onClosed: root.clearSelection()" in ctx
+          and "contextMenu.dismissAndClear()" in main_qml,
+          "context menu closes and clears selection with the launcher")
 
     langs = [
         "zh_CN", "zh_TW", "fr", "de", "es", "pt_BR", "ru", "ja", "ko", "it", "tr",

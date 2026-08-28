@@ -75,6 +75,25 @@ Item {
             ? host.groupIconSize(root.activeGroupId) : 48;
     }
 
+    readonly property bool activeCustomGroupExists: {
+        if (root.specialListId.indexOf("qgrp-") !== 0)
+            return true;
+        var host = root.dataHost;
+        var structure = host ? host.structureEpoch : 0;
+        var liveDefs = plasmoid.configuration.CustomQuickLinks;
+        var defs = host && host.customQuickLinkDefs ? host.customQuickLinkDefs : [];
+        for (var i = 0; i < defs.length; ++i) {
+            if (defs[i] && defs[i].id === root.specialListId)
+                return true;
+        }
+        return false;
+    }
+
+    onActiveCustomGroupExistsChanged: {
+        if (!root.activeCustomGroupExists)
+            Qt.callLater(root.goBackToCategories);
+    }
+
     // Prefer MenuData categories; fall back to a short fixed list while scanning.
     readonly property var categoryItems: {
         var host = root.dataHost;
@@ -84,6 +103,7 @@ Item {
         // Also bind plasmoid.configuration directly (config dialog → live menu)
         var liveEnabled = plasmoid.configuration.ExtraCategoriesEnabled;
         var liveOrder = plasmoid.configuration.ExtraCategoriesOrder;
+        var liveCustomGroups = plasmoid.configuration.CustomQuickLinks;
         var liveUserSet = plasmoid.configuration.ExtraCategoriesUserSet;
         var tick = root.refreshTick;
         var _ = root.uiLang;
@@ -99,6 +119,12 @@ Item {
         try { userSet = !!plasmoid.configuration.ExtraCategoriesUserSet; } catch (e0) {}
         var order = ShortcutsConfig.normalizeList(liveOrder, ShortcutsConfig.DEFAULT_EXTRA_ORDER);
         var enabled = ShortcutsConfig.effectiveExtraEnabled(liveEnabled, userSet);
+        var customDefs = (host && host.customQuickLinkDefs) ? host.customQuickLinkDefs : [];
+        var customById = {};
+        for (i = 0; i < customDefs.length; ++i) {
+            if (customDefs[i] && customDefs[i].id)
+                customById[customDefs[i].id] = customDefs[i];
+        }
         for (i = 0; i < order.length; ++i) {
             var eid = order[i];
             if (!eid || eid === "favorites" || enabled.indexOf(eid) < 0)
@@ -109,6 +135,16 @@ Item {
             else if (eid === "all-apps") { ename = Locale.tr("All Applications", _); eicon = "view-app-grid-symbolic"; }
             else if (eid === "pinned") { ename = Locale.tr("Pinned Applications", _); eicon = "pin"; }
             else if (eid === "recent-files") { ename = Locale.tr("Recent Files", _); eicon = "document-open-recent"; }
+            else if (String(eid).indexOf("qgrp-") === 0) {
+                var customDef = customById[eid];
+                // Never expose an internal qgrp-* id as a user-facing label.
+                if (!customDef)
+                    continue;
+                ename = customDef.name;
+                eicon = customDef.icon || "folder-favorites";
+            } else {
+                continue;
+            }
             extras.push({ id: eid, name: ename, icon: eicon, extra: true });
         }
         if (!extras.length && host && host.enabledExtraCategories)
@@ -193,6 +229,11 @@ Item {
     readonly property var drilledApps: {
         var host = root.dataHost;
         var epoch = host ? host.catalogEpoch : 0;
+        var structure = host ? host.structureEpoch : 0;
+        var extrasSig = host ? host.extrasSignature : "";
+        // Direct dependency covers live writes from the context menu even if
+        // a layout is holding the same qgrp-* page open.
+        var liveCustomGroupApps = plasmoid.configuration.CustomGroupApps;
         var tick = root.refreshTick;
         if (root.specialListId === "favorites" || root.specialListId === "pinned") {
             // Same pin list for now (Plasma favorites sync); labels differ by specialListId
@@ -290,6 +331,7 @@ Item {
             root.menuData = bridged;
         specialListId = id || "";
         drillCategoryId = "";
+        root.refreshTick++;
     }
 
     function openCategory(id) {
@@ -312,6 +354,16 @@ Item {
         }
         if (id === "frequent") {
             root.openSpecialList("frequent");
+            return;
+        }
+        if (String(id).indexOf("qgrp-") === 0) {
+            // Preference/custom groups are stored as explicit app-id lists,
+            // not Kicker categories. Route them to customGroupApps().
+            root.openSpecialList(String(id));
+            var groupApps = root.drilledApps;
+            console.log("ArcMenu openCustomGroup", id, "→", groupApps.length,
+                "apps; stored:", JSON.stringify(root.dataHost
+                    ? root.dataHost.customGroupAppIds(id) : []));
             return;
         }
         if (id === "all-apps" || id === "all") {
