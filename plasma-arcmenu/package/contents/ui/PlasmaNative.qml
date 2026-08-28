@@ -26,7 +26,6 @@ Item {
     property var systemPlaceUrls: ({})
     property bool systemPlaceMetadataReady: false
     property bool systemPlaceMetadataPending: false
-    property string pendingDolphinRemovalUrl: ""
     property var plasmaFavoriteIds: []
     readonly property var favoritesSourceModel: {
         try { return root.rootModel ? root.rootModel.favoritesModel : null; }
@@ -36,7 +35,6 @@ Item {
     signal runnerResultsUpdated(var results)
     signal recentAppsUpdated(var apps)
     signal placesUpdated(var places)
-    signal dolphinPlaceRemovalFinished(bool success, string url)
     signal plasmaFavoritesUpdated(var ids)
 
     // ---- Session (Kickoff Leave) ----
@@ -545,20 +543,6 @@ Item {
         }
     }
 
-    P5Support.DataSource {
-        id: placesMutationExec
-        engine: "executable"
-        connectedSources: []
-        onNewData: (sourceName, data) => {
-            placesMutationExec.disconnectSource(sourceName);
-            var ok = String((data && data.stdout) || "").indexOf("ARCMENU_PLACE_REMOVED") >= 0;
-            var uri = root.pendingDolphinRemovalUrl;
-            root.pendingDolphinRemovalUrl = "";
-            root.dolphinPlaceRemovalFinished(ok, uri);
-            root.scheduleSystemPlaceMetadataRefresh();
-        }
-    }
-
     Timer {
         id: placesMetadataTimer
         interval: 80
@@ -604,26 +588,6 @@ Item {
 
     function isSystemPlaceUrl(uri) {
         return root.systemPlaceUrls[root.normalizedPlaceUrl(uri)] === true;
-    }
-
-    function removeDolphinPlace(uri) {
-        uri = String(uri || "");
-        if (!uri.length || root.isSystemPlaceUrl(uri))
-            return false;
-        root.pendingDolphinRemovalUrl = uri;
-        var py = "import os,sys,shutil,tempfile,xml.etree.ElementTree as E; "
-            + "p=os.path.expanduser('~/.local/share/user-places.xbel'); u=sys.argv[1]; "
-            + "E.register_namespace('bookmark','http://www.freedesktop.org/standards/desktop-bookmarks'); "
-            + "E.register_namespace('kdepriv','http://www.kde.org/kdepriv'); E.register_namespace('mime','http://www.freedesktop.org/standards/shared-mime-info'); "
-            + "t=E.parse(p); r=t.getroot(); hit=None; "
-            + "hit=next((b for b in r.findall('bookmark') if b.get('href','').rstrip('/')==u.rstrip('/') and not any(x.tag.endswith('isSystemItem') and (x.text or '').strip()=='true' for x in b.iter())),None); "
-            + "assert hit is not None; r.remove(hit); shutil.copy2(p,p+'.arcmenu-backup'); "
-            + "fd,tmp=tempfile.mkstemp(prefix='.user-places-',dir=os.path.dirname(p)); os.close(fd); "
-            + "t.write(tmp,encoding='UTF-8',xml_declaration=True); d=open(tmp,'rb').read(); open(tmp,'wb').write(d.replace(b'?>',b'?>\\n<!DOCTYPE xbel>',1)); os.replace(tmp,p); print('ARCMENU_PLACE_REMOVED')";
-        var command = "/bin/bash -lc " + root.shellQuotePlaceMetadata(
-            "python3 -c " + root.shellQuotePlaceMetadata(py) + " " + root.shellQuotePlaceMetadata(uri));
-        placesMutationExec.connectSource(command);
-        return true;
     }
 
     Kicker.ComputerModel {

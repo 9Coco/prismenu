@@ -28,11 +28,6 @@ Item {
     property int _rebuildToken: 0
     /** Recent files via Kicker.RecentUsageModel (see SearchNativeProviders) */
     property var recentFiles: []
-    /** GTK bookmarks (~/.config/gtk-3.0/bookmarks) — Places sidebar */
-    property var bookmarks: []
-    /** Removable devices mounted under /media & /run/media (fallback source
-     *  for "External devices" when KFilePlacesModel QML is unavailable) */
-    property var devices: []
     /** Open windows via TaskManager.TasksModel */
     property var openWindows: []
 
@@ -40,8 +35,6 @@ Item {
     signal metaUpdated(string userName, string userIcon, string osId, string osPretty)
     signal scanFailed(string message)
     signal recentFilesUpdated(var files)
-    signal bookmarksUpdated(var bookmarks)
-    signal devicesUpdated(var devices)
     signal openWindowsUpdated(var windows)
 
     SearchNativeProviders {
@@ -108,10 +101,6 @@ Item {
                     root._osMetaLoaded = true;
                     metaUpdated(u, iconSrc, osId, osPretty);
                 }
-                if (out.indexOf("ARCMENU_BOOKMARK|") >= 0)
-                    root._parseBookmarks(out);
-                if (out.indexOf("ARCMENU_DEVICE|") >= 0)
-                    root._parseDevices(out);
             } catch (e) {
                 console.warn("ArcMenu exec parse failed:", e);
             }
@@ -570,16 +559,6 @@ Item {
             return;
         }
 
-        // Special drill-down row clicked from a layout without an apps page
-        // (no in-menu list available): open the mount root directly instead
-        // of doing nothing. computer:/ no longer exists on Plasma 5/6.
-        if (app.special === "devices") {
-            exec.connectSource("/bin/bash -lc " + shellQuote(
-                'p="/media/$USER"; [ -d "$p" ] || p="$HOME"; '
-                + 'kioclient exec "file://$p" || dolphin "$p" || xdg-open "$p"'));
-            return;
-        }
-
         // Official Kickoff ComputerModel place — preserve its KIO/device setup behavior.
         if (app.provider === "kicker-computer" && typeof app.computerRow === "number") {
             if (plasmaNative.triggerComputerAt(app.computerRow))
@@ -721,7 +700,8 @@ Item {
         if (sessionIds[actionId]) {
             if (plasmaNative.runSessionAction(actionId, confirmationMode || "default"))
                 return;
-            console.warn("ArcMenu: SessionManagement unavailable, shell fallback for", actionId);
+            console.warn("ArcMenu: native SessionManagement rejected", actionId);
+            return;
         }
 
         // Settings / software center: prefer launching the resolved catalog
@@ -744,19 +724,11 @@ Item {
             ? softwareCenterCmd
             : "plasma-discover";
         var map = {
-            "lock": "loginctl lock-session || qdbus org.freedesktop.ScreenSaver /ScreenSaver Lock",
-            "logout": "qdbus org.kde.Shutdown /Shutdown logout || loginctl terminate-user \"$USER\"",
-            "suspend": "systemctl suspend",
-            "hybridsleep": "systemctl hybrid-sleep || systemctl suspend",
-            "hibernate": "systemctl hibernate",
-            "restart": "systemctl reboot",
-            "shutdown": "systemctl poweroff",
             "settings": "systemsettings",
             "discover": discover,
-            "switchuser": "qdbus org.kde.ksmserver /KSMServer openSwitchUserDialog || dm-tool switch-to-greeter",
             "accountsettings": "systemsettings kcm_users || kcmshell6 kcm_users || plasma-open-settings kcm_users || systemsettings",
             "overview": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut Overview || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut Overview",
-            "show-desktop": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop' || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Show Desktop' || xdotool key Super+D"
+            "show-desktop": "qdbus org.kde.kglobalaccel /component/kwin org.kde.kglobalaccel.Component.invokeShortcut 'Show Desktop' || qdbus org.kde.kglobalaccel /component/kwin invokeShortcut 'Show Desktop'"
         };
         var cmd = map[actionId];
         if (!cmd) {
@@ -811,11 +783,11 @@ Item {
     }
 
     /** Invoke AppsModel.trigger exactly as Kickoff's ActionMenu does. */
-    function triggerSystemAction(app, actionId, actionArgument) {
+    function invokeSystemAction(app, actionId, actionArgument) {
         var sourceApp = kickerSourceApp(app);
         var path = sourceApp ? (sourceApp.kickerModelPath || []) : [];
         if (path.length < 2)
-            return false;
+            return { handled: false, closeLauncher: false };
         try {
             var sourceModel = rootModel;
             for (var p = 0; p < path.length - 1; ++p) {
@@ -823,12 +795,24 @@ Item {
                 if (!sourceModel)
                     throw new Error("missing Kicker model at path index " + p);
             }
-            sourceModel.trigger(path[path.length - 1], String(actionId || ""), actionArgument);
-            return true;
+            var closeLauncher = !!sourceModel.trigger(
+                path[path.length - 1], String(actionId || ""), actionArgument);
+            return { handled: true, closeLauncher: closeLauncher };
         } catch (e) {
             console.warn("ArcMenu Kicker trigger failed for", app ? app.id : "", actionId, e);
-            return false;
+            return { handled: false, closeLauncher: false };
         }
+    }
+
+    /** Whether Kicker accepted the action (used by normal launch/fallbacks). */
+    function triggerSystemAction(app, actionId, actionArgument) {
+        return root.invokeSystemAction(app, actionId, actionArgument).handled;
+    }
+
+    /** Kicker's return value tells Kickoff whether to close after an action. */
+    function triggerSystemActionAndShouldClose(app, actionId, actionArgument) {
+        var result = root.invokeSystemAction(app, actionId, actionArgument);
+        return result.handled && result.closeLauncher;
     }
 
     function desktopFileId(app) {
@@ -863,70 +847,6 @@ Item {
         return "/usr/share/applications/" + id;
     }
 
-    /** Open another window / instance of the app (ArcMenu "New Window"). */
-    function openNewWindow(app) {
-        if (!app)
-            return;
-        var id = desktopFileId(app);
-        var path = desktopFilePath(app);
-        var url = app.kickerUrl || (path ? ("file://" + path) : "");
-        // Prefer desktop action NewWindow when present; else relaunch desktop entry
-        var script = "id=" + shellQuote(id) + "; f=" + shellQuote(path) + "; "
-            + "if [ -f \"$f\" ] && grep -qE '^\\[Desktop Action (NewWindow|new-window|WindowNew)\\]' \"$f\" 2>/dev/null; then "
-            + "  act=$(grep -oE '\\[Desktop Action [^]]+\\]' \"$f\" | head -n1 | sed -E 's/\\[Desktop Action |\\]//g'); "
-            + "  gtk-launch \"$id\" \"$act\" 2>/dev/null || kioclient exec " + shellQuote(url) + "; "
-            + "elif [ -n \"$id\" ]; then "
-            + "  gtk-launch \"$id\" 2>/dev/null || kioclient exec " + shellQuote(url) + " || true; "
-            + "else "
-            + "  kioclient exec " + shellQuote(url) + "; "
-            + "fi";
-        console.log("ArcMenu openNewWindow", id);
-        runShell(script);
-    }
-
-    /**
-     * Trigger the same Kicker context action used by KDE's official Kickoff.
-     * AbstractModel.trigger(row, actionId, argument) delegates task-manager
-     * selection and launcher persistence to Plasma instead of editing panel
-     * configuration or calling plasmashell.evaluateScript ourselves.
-     */
-    function pinToTaskManager(app) {
-        return triggerSystemAction(app, "addToTaskManager", undefined);
-    }
-
-    function addDesktopShortcut(app) {
-        if (!app)
-            return;
-        var src = desktopFilePath(app);
-        if (!src)
-            return;
-        runShell(
-            "dest=\"$HOME/Desktop\"; [ -d \"$dest\" ] || dest=\"$HOME/桌面\"; [ -d \"$dest\" ] || dest=\"$HOME\"; "
-            + "f=" + shellQuote(src) + "; [ -f \"$f\" ] && cp \"$f\" \"$dest/\" && chmod +x \"$dest/$(basename \"$f\")\""
-        );
-    }
-
-    function editDesktop(app) {
-        if (!app)
-            return;
-        var src = app.entryPath || "";
-        if (src.indexOf("file://") === 0)
-            src = decodeURIComponent(src.substring(7));
-        if (src)
-            exec.connectSource("kate " + shellQuote(src) + " || kwrite " + shellQuote(src));
-    }
-
-    function runInTerminal(app) {
-        if (!app)
-            return;
-        var url = app.kickerUrl || app.entryPath || "";
-        var exe = String(app.exec || "").replace(/%[a-zA-Z]/g, "").trim();
-        if (url)
-            exec.connectSource("konsole -e bash -lc " + shellQuote("kioclient exec " + url));
-        else if (exe)
-            exec.connectSource("konsole -e bash -lc " + shellQuote(exe));
-    }
-
     function refreshRecentFiles() {
         // Kicker RecentUsageModel — same stack as Kickoff “Recent Files”
         nativeSearch.refresh();
@@ -939,146 +859,4 @@ Item {
         nativeSearch.rebuildOpenWindows();
     }
 
-    function refreshBookmarks() {
-        // GTK bookmarks file (same source GNOME ArcMenu PlaceDisplay uses)
-        var script = [
-            "python3 - <<'PY'",
-            "import os, urllib.parse",
-            "paths=[",
-            "  os.path.expanduser('~/.config/gtk-3.0/bookmarks'),",
-            "  os.path.expanduser('~/.config/gtk-4.0/bookmarks'),",
-            "]",
-            "seen=set()",
-            "count=0",
-            "for path in paths:",
-            "  if not os.path.isfile(path):",
-            "    continue",
-            "  with open(path, 'r', encoding='utf-8', errors='replace') as f:",
-            "    for line in f:",
-            "      line=line.strip()",
-            "      if not line or line.startswith('#'):",
-            "        continue",
-            "      parts=line.split(' ', 1)",
-            "      uri=parts[0].strip()",
-            "      if uri in seen:",
-            "        continue",
-            "      seen.add(uri)",
-            "      name=parts[1].strip() if len(parts)>1 else ''",
-            "      if not name:",
-            "        if uri.startswith('file:'):",
-            "          name=urllib.parse.unquote(uri.rsplit('/',1)[-1]) or uri",
-            "        else:",
-            "          name=uri",
-            "      print('ARCMENU_BOOKMARK|%s|%s' % (uri.replace('|','%7C'), name.replace('|','-')))",
-            "      count+=1",
-            "      if count>=40: break",
-            "  if count>=40: break",
-            "PY"
-        ].join("\n");
-        exec.connectSource("/bin/bash -lc " + shellQuote(script));
-    }
-
-    function _parseBookmarks(out) {
-        var lines = String(out).split("\n");
-        var items = [];
-        for (var i = 0; i < lines.length; ++i) {
-            if (lines[i].indexOf("ARCMENU_BOOKMARK|") !== 0)
-                continue;
-            var p = lines[i].split("|");
-            var uri = (p[1] || "").trim();
-            var name = (p[2] || "").trim();
-            if (!uri)
-                continue;
-            if (!name)
-                name = uri;
-            var path = uri.indexOf("file://") === 0 ? decodeURIComponent(uri.substring(7)) : uri;
-            var openCmd = uri.indexOf("file:") === 0 || uri.indexOf("http") === 0
-                ? ("kioclient exec " + shellQuote(uri) + " || xdg-open " + shellQuote(uri.indexOf("file:") === 0 ? path : uri))
-                : ("xdg-open " + shellQuote(uri));
-            items.push({
-                id: "bookmark:" + uri,
-                name: name,
-                icon: uri.indexOf("http") === 0 ? "bookmarks" : "folder",
-                exec: openCmd,
-                kickerUrl: uri,
-                entryPath: uri,
-                genericName: path,
-                description: path,
-                provider: "bookmarks",
-                noDisplay: false
-            });
-        }
-        root.bookmarks = items;
-        bookmarksUpdated(items);
-        if (menuData)
-            menuData.bookmarkResults = items;
-    }
-
-    function refreshDevices() {
-        // computer:/ (KDE4 KIO slave) is gone on Plasma 5/6 — enumerate the
-        // mounted removable media instead (/media/$USER, /run/media/$USER).
-        var script = [
-            "python3 - <<'PY'",
-            "import os",
-            "u=os.environ.get('USER','')",
-            "roots=['/media/'+u if u else '', '/run/media/'+u if u else '']",
-            "count=0",
-            "for r in roots:",
-            "  if not r or not os.path.isdir(r):",
-            "    continue",
-            "  try:",
-            "    names=sorted(os.listdir(r))",
-            "  except OSError:",
-            "    continue",
-            "  for n in names:",
-            "    p=os.path.join(r,n)",
-            "    if not os.path.isdir(p) or os.path.islink(p):",
-            "      continue",
-            "    print('ARCMENU_DEVICE|%s|%s' % (p.replace('|','%7C'), n.replace('|','-')))",
-            "    count+=1",
-            "    if count>=40: break",
-            "  if count>=40: break",
-            "PY"
-        ].join("\n");
-        exec.connectSource("/bin/bash -lc " + shellQuote(script));
-    }
-
-    function _parseDevices(out) {
-        var lines = String(out).split("\n");
-        var items = [];
-        for (var i = 0; i < lines.length; ++i) {
-            if (lines[i].indexOf("ARCMENU_DEVICE|") !== 0)
-                continue;
-            var p = lines[i].split("|");
-            var path = (p[1] || "").trim();
-            var name = (p[2] || "").trim();
-            if (!path)
-                continue;
-            if (!name)
-                name = path.substring(path.lastIndexOf("/") + 1) || path;
-            items.push({
-                id: "device:" + path,
-                name: name,
-                icon: "drive-removable-media",
-                exec: "kioclient exec " + shellQuote("file://" + path)
-                    + " || xdg-open " + shellQuote(path),
-                path: path,
-                genericName: path,
-                description: path,
-                provider: "devices",
-                noDisplay: false
-            });
-        }
-        root.devices = items;
-        devicesUpdated(items);
-        if (menuData)
-            menuData.deviceResults = items;
-    }
-
-    function uninstall(app) {
-        if (!app)
-            return;
-        var id = String(app.id || "").replace(/\.desktop$/, "");
-        exec.connectSource("plasma-discover --mode uninstall --application " + shellQuote(id));
-    }
 }

@@ -19,7 +19,6 @@ Item {
     property var cfg_HiddenDolphinPlaces: []
     property var cfg_HiddenCustomPlaces: []
     property var localApps: []
-    property var pendingDolphinRemoval: null
 
     // Use the same native places backend as the menu so this page never
     // presents the legacy DirectoryShortcuts defaults as a separate truth.
@@ -305,17 +304,10 @@ Item {
                             QQC2.Button { icon.name: "go-up"; flat: true; enabled: index > 0; onClicked: root.moveSectionItem(sectionGroup.sectionId, index, index - 1) }
                             QQC2.Button { icon.name: "go-down"; flat: true; enabled: index < sectionGroup.rows.length - 1; onClicked: root.moveSectionItem(sectionGroup.sectionId, index, index + 1) }
                             QQC2.Button {
-                                visible: sectionGroup.sectionId !== "system"
+                                visible: sectionGroup.sectionId === "custom"
                                 icon.name: "list-remove"
                                 flat: true
-                                onClicked: {
-                                    if (sectionGroup.sectionId === "dolphin") {
-                                        root.pendingDolphinRemoval = modelData;
-                                        removeDolphinDialog.open();
-                                    } else {
-                                        root.removeAt(Number(modelData.arcIndex));
-                                    }
-                                }
+                                onClicked: root.removeAt(Number(modelData.arcIndex))
                             }
                         }
                         ConfigSep { visible: index < sectionGroup.rows.length - 1 }
@@ -372,25 +364,6 @@ Item {
             }
         }
 
-    }
-
-    QQC2.Dialog {
-        id: removeDolphinDialog
-        title: root.tr("Remove from Dolphin Places")
-        modal: true
-        standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
-        anchors.centerIn: parent
-        QQC2.Label {
-            width: Math.min(implicitWidth, Kirigami.Units.gridUnit * 24)
-            wrapMode: Text.WordWrap
-            text: root.tr("This removes the location from Dolphin and other KDE applications.")
-        }
-        onAccepted: {
-            if (root.pendingDolphinRemoval)
-                placesBackend.removeDolphinPlace(root.itemKey(root.pendingDolphinRemoval));
-            root.pendingDolphinRemoval = null;
-        }
-        onRejected: root.pendingDolphinRemoval = null
     }
 
     QQC2.Dialog {

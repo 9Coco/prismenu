@@ -220,7 +220,7 @@ def main() -> int:
         "ButtonStyleRadiusEnabled", "ButtonStyleBorderWidthEnabled", "ButtonStyleBorderColorEnabled",
         "MenuLayoutId", "FlipHorizontal", "SearchbarLocation",
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
-        "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
+        "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
         "MenuWidth", "MenuHeight", "SidebarWidth", "CategoryColumnWidth",
         "LeftPanelWidth", "RightPanelWidth", "WidthOffset", "OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance",
         "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther",
@@ -322,8 +322,10 @@ def main() -> int:
           "places settings mirrors KDE system and user location groups")
     check("PlaceSectionOrder" in dirs_page and "HiddenSystemPlaces" in dirs_page
           and "HiddenDolphinPlaces" in dirs_page and "HiddenCustomPlaces" in dirs_page
-          and "removeDolphinPlace" in dirs_page and "Add custom application" in dirs_page,
-          "three place blocks support order visibility removal and app additions")
+          and 'visible: sectionGroup.sectionId === "custom"' in dirs_page
+          and "removeDolphinPlace" not in dirs_page
+          and "Add custom application" in dirs_page,
+          "three place blocks support ordering and visibility without mutating Dolphin files")
     check("Add custom file" in dirs_page and "FileDialog" in dirs_page,
           "places page can add custom files")
 
@@ -362,11 +364,11 @@ def main() -> int:
     )
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
-    pin_backend = apps_backend.split("function pinToTaskManager", 1)[1].split("function addDesktopShortcut", 1)[0]
-    check('triggerSystemAction(app, "addToTaskManager", undefined)' in pin_backend
-          and "sourceModel.trigger(path[path.length - 1]" in apps_backend,
+    check("function systemActions" in apps_backend
+          and "sourceModel.trigger(" in apps_backend
+          and "path[path.length - 1]" in apps_backend,
           "taskbar pin uses Kicker native action")
-    check("evaluateScript" not in pin_backend and "writeConfig('launchers'" not in pin_backend,
+    check("evaluateScript" not in apps_backend and "writeConfig('launchers'" not in apps_backend,
           "taskbar pin does not edit Plasma panel configuration")
     check("appletInterface: root.appletInterface" in apps_backend
           and "appletInterface: root" in (PKG / "contents/ui/main.qml").read_text(encoding="utf-8"),
@@ -598,12 +600,15 @@ def main() -> int:
           "panel reserves the dynamic icon and text button width")
 
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
-    for item in ["Launch", "Favorites", "Desktop", "Panel", "Edit", "Details", "Uninstall", "Terminal"]:
-        check(item.lower() in ctx.lower() or item in ctx, f"context menu: {item}")
+    check('root.t("Launch")' in ctx, "context menu: Launch")
+    check("root.systemActions.length" in ctx
+          and "out.push(root.systemActions[i])" in ctx
+          and "modelData.subActions" in ctx,
+          "context menu preserves Kicker actions and submenus")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     arc_cfg = (PKG / "contents/ui/config/ConfigArcLayout.qml").read_text(encoding="utf-8")
-    check("PresetIcons.isPreset" in ctx and "icon.source: root.groupIconSource" in ctx,
+    check("PresetIcons.isPreset" in ctx and "root.customGroupIcon(group.icon)" in ctx,
           "custom group context rows resolve bundled preset icons")
     check("function customGroupAppId" in menu_data
           and "function customGroupAppByStoredId" in menu_data
@@ -627,7 +632,8 @@ def main() -> int:
           and "root.dataHost.customGroupAppIds(id)" in arc_apps_page,
           "custom group category clicks resolve explicit member ids")
     check("function dismissAndClear" in ctx
-          and "onClosed: root.clearSelection()" in ctx
+          and "status === PlasmaExtras.Menu.Closed" in ctx
+          and "root.clearSelection()" in ctx
           and "contextMenu.dismissAndClear()" in main_qml,
           "context menu closes and clears selection with the launcher")
     layout_host = (PKG / "contents/ui/LayoutHost.qml").read_text(encoding="utf-8")

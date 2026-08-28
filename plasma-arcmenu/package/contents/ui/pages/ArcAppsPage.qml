@@ -260,11 +260,9 @@ Item {
             return list;
         }
         if (root.specialListId === "bookmarks") {
-            var _bm = host ? host.bookmarksEpoch : 0;
             return (host && host.bookmarkResults) ? host.bookmarkResults : [];
         }
         if (root.specialListId === "devices") {
-            var _dv = host ? host.devicesEpoch : 0;
             return (host && host.deviceEntries) ? host.deviceEntries : [];
         }
         if (root.drillCategoryId.length === 0)
@@ -382,16 +380,11 @@ Item {
             return;
         }
         if (id === "bookmarks" || id === "place-bookmarks") {
-            if (bridged && bridged.requestBookmarksRefresh)
-                bridged.requestBookmarksRefresh();
             root.openSpecialList("bookmarks");
             return;
         }
         if (id === "devices" || id === "place-devices") {
-            // computer:/ does not exist on Plasma 5/6 — drill into the
-            // live device list (KFilePlacesModel devices or /media scan)
-            if (bridged && bridged.requestDevicesRefresh)
-                bridged.requestDevicesRefresh();
+            // Drill into the live Kicker/KFilePlacesModel device list.
             root.openSpecialList("devices");
             return;
         }
