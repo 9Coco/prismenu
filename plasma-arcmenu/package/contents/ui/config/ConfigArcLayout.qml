@@ -43,6 +43,14 @@ Item {
             console.log("ArcMenu writeLive FAILED", key, e);
         }
     }
+
+    function configList(value) {
+        if (Array.isArray(value))
+            return value.slice();
+        if (typeof value === "string")
+            return value.length ? value.split(",") : [];
+        try { return Array.from(value || []); } catch (e) { return []; }
+    }
     
     // ---- App catalog for the group management dialogs (same source as ConfigPinned) ----
     property var localApps: []
@@ -170,6 +178,26 @@ Item {
         var order = (cfg_QuickLinksOrder || []).slice().filter(function (x) { return x !== gid; });
         cfg_QuickLinksOrder = order;
         writeLive("QuickLinksOrder", order);
+        var extraOrder = root.configList(plasmoid.configuration.ExtraCategoriesOrder)
+            .filter(function (x) { return x !== gid; });
+        var extraEnabled = root.configList(plasmoid.configuration.ExtraCategoriesEnabled)
+            .filter(function (x) { return x !== gid; });
+        writeLive("ExtraCategoriesOrder", extraOrder);
+        writeLive("ExtraCategoriesEnabled", extraEnabled);
+        var sidebarId = "group:" + gid;
+        var sidebarOrder = root.configList(plasmoid.configuration.SidebarOrder)
+            .filter(function (x) { return x !== gid && x !== sidebarId; });
+        var sidebarHidden = root.configList(plasmoid.configuration.SidebarHidden)
+            .filter(function (x) { return x !== gid && x !== sidebarId; });
+        writeLive("SidebarOrder", sidebarOrder);
+        writeLive("SidebarHidden", sidebarHidden);
+        try {
+            var views = JSON.parse(String(plasmoid.configuration.GroupViewOptions || "{}"));
+            if (views && typeof views === "object" && views[gid] !== undefined) {
+                delete views[gid];
+                writeLive("GroupViewOptions", JSON.stringify(views));
+            }
+        } catch (e) {}
     }
     
     function toggleGroupApp(gid, appId, on) {

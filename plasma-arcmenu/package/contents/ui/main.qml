@@ -664,6 +664,14 @@ PlasmoidItem {
 
         focus: true
 
+        Connections {
+            target: root
+            function onExpandedChanged() {
+                if (!root.expanded)
+                    contextMenu.dismissAndClear();
+            }
+        }
+
         // Popup animation
         opacity: 1
         transformOrigin: Item.Bottom
@@ -785,15 +793,15 @@ PlasmoidItem {
             }
             onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
             onToggleCustomGroupRequested: (app, groupId) => {
-                var pid = root.catalog.resolvePinId(app) || (app ? String(app.id || "") : "");
-                if (!pid)
+                var appId = root.catalog.customGroupAppId(app);
+                if (!appId)
                     return;
-                var wasIn = root.catalog.isAppInCustomGroup(groupId, pid);
-                console.log("ArcMenu toggleCustomGroup", groupId, "pin:", pid, "wasIn:", wasIn);
+                var wasIn = root.catalog.isAppInCustomGroup(groupId, appId);
+                console.log("ArcMenu toggleCustomGroup", groupId, "app:", appId, "wasIn:", wasIn);
                 if (wasIn)
-                    root.catalog.removeFromCustomGroup(groupId, pid);
+                    root.catalog.removeFromCustomGroup(groupId, appId);
                 else
-                    root.catalog.addToCustomGroup(groupId, pid);
+                    root.catalog.addToCustomGroup(groupId, appId);
             }
             onAddToDesktopRequested: (app) => {
                 backend.addDesktopShortcut(app);
