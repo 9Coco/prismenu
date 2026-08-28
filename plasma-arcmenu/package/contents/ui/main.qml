@@ -15,7 +15,6 @@ import "../code/Theme.js" as ThemeHelper
 import "../code/Favorites.js" as Favorites
 import "../code/CatalogBridge.js" as CatalogBridge
 import "../code/Locale.js" as Locale
-import "../code/ShortcutsConfig.js" as ShortcutsConfig
 import "components" as Components
 
 PlasmoidItem {
@@ -360,19 +359,6 @@ PlasmoidItem {
             var n = parseInt(plasmoid.configuration.PanelButtonIconSize, 10);
             return (!n || isNaN(n)) ? 20 : Math.max(12, Math.min(64, n));
         }
-        readonly property int panelPadding: {
-            var n = parseInt(plasmoid.configuration.PanelButtonPadding, 10);
-            // -1 = theme default (no extra padding)
-            if (isNaN(n) || n < 0)
-                return 0;
-            return Math.min(25, n);
-        }
-        readonly property int positionOffset: {
-            var n = parseInt(plasmoid.configuration.PanelButtonPositionOffset, 10);
-            if (isNaN(n) || n < 0)
-                return 0;
-            return Math.min(10, n);
-        }
         readonly property string buttonAppearance: {
             var a = plasmoid.configuration.MenuButtonAppearance || "";
             if (a)
@@ -413,22 +399,28 @@ PlasmoidItem {
                 ? plasmoid.configuration.ButtonStyleActiveFg : styleFg; } catch (e) { return styleFg; }
         }
 
-        implicitWidth: {
+        readonly property int desiredWidth: {
             if (compact.buttonHidden)
                 return 1;
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.ButtonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitHeight : compactContent.implicitWidth;
-            var offset = isVertical ? 0 : compact.positionOffset * Kirigami.Units.smallSpacing;
-            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
+            return Math.ceil(base + Kirigami.Units.smallSpacing * 2 + pad);
         }
-        implicitHeight: {
+        readonly property int desiredHeight: {
             if (compact.buttonHidden)
                 return 1;
             var pad = styleBorderWOn ? Math.max(0, plasmoid.configuration.ButtonStyleBorderWidth) * 2 : 0;
             var base = isVertical ? compactContent.implicitWidth : compactContent.implicitHeight;
-            var offset = isVertical ? compact.positionOffset * Kirigami.Units.smallSpacing : 0;
-            return base + Kirigami.Units.smallSpacing * 2 + pad + compact.panelPadding * 2 + offset;
+            return Math.ceil(base + Kirigami.Units.smallSpacing * 2 + pad);
         }
+        implicitWidth: desiredWidth
+        implicitHeight: desiredHeight
+        Layout.minimumWidth: desiredWidth
+        Layout.preferredWidth: desiredWidth
+        Layout.maximumWidth: desiredWidth
+        Layout.minimumHeight: desiredHeight
+        Layout.preferredHeight: desiredHeight
+        Layout.maximumHeight: desiredHeight
         opacity: compact.buttonHidden ? 0 : 1
         enabled: !compact.buttonHidden
         hoverEnabled: true
@@ -445,10 +437,10 @@ PlasmoidItem {
         function runClickAction(action, mouse) {
             if (action === "nothing")
                 return;
-            if (action === "context") {
-                buttonContextMenu.popup(compact, mouse ? mouse.x : 0, mouse ? mouse.y : compact.height);
-                return;
-            }
+            // Existing installations may still have the removed custom
+            // context-menu action saved. Treat it as the normal launcher.
+            if (action === "context")
+                action = "arcmenu";
             if (action === "configure") {
                 try { plasmoid.internalAction("configure").trigger(); } catch (e) {}
                 return;
@@ -473,92 +465,6 @@ PlasmoidItem {
             }
             if (mouse.button === Qt.LeftButton) {
                 compact.runClickAction(compact.leftAction, mouse);
-            }
-        }
-
-        QQC2.Menu {
-            id: buttonContextMenu
-
-            function tr(msgid) {
-                return Locale.tr(msgid, menuData && menuData.uiLang ? menuData.uiLang : "zh_CN");
-            }
-
-            function activateItem(itemId) {
-                if (itemId === "configure" || itemId === "panel-settings") {
-                    try { plasmoid.internalAction("configure").trigger(); } catch (e) {}
-                    return;
-                }
-                if (itemId === "power") {
-                    root.handlePower("logout");
-                    return;
-                }
-                if (itemId === "overview" || itemId === "show-desktop") {
-                    root.handlePower(itemId);
-                    return;
-                }
-                if (String(itemId).indexOf("desktop:") === 0) {
-                    var did = String(itemId).substring(8);
-                    var apps = menuData.allApps || [];
-                    for (var a = 0; a < apps.length; ++a) {
-                        if (apps[a].id === did) {
-                            root.launchApp(apps[a]);
-                            return;
-                        }
-                    }
-                }
-            }
-
-            Instantiator {
-                model: {
-                    try {
-                        return ShortcutsConfig.normalizeList(
-                            plasmoid.configuration.ContextMenuItems,
-                            ShortcutsConfig.DEFAULT_CTX);
-                    } catch (e) {
-                        return ShortcutsConfig.DEFAULT_CTX.slice();
-                    }
-                }
-                delegate: QQC2.MenuItem {
-                    required property var modelData
-                    readonly property string itemId: String(modelData || "")
-                    readonly property bool isSep: itemId === "separator"
-                    text: {
-                        if (isSep)
-                            return "────────";
-                        var defs = ShortcutsConfig.contextMenuDefs(buttonContextMenu.tr);
-                        for (var i = 0; i < defs.length; ++i) {
-                            if (defs[i].id === itemId)
-                                return defs[i].name;
-                        }
-                        if (itemId.indexOf("desktop:") === 0) {
-                            var did = itemId.substring(8);
-                            var apps = menuData.allApps || [];
-                            for (var a = 0; a < apps.length; ++a) {
-                                if (apps[a].id === did)
-                                    return apps[a].name;
-                            }
-                            return buttonContextMenu.tr("Invalid shortcut") + " - " + did;
-                        }
-                        return itemId;
-                    }
-                    icon.name: {
-                        if (isSep)
-                            return "";
-                        var defs = ShortcutsConfig.contextMenuDefs(buttonContextMenu.tr);
-                        for (var i = 0; i < defs.length; ++i) {
-                            if (defs[i].id === itemId)
-                                return defs[i].icon;
-                        }
-                        return "application-x-executable";
-                    }
-                    enabled: !isSep
-                    onTriggered: {
-                        if (!isSep)
-                            buttonContextMenu.activateItem(itemId);
-                    }
-                }
-                onObjectAdded: (index, object) => buttonContextMenu.insertItem(index, object)
-                onObjectRemoved: (index, object) => buttonContextMenu.removeItem(object)
             }
         }
 
@@ -908,6 +814,14 @@ PlasmoidItem {
         // after removing it from the registry and package.
         if (plasmoid.configuration.MenuLayoutId === "gnome")
             plasmoid.configuration.MenuLayoutId = "budgie";
+
+        // The custom panel-button context menu was removed in favour of
+        // Plasma's native applet menu. Migrate legacy click assignments so a
+        // normal left or middle click always opens ArcMenu again.
+        if (plasmoid.configuration.LeftClickAction === "context")
+            plasmoid.configuration.LeftClickAction = "arcmenu";
+        if (plasmoid.configuration.MiddleClickAction === "context")
+            plasmoid.configuration.MiddleClickAction = "arcmenu";
 
         // Keep Configure / Remove / Alternatives available in panel edit mode.
         var restore = ["remove", "alternatives", "configure"];
