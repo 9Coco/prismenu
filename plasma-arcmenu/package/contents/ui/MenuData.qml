@@ -222,9 +222,57 @@ QtObject {
         var list = root.customGroupMap[groupId];
         return Array.isArray(list) ? list : [];
     }
+
+    /** Resolve search/sidebar variants to the id used by the live app catalog. */
+    function customGroupAppId(app) {
+        if (!app)
+            return "";
+        var id = String(app.id || "");
+        var direct = AppsModel.findAppById(root.allApps, id);
+        if (direct)
+            return String(direct.id || id);
+        var source = root.appForPlasmaFavoriteId(app.favoriteId || id);
+        return String((source && source.id) || id);
+    }
+
+    /** Accept current catalog ids and older Kicker/favorite id spellings. */
+    function customGroupAppByStoredId(storedId) {
+        var id = String(storedId || "");
+        if (!id)
+            return null;
+        var direct = AppsModel.findAppById(root.allApps, id);
+        if (direct)
+            return direct;
+        var favorite = root.appForPlasmaFavoriteId(id);
+        if (favorite)
+            return favorite;
+        var plain = id.indexOf("applications:") === 0
+            ? id.substring("applications:".length) : id;
+        for (var i = 0; i < (root.allApps || []).length; ++i) {
+            var app = root.allApps[i];
+            if (!app)
+                continue;
+            var appId = String(app.id || "");
+            var favId = String(app.favoriteId || "");
+            var url = String(app.kickerUrl || app.entryPath || "");
+            if (appId === plain || favId === id || favId === plain
+                    || url === id || url === "applications:" + plain)
+                return app;
+        }
+        return null;
+    }
     
     function isAppInCustomGroup(groupId, appId) {
-        return root.customGroupAppIds(groupId).indexOf(appId) >= 0;
+        var wanted = String(appId || "");
+        var ids = root.customGroupAppIds(groupId);
+        for (var i = 0; i < ids.length; ++i) {
+            if (String(ids[i]) === wanted)
+                return true;
+            var app = root.customGroupAppByStoredId(ids[i]);
+            if (app && String(app.id || "") === wanted)
+                return true;
+        }
+        return false;
     }
     
     function setCustomGroupApps(groupId, ids) {
@@ -240,7 +288,7 @@ QtObject {
         if (!appId)
             return;
         var ids = root.customGroupAppIds(groupId).slice();
-        if (ids.indexOf(appId) >= 0)
+        if (root.isAppInCustomGroup(groupId, appId))
             return;
         ids.push(appId);
         root.setCustomGroupApps(groupId, ids);
@@ -248,21 +296,29 @@ QtObject {
     
     function removeFromCustomGroup(groupId, appId) {
         var ids = root.customGroupAppIds(groupId).slice();
-        var idx = ids.indexOf(appId);
-        if (idx < 0)
-            return;
-        ids.splice(idx, 1);
-        root.setCustomGroupApps(groupId, ids);
+        var wanted = String(appId || "");
+        var kept = ids.filter(function (storedId) {
+            if (String(storedId) === wanted)
+                return false;
+            var app = root.customGroupAppByStoredId(storedId);
+            return !app || String(app.id || "") !== wanted;
+        });
+        if (kept.length !== ids.length)
+            root.setCustomGroupApps(groupId, kept);
     }
     
     /** Resolve a group's app ids to real app objects (unknown ids skipped). */
     function customGroupApps(groupId) {
         var ids = root.customGroupAppIds(groupId);
         var out = [];
+        var seen = {};
         for (var i = 0; i < ids.length; ++i) {
-            var app = AppsModel.findAppById(root.allApps, ids[i]);
-            if (app)
+            var app = root.customGroupAppByStoredId(ids[i]);
+            var key = app ? String(app.id || ids[i]) : "";
+            if (app && !seen[key]) {
+                seen[key] = true;
                 out.push(app);
+            }
         }
         return out;
     }
@@ -1149,10 +1205,10 @@ QtObject {
         var gids = [];
         var defs = root.customQuickLinkDefs || [];
         for (var i = 0; i < defs.length; ++i)
-            gids.push(defs[i].id);
+            gids.push(defs[i].id + ":" + defs[i].name + ":" + defs[i].icon);
         var tdefs = root.customTypeGroupDefs || [];
         for (var t = 0; t < tdefs.length; ++t)
-            gids.push(tdefs[t].id);
+            gids.push(tdefs[t].id + ":" + tdefs[t].name + ":" + tdefs[t].icon);
         var viewRaw = (groupViewOptionsRaw !== undefined && groupViewOptionsRaw !== null)
             ? String(groupViewOptionsRaw) : cfgStr("GroupViewOptions", "{}");
         var appsRaw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)

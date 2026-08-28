@@ -33,6 +33,8 @@ Item {
     property int cfg_MaxItems: 5
     property var cfg_RecentApps: []
     property var localApps: []
+    property bool groupCreationPending: false
+    property bool groupModelsDirty: false
 
     readonly property string uiLanguagePref: {
         try { return plasmoid.configuration.UiLanguage || "zh_CN"; } catch (e) { return "zh_CN"; }
@@ -45,11 +47,27 @@ Item {
         try {
             var payload = (value && value.slice) ? value.slice() : value;
             plasmoid.configuration[key] = payload;
-            try { plasmoid.configuration.writeConfig(); } catch (e2) {}
             console.log("ArcMenu ExtraCategories writeLive", key, JSON.stringify(payload));
         } catch (e) {
             console.warn("ArcMenu ExtraCategories writeLive failed", key, e);
         }
+    }
+
+    Timer {
+        id: groupModelsTimer
+        interval: 30
+        repeat: false
+        onTriggered: {
+            root.groupModelsDirty = false;
+            root.rebuildModel();
+            root.rebuildTypeModel();
+            root.rebuildSidebarModel();
+        }
+    }
+
+    function scheduleGroupModelsRebuild() {
+        root.groupModelsDirty = true;
+        groupModelsTimer.restart();
     }
 
     function userSet() {
@@ -404,6 +422,14 @@ Item {
         var list = ((isType ? cfg_CustomTypeGroups : cfg_CustomQuickLinks) || []).slice();
         if (typeof list === "string")
             list = list.length ? list.split(",") : [];
+        var normalizedName = name.toLocaleLowerCase();
+        for (var existing = 0; existing < list.length; ++existing) {
+            var existingParts = String(list[existing] || "").split("|");
+            if (String(existingParts[1] || "").trim().toLocaleLowerCase() === normalizedName) {
+                console.warn("ArcMenu duplicate custom group ignored:", name);
+                return false;
+            }
+        }
         list.push(gid + "|" + name + "|" + icon);
         if (isType)
             cfg_CustomTypeGroups = list;
@@ -412,11 +438,10 @@ Item {
         writeLive(key, list);
         if (!isType)
             root.enableExtraId(gid);
-        rebuildModel();
-        rebuildTypeModel();
         if (isType)
             persistTypeOrder();
-        rebuildSidebarModel();
+        scheduleGroupModelsRebuild();
+        return true;
     }
 
     function deleteGroup(gid) {
@@ -449,6 +474,21 @@ Item {
         cfg_ExtraCategoriesEnabled = enabled.slice();
         writeLive("ExtraCategoriesOrder", order.slice());
         writeLive("ExtraCategoriesEnabled", enabled.slice());
+        var quickOrder = SC.normalizeList(plasmoid.configuration.QuickLinksOrder, [])
+            .filter(function (id) { return id !== gid; });
+        var quickEnabled = SC.normalizeList(plasmoid.configuration.QuickLinksEnabled, [])
+            .filter(function (id) { return id !== gid; });
+        writeLive("QuickLinksOrder", quickOrder);
+        writeLive("QuickLinksEnabled", quickEnabled);
+        var sidebarId = "group:" + gid;
+        var sidebarOrder = SC.normalizeList(cfg_SidebarOrder, [])
+            .filter(function (id) { return id !== gid && id !== sidebarId; });
+        var sidebarHidden = SC.normalizeList(cfg_SidebarHidden, [])
+            .filter(function (id) { return id !== gid && id !== sidebarId; });
+        cfg_SidebarOrder = sidebarOrder.slice();
+        cfg_SidebarHidden = sidebarHidden.slice();
+        writeLive("SidebarOrder", sidebarOrder.slice());
+        writeLive("SidebarHidden", sidebarHidden.slice());
         rebuildModel();
         rebuildTypeModel();
         rebuildSidebarModel();
@@ -787,6 +827,7 @@ Item {
         id: newGroupDialog
         property string groupIcon: "folder-favorites"
         property bool isType: false
+        property bool submitLocked: false
         title: root.tr("New custom group…")
         modal: true
         standardButtons: QQC2.Dialog.Ok | QQC2.Dialog.Cancel
@@ -818,7 +859,21 @@ Item {
                 }
             }
         }
-        onAccepted: root.createGroup(groupNameField.text, newGroupDialog.groupIcon, newGroupDialog.isType)
+        onOpened: submitLocked = false
+        onAccepted: {
+            if (submitLocked || root.groupCreationPending)
+                return;
+            submitLocked = true;
+            root.groupCreationPending = true;
+            var pendingName = groupNameField.text;
+            var pendingIcon = groupIcon;
+            var pendingType = isType;
+            // Let the dialog close and paint before configuration/model work.
+            Qt.callLater(function () {
+                root.createGroup(pendingName, pendingIcon, pendingType);
+                root.groupCreationPending = false;
+            });
+        }
     }
 
     QQC2.Dialog {
@@ -1189,10 +1244,12 @@ Item {
     }
 
     onCfg_ExtraCategoriesOrderChanged: {
+        if (root.groupCreationPending) { root.scheduleGroupModelsRebuild(); return; }
         if (listModel.count === 0)
             rebuildModel();
     }
     onCfg_ExtraCategoriesEnabledChanged: {
+        if (root.groupCreationPending) { root.scheduleGroupModelsRebuild(); return; }
         if (listModel.count === 0)
             rebuildModel();
         else {
@@ -1204,7 +1261,10 @@ Item {
             }
         }
     }
-    onCfg_ExtraCategoriesUserSetChanged: rebuildModel()
+    onCfg_ExtraCategoriesUserSetChanged: {
+        if (root.groupCreationPending) root.scheduleGroupModelsRebuild();
+        else rebuildModel();
+    }
     onCfg_SidebarOrderChanged: {
         if (sidebarListModel.count === 0)
             rebuildSidebarModel();
@@ -1214,10 +1274,9 @@ Item {
             rebuildSidebarModel();
     }
     onCfg_CustomQuickLinksChanged: {
-        rebuildSidebarModel();
-        rebuildModel();
+        root.scheduleGroupModelsRebuild();
     }
-    onCfg_CustomTypeGroupsChanged: rebuildTypeModel()
+    onCfg_CustomTypeGroupsChanged: root.scheduleGroupModelsRebuild()
     onCfg_OrderChanged: {
         if (typeListModel.count === 0)
             rebuildTypeModel();

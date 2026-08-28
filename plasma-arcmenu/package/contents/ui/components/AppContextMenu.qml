@@ -3,6 +3,7 @@ import QtQuick.Controls as QQC2
 import QtQuick.Window
 import org.kde.kirigami as Kirigami
 import "../../code/Locale.js" as Locale
+import "../../code/PresetIcons.js" as PresetIcons
 
 /**
  * ArcMenu-style context menu for apps, pinned items, and sidebar shortcuts.
@@ -94,14 +95,14 @@ QQC2.Menu {
         return out;
     }
     
-    /** Pin id used for group-membership checks (matches MenuData.resolvePinId) */
-    readonly property string contextPinId: {
+    /** Stable catalog id used for custom-group membership. */
+    readonly property string contextGroupAppId: {
         if (!root.app)
             return "";
-        if (root.menuData && root.menuData.resolvePinId) {
-            var pid = root.menuData.resolvePinId(root.app);
-            if (pid)
-                return pid;
+        if (root.menuData && root.menuData.customGroupAppId) {
+            var gid = root.menuData.customGroupAppId(root.app);
+            if (gid)
+                return gid;
         }
         return root.appId;
     }
@@ -113,6 +114,34 @@ QQC2.Menu {
 
     function t(msgid) {
         return Locale.tr(msgid, root.uiLang);
+    }
+
+    function groupIconSource(iconId) {
+        var value = String(iconId || "folder-favorites");
+        if (PresetIcons.isPreset(value))
+            return Qt.resolvedUrl("../../icons/menu-button/" + value + ".svg");
+        if (value.indexOf("/") === 0)
+            return "file://" + value;
+        return "";
+    }
+
+    function groupIconName(iconId) {
+        var value = String(iconId || "folder-favorites");
+        return (PresetIcons.isPreset(value) || value.indexOf("/") === 0) ? "" : value;
+    }
+
+    function clearSelection() {
+        root.app = null;
+        root.systemActions = [];
+        root.isFavorite = false;
+        root.canUninstall = false;
+    }
+
+    function dismissAndClear() {
+        if (root.opened)
+            root.close();
+        else
+            root.clearSelection();
     }
 
     /**
@@ -159,6 +188,9 @@ QQC2.Menu {
     }
 
     onOpened: Qt.callLater(root.repositionWithinBounds)
+    // A QQC2.Menu owns a popup window. Hiding the parent Plasma popup does not
+    // reliably close it, so never keep the previous application after closing.
+    onClosed: root.clearSelection()
     // Group items are appended while open → height changes after opening
     onHeightChanged: if (root.opened) root.repositionWithinBounds()
     onWidthChanged: if (root.opened) root.repositionWithinBounds()
@@ -290,10 +322,11 @@ QQC2.Menu {
         delegate: QQC2.MenuItem {
             required property var modelData
             text: root.t("Add to") + " \"" + modelData.name + "\""
-            icon.name: modelData.icon || "folder-favorites"
+            icon.name: root.groupIconName(modelData.icon)
+            icon.source: root.groupIconSource(modelData.icon)
             checkable: true
             checked: root.menuData
-                ? root.menuData.isAppInCustomGroup(modelData.id, root.contextPinId)
+                ? root.menuData.isAppInCustomGroup(modelData.id, root.contextGroupAppId)
                 : false
             onTriggered: root.toggleCustomGroupRequested(root.app, modelData.id)
         }
