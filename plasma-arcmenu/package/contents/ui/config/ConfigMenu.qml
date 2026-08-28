@@ -89,8 +89,6 @@ Item {
     property bool cfg_ShowUserAvatar
     property string cfg_AvatarShape
     property bool cfg_ShowVerticalSeparator
-    property bool cfg_ShowExternalDevices
-    property bool cfg_ShowBookmarks
     property var cfg_QuickLinksOrder: []
     property var cfg_QuickLinksEnabled: []
     property string cfg_QuickLinkPosition
@@ -210,8 +208,6 @@ Item {
     property alias cfg_showUserAvatar: root.cfg_ShowUserAvatar
     property alias cfg_avatarShape: root.cfg_AvatarShape
     property alias cfg_showVerticalSeparator: root.cfg_ShowVerticalSeparator
-    property alias cfg_showExternalDevices: root.cfg_ShowExternalDevices
-    property alias cfg_showBookmarks: root.cfg_ShowBookmarks
     property alias cfg_quickLinksOrder: root.cfg_QuickLinksOrder
     property alias cfg_quickLinksEnabled: root.cfg_QuickLinksEnabled
     property alias cfg_quickLinkPosition: root.cfg_QuickLinkPosition
@@ -276,7 +272,7 @@ Item {
         "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects",
         "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType",
         "AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "ShowVerticalSeparator",
-        "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
+        "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition",
         "PinnedApps", "DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder",
         "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
@@ -344,7 +340,7 @@ Item {
         "ConfigTheme": ["ThemeMode", "OverrideMenuTheme", "MenuThemeName", "CustomThemes", "BgColor", "FgColor", "BorderColor", "BorderWidth", "CornerRadius", "Font", "FontSize", "SeparatorColor", "HoverBg", "HoverFg", "ActiveBg", "ActiveFg", "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize", "FollowColorScheme"],
         "ConfigVisual": ["OverrideMenuPosition", "OverrideMenuRise", "MenuRiseDistance", "IconSizeGrid", "IconSizeApps", "IconSizeShortcuts", "IconSizeCategories", "IconSizeButtons", "IconSizeOther"],
         "ConfigFineTune": ["ShowCategorySubmenus", "ShowAppDescriptions", "ShowGenericNames", "ShowHiddenRecentFiles", "MultiLineLabels", "ShowTooltips", "GroupAppsAlphabeticallyList", "GroupAppsAlphabeticallyGrid", "ActivateExistingWindow", "KeepOpenOnCtrlClick", "ScrollviewFadeEffects", "ShowScrollbars", "OverlayScrollbars", "CategoryIconType", "ShortcutIconType"],
-        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "ShowExternalDevices", "ShowBookmarks", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
+        "ConfigArcLayout": ["AllAppsButtonAction", "ShowUserAvatar", "AvatarShape", "SearchbarLocation", "SearchbarLocationUserSet", "FlipHorizontal", "ShowVerticalSeparator", "QuickLinksOrder", "QuickLinksEnabled", "QuickLinkPosition", "CustomQuickLinks", "CustomGroupApps"],
         "ConfigDirectoryShortcuts": ["DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder", "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces"],
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],

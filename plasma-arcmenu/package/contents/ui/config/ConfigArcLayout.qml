@@ -21,8 +21,6 @@ Item {
     property bool cfg_SearchbarLocationUserSet: false
     property bool cfg_FlipHorizontal
     property bool cfg_ShowVerticalSeparator
-    property bool cfg_ShowExternalDevices
-    property bool cfg_ShowBookmarks
     property var cfg_QuickLinksOrder: []
     property var cfg_QuickLinksEnabled: []
     property string cfg_QuickLinkPosition
@@ -330,29 +328,6 @@ Item {
                 QQC2.Switch {
                     checked: cfg_ShowVerticalSeparator
                     onToggled: { cfg_ShowVerticalSeparator = checked; writeLive("ShowVerticalSeparator", checked); }
-                }
-            }
-        }
-
-        ConfigGroup {
-            title: root.tr("Extra shortcuts")
-            ConfigSettingRow {
-                title: root.tr("External devices")
-                iconName: "drive-removable-media"
-                accent: "indigo"
-                QQC2.Switch {
-                    checked: cfg_ShowExternalDevices
-                    onToggled: { cfg_ShowExternalDevices = checked; writeLive("ShowExternalDevices", checked); }
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                title: root.tr("Bookmarks")
-                iconName: "bookmarks"
-                accent: "pink"
-                QQC2.Switch {
-                    checked: cfg_ShowBookmarks
-                    onToggled: { cfg_ShowBookmarks = checked; writeLive("ShowBookmarks", checked); }
                 }
             }
         }
