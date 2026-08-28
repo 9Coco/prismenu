@@ -304,11 +304,11 @@ LayoutBase {
                     }
 
                     Components.PinnedAppsList {
-                        visible: !root.usesGridView("pinned")
+                        visible: !root.usesGridView(root.homeGroupId)
                         menuData: root.menuData
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        apps: menuData ? menuData.pinnedApps : []
+                        apps: root.homeItems
                         iconSize: Math.max(root.appIconSize, 28)
                         selectedBg: root.selectedBg
                         selectedFg: root.selectedFg
@@ -323,15 +323,15 @@ LayoutBase {
                     }
 
                     Components.LayoutAppGrid {
-                        visible: root.usesGridView("pinned")
+                        visible: root.usesGridView(root.homeGroupId)
                         layoutRoot: root
                         Layout.fillWidth: true
                         Layout.fillHeight: true
-                        items: menuData ? menuData.pinnedApps : []
+                        items: root.homeItems
                         columns: menuData ? menuData.pinnedCols : 6
-                        iconSize: root.groupIconSize("pinned")
+                        iconSize: root.groupIconSize(root.homeGroupId)
                         minCellWidth: Math.max(Kirigami.Units.gridUnit * 4,
-                            root.groupIconSize("pinned") + Kirigami.Units.gridUnit * 1.25)
+                            root.groupIconSize(root.homeGroupId) + Kirigami.Units.gridUnit * 1.25)
                     }
 
                     QuickLinksBlock {

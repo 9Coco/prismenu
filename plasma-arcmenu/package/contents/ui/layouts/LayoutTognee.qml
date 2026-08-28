@@ -21,6 +21,10 @@ LayoutBase {
     property bool showingApps: false
     property string selectedId: "pinned"
     activeNavId: selectedId
+    function resetForOpen() {
+        root.selectedId = root.homeGroupId;
+        root.showingApps = true;
+    }
 
     readonly property int railWidth: Kirigami.Units.gridUnit * 2.8
 

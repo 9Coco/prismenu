@@ -137,6 +137,10 @@
         <entry name="GroupViewOptions" type="String">
             <default>{}</default>
         </entry>
+        <!-- Group whose contents are shown in each layout's home application area -->
+        <entry name="HomeGroupId" type="String">
+            <default>pinned</default>
+        </entry>
         <entry name="MenuWidth" type="Int">
             <default>620</default>
         </entry>

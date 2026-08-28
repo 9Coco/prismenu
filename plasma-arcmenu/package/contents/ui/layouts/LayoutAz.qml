@@ -21,10 +21,10 @@ LayoutBase {
 
 
     readonly property var pinnedItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
+        return root.homeItems;
     }
+
+    function resetForOpen() { root.showAllApps = false; }
 
     readonly property var azSections: {
         if (root.searching)
@@ -77,7 +77,7 @@ LayoutBase {
             RowLayout {
                 Layout.fillWidth: true
                 PlasmaComponents.Label {
-                    text: root.tr("Pinned")
+                    text: root.homeGroupName
                     font.bold: true
                     color: root.fg
                     Layout.fillWidth: true

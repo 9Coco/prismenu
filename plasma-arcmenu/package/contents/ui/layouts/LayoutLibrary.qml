@@ -10,6 +10,7 @@ LayoutBase {
     id: root
 
     property string selectedCategory: ""
+    function resetForOpen() { root.selectedCategory = root.homeGroupId; }
     readonly property bool windowsVariant: menuData
         && menuData.currentLayoutId === "win11-categories"
     readonly property var categories: {

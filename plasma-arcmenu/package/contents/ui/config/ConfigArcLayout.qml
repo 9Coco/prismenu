@@ -165,6 +165,10 @@ Item {
     }
     
     function deleteGroup(gid) {
+        try {
+            if (String(plasmoid.configuration.HomeGroupId || "pinned") === String(gid))
+                writeLive("HomeGroupId", "pinned");
+        } catch (e) {}
         var list = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
             return String(s).split("|")[0] !== gid;
         });

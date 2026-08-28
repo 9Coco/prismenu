@@ -38,9 +38,12 @@ LayoutBase {
     readonly property var shortcutItems: root.applicationShortcuts
 
     readonly property var pinnedItems: {
-        if (menuData && menuData.pinnedApps && menuData.pinnedApps.length)
-            return menuData.pinnedApps;
-        return root.defaultPinned;
+        return root.homeItems;
+    }
+
+    function resetForOpen() {
+        root.railSelectedId = "desktop";
+        root.showAllApps = false;
     }
 
     readonly property var allAppsItems: {

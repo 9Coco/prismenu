@@ -94,6 +94,18 @@ Item {
         ? menuData.sortedVisibleAppsAzSections : []
     readonly property var allApplicationRows: (menuData && menuData.sortedVisibleAppsAzRows)
         ? menuData.sortedVisibleAppsAzRows : []
+    /** The configured home projection is shared, while each layout decides
+     * where its home application area lives. */
+    readonly property string homeGroupId: menuData ? menuData.homeGroupId : "pinned"
+    readonly property string homeGroupName: menuData ? menuData.homeGroupName : root.tr("Pinned Applications")
+    readonly property string homeGroupIcon: menuData ? menuData.homeGroupIcon : "favorite"
+    readonly property var homeItems: {
+        var _epoch = menuData ? menuData.structureEpoch : 0;
+        var items = menuData && menuData.homeApps ? menuData.homeApps : [];
+        if (root.homeGroupId === "pinned" && (!items || !items.length))
+            return root.defaultPinned;
+        return items || [];
+    }
 
     /** Shared column width (persisted SidebarWidth); used by multi-column layouts */
     readonly property int sidebarW: (menuData && menuData.sidebarWidth) ? menuData.sidebarWidth : 220

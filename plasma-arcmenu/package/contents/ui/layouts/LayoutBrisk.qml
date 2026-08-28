@@ -19,6 +19,7 @@ LayoutBase {
 
     property string briskSelectedId: "pinned"
     activeNavId: briskSelectedId
+    function resetForOpen() { root.briskSelectedId = root.homeGroupId; }
 
 
     readonly property var powerOptions: {

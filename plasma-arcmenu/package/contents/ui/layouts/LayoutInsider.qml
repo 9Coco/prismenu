@@ -22,7 +22,7 @@ LayoutBase {
         if (root.searching) {
             return (menuData && menuData.searchResultsFlat) ? menuData.searchResultsFlat : [];
         }
-        return root.allApplications;
+        return root.homeItems;
     }
 
 

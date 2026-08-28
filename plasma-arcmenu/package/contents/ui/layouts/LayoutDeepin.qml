@@ -10,6 +10,7 @@ LayoutBase {
 
     readonly property bool fullMode: menuData && menuData.currentLayoutId === "deepin-full"
     property string selectedId: "all"
+    function resetForOpen() { root.selectedId = root.homeGroupId; }
     readonly property var categories: root.typeCategories
     readonly property var extraCategories: root.preferenceGroups
     readonly property var appItems: {

@@ -30,8 +30,7 @@ LayoutBase {
             return (menuData && menuData.searchResultsFlat) ? menuData.searchResultsFlat : [];
         }
         if (root.showPinned) {
-            var pinned = (menuData && menuData.pinnedApps) ? menuData.pinnedApps : [];
-            return pinned.length ? pinned : root.defaultPinned;
+            return root.homeItems;
         }
         return root.allApplications;
     }
@@ -65,7 +64,7 @@ LayoutBase {
                 visible: !root.searching
 
                 PlasmaComponents.Label {
-                    text: root.showPinned ? root.tr("Pinned") : root.tr("All Applications")
+                    text: root.showPinned ? root.homeGroupName : root.tr("All Applications")
                     font.bold: true
                     color: root.fg
                     Layout.fillWidth: true
@@ -75,7 +74,7 @@ LayoutBase {
                     flat: true
                     text: root.showPinned
                           ? root.tr("All Applications") + " >"
-                          : root.tr("Pinned") + " >"
+                          : root.homeGroupName + " >"
                     onClicked: root.showPinned = !root.showPinned
                 }
             }
