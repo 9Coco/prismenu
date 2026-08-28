@@ -458,6 +458,12 @@ def main() -> int:
           and "Components.ColumnSplitHandle" in deepin_layout
           and "onWidthDragged: (w) => root.setSidebarFromDrag(w)" in deepin_layout,
           "Cinnamenu grid keeps its app pane inside the popup and resizes its sidebar")
+    check("property int liveSidebarW: -1" in layout_base
+          and "sidebarDragCommitTimer.restart()" in layout_base
+          and "categoryDragCommitTimer.restart()" in layout_base
+          and "menuData.setSidebarWidth(width)" in layout_base
+          and "interval: 250" in layout_base,
+          "split handles preview in memory and persist after drag settles")
 
     arc_layout = layout_sources["LayoutArcMenu.qml"]
     arc_apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
