@@ -17,6 +17,7 @@ LayoutBase {
 
     /** Local UI mode — avoids flaky QtObject currentPage bindings */
     property bool showingApps: false
+    property bool resetAppsPageOnLoad: false
 
     readonly property string activePageId: {
         if (root.searching)
@@ -38,6 +39,16 @@ LayoutBase {
             return ["logout", "lock", "restart", "shutdown"];
         }
         return opts;
+    }
+
+    function resetForOpen() {
+        root.showingApps = false;
+        if (appsLoader.item) {
+            appsLoader.item.resetToCategories();
+            root.resetAppsPageOnLoad = false;
+        } else {
+            root.resetAppsPageOnLoad = true;
+        }
     }
 
     function activateShortcut(item) {
@@ -342,7 +353,13 @@ LayoutBase {
                     active: true
                     asynchronous: false
                     source: Qt.resolvedUrl("../pages/ArcAppsPage.qml")
-                    onLoaded: root.wirePage(appsLoader)
+                    onLoaded: {
+                        root.wirePage(appsLoader);
+                        if (root.resetAppsPageOnLoad) {
+                            appsLoader.item.resetToCategories();
+                            root.resetAppsPageOnLoad = false;
+                        }
+                    }
                     onStatusChanged: {
                         if (status === Loader.Error)
                             console.error("ArcMenu: failed to load ArcAppsPage", source);
