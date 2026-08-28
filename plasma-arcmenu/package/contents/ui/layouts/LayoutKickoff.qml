@@ -327,6 +327,7 @@ LayoutBase {
                 Layout.maximumWidth: root.sidebarMax
                 Layout.fillHeight: true
                 Layout.fillWidth: false
+                Layout.minimumHeight: 0
                 clip: true
                 boundsBehavior: Flickable.StopAtBounds
                 QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }

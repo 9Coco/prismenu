@@ -546,6 +546,7 @@ LayoutBase {
                 Layout.maximumWidth: 280
                 Layout.fillWidth: false
                 Layout.fillHeight: true
+                Layout.minimumHeight: 0
                 clip: true
                 enabled: !root.searching
                 opacity: root.searching ? 0.35 : 1

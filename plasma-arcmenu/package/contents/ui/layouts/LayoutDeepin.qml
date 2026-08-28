@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
@@ -58,7 +59,8 @@ LayoutBase {
             spacing: Kirigami.Units.smallSpacing
             layoutDirection: root.flip ? Qt.RightToLeft : Qt.LeftToRight
 
-            ColumnLayout {
+            Flickable {
+                id: sideFlick
                 visible: !root.fullMode
                 // ShortcutRow children fill this column. Without an explicit
                 // maximum the RowLayout lets their implicit width grow the
@@ -69,34 +71,51 @@ LayoutBase {
                 Layout.minimumWidth: root.categorySidebarWidth
                 Layout.maximumWidth: root.categorySidebarWidth
                 Layout.fillHeight: true
-                Repeater {
-                    model: root.extraCategories.length
-                    Components.ShortcutRow {
-                        required property int index
-                        Layout.fillWidth: true
-                        iconName: root.extraCategories[index].icon
-                        label: root.extraCategories[index].name
-                        selected: root.selectedId === root.extraCategories[index].id
-                        selectedBg: root.selectedBg; selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
-                        onActivated: root.selectCategory(root.extraCategories[index].id)
+                Layout.minimumHeight: 0
+                clip: true
+                boundsBehavior: Flickable.StopAtBounds
+                flickableDirection: Flickable.VerticalFlick
+                contentWidth: width
+                contentHeight: sideCol.height
+                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
+                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
+
+                Column {
+                    id: sideCol
+                    width: sideFlick.width
+                    spacing: Kirigami.Units.smallSpacing / 2
+
+                    Repeater {
+                        model: root.extraCategories.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.extraCategories[index].icon
+                            label: root.extraCategories[index].name
+                            selected: root.selectedId === root.extraCategories[index].id
+                            selectedBg: root.selectedBg; selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
+                            onActivated: root.selectCategory(root.extraCategories[index].id)
+                        }
+                    }
+                    Kirigami.Separator {
+                        width: sideCol.width
+                        visible: root.extraCategories.length > 0
+                    }
+                    Repeater {
+                        model: root.categories.length
+                        Components.ShortcutRow {
+                            required property int index
+                            width: sideCol.width
+                            iconName: root.categories[index].icon
+                            label: root.categories[index].name
+                            selected: root.selectedId === root.categories[index].id
+                            selectedBg: root.selectedBg; selectedFg: root.selectedFg
+                            hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
+                            onActivated: root.selectCategory(root.categories[index].id)
+                        }
                     }
                 }
-                Kirigami.Separator { Layout.fillWidth: true; visible: root.extraCategories.length > 0 }
-                Repeater {
-                    model: root.categories.length
-                    Components.ShortcutRow {
-                        required property int index
-                        Layout.fillWidth: true
-                        iconName: root.categories[index].icon
-                        label: root.categories[index].name
-                        selected: root.selectedId === root.categories[index].id
-                        selectedBg: root.selectedBg; selectedFg: root.selectedFg
-                        hoverBg: root.hoverBg; hoverFg: root.hoverFg; fg: root.fg
-                        onActivated: root.selectCategory(root.categories[index].id)
-                    }
-                }
-                Item { Layout.fillHeight: true }
             }
 
             Components.ColumnSplitHandle {

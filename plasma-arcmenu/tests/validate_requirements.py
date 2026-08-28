@@ -458,6 +458,26 @@ def main() -> int:
           and "Components.ColumnSplitHandle" in deepin_layout
           and "onWidthDragged: (w) => root.setSidebarFromDrag(w)" in deepin_layout,
           "Cinnamenu grid keeps its app pane inside the popup and resizes its sidebar")
+    check("QQC2.ScrollBar.vertical" in deepin_layout
+          and "Layout.minimumHeight: 0" in deepin_layout
+          and "id: sideFlick" in deepin_layout,
+          "Deepin menu-group sidebar scrolls when categories overflow")
+    tognee_layout = layout_sources["LayoutTognee.qml"]
+    check("id: railFlick" in tognee_layout
+          and "QQC2.ScrollBar.vertical" in tognee_layout
+          and "root.placeActions" in tognee_layout,
+          "Tognee frequent-locations rail scrolls when shortcuts overflow")
+    mint_layout = layout_sources["LayoutMint.qml"]
+    check("id: railFlick" in mint_layout and "id: sideFlick" in mint_layout,
+          "Mint places rail and category sidebar both scroll")
+    compact_layout = layout_sources["LayoutKickoffCompact.qml"]
+    check("QQC2.ScrollBar.vertical" in compact_layout
+          and "Layout.minimumHeight: 0" in compact_layout,
+          "Compact Kickoff group list has a scrollbar")
+    scrollbar = (PKG / "contents/ui/components/MenuScrollBar.qml").read_text(encoding="utf-8")
+    check('property: "rightMargin"' in scrollbar
+          and "root.overlay" in scrollbar,
+          "menu scrollbar honors overlay vs inset mode")
     check("property int liveSidebarW: -1" in layout_base
           and "sidebarDragCommitTimer.restart()" in layout_base
           and "categoryDragCommitTimer.restart()" in layout_base

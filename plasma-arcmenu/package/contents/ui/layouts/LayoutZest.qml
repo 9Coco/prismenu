@@ -148,6 +148,7 @@ LayoutBase {
                 id: sideFlick
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 0
                 contentWidth: width
                 contentHeight: sideCol.height
                 clip: true
@@ -221,6 +222,7 @@ LayoutBase {
                     Layout.maximumWidth: root.sidebarMax
                     Layout.fillHeight: true
                     Layout.fillWidth: false
+                    Layout.minimumHeight: 0
                     contentWidth: width
                     contentHeight: midCol.height
                     clip: true
