@@ -20,6 +20,7 @@ LayoutBase {
 
     // Middle column selection �?drives right column content
     property string selectedId: "all"
+    function resetForOpen() { root.selectedId = root.homeGroupId; }
     activeNavId: selectedId === "all" ? "all-apps" : selectedId
 
     /** Both the default "all" tab and the "all-apps" extra category show the

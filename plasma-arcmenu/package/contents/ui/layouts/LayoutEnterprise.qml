@@ -20,6 +20,7 @@ LayoutBase {
 
     property string enterpriseSelectedId: "pinned"
     activeNavId: enterpriseSelectedId
+    function resetForOpen() { root.enterpriseSelectedId = root.homeGroupId; }
 
     readonly property bool showPinnedGrid: !root.searching
         && root.usesGridView(enterpriseSelectedId)

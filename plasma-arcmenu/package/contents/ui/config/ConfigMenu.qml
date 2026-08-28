@@ -114,6 +114,7 @@ Item {
     property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
     property string cfg_GroupViewOptions: "{}"
+    property string cfg_HomeGroupId: "pinned"
     property string cfg_LayoutSizes: "{}"
 
     property var cfg_Providers: ["applications", "places", "files"]
@@ -233,6 +234,7 @@ Item {
     property alias cfg_customTypeGroups: root.cfg_CustomTypeGroups
     property alias cfg_customGroupApps: root.cfg_CustomGroupApps
     property alias cfg_groupViewOptions: root.cfg_GroupViewOptions
+    property alias cfg_homeGroupId: root.cfg_HomeGroupId
     property alias cfg_providers: root.cfg_Providers
     property alias cfg_placeholder: root.cfg_Placeholder
     property alias cfg_showDescription: root.cfg_ShowDescription
@@ -279,7 +281,7 @@ Item {
         "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
         "SidebarOrder", "SidebarHidden", "ContextMenuItems",
-        "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions",
+        "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "HomeGroupId",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
         "SearchWindows", "SearchRecentFiles",
@@ -347,7 +349,7 @@ Item {
         "ConfigAppShortcuts": ["ApplicationShortcuts"],
         "ConfigSearch": ["Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar", "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius", "SearchWindows", "SearchRecentFiles"],
         "ConfigPower": ["Options", "PowerOptionsOrder", "Confirm", "SoftwareCenterCmd", "PowerDisplayStyle"],
-        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "PinnedApps", "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "Enabled", "MaxItems", "RecentApps"]
+        "ConfigExtraCategories": ["ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet", "SidebarOrder", "SidebarHidden", "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "HomeGroupId", "PinnedApps", "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty", "Enabled", "MaxItems", "RecentApps"]
     })
 
     function subPageKeyFor(component) {

@@ -234,7 +234,7 @@ def main() -> int:
         "SelectedBg", "SelectedFg", "CategoryIconSize", "AppIconSize",
         "FollowColorScheme",
         "PinnedApps", "PinnedCols", "SyncWithPlasma",
-        "Enabled", "MaxItems", "RecentApps", "GroupViewOptions",
+        "Enabled", "MaxItems", "RecentApps", "GroupViewOptions", "HomeGroupId",
         "Order", "Hidden", "CustomNames", "CustomIcons", "ShowEmpty",
         "DirectoryShortcuts", "PlaceSectionOrder", "SystemPlaceOrder", "HiddenSystemPlaces",
         "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
@@ -457,7 +457,7 @@ def main() -> int:
     arc_apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     check('showSystemShortcuts: false' in arc_layout,
           "ArcMenu layout omits redundant software/settings/tweaks block")
-    check('root.usesGridView("pinned")' in arc_layout
+    check('root.usesGridView(root.homeGroupId)' in arc_layout
           and "host.groupViewMode(root.activeGroupId)" in arc_apps_page
           and "Components.AppGrid {" in arc_apps_page,
           "ArcMenu home and category pages honor per-group grid mode")
@@ -469,6 +469,35 @@ def main() -> int:
           "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
     plasma_native = (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
+    config_menu = (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8")
+    backup_js = (PKG / "contents/code/ConfigBackup.js").read_text(encoding="utf-8")
+    check('property string cfg_HomeGroupId: "pinned"' in extra_cfg
+          and 'writeLive("HomeGroupId"' in extra_cfg
+          and '"HomeGroupId"' in config_menu
+          and '"HomeGroupId"' in backup_js,
+          "home group setting is editable, live, and included in backup")
+    check("readonly property var homeApps" in menu_data
+          and 'id === "pinned"' in menu_data
+          and 'id === "all-apps"' in menu_data
+          and 'root.customGroupApps(id)' in menu_data
+          and 'AppsModel.appsInCategory(root.allApps, id)' in menu_data,
+          "home group resolves special, custom, and system categories")
+    home_area_layouts = [
+        (PKG / "contents/ui/layouts" / name).read_text(encoding="utf-8") for name in [
+            "LayoutChromebook.qml", "LayoutElementary.qml", "LayoutInsider.qml",
+            "LayoutPop.qml", "LayoutRunner.qml", "LayoutSimple.qml",
+        ]
+    ]
+    check("root.homeItems" in arc_layout
+          and all("root.homeItems" in source for source in home_area_layouts),
+          "dedicated home application areas use the selected group")
+    check(all("function resetForOpen" in layout_sources[name]
+              and "root.homeGroupId" in layout_sources[name] for name in [
+                  "LayoutBrisk.qml", "LayoutBudgie.qml", "LayoutDeepin.qml",
+                  "LayoutEnterprise.qml", "LayoutKickoff.qml", "LayoutKickoffCompact.qml",
+                  "LayoutMint.qml", "LayoutPlasmaDash.qml", "LayoutTognee.qml",
+                  "LayoutWhisker.qml", "LayoutZest.qml",
+              ]), "group-navigation layouts open on the selected home group")
     places_sidebar = (PKG / "contents/ui/components/PlacesSidebar.qml").read_text(encoding="utf-8")
     check("Kicker.ComputerModel {" in plasma_native
           and 'provider: "kicker-computer"' in plasma_native,

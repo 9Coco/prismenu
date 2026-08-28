@@ -23,6 +23,19 @@ LayoutBase {
 
     signal keepOpenRequested(bool pinned)
 
+    function resetForOpen() {
+        root.section = "applications";
+        root.placesPage = "computer";
+        var nav = root.applicationNavigation;
+        for (var i = 0; i < nav.length; ++i) {
+            if (!nav[i].isSeparator && nav[i].target === root.homeGroupId) {
+                root.applicationsPage = nav[i].id;
+                return;
+            }
+        }
+        root.applicationsPage = "special:favorites";
+    }
+
     readonly property bool showingSearch: !!(menuData && menuData.isSearching)
     readonly property var activeApplicationItem: {
         var nav = root.applicationNavigation;

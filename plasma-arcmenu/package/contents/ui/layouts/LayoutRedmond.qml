@@ -25,9 +25,7 @@ LayoutBase {
             return menuData && menuData.searchResults ? menuData.searchResults : [];
         if (root.showAllPrograms)
             return root.allApplicationRows;
-        var pinned = menuData && menuData.pinnedApps ? menuData.pinnedApps : [];
-        var recent = menuData && menuData.recentApps ? menuData.recentApps : [];
-        var combined = pinned.concat(recent);
+        var combined = root.homeItems;
         var out = [], seen = {};
         for (var i = 0; i < combined.length; ++i) {
             var item = combined[i];
@@ -36,6 +34,8 @@ LayoutBase {
         }
         return out.length ? out.slice(0, 12) : root.defaultPinned;
     }
+
+    function resetForOpen() { root.showAllPrograms = false; }
 
     RowLayout {
         anchors.fill: parent

@@ -23,6 +23,7 @@ Item {
     property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
     property string cfg_GroupViewOptions: "{}"
+    property string cfg_HomeGroupId: "pinned"
     property var cfg_PinnedApps: []
     property var cfg_Order: []
     property var cfg_Hidden: []
@@ -42,6 +43,50 @@ Item {
     readonly property string uiLang: Locale.resolveLanguage(uiLanguagePref, Qt.locale().name, Qt.locale().uiLanguages)
 
     function tr(msgid) { return Locale.tr(msgid, uiLang); }
+
+    readonly property var homeGroupChoices: {
+        var _preferenceCount = listModel.count;
+        var _typeCount = typeListModel.count;
+        var out = [];
+        var seen = {};
+        function appendChoice(id, name, icon) {
+            id = String(id || "");
+            if (!id || seen[id])
+                return;
+            seen[id] = true;
+            out.push({ groupId: id, text: name || id, iconName: icon || "applications-other" });
+        }
+        // Keep the safe default available even while the live models initialize.
+        appendChoice("pinned", root.tr("Pinned Applications"), "favorite");
+        appendChoice("all-apps", root.tr("All Applications"), "view-app-grid-symbolic");
+        appendChoice("frequent", root.tr("Frequent"), "view-history");
+        appendChoice("recent-files", root.tr("Recent Files"), "document-open-recent");
+        for (var p = 0; p < listModel.count; ++p) {
+            var pref = listModel.get(p);
+            appendChoice(pref.catId, pref.catName, pref.catIcon);
+        }
+        for (var t = 0; t < typeListModel.count; ++t) {
+            var type = typeListModel.get(t);
+            appendChoice(type.catId, type.catName, type.catIcon);
+        }
+        return out;
+    }
+
+    function homeGroupIndex() {
+        var wanted = String(cfg_HomeGroupId || "pinned");
+        for (var i = 0; i < homeGroupChoices.length; ++i) {
+            if (homeGroupChoices[i].groupId === wanted)
+                return i;
+        }
+        return 0;
+    }
+
+    function setHomeGroup(index) {
+        if (index < 0 || index >= homeGroupChoices.length)
+            return;
+        cfg_HomeGroupId = homeGroupChoices[index].groupId;
+        writeLive("HomeGroupId", cfg_HomeGroupId);
+    }
 
     function writeLive(key, value) {
         try {
@@ -445,6 +490,10 @@ Item {
     }
 
     function deleteGroup(gid) {
+        if (String(cfg_HomeGroupId || "pinned") === String(gid)) {
+            cfg_HomeGroupId = "pinned";
+            writeLive("HomeGroupId", "pinned");
+        }
         var pref = ((cfg_CustomQuickLinks || []).slice()).filter(function (s) {
             return String(s).split("|")[0] !== gid;
         });
@@ -653,6 +702,24 @@ Item {
     ConfigPage {
         title: root.tr("Menu Groups")
         tip: root.tr("Preference groups appear above the split; type groups appear below it.")
+
+        ConfigGroup {
+            title: root.tr("Home Page")
+            ConfigSettingRow {
+                title: root.tr("Home page content")
+                subtitle: root.tr("Choose the group shown in each layout's home application area.")
+                iconName: root.homeGroupChoices[root.homeGroupIndex()]
+                    ? root.homeGroupChoices[root.homeGroupIndex()].iconName : "favorite"
+                accent: "blue"
+                QQC2.ComboBox {
+                    Layout.preferredWidth: Kirigami.Units.gridUnit * 16
+                    textRole: "text"
+                    model: root.homeGroupChoices
+                    currentIndex: root.homeGroupIndex()
+                    onActivated: (index) => root.setHomeGroup(index)
+                }
+            }
+        }
 
         ConfigGroup {
             title: root.tr("Preference Groups")

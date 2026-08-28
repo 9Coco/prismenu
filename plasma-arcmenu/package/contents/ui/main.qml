@@ -138,6 +138,7 @@ PlasmoidItem {
         customTypeGroupsRaw: plasmoid.configuration.CustomTypeGroups
         customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
         groupViewOptionsRaw: plasmoid.configuration.GroupViewOptions
+        homeGroupIdRaw: plasmoid.configuration.HomeGroupId
         sidebarOrderRaw: plasmoid.configuration.SidebarOrder
         sidebarHiddenRaw: plasmoid.configuration.SidebarHidden
         showDescriptionRaw: plasmoid.configuration.ShowDescription
@@ -171,7 +172,7 @@ PlasmoidItem {
                 || key === "ApplicationShortcuts" || key === "Order"
                 || key === "Hidden" || key === "ShowEmpty" || key === "CustomNames"
                 || key === "CustomIcons" || key === "Enabled" || key === "MaxItems"
-                || key === "RecentApps" || key === "PinnedApps") {
+                || key === "RecentApps" || key === "PinnedApps" || key === "HomeGroupId") {
                 menuData.bumpStructure();
                 console.log("ArcMenu extras changed:", key, value);
             }
@@ -199,6 +200,7 @@ PlasmoidItem {
         function onShowEmptyChanged() { menuData.bumpStructure(); }
         function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
         function onGroupViewOptionsChanged() { menuData.bumpStructure(); }
+        function onHomeGroupIdChanged() { menuData.bumpStructure(); }
         function onEnabledChanged() { menuData.bumpStructure(); }
         function onMaxItemsChanged() { menuData.bumpStructure(); }
         function onRecentAppsChanged() { menuData.bumpStructure(); }
@@ -670,10 +672,14 @@ PlasmoidItem {
         Connections {
             target: root
             function onExpandedChanged() {
-                if (root.expanded)
+                if (root.expanded) {
+                    menuData.resetView();
+                    if (menuData.homeGroupId === "recent-files")
+                        menuData.requestRecentFilesRefresh();
                     host.resetForOpen();
-                else
+                } else {
                     contextMenu.dismissAndClear();
+                }
             }
         }
 

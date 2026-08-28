@@ -39,6 +39,7 @@ QtObject {
     property var customTypeGroupsRaw
     property var customGroupAppsRaw
     property var groupViewOptionsRaw
+    property var homeGroupIdRaw
     property var sidebarOrderRaw
     property var sidebarHiddenRaw
 
@@ -946,6 +947,70 @@ QtObject {
             return plasmaRecentApps.slice(0, recentMax || 10);
         var ids = cfg("RecentApps", []);
         return AppsModel.resolveAppsByIds(allApps, ids);
+    }
+
+    /** Group selected for the layout's home application area. A stale custom
+     * group id is deliberately healed at runtime so deleting a group can never
+     * leave the menu on an inaccessible or permanently empty page. */
+    readonly property string requestedHomeGroupId: {
+        var value = (homeGroupIdRaw !== undefined && homeGroupIdRaw !== null)
+            ? String(homeGroupIdRaw) : cfgStr("HomeGroupId", "pinned");
+        return value || "pinned";
+    }
+
+    function homeGroupDefinition(groupId) {
+        var id = String(groupId || "pinned");
+        var special = {
+            "pinned": { id: "pinned", name: root.tr("Pinned Applications"), icon: "favorite" },
+            "all-apps": { id: "all-apps", name: root.tr("All Applications"), icon: "view-app-grid-symbolic" },
+            "frequent": { id: "frequent", name: root.tr("Frequent"), icon: "view-history" },
+            "recent-files": { id: "recent-files", name: root.tr("Recent Files"), icon: "document-open-recent" }
+        };
+        if (special[id])
+            return special[id];
+        var defs = (root.customQuickLinkDefs || []).concat(root.customTypeGroupDefs || []);
+        for (var d = 0; d < defs.length; ++d) {
+            if (String(defs[d].id) === id)
+                return defs[d];
+        }
+        for (var c = 0; c < (root.categories || []).length; ++c) {
+            var cat = root.categories[c];
+            if (cat && String(cat.id) === id)
+                return cat;
+        }
+        // Hidden system categories remain valid home choices. They are absent
+        // from categories after customization, but still exist in the native
+        // catalog supplied by Kicker.
+        for (var r = 0; r < (root.rawCategories || []).length; ++r) {
+            var raw = root.rawCategories[r];
+            if (raw && String(raw.id) === id)
+                return raw;
+        }
+        return null;
+    }
+
+    readonly property string homeGroupId: root.homeGroupDefinition(root.requestedHomeGroupId)
+        ? root.requestedHomeGroupId : "pinned"
+    readonly property var homeGroupDef: root.homeGroupDefinition(root.homeGroupId)
+    readonly property string homeGroupName: root.homeGroupDef
+        ? String(root.homeGroupDef.name || root.tr("Pinned Applications"))
+        : root.tr("Pinned Applications")
+    readonly property string homeGroupIcon: root.homeGroupDef
+        ? String(root.homeGroupDef.icon || "favorite") : "favorite"
+    readonly property var homeApps: {
+        var id = root.homeGroupId;
+        if (id === "pinned")
+            return root.pinnedApps;
+        if (id === "all-apps")
+            return root.sortedVisibleApps;
+        if (id === "frequent")
+            return root.recentApps;
+        if (id === "recent-files")
+            return root.recentFileResults || [];
+        if (id.indexOf("qgrp-") === 0 || id.indexOf("tgrp-") === 0)
+            return root.customGroupApps(id);
+        var def = root.homeGroupDefinition(id);
+        return def && def.apps ? def.apps : AppsModel.appsInCategory(root.allApps, id);
     }
 
     readonly property bool isSearching: searchQuery.trim().length > 0
