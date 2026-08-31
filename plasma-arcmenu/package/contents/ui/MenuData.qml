@@ -817,8 +817,9 @@ QtObject {
         var global = IdList.normalizeIdList(root.plasmaFavoriteIds || []);
         for (var i = 0; i < global.length; ++i) {
             var app = root.appForPlasmaFavoriteId(global[i]);
-            if (app && out.indexOf(app.id) < 0)
-                out.push(app.id);
+            var pinId = app ? String(app.id) : String(global[i] || "");
+            if (pinId && out.indexOf(pinId) < 0)
+                out.push(pinId);
         }
         for (var j = 0; j < local.length; ++j) {
             if (root.isArcMenuOnlyPinId(local[j]) && local[j] !== "arcmenu-settings"
@@ -1085,6 +1086,21 @@ QtObject {
                     categories: ["System", "Utility"],
                     keywords: ["files", "folder"],
                     genericName: Locale.tr("File Manager", lang),
+                    noDisplay: false
+                });
+            } else if (id) {
+                // Uninstalled favorite: keep the tile so Kickoff's
+                // "Remove from Favorites" can drop it from the list.
+                var favUrl = String(id).indexOf("applications:") === 0
+                    ? String(id) : ("applications:" + id);
+                result.push({
+                    id: id,
+                    name: String(id).replace(/^applications:/, "").replace(/\.desktop$/i, ""),
+                    icon: "unknown",
+                    favoriteId: id,
+                    kickerUrl: favUrl,
+                    entryPath: favUrl,
+                    missingDesktop: true,
                     noDisplay: false
                 });
             }

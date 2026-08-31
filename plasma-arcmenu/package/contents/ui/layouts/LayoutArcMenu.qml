@@ -181,9 +181,9 @@ LayoutBase {
         root.wirePage(searchLoader);
     }
 
-    function _ctx(app, x, y) {
+    function _ctx(app, x, y, anchor) {
         if (app && !app.action) {
-            root.appContextMenu(app, x, y);
+            root.appContextMenu(app, x, y, anchor);
         }
     }
 
@@ -324,7 +324,7 @@ LayoutBase {
                         showGenericNames: root.showGenericNames
                         multiLineLabels: root.multiLineLabels
                         onAppActivated: (app) => root.activateShortcut(app)
-                        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                        onAppContextMenu: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
                     }
 
                     Components.LayoutAppGrid {
@@ -467,7 +467,7 @@ LayoutBase {
                 showTooltips: root.showTooltips
                 onUserClicked: root.userMenu()
                 onItemActivated: (item) => root.activateShortcut(item)
-                onItemContextMenu: (item, x, y) => root.appContextMenu(item, x, y)
+                onItemContextMenu: (item, x, y, anchor) => root.appContextMenu(item, x, y, anchor)
             }
 
             // ArcMenu power-display-style: buttons (default) | list

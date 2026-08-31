@@ -15,7 +15,7 @@ Item {
     property var themeStyle: ({})
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
     readonly property color selectedBg: themeStyle.activeBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
@@ -51,10 +51,10 @@ Item {
                     return;
                 root.appActivated(model);
             }
-            onContextMenuRequested: (x, y) => {
+            onContextMenuRequested: (x, y, anchor) => {
                 if (model && model.isSection)
                     return;
-                root.appContextMenu(model, x, y);
+                root.appContextMenu(model, x, y, anchor);
             }
         }
     }

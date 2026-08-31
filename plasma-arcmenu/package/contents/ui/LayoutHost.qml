@@ -11,7 +11,7 @@ Item {
     property var themeStyle: ({})
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
     signal powerAction(string actionId)
     signal userMenu()
     signal keepOpenRequested(bool pinned)

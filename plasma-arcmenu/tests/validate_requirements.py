@@ -625,11 +625,21 @@ def main() -> int:
           "panel reserves the dynamic icon and text button width")
 
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
-    check('root.t("Launch")' in ctx, "context menu: Launch")
+    check('root.t("Launch")' not in ctx, "context menu does not invent a Launch item")
     check("root.systemActions.length" in ctx
           and "out.push(root.systemActions[i])" in ctx
           and "modelData.subActions" in ctx,
           "context menu preserves Kicker actions and submenus")
+    check("nativeMenu.visualParent = anchor || root.boundsItem" in ctx
+          and "contextMenu.popup(x, y, anchor)" in main_qml,
+          "context menu anchors to the clicked item like Kickoff")
+    check("function _ensureFavoriteAction" in apps_backend
+          and "Remove from Favorites" in apps_backend
+          and "favoriteSourceForId" in (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
+          and "function systemActions()" in (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8"),
+          "context menu uses Kickoff favorite and runner action lists")
+    check("missingDesktop: true" in (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8"),
+          "stale favorites stay visible so they can be removed")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     arc_cfg = (PKG / "contents/ui/config/ConfigArcLayout.qml").read_text(encoding="utf-8")

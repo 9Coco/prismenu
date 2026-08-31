@@ -270,7 +270,7 @@ LayoutBase {
                             if (!favDel.modelData)
                                 return;
                             if (mouse.button === Qt.RightButton)
-                                root.appContextMenu(favDel.modelData, mouse.x, mouse.y);
+                                root.appContextMenu(favDel.modelData, mouse.x, mouse.y, favMouse);
                             else
                                 root.activateItem(favDel.modelData);
                         }
@@ -351,7 +351,7 @@ LayoutBase {
                 hoverFg: root.hoverFg
                 fg: root.fg
                 onActivated: root.activateItem(model)
-                onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+                onContextMenuRequested: (x, y, anchor) => root.appContextMenu(model, x, y, anchor)
             }
         }
 
@@ -523,7 +523,7 @@ LayoutBase {
                             if (!modelData)
                                 return;
                             if (mouse.button === Qt.RightButton && !fdel.isAction) {
-                                root.appContextMenu(modelData, mouse.x, mouse.y);
+                                root.appContextMenu(modelData, mouse.x, mouse.y, fMouse);
                                 return;
                             }
                             if (fdel.isAction)

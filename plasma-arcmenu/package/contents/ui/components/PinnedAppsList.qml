@@ -25,7 +25,7 @@ Item {
     property bool reorderEnabled: false
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
 
@@ -92,7 +92,7 @@ Item {
         showGenericNames: root.showGenericNames
         multiLineLabels: root.multiLineLabels
         onAppActivated: (app) => root.appActivated(app)
-        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+        onAppContextMenu: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
     }
 
     PlasmaComponents.Label {
