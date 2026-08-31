@@ -646,7 +646,6 @@ PlasmoidItem {
                 // Read actionList lazily for only the selected stable Kicker
                 // row; this is the same native list Kickoff presents.
                 contextMenu.systemActions = backend.systemActions(app);
-                contextMenu.isFavorite = root.catalog.isFavorite(app);
                 contextMenu.popup(x, y, anchor);
             }
             onPowerAction: (id) => root.handlePower(id)
@@ -676,7 +675,6 @@ PlasmoidItem {
             boundsItem: fullRep
             menuData: root.catalog
             onLaunchRequested: (app) => root.launchApp(app)
-            onToggleFavoriteRequested: (app) => root.catalog.toggleFavorite(app)
             onToggleCustomGroupRequested: (app, groupId) => {
                 var appId = root.catalog.customGroupAppId(app);
                 if (!appId)

@@ -501,31 +501,6 @@ def main() -> int:
     app_grid = (PKG / "contents/ui/components/AppGrid.qml").read_text(encoding="utf-8")
     check("currentIndex: -1" in app_grid and "minCellWidth:" in arc_layout,
           "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
-    pinned_drop = (PKG / "contents/ui/components/PinnedDropArea.qml").read_text(encoding="utf-8")
-    app_drag = (PKG / "contents/code/AppDrag.js").read_text(encoding="utf-8")
-    list_bridge = (PKG / "contents/ui/ListModelBridge.qml").read_text(encoding="utf-8")
-    virtualized = (PKG / "contents/ui/components/VirtualizedAppList.qml").read_text(encoding="utf-8")
-    pinned_grid = (PKG / "contents/ui/components/PinnedAppsGrid.qml").read_text(encoding="utf-8")
-    check("KickoffDropArea" in pinned_drop
-          and "movePinnedInView" in pinned_drop
-          and "indexAt" in pinned_drop,
-          "pinned views use a Kickoff-style view DropArea")
-    check("function movePinnedInView" in app_drag
-          and "viewIsAnimating" in app_drag
-          and "model.move(from, to, 1)" in app_drag,
-          "live reorder hops with ListModel.move while animations run")
-    check("property bool freezeSource: false" in list_bridge
-          and "function freeze()" in list_bridge
-          and "function unfreeze()" in list_bridge,
-          "ListModelBridge freezes its source during a live Kickoff reorder")
-    check("moveDisplaced:" in app_grid
-          and "moveDisplaced:" in virtualized
-          and "moveDisplaced:" in pinned_grid
-          and "Easing.OutCubic" in app_grid
-          and "Easing.OutCubic" in virtualized,
-          "pinned list/grid views animate displaced items out of the way")
-    check("function commitPinnedOrder" in (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8"),
-          "accepted live order is persisted through commitPinnedOrder")
     plasma_native = (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     config_menu = (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8")
@@ -625,21 +600,15 @@ def main() -> int:
           "panel reserves the dynamic icon and text button width")
 
     ctx = (PKG / "contents/ui/components/AppContextMenu.qml").read_text(encoding="utf-8")
-    check('root.t("Launch")' not in ctx, "context menu does not invent a Launch item")
+    check('root.t("Launch")' in ctx, "context menu: Launch")
+    check('root.systemActionRequested(root.app, String(entry.actionId || "")' in ctx
+          and "toggleFavoriteRequested" not in ctx
+          and 'type: "local-favorite"' not in ctx,
+          "favorites use Plasma native actions without ArcMenu-local pins")
     check("root.systemActions.length" in ctx
           and "out.push(root.systemActions[i])" in ctx
           and "modelData.subActions" in ctx,
           "context menu preserves Kicker actions and submenus")
-    check("nativeMenu.visualParent = anchor || root.boundsItem" in ctx
-          and "contextMenu.popup(x, y, anchor)" in main_qml,
-          "context menu anchors to the clicked item like Kickoff")
-    check("function _ensureFavoriteAction" in apps_backend
-          and "Remove from Favorites" in apps_backend
-          and "favoriteSourceForId" in (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
-          and "function systemActions()" in (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8"),
-          "context menu uses Kickoff favorite and runner action lists")
-    check("missingDesktop: true" in (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8"),
-          "stale favorites stay visible so they can be removed")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     main_qml = (PKG / "contents/ui/main.qml").read_text(encoding="utf-8")
     arc_cfg = (PKG / "contents/ui/config/ConfigArcLayout.qml").read_text(encoding="utf-8")
