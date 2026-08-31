@@ -4,6 +4,7 @@ import org.kde.plasma.plasma5support as P5Support
 import org.kde.plasma.private.kicker as Kicker
 import "../code/AppsModel.js" as AppsModel
 import "../code/CategoryMeta.js" as CategoryMeta
+import "../code/KickoffTools.js" as KickoffTools
 
 /**
  * Application catalog via Plasma Kicker — same stack as Kickoff / XDG menus on KDE:
@@ -109,6 +110,17 @@ Item {
         }
     }
 
+    /**
+     * Same KAStats store Kickoff writes. The activity-manager agent is
+     * org.kde.plasma.favorites.applications; using a unique ArcMenu client
+     * made this menu able to *see* Kickoff pins while add/remove went to a
+     * different agent and did nothing.
+     */
+    Kicker.KAStatsFavoritesModel {
+        id: globalFavorites
+        enabled: true
+    }
+
     Kicker.RootModel {
         id: rootModel
         appletInterface: root.appletInterface
@@ -119,19 +131,23 @@ Item {
         showRecentApps: false
         showRecentDocs: false
         showPowerSession: false
+        favoritesModel: globalFavorites
 
         Component.onCompleted: {
             function setOpt(obj, key, value) {
                 try { obj[key] = value; } catch (e) {}
             }
-            // Required by KAStatsFavoritesModel. Kickoff initializes the same
-            // model with a per-applet client id before reading or modifying
-            // global favorites.
             try {
-                rootModel.favoritesModel.initForClient(
-                    "org.kde.plasma.arcmenu.favorites.instance-" + Plasmoid.id);
+                globalFavorites.enabled = true;
+                globalFavorites.initForClient("org.kde.plasma.favorites.applications");
+                rootModel.favoritesModel = globalFavorites;
             } catch (favoritesError) {
                 console.warn("ArcMenu favorites init failed:", favoritesError);
+                try {
+                    if (rootModel.favoritesModel && rootModel.favoritesModel.initForClient)
+                        rootModel.favoritesModel.initForClient(
+                            "org.kde.plasma.favorites.applications");
+                } catch (e2) {}
             }
             setOpt(rootModel, "sorted", true);
             setOpt(rootModel, "showRecentContacts", false);
@@ -140,6 +156,8 @@ Item {
             setOpt(rootModel, "autoPopulate", false);
             Qt.callLater(function () {
                 root.refresh();
+                if (plasmaNative && plasmaNative.refreshPlasmaFavorites)
+                    plasmaNative.refreshPlasmaFavorites();
             });
         }
 
@@ -152,6 +170,7 @@ Item {
         menuData: root.menuData
         rootModel: rootModel
         appletInterface: root.appletInterface
+        favoritesModelOverride: globalFavorites
     }
 
     // Nested Instantiators materialize the same roles Kickoff ListViews see.
@@ -750,6 +769,10 @@ Item {
         return plasmaNative.setPlasmaFavorite(favoriteId, favorite);
     }
 
+    function removeFavoriteForApp(app, actionArgument) {
+        return plasmaNative.removeFavoriteForApp(app, actionArgument);
+    }
+
     function insertPlasmaFavorite(favoriteId, index) {
         return plasmaNative.insertPlasmaFavorite(favoriteId, index);
     }
@@ -798,18 +821,24 @@ Item {
         try { return String(entry.actionId || ""); } catch (e) { return ""; }
     }
 
-    function _hasFavoriteAction(list) {
-        for (var i = 0; i < (list || []).length; ++i) {
-            var id = _actionIdOf(list[i]).toLowerCase();
-            if (id.indexOf("favorite") >= 0)
-                return true;
-        }
-        return false;
+    function _favoriteI18n(msgid) {
+        try {
+            var plasma = i18nd("plasma_applet_org.kde.plasma.kicker", msgid);
+            if (plasma && plasma !== msgid)
+                return plasma;
+        } catch (e) {}
+        if (menuData && menuData.tr)
+            return menuData.tr(msgid);
+        return msgid;
     }
 
     function _favoriteIdForApp(app) {
         if (!app)
             return "";
+        var src = plasmaNative.favoriteSourceForApp
+            ? plasmaNative.favoriteSourceForApp(app) : null;
+        if (src && src.favoriteId)
+            return String(src.favoriteId);
         if (menuData && menuData.plasmaFavoriteIdForApp) {
             var fromMenu = menuData.plasmaFavoriteIdForApp(app);
             if (fromMenu)
@@ -828,47 +857,9 @@ Item {
         return !!_favoriteIdForApp(app);
     }
 
-    /** Kickoff's Add/Remove from Favorites, using the same kicker strings. */
-    function _syntheticFavoriteAction(app) {
-        if (!_canFavoriteApp(app))
-            return null;
-        var favId = _favoriteIdForApp(app);
-        var isFav = false;
-        try { isFav = !!root.isPlasmaFavorite(favId); } catch (e) { isFav = false; }
-        var key = isFav ? "Remove from Favorites" : "Add to Favorites";
-        var text = key;
-        try {
-            var plasma = i18nd("plasma_applet_org.kde.plasma.kicker", key);
-            if (plasma)
-                text = plasma;
-        } catch (e2) {}
-        if (text === key && menuData && menuData.tr)
-            text = menuData.tr(key);
-        return {
-            actionId: isFav ? "_kicker_favorite_remove" : "_kicker_favorite_add",
-            actionArgument: favId,
-            text: text,
-            icon: isFav ? "bookmark-remove" : "bookmark-new"
-        };
-    }
-
-    function _ensureFavoriteAction(list, app) {
-        var out = list ? list.slice() : [];
-        if (_hasFavoriteAction(out) || !_canFavoriteApp(app))
-            return out;
-        var fav = _syntheticFavoriteAction(app);
-        if (!fav)
-            return out;
-        var at = 0;
-        if (out.length && !out[0].separator && !out[0].type)
-            at = 1;
-        out.splice(at, 0, fav);
-        return out;
-    }
-
     /**
-     * Kickoff ActionMenu: native actionList from the same model the row
-     * belongs to (Runner, KAStats favorites, then the apps catalog).
+     * Kickoff ActionMenu: model.actionList plus Tools.createFavoriteActions
+     * inserted before addToDesktop / addToTaskManager / addToPanel.
      */
     function systemActions(app) {
         var list = [];
@@ -882,12 +873,33 @@ Item {
             list = root._copyActionList(sourceApp ? sourceApp.kickerSource : null);
         }
         if (!list.length) {
-            var favSrc = plasmaNative.favoriteSourceForId
-                ? plasmaNative.favoriteSourceForId(_favoriteIdForApp(app))
-                : null;
+            var favSrc = plasmaNative.favoriteSourceForApp
+                ? plasmaNative.favoriteSourceForApp(app) : null;
             list = root._copyActionList(favSrc);
         }
-        return root._ensureFavoriteAction(list, app);
+        list = KickoffTools.dropFavoriteActions(list);
+        if (!_canFavoriteApp(app))
+            return list;
+        var favId = root._favoriteIdForApp(app);
+        var favActions = KickoffTools.createFavoriteActions(
+            root._favoriteI18n, plasmaNative.favoritesModel(), favId);
+        var src = plasmaNative.favoriteSourceForApp
+            ? plasmaNative.favoriteSourceForApp(app) : null;
+        if (src && src.favoriteId) {
+            favActions = [{
+                type: "kickoff-favorite",
+                text: root._favoriteI18n("Remove from Favorites"),
+                icon: "bookmark-remove",
+                actionId: "_kicker_favorite_remove",
+                actionArgument: { favoriteId: String(src.favoriteId) }
+            }];
+        } else if (favActions && favActions.length) {
+            for (var fa = 0; fa < favActions.length; ++fa) {
+                if (favActions[fa] && !favActions[fa].type)
+                    favActions[fa].type = "kickoff-favorite";
+            }
+        }
+        return KickoffTools.insertFavoriteActions(list, favActions);
     }
 
     function _triggerCatalog(app, actionId, actionArgument) {
@@ -906,20 +918,34 @@ Item {
         return { handled: true, closeLauncher: closeLauncher };
     }
 
-    function _applyFavoriteAction(app, actionId) {
-        var favId = _favoriteIdForApp(app);
-        if (!favId)
-            return false;
-        var remove = String(actionId || "").toLowerCase().indexOf("remove") >= 0;
-        return !!root.setPlasmaFavorite(favId, !remove);
+    function _isFavoriteAction(actionId) {
+        return KickoffTools.startsWith(actionId, "_kicker_favorite_")
+            || String(actionId || "").toLowerCase().indexOf("favorite") >= 0;
     }
 
     /** Invoke AppsModel.trigger exactly as Kickoff's ActionMenu does. */
     function invokeSystemAction(app, actionId, actionArgument) {
         var id = String(actionId || "");
-        if (id === "_kicker_favorite_remove" || id === "_kicker_favorite_add") {
-            if (root._applyFavoriteAction(app, id))
-                return { handled: true, closeLauncher: false };
+        if (root._isFavoriteAction(id)) {
+            var argument = actionArgument;
+            var src = plasmaNative.favoriteSourceForApp
+                ? plasmaNative.favoriteSourceForApp(app) : null;
+            if (src && src.favoriteId)
+                argument = { favoriteId: String(src.favoriteId) };
+            else if (!KickoffTools.favoriteIdFromArgument(argument))
+                argument = { favoriteId: root._favoriteIdForApp(app) };
+            var ok = KickoffTools.handleFavoriteAction(
+                id, argument, plasmaNative.favoritesModel());
+            if (String(id).indexOf("remove") >= 0 && plasmaNative.removeFavoriteForApp)
+                ok = !!plasmaNative.removeFavoriteForApp(app, argument) || ok;
+            if (ok) {
+                if (menuData && menuData.dropPinnedPreviewForce)
+                    menuData.dropPinnedPreviewForce();
+                plasmaNative.refreshPlasmaFavorites();
+            } else {
+                console.warn("ArcMenu favorite action failed", id, argument);
+            }
+            return { handled: ok, closeLauncher: false };
         }
         try {
             if (app && app.provider === "runner" && typeof app.runnerIndex === "number") {
@@ -943,8 +969,6 @@ Item {
         } catch (e) {
             console.warn("ArcMenu Kicker trigger failed for", app ? app.id : "", actionId, e);
         }
-        if (id.toLowerCase().indexOf("favorite") >= 0 && root._applyFavoriteAction(app, id))
-            return { handled: true, closeLauncher: false };
         return { handled: false, closeLauncher: false };
     }
 

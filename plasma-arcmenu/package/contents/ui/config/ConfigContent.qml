@@ -16,7 +16,8 @@ Item {
     property alias cfg_ShowEmpty: showEmpty.checked
     property var cfg_PinnedApps: []
     property alias cfg_PinnedCols: pinnedColsSpin.value
-    property alias cfg_SyncWithPlasma: syncPlasma.checked
+    // Compatibility key: favorites are now always synchronized with Plasma.
+    property bool cfg_SyncWithPlasma: true
     property alias cfg_Enabled: recentEnabled.checked
     property alias cfg_MaxItems: recentMaxSpin.value
     property var cfg_RecentApps: []
@@ -177,7 +178,7 @@ Item {
             title: root.tr("Pinned Applications")
             ConfigSettingRow {
                 title: root.tr("Pinned columns:")
-                subtitle: root.trf("Pinned apps: %1", (cfg_PinnedApps || []).length)
+                subtitle: root.tr("Sync favorites with Plasma global favorites")
                 iconName: "view-grid"
                 accent: "orange"
                 QQC2.SpinBox {
@@ -185,17 +186,6 @@ Item {
                     from: 4
                     to: 8
                     onValueModified: root.writeLive("PinnedCols", value)
-                }
-            }
-            ConfigSep {}
-            ConfigSettingRow {
-                visible: false // compatibility key; Plasma favorites are now always native
-                title: root.tr("Sync favorites with Plasma global favorites")
-                iconName: "bookmarks"
-                accent: "green"
-                QQC2.Switch {
-                    id: syncPlasma
-                    onToggled: root.writeLive("SyncWithPlasma", checked)
                 }
             }
         }
