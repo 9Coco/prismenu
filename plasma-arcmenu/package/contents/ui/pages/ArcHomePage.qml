@@ -16,7 +16,7 @@ Item {
     property var themeStyle: ({})
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     readonly property color fg: themeStyle.fg || Kirigami.Theme.textColor
     readonly property color selectedBg: themeStyle.activeBg || themeStyle.selectedBg || Kirigami.Theme.highlightColor
@@ -49,7 +49,7 @@ Item {
             hoverFg: root.hoverFg
             fg: root.fg
             onActivated: root.appActivated(model)
-            onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+            onContextMenuRequested: (x, y, anchor) => root.appContextMenu(model, x, y, anchor)
         }
     }
 

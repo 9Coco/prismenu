@@ -24,7 +24,7 @@ Item {
     property var themeStyle: ({})
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     property string drillCategoryId: ""
     /** favorites | frequent | empty — special lists outside normal categories */
@@ -709,7 +709,7 @@ Item {
                 hoverFg: root.hoverFg
                 fg: root.fg
                 onAppActivated: (app) => root.appActivated(app)
-                onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+                onAppContextMenu: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
 
             }
 
@@ -735,7 +735,7 @@ Item {
                 hoverFg: root.hoverFg
                 fg: root.fg
                 onAppActivated: (app) => root.appActivated(app)
-                onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
+                onContextMenuRequested: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
             }
 
             PlasmaComponents.Label {

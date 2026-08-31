@@ -30,7 +30,7 @@ GridView {
     property color fg: Kirigami.Theme.textColor
 
     signal appActivated(var app)
-    signal contextMenuRequested(var app, real x, real y)
+    signal contextMenuRequested(var app, real x, real y, var anchor)
 
     function appForId(id) {
         var wanted = String(id || "");
@@ -245,7 +245,7 @@ GridView {
                 }
                 root.currentIndex = del.index;
                 if (event.button === Qt.RightButton) {
-                    root.contextMenuRequested(del.app, event.x, event.y);
+                    root.contextMenuRequested(del.app, event.x, event.y, mouse);
                 } else {
                     root.appActivated(del.app);
                 }

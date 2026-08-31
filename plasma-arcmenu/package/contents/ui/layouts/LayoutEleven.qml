@@ -171,7 +171,7 @@ LayoutBase {
                             onClicked: (mouse) => {
                                 if (mouse.button === Qt.RightButton) {
                                     if (app && !app.action)
-                                        root.appContextMenu(app, mouse.x, mouse.y);
+                                        root.appContextMenu(app, mouse.x, mouse.y, pinMouse);
                                 } else {
                                     root.activateItem(app);
                                 }
@@ -212,9 +212,9 @@ LayoutBase {
                         hoverFg: root.hoverFg
                         fg: root.fg
                         onActivated: root.activateItem(root.frequentItems[index])
-                        onContextMenuRequested: (x, y) => {
+                        onContextMenuRequested: (x, y, anchor) => {
                             var a = root.frequentItems[index];
-                            if (a && !a.action) root.appContextMenu(a, x, y);
+                            if (a && !a.action) root.appContextMenu(a, x, y, anchor);
                         }
                     }
                 }

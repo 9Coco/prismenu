@@ -24,9 +24,9 @@ VirtualizedAppList {
             if (root.layoutRoot)
                 root.layoutRoot.activateItem(app);
         }
-        function onAppContextMenu(app, x, y) {
+        function onAppContextMenu(app, x, y, anchor) {
             if (root.layoutRoot && app && (root.contextMenuForActions || !app.action))
-                root.layoutRoot.appContextMenu(app, x, y);
+                root.layoutRoot.appContextMenu(app, x, y, anchor);
         }
     }
 }

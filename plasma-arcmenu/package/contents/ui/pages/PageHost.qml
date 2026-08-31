@@ -13,7 +13,7 @@ Item {
     property string pageId: "home"
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     readonly property var pageMeta: PageRegistry.getPage(pageId)
 

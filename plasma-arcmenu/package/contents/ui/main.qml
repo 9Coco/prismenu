@@ -641,13 +641,13 @@ PlasmoidItem {
             menuData: root.catalog
             themeStyle: root.themeStyle
             onAppActivated: (app) => root.launchApp(app)
-            onAppContextMenu: (app, x, y) => {
+            onAppContextMenu: (app, x, y, anchor) => {
                 contextMenu.app = app;
                 // Read actionList lazily for only the selected stable Kicker
                 // row; this is the same native list Kickoff presents.
                 contextMenu.systemActions = backend.systemActions(app);
                 contextMenu.isFavorite = root.catalog.isFavorite(app);
-                contextMenu.popup(x, y);
+                contextMenu.popup(x, y, anchor);
             }
             onPowerAction: (id) => root.handlePower(id)
             onKeepOpenRequested: (pinned) => root.menuPinnedOpen = pinned
