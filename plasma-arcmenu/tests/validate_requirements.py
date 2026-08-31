@@ -388,6 +388,9 @@ def main() -> int:
           "favorite actions preserve Kickoff's live model argument")
     check("model.actionList" in apps_backend and "triggerSystemAction" in apps_backend,
           "context menu uses Kicker native action list")
+    check("menuData.dropPinnedPreviewForce()" in apps_backend
+          and "Qt.callLater(plasmaNative.refreshPlasmaFavorites)" in apps_backend,
+          "favorite actions discard stale drag previews before refresh")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
     check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")

@@ -895,6 +895,11 @@ Item {
             // directly from actionArgument; do not reconstruct either value.
             try {
                 KickoffTools.triggerAction(null, -1, id, actionArgument);
+                // A reorder preview deliberately shadows plasmaFavoriteIds.
+                // Clear it before refreshing so an immediate Add/Remove action
+                // cannot leave every layout rendering the stale drag snapshot.
+                if (menuData && menuData.dropPinnedPreviewForce)
+                    menuData.dropPinnedPreviewForce();
                 Qt.callLater(plasmaNative.refreshPlasmaFavorites);
                 return { handled: true, closeLauncher: false };
             } catch (favoriteError) {
