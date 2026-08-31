@@ -394,6 +394,36 @@ def main() -> int:
     check("sidebarShortcuts" in layout_base, "shared settings-driven sidebar shortcuts")
     check('indexOf("qgrp-")' in layout_base, "custom groups resolve in content pane")
     check("function usesGridView" in layout_base, "per-group grid vs list display")
+    check("function isPinnedGroup" in layout_base,
+          "layouts share the persistent pinned-group predicate")
+    layout_group_pane = (PKG / "contents/ui/components/LayoutGroupPane.qml").read_text(encoding="utf-8")
+    layout_app_grid = (PKG / "contents/ui/components/LayoutAppGrid.qml").read_text(encoding="utf-8")
+    layout_app_list = (PKG / "contents/ui/components/LayoutAppList.qml").read_text(encoding="utf-8")
+    pinned_apps_grid = (PKG / "contents/ui/components/PinnedAppsGrid.qml").read_text(encoding="utf-8")
+    check("!root.layoutRoot.searching" in layout_group_pane
+          and "root.layoutRoot.isPinnedGroup(root.navId)" in layout_group_pane,
+          "search results never inherit pinned drop/reorder behavior")
+    check("internalReorderModel" in layout_app_grid
+          and "internalReorderModel" in layout_app_list
+          and "wrapApp: true" in layout_app_grid
+          and "wrapApp: true" in layout_app_list,
+          "shared layout app views provide animated reorder models")
+    check("property bool reorderEnabled: true" in pinned_apps_grid
+          and "reorderEnabled: root.reorderEnabled" in pinned_apps_grid,
+          "compact pinned grids can disable reorder for non-pinned groups")
+    check(all("model: root.pinnedItems.length" not in source
+              for source in layout_sources.values()),
+          "layout-specific pinned flows use the shared live reorder grid")
+    reorder_layouts = [
+        "LayoutApplicationMenu.qml", "LayoutAz.qml", "LayoutChromebook.qml",
+        "LayoutDrawer.qml", "LayoutElementary.qml", "LayoutEleven.qml",
+        "LayoutInsider.qml", "LayoutKicker.qml", "LayoutPlasmaDash.qml",
+        "LayoutRaven.qml", "LayoutRedmond.qml", "LayoutRunner.qml",
+        "LayoutSimple.qml", "LayoutUnity.qml", "LayoutUnityDash.qml",
+        "LayoutWindows.qml",
+    ]
+    check(all("reorderEnabled:" in layout_sources[name] for name in reorder_layouts),
+          "standalone pinned projections opt into shared live reorder")
     extra_cfg = (PKG / "contents/ui/config/ConfigExtraCategories.qml").read_text(encoding="utf-8")
     check('icon.name: "settings-configure"' in extra_cfg, "menu group rows have column settings button")
     check("Column settings" in extra_cfg, "column settings dialog")
