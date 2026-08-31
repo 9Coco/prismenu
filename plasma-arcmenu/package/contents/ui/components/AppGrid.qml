@@ -70,11 +70,14 @@ GridView {
     readonly property int cellIconSize: minCellWidth > 0
         ? Math.max(20, Math.min(iconSize, Math.round(cellWidth * 0.48)))
         : iconSize
+    // Kickoff leaves a gap between icon+label rows. Keep ours a bit
+    // tighter so more tiles stay on screen, but not flush.
+    readonly property int rowGap: Kirigami.Units.smallSpacing * 3
     // Icon + up to two label lines. Too-short cells stack delegates and
     // clicks in the "empty" gap hit the overlapping row.
     cellHeight: minCellWidth > 0
-        ? (cellIconSize + Kirigami.Units.gridUnit * 3)
-        : (iconSize + Kirigami.Units.gridUnit * 2)
+        ? (cellIconSize + Kirigami.Units.gridUnit * 3 + rowGap)
+        : (iconSize + Kirigami.Units.gridUnit * 2 + rowGap)
     clip: true
     boundsBehavior: Flickable.StopAtBounds
     QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
