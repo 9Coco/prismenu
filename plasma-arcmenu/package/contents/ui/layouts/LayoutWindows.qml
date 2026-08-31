@@ -132,76 +132,16 @@ LayoutBase {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            Flickable {
+            Components.LayoutAppGrid {
                 anchors.fill: parent
-                contentWidth: width
-                contentHeight: pinFlow.height
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-                QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-
-                Flow {
-                    id: pinFlow
-                    width: parent.width
-                    spacing: Kirigami.Units.smallSpacing
-
-                    Repeater {
-                        model: root.pinnedItems.length
-                        Item {
-                            required property int index
-                            readonly property var app: root.pinnedItems[index]
-                            width: root.pinCellWidth
-                            height: root.pinCellHeight
-
-                            Rectangle {
-                                anchors.fill: parent
-                                anchors.margins: 1
-                                radius: Kirigami.Units.smallSpacing
-                                color: pinMouse.containsMouse ? root.selectedBg : "transparent"
-                            }
-
-                            ColumnLayout {
-                                anchors.centerIn: parent
-                                width: parent.width - Kirigami.Units.smallSpacing * 2
-                                spacing: Kirigami.Units.smallSpacing / 2
-
-                                Kirigami.Icon {
-                                    source: app.icon || "application-x-executable"
-                                    Layout.alignment: Qt.AlignHCenter
-                                    Layout.preferredWidth: root.pinIconSize
-                                    Layout.preferredHeight: root.pinIconSize
-                                }
-
-                                PlasmaComponents.Label {
-                                    text: app.name || ""
-                                    elide: Text.ElideRight
-                                    horizontalAlignment: Text.AlignHCenter
-                                    Layout.fillWidth: true
-                                    maximumLineCount: 2
-                                    wrapMode: Text.WordWrap
-                                    font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                    color: pinMouse.containsMouse ? root.selectedFg : root.fg
-                                }
-                            }
-
-                            MouseArea {
-                                id: pinMouse
-                                anchors.fill: parent
-                                hoverEnabled: true
-                                acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                onClicked: (mouse) => {
-                                    if (mouse.button === Qt.RightButton) {
-                                        if (app && !app.action)
-                                            root.appContextMenu(app, mouse.x, mouse.y, pinMouse);
-                                    } else {
-                                        root.activateItem(app);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                layoutRoot: root
+                items: root.pinnedItems
+                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                columns: Math.max(1, Math.floor(width / root.pinCellWidth))
+                cellWidth: root.pinCellWidth
+                cellHeight: root.pinCellHeight
+                iconSize: root.pinIconSize
+                multiLineLabels: true
             }
         }
     }

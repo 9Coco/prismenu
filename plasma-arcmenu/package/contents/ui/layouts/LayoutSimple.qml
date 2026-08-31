@@ -1,10 +1,8 @@
 import QtQuick
-import QtQuick.Controls as QQC2
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
-import ".." as Ui
 
 LayoutBase {
     id: root
@@ -22,46 +20,22 @@ LayoutBase {
             Component.onCompleted: forceActiveFocus()
         }
 
-        ListView {
+        Components.LayoutAppList {
             id: appList
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
-            model: appModel
-            boundsBehavior: Flickable.StopAtBounds
-            QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-            QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-            delegate: Components.AppListItem {
-                menuData: menuData
-                width: appList.width
-                app: model
-                iconSize: Math.max(28, root.appIconSize)
-                showDescription: menuData ? menuData.showSearchDescription : true
-                selected: appList.currentIndex === index
-                selectedBg: root.selectedBg
-                selectedFg: root.selectedFg
-                hoverBg: root.hoverBg
-                hoverFg: root.hoverFg
-                fg: root.fg
-                onActivated: root.activateItem(model)
-                onContextMenuRequested: (x, y, anchor) => root.appContextMenu(model, x, y, anchor)
-            }
+            layoutRoot: root
+            items: root.searching && menuData ? menuData.searchResults : root.homeItems
+            reorderEnabled: !root.searching && root.isPinnedGroup(root.homeGroupId)
+            iconSize: Math.max(28, root.appIconSize)
+            showDescription: menuData ? menuData.showSearchDescription : true
 
             PlasmaComponents.Label {
                 anchors.centerIn: parent
-                visible: appModel.count === 0
+                visible: appList.count === 0
                 text: root.searching ? root.tr("No matching applications found") : root.tr("Type to search applications")
                 opacity: 0.6
             }
-        }
-    }
-
-    Ui.ListModelBridge {
-        id: appModel
-        source: {
-            if (!menuData) return [];
-            if (menuData.isSearching) return menuData.searchResults;
-            return root.homeItems;
         }
     }
 }

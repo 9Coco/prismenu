@@ -1,4 +1,5 @@
 import QtQuick
+import ".." as Ui
 
 /** VirtualizedAppList pre-wired to the shared LayoutBase contract. */
 VirtualizedAppList {
@@ -17,6 +18,13 @@ VirtualizedAppList {
     hoverBg: layoutRoot ? layoutRoot.hoverBg : selectedBg
     hoverFg: layoutRoot ? layoutRoot.hoverFg : selectedFg
     fg: layoutRoot ? layoutRoot.fg : "white"
+    reorderModel: root.reorderEnabled ? internalReorderModel : null
+
+    Ui.ListModelBridge {
+        id: internalReorderModel
+        wrapApp: true
+        source: root.reorderEnabled ? root.items : []
+    }
 
     Connections {
         target: root
