@@ -115,70 +115,22 @@ LayoutBase {
                 }
             }
 
-            // Fixed cell size, left-packed (Win11 style �?not stretched to 6 columns)
-            Flow {
-                id: pinnedFlow
+            // Fixed cell size, left-packed (Win11 style).
+            Components.LayoutAppGrid {
+                id: pinnedGrid
                 Layout.fillWidth: true
                 Layout.preferredHeight: Math.ceil(Math.max(1, root.pinnedItems.length)
                     / Math.max(1, Math.floor(width / root.pinnedCellWidth)))
                     * root.pinnedCellHeight
                 Layout.maximumHeight: root.pinnedCellHeight * 3
-                spacing: Kirigami.Units.smallSpacing
-
-                Repeater {
-                    model: root.pinnedItems.length
-                    Item {
-                        required property int index
-                        readonly property var app: root.pinnedItems[index]
-                        width: root.pinnedCellWidth
-                        height: root.pinnedCellHeight
-
-                        Rectangle {
-                            anchors.fill: parent
-                            anchors.margins: 1
-                            radius: Kirigami.Units.smallSpacing
-                            color: pinMouse.containsMouse ? root.selectedBg : "transparent"
-                        }
-
-                        ColumnLayout {
-                            anchors.centerIn: parent
-                            width: parent.width - Kirigami.Units.smallSpacing * 2
-                            spacing: Kirigami.Units.smallSpacing / 2
-
-                            Kirigami.Icon {
-                                source: app.icon || "application-x-executable"
-                                Layout.alignment: Qt.AlignHCenter
-                                Layout.preferredWidth: root.pinnedIconSize
-                                Layout.preferredHeight: root.pinnedIconSize
-                            }
-
-                            PlasmaComponents.Label {
-                                text: app.name || ""
-                                elide: Text.ElideRight
-                                horizontalAlignment: Text.AlignHCenter
-                                Layout.fillWidth: true
-                                maximumLineCount: 1
-                                font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                color: pinMouse.containsMouse ? root.selectedFg : root.fg
-                            }
-                        }
-
-                        MouseArea {
-                            id: pinMouse
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            acceptedButtons: Qt.LeftButton | Qt.RightButton
-                            onClicked: (mouse) => {
-                                if (mouse.button === Qt.RightButton) {
-                                    if (app && !app.action)
-                                        root.appContextMenu(app, mouse.x, mouse.y, pinMouse);
-                                } else {
-                                    root.activateItem(app);
-                                }
-                            }
-                        }
-                    }
-                }
+                layoutRoot: root
+                items: root.pinnedItems
+                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                columns: Math.max(1, Math.floor(width / root.pinnedCellWidth))
+                cellWidth: root.pinnedCellWidth
+                cellHeight: root.pinnedCellHeight
+                iconSize: root.pinnedIconSize
+                multiLineLabels: false
             }
 
             PlasmaComponents.Label {

@@ -207,75 +207,17 @@ LayoutBase {
             Layout.fillHeight: true
             spacing: Kirigami.Units.smallSpacing / 2
 
-            GridView {
+            Components.LayoutAppGrid {
                 id: favRail
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                clip: true
-                boundsBehavior: Flickable.StopAtBounds
-                model: root.favoriteItems
-                readonly property int cols: Math.max(1, Math.floor(Math.max(1, width) / root.favCell))
-                cellWidth: Math.max(1, width / cols)
+                layoutRoot: root
+                items: root.favoriteItems
+                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                columns: Math.max(1, Math.floor(Math.max(1, width) / root.favCell))
                 cellHeight: root.favIcon + Kirigami.Units.gridUnit * 2.1
-                QQC2.ScrollBar.vertical: Components.MenuScrollBar { menuData: root.menuData }
-
-                delegate: Item {
-                    id: favDel
-                    required property int index
-                    required property var modelData
-                    width: favRail.cellWidth
-                    height: favRail.cellHeight
-                    clip: true
-
-                    Rectangle {
-                        anchors.centerIn: parent
-                        width: Math.min(parent.width - 2, root.favIcon + Kirigami.Units.largeSpacing)
-                        height: Math.min(parent.height - 2, root.favIcon + Kirigami.Units.gridUnit * 1.9)
-                        radius: Kirigami.Units.smallSpacing
-                        color: favMouse.containsMouse ? root.hoverBg : "transparent"
-                    }
-
-                    Column {
-                        anchors.centerIn: parent
-                        width: parent.width - Kirigami.Units.smallSpacing
-                        spacing: Kirigami.Units.smallSpacing / 2
-
-                        Kirigami.Icon {
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            width: root.favIcon
-                            height: root.favIcon
-                            source: (favDel.modelData && favDel.modelData.icon)
-                                ? favDel.modelData.icon : "application-x-executable"
-                        }
-
-                        PlasmaComponents.Label {
-                            width: parent.width
-                            text: favDel.modelData ? (favDel.modelData.name || "") : ""
-                            elide: Text.ElideRight
-                            wrapMode: Text.Wrap
-                            maximumLineCount: 2
-                            horizontalAlignment: Text.AlignHCenter
-                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                            color: favMouse.containsMouse ? root.hoverFg : root.fg
-                        }
-                    }
-
-                    MouseArea {
-                        id: favMouse
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: (mouse) => {
-                            if (!favDel.modelData)
-                                return;
-                            if (mouse.button === Qt.RightButton)
-                                root.appContextMenu(favDel.modelData, mouse.x, mouse.y, favMouse);
-                            else
-                                root.activateItem(favDel.modelData);
-                        }
-                    }
-                }
+                iconSize: root.favIcon
+                multiLineLabels: true
             }
 
             RowLayout {

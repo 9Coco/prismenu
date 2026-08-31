@@ -12,6 +12,8 @@ GridView {
     property int iconSize: 32
     /** Catalog access for drop-to-reorder / drop-to-pin on the cells. */
     property var menuData: null
+    /** False when a layout reuses this chrome for a non-favorite home group. */
+    property bool reorderEnabled: true
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
     property color hoverBg: selectedBg
@@ -50,7 +52,7 @@ GridView {
         anchors.fill: parent
         targetView: root
         menuData: root.menuData
-        reorderEnabled: true
+        reorderEnabled: root.reorderEnabled
     }
 
     delegate: Item {
@@ -82,7 +84,8 @@ GridView {
         Item {
             id: dragGhost
             anchors.centerIn: parent
-            readonly property string dragAppId: String(model.id || model.appId || "")
+            readonly property string dragAppId: root.reorderEnabled
+                ? String(model.id || model.appId || "") : ""
             readonly property int dragIndex: del.index
             readonly property Item dragView: root
             width: contentCol.implicitWidth + Kirigami.Units.largeSpacing
@@ -93,7 +96,7 @@ GridView {
             Drag.hotSpot.y: Math.round(dragGhost.height / 2)
             Drag.supportedActions: Qt.CopyAction | Qt.MoveAction
             Drag.mimeData: AppDrag.mimeDataFor(model)
-            Drag.onDragStarted: AppDrag.resetLiveReorder()
+            Drag.onDragStarted: if (root.reorderEnabled) AppDrag.resetLiveReorder()
             Drag.onDragFinished: AppDrag.finishDrag(root.menuData)
 
             ColumnLayout {

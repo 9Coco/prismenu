@@ -42,6 +42,7 @@ LayoutBase {
                 layoutRoot: root
                 anchors.fill: parent
                 items: root.gridItems
+                reorderEnabled: !root.searching && root.isPinnedGroup(root.homeGroupId)
                 columns: root.gridColumns
                 iconSize: root.gridIconSize
                 cellWidth: Math.max(Kirigami.Units.gridUnit * 5, width / Math.max(1, columns))

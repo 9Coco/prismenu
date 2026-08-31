@@ -107,6 +107,11 @@ Item {
         return items || [];
     }
 
+    /** Only Plasma's favorite projection has a persistent mutable order. */
+    function isPinnedGroup(groupId) {
+        return groupId === "pinned" || groupId === "favorites";
+    }
+
     /** Shared column widths. During a split-handle drag these use an in-memory
      * preview so pointer motion never performs synchronous KConfig writes. */
     property int liveSidebarW: -1
