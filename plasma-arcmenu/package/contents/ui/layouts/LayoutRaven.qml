@@ -265,7 +265,7 @@ LayoutBase {
                                         onClicked: (mouse) => {
                                             if (mouse.button === Qt.RightButton) {
                                                 if (app && !app.action)
-                                                    root.appContextMenu(app, mouse.x, mouse.y);
+                                                    root.appContextMenu(app, mouse.x, mouse.y, pinMouse);
                                             } else {
                                                 root.activateItem(app);
                                             }

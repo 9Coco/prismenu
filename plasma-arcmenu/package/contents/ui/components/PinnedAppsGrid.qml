@@ -18,7 +18,7 @@ GridView {
     property color hoverFg: selectedFg
 
     signal appActivated(var app)
-    signal contextMenuRequested(var app, real x, real y)
+    signal contextMenuRequested(var app, real x, real y, var anchor)
     signal reorderRequested(int from, int to)
 
     cellWidth: Math.max(Kirigami.Units.gridUnit * 3, width / Math.max(1, columns))
@@ -169,7 +169,7 @@ GridView {
                     return;
                 }
                 if (event.button === Qt.RightButton)
-                    root.contextMenuRequested(model, event.x, event.y);
+                    root.contextMenuRequested(model, event.x, event.y, mouse);
             }
         }
 

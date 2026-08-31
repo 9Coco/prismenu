@@ -30,7 +30,7 @@ Item {
         : (mouse.containsMouse ? root.hoverFg : root.fg)
 
     signal activated()
-    signal contextMenuRequested(real x, real y)
+    signal contextMenuRequested(real x, real y, var anchor)
 
     height: Math.max(iconSize + Kirigami.Units.smallSpacing * 2, Kirigami.Units.gridUnit * 1.85)
     /** iconSize <= 0 hides the icon (upstream iconSizeCategories = HIDDEN) */
@@ -77,7 +77,7 @@ Item {
         acceptedButtons: Qt.LeftButton | Qt.RightButton
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton)
-                root.contextMenuRequested(mouse.x, mouse.y);
+                root.contextMenuRequested(mouse.x, mouse.y, mouse);
             else
                 root.activated();
         }

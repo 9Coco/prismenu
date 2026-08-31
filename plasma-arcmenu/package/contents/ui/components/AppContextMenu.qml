@@ -4,8 +4,10 @@ import "../../code/Locale.js" as Locale
 import "../../code/PresetIcons.js" as PresetIcons
 
 /**
- * Application action menu backed by Plasma's native QMenu wrapper.
- * Kicker supplies the localized actionList and executes native actions.
+ * Kickoff ActionMenu: PlasmaExtras.Menu filled with Kicker's native
+ * actionList (new window, add/remove favorites, desktop, task manager,
+ * edit, uninstall). ArcMenu-only extras (custom groups, local pins) sit
+ * after that native block.
  */
 Item {
     id: root
@@ -41,8 +43,7 @@ Item {
         && !isExtraShortcut && (app.exec || app.entryPath || app.kickerUrl)
         && appId.indexOf("shortcut-") !== 0)
     readonly property bool canPinLocally: isExtraShortcut || isArcMenuSettings
-    readonly property bool hasSystemActions: isDesktopApp
-        && systemActions && systemActions.length > 0
+    readonly property bool hasSystemActions: systemActions && systemActions.length > 0
     readonly property string contextGroupAppId: {
         if (!app)
             return "";
@@ -73,7 +74,7 @@ Item {
         return { type: "separator", separator: true };
     }
 
-    /** Native actions keep their titles, separators and nested submenus. */
+    /** Native Kickoff actions first; ArcMenu-only rows follow. */
     readonly property var menuEntries: {
         var out = [];
         if (!root.app || root.isPlace)
@@ -85,12 +86,6 @@ Item {
             return out;
         }
 
-        if (root.isDesktopApp || root.isExtraShortcut)
-            out.push({ type: "launch", text: root.t("Launch"), icon: "media-playback-start" });
-
-        if (out.length)
-            out.push(root.separator());
-
         if (root.hasSystemActions) {
             for (var i = 0; i < root.systemActions.length; ++i)
                 out.push(root.systemActions[i]);
@@ -100,12 +95,9 @@ Item {
                 text: root.isFavorite ? root.t("Unpin from ArcMenu") : root.t("Pin to ArcMenu"),
                 icon: root.isFavorite ? "unpin" : "bookmark-new"
             });
-        } else if (root.isDesktopApp) {
-            // No guessed panel/edit/uninstall actions for non-Kicker rows.
-            out.push({ type: "details", text: root.t("Show Details"), icon: "dialog-information" });
         }
 
-        if (root.customGroups.length) {
+        if (root.customGroups.length && (root.isDesktopApp || root.hasSystemActions)) {
             if (out.length && !out[out.length - 1].separator)
                 out.push(root.separator());
             for (var g = 0; g < root.customGroups.length; ++g) {
@@ -159,10 +151,14 @@ Item {
             root.clearSelection();
     }
 
-    function popup(x, y) {
+    function popup(x, y, anchor) {
         if (!root.app)
             return;
-        nativeMenu.visualParent = root.boundsItem;
+        // Kickoff ActionMenu: visualParent is the clicked delegate, and
+        // (x, y) is the mouse position inside that item. Using the whole
+        // popup as the parent with tile-local coordinates puts the menu
+        // at the launcher's top-left instead of under the cursor.
+        nativeMenu.visualParent = anchor || root.boundsItem;
         nativeMenu.open(Math.round(x || 0), Math.round(y || 0));
     }
 

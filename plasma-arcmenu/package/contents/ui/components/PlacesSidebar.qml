@@ -25,7 +25,7 @@ ColumnLayout {
 
     signal userClicked()
     signal itemActivated(var item)
-    signal itemContextMenu(var item, real x, real y)
+    signal itemContextMenu(var item, real x, real y, var anchor)
 
     readonly property string uiLang: (menuData && menuData.uiLang) ? menuData.uiLang : "zh_CN"
     readonly property bool showAvatar: !menuData || menuData.showUserAvatar !== false
@@ -225,7 +225,7 @@ ColumnLayout {
                     preferSymbolic: root.preferSymbolic
                     showTooltips: root.showTooltips
                     onActivated: root.itemActivated(modelData)
-                    onContextMenuRequested: (x, y) => root.itemContextMenu(modelData, x, y)
+                    onContextMenuRequested: (x, y, anchor) => root.itemContextMenu(modelData, x, y, anchor)
                 }
             }
         }

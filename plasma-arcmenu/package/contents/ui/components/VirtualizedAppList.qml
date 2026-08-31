@@ -31,7 +31,7 @@ ListView {
     property color fg: Kirigami.Theme.textColor
 
     signal appActivated(var app)
-    signal appContextMenu(var app, real x, real y)
+    signal appContextMenu(var app, real x, real y, var anchor)
 
     function appForId(id) {
         var wanted = String(id || "");
@@ -139,9 +139,9 @@ ListView {
             if (entryData && !entryData.isSection)
                 root.appActivated(entryData);
         }
-        onContextMenuRequested: (x, y) => {
+        onContextMenuRequested: (x, y, anchor) => {
             if (entryData && !entryData.isSection)
-                root.appContextMenu(entryData, x, y);
+                root.appContextMenu(entryData, x, y, anchor);
         }
     }
 }

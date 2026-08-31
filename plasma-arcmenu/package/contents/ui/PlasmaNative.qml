@@ -186,6 +186,12 @@ Item {
             readonly property string group: category
             readonly property bool isSeparator: !!(model.isSeparator || model.IsSeparator
                 || model.isSection || model.IsSection)
+
+            // Kickoff reads this role from the live RunnerModel row.
+            function systemActions() {
+                try { return Array.from(model.actionList || []); }
+                catch (e) { return []; }
+            }
         }
         onObjectAdded: root.scheduleRunnerRebuild()
         onObjectRemoved: root.scheduleRunnerRebuild()
@@ -278,6 +284,7 @@ Item {
                 group: itemGroup,
                 runnerRow: 0,
                 runnerIndex: obj.row,
+                kickerSource: obj,
                 noDisplay: false
             });
         }
@@ -287,7 +294,7 @@ Item {
             menuData.runnerResults = out;
     }
 
-    function triggerRunnerAt(runnerRow, matchIndex) {
+    function triggerRunnerAt(runnerRow, matchIndex, actionId, actionArgument) {
         if (matchIndex === undefined || matchIndex === null) {
             matchIndex = runnerRow;
             runnerRow = 0;
@@ -299,11 +306,22 @@ Item {
         try {
             var m = runnerModel.modelForRow(runnerRow);
             if (m && m.trigger)
-                return !!m.trigger(matchIndex, "", null);
+                return !!m.trigger(matchIndex, String(actionId || ""),
+                    actionArgument === undefined ? null : actionArgument);
         } catch (e) {
             console.warn("ArcMenu runner trigger failed", e);
         }
         return false;
+    }
+
+    function runnerSourceAt(runnerRow, matchIndex) {
+        if (matchIndex === undefined || matchIndex === null || matchIndex < 0)
+            return null;
+        if (runnerRow === undefined || runnerRow === null || runnerRow < 0)
+            runnerRow = 0;
+        if (runnerRow !== 0)
+            return null;
+        try { return matchesInst.objectAt(matchIndex); } catch (e) { return null; }
     }
 
     // ---- Recent applications (KAStats / Kickoff) ----
@@ -436,8 +454,14 @@ Item {
         asynchronous: false
         delegate: Item {
             width: 0; height: 0; visible: false
+            readonly property int row: index
             readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : (model.url || ""))
             readonly property string display: String(model.display !== undefined ? model.display : "")
+            readonly property var url: model.url
+            function systemActions() {
+                try { return Array.from(model.actionList || []); }
+                catch (e) { return []; }
+            }
         }
         onObjectAdded: root.refreshPlasmaFavorites()
         onObjectRemoved: root.refreshPlasmaFavorites()
@@ -526,6 +550,43 @@ Item {
             return true;
         } catch (e) {
             console.warn("ArcMenu movePlasmaFavorite failed:", from, to, e);
+            return false;
+        }
+    }
+
+    function _favoriteIdNorm(value) {
+        var s = String(value || "");
+        if (s.indexOf("applications:") === 0)
+            s = s.substring("applications:".length);
+        return s;
+    }
+
+    /** Live KAStats favorites row Kickoff would right-click. */
+    function favoriteSourceForId(favoriteId) {
+        var want = root._favoriteIdNorm(favoriteId);
+        if (!want)
+            return null;
+        var n = favInst.count;
+        for (var i = 0; i < n; ++i) {
+            var obj = favInst.objectAt(i);
+            if (!obj)
+                continue;
+            var have = root._favoriteIdNorm(obj.favoriteId);
+            if (have === want || have === want + ".desktop" || have + ".desktop" === want)
+                return obj;
+        }
+        return null;
+    }
+
+    function triggerFavoriteAt(index, actionId, actionArgument) {
+        var fm = favoritesModel();
+        if (!fm || index < 0 || !fm.trigger)
+            return false;
+        try {
+            return !!fm.trigger(index, String(actionId || ""),
+                actionArgument === undefined ? null : actionArgument);
+        } catch (e) {
+            console.warn("ArcMenu favorite trigger failed", e);
             return false;
         }
     }

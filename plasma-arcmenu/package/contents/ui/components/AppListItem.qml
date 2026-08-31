@@ -72,7 +72,7 @@ Item {
     }
 
     signal activated()
-    signal contextMenuRequested(real x, real y)
+    signal contextMenuRequested(real x, real y, var anchor)
 
     height: root.isSection
         ? Kirigami.Units.gridUnit * 1.35
@@ -236,7 +236,7 @@ Item {
                 return;
             }
             if (event.button === Qt.RightButton) {
-                root.contextMenuRequested(event.x, event.y);
+                root.contextMenuRequested(event.x, event.y, mouse);
             } else {
                 root.activated();
             }

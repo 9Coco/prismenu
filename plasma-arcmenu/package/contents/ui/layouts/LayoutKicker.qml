@@ -34,7 +34,7 @@ LayoutBase {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             onAppActivated: (app) => root.activateItem(app)
-            onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
+            onContextMenuRequested: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
         }
 
         ListView {
@@ -61,7 +61,7 @@ LayoutBase {
                 hoverFg: root.hoverFg
                 fg: root.fg
                 onActivated: root.activateItem(model)
-                onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+                onContextMenuRequested: (x, y, anchor) => root.appContextMenu(model, x, y, anchor)
             }
         }
 
@@ -180,7 +180,7 @@ LayoutBase {
                     root.activateItem(model);
                     cascadePopup.close();
                 }
-                onContextMenuRequested: (x, y) => root.appContextMenu(model, x, y)
+                onContextMenuRequested: (x, y, anchor) => root.appContextMenu(model, x, y, anchor)
             }
         }
     }

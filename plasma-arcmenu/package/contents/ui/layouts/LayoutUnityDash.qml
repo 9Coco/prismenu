@@ -39,7 +39,7 @@ LayoutBase {
             hoverBg: root.hoverBg
             hoverFg: root.hoverFg
             onAppActivated: (app) => root.activateItem(app)
-            onContextMenuRequested: (app, x, y) => root.appContextMenu(app, x, y)
+            onContextMenuRequested: (app, x, y, anchor) => root.appContextMenu(app, x, y, anchor)
         }
 
         PlasmaComponents.Label {
