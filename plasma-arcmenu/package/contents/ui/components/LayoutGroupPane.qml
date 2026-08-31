@@ -14,8 +14,12 @@ Item {
     property bool inlineDescription: false
     property string emptyText: ""
     property string navId: (layoutRoot && layoutRoot.activeNavId) ? layoutRoot.activeNavId : ""
-    /** Pinned/favorite group panes accept drop-to-reorder / drop-to-pin. */
-    readonly property bool pinnedView: root.navId === "pinned" || root.navId === "favorites"
+    /** Search can replace a selected pinned group's items without changing
+     * its navigation id. Never let that turn search results into a reorder
+     * target; only the visible Plasma favorites projection is mutable. */
+    readonly property bool pinnedView: !!root.layoutRoot
+        && !root.layoutRoot.searching
+        && root.layoutRoot.isPinnedGroup(root.navId)
 
     readonly property int paneIconSize: {
         var custom = 0;

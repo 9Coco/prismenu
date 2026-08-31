@@ -54,6 +54,8 @@ LayoutBase {
                 Layout.fillHeight: true
                 layoutRoot: root
                 items: root.programItems
+                reorderEnabled: !root.searching && !root.showAllPrograms
+                    && root.isPinnedGroup(root.homeGroupId)
                 showDescription: root.searching
                 iconSize: Math.max(28, root.appIconSize)
             }

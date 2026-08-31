@@ -273,6 +273,7 @@ LayoutBase {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     items: root.favoriteItems
+                    reorderEnabled: true
                     columns: 3
                     minCellWidth: root.favMinCell
                     iconSize: root.dashIcon

@@ -214,65 +214,20 @@ LayoutBase {
                             }
                         }
 
-                        Flow {
+                        Components.LayoutAppGrid {
+                            id: pinnedGrid
                             Layout.fillWidth: true
-                            spacing: Kirigami.Units.smallSpacing
-
-                            Repeater {
-                                model: root.pinnedItems.length
-                                Item {
-                                    required property int index
-                                    readonly property var app: root.pinnedItems[index]
-                                    width: root.gridCellWidth
-                                    height: root.gridCellHeight
-
-                                    Rectangle {
-                                        anchors.fill: parent
-                                        anchors.margins: 1
-                                        radius: Kirigami.Units.smallSpacing
-                                        color: pinMouse.containsMouse ? root.selectedBg : "transparent"
-                                    }
-
-                                    ColumnLayout {
-                                        anchors.centerIn: parent
-                                        width: parent.width - Kirigami.Units.smallSpacing * 2
-                                        spacing: Kirigami.Units.smallSpacing / 2
-
-                                        Kirigami.Icon {
-                                            source: app.icon || "application-x-executable"
-                                            Layout.alignment: Qt.AlignHCenter
-                                            Layout.preferredWidth: root.gridIconSize
-                                            Layout.preferredHeight: root.gridIconSize
-                                        }
-
-                                        PlasmaComponents.Label {
-                                            text: app.name || ""
-                                            elide: Text.ElideRight
-                                            horizontalAlignment: Text.AlignHCenter
-                                            Layout.fillWidth: true
-                                            maximumLineCount: 2
-                                            wrapMode: Text.WordWrap
-                                            font.pointSize: Kirigami.Theme.smallFont.pointSize
-                                            color: pinMouse.containsMouse ? root.selectedFg : root.fg
-                                        }
-                                    }
-
-                                    MouseArea {
-                                        id: pinMouse
-                                        anchors.fill: parent
-                                        hoverEnabled: true
-                                        acceptedButtons: Qt.LeftButton | Qt.RightButton
-                                        onClicked: (mouse) => {
-                                            if (mouse.button === Qt.RightButton) {
-                                                if (app && !app.action)
-                                                    root.appContextMenu(app, mouse.x, mouse.y, pinMouse);
-                                            } else {
-                                                root.activateItem(app);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            Layout.preferredHeight: Math.ceil(root.pinnedItems.length
+                                / Math.max(1, columns)) * root.gridCellHeight
+                            layoutRoot: root
+                            items: root.pinnedItems
+                            reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                            columns: Math.max(1, Math.floor(width / root.gridCellWidth))
+                            cellWidth: root.gridCellWidth
+                            cellHeight: root.gridCellHeight
+                            iconSize: root.gridIconSize
+                            multiLineLabels: true
+                            interactive: false
                         }
                     }
 
