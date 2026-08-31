@@ -1,6 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import ".." as Ui
 
 /** Content pane that honors a group's grid vs list display setting. */
 Item {
@@ -13,6 +14,8 @@ Item {
     property bool inlineDescription: false
     property string emptyText: ""
     property string navId: (layoutRoot && layoutRoot.activeNavId) ? layoutRoot.activeNavId : ""
+    /** Pinned/favorite group panes accept drop-to-reorder / drop-to-pin. */
+    readonly property bool pinnedView: root.navId === "pinned" || root.navId === "favorites"
 
     readonly property int paneIconSize: {
         var custom = 0;
@@ -24,11 +27,21 @@ Item {
                         Kirigami.Units.iconSizes.large);
     }
 
+    // Reorderable favorite views need a ListModel so GridView/ListView can
+    // animate row moves (ListModel.move → rowsMoved → move transitions).
+    Ui.ListModelBridge {
+        id: pinnedBridge
+        wrapApp: true
+        source: root.items
+    }
+
     LayoutAppGrid {
         anchors.fill: parent
         visible: root.useGrid
         layoutRoot: root.layoutRoot
         items: root.items
+        reorderEnabled: root.pinnedView
+        reorderModel: root.pinnedView ? pinnedBridge : null
         iconSize: root.paneIconSize
         columns: {
             var cell = Math.max(root.paneIconSize + Kirigami.Units.gridUnit * 1.8,
@@ -42,6 +55,8 @@ Item {
         visible: !root.useGrid
         layoutRoot: root.layoutRoot
         items: root.items
+        reorderEnabled: root.pinnedView
+        reorderModel: root.pinnedView ? pinnedBridge : null
         showDescription: root.showDescription
         inlineDescription: root.inlineDescription
         iconSize: Math.max(root.layoutRoot ? root.layoutRoot.appIconSize : 24,

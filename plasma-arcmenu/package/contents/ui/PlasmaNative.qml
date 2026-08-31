@@ -499,6 +499,23 @@ Item {
         }
     }
 
+    function insertPlasmaFavorite(favoriteId, index) {
+        var fm = favoritesModel();
+        if (!fm || !favoriteId)
+            return false;
+        try {
+            var id = String(favoriteId);
+            if (fm.isFavorite(id))
+                return false;
+            fm.addFavorite(id, Math.max(0, index | 0));
+            Qt.callLater(root.refreshPlasmaFavorites);
+            return true;
+        } catch (e) {
+            console.warn("ArcMenu insertPlasmaFavorite failed:", favoriteId, e);
+            return false;
+        }
+    }
+
     function movePlasmaFavorite(from, to) {
         var fm = favoritesModel();
         if (!fm || from < 0 || to < 0 || from === to)

@@ -681,6 +681,11 @@ QtObject {
     property int catalogEpoch: 0
     /** Bumped when menu-structure config changes (extra categories, etc.) */
     property int structureEpoch: 0
+    /** Drag sorting is previewed in memory.  Configuration is written only
+     * after a drop is accepted by a pinned view. */
+    property var pinnedPreviewIds: []
+    property string pinnedPreviewSourceId: ""
+    property bool pinnedPreviewCommitPending: false
     property var rawCategories: []
     property string userName: ""
     property string userIcon: "user-identity"
@@ -805,8 +810,8 @@ QtObject {
         }
     }
 
-    /** Plasma global favorites first; ArcMenu-only shortcuts stay local. */
-    function effectivePinnedIds() {
+    /** Stored order without a drag preview. */
+    function storedPinnedIds() {
         var local = IdList.normalizeIdList(cfg("PinnedApps", []));
         var out = [];
         var global = IdList.normalizeIdList(root.plasmaFavoriteIds || []);
@@ -821,6 +826,164 @@ QtObject {
                 out.push(local[j]);
         }
         return out;
+    }
+
+    /** Plasma global favorites first; ArcMenu-only shortcuts stay local. */
+    function effectivePinnedIds() {
+        if ((root.pinnedPreviewIds || []).length)
+            return root.pinnedPreviewIds.slice();
+        return root.storedPinnedIds();
+    }
+
+    function beginPinnedPreview(sourceId) {
+        sourceId = String(sourceId || "");
+        if (!sourceId)
+            return false;
+        if (root.pinnedPreviewSourceId === sourceId
+                && (root.pinnedPreviewIds || []).length)
+            return true;
+        var base = root.storedPinnedIds();
+        if (base.indexOf(sourceId) < 0)
+            return false;
+        root.pinnedPreviewSourceId = sourceId;
+        root.pinnedPreviewIds = base.slice();
+        root.pinnedPreviewCommitPending = false;
+        return true;
+    }
+
+    /** Move a pin in the in-memory preview. `after` selects the target half. */
+    function previewPinnedItem(sourceId, targetId, after) {
+        sourceId = String(sourceId || "");
+        targetId = String(targetId || "");
+        if (!root.beginPinnedPreview(sourceId) || !targetId || sourceId === targetId)
+            return false;
+        var ids = root.pinnedPreviewIds.slice();
+        var from = ids.indexOf(sourceId);
+        var target = ids.indexOf(targetId);
+        if (from < 0 || target < 0)
+            return false;
+
+        // Plasma favorites and ArcMenu-only shortcuts have different backing
+        // stores, so they remain two stable sections during a drag.
+        var sourceLocal = root.isArcMenuOnlyPinId(sourceId);
+        var targetLocal = root.isArcMenuOnlyPinId(targetId);
+        ids.splice(from, 1);
+        if (sourceLocal !== targetLocal) {
+            target = sourceLocal ? ids.length : 0;
+            if (sourceLocal) {
+                for (var b = 0; b < ids.length; ++b) {
+                    if (root.isArcMenuOnlyPinId(ids[b])) {
+                        target = b;
+                        break;
+                    }
+                }
+            } else {
+                target = 0;
+                while (target < ids.length && !root.isArcMenuOnlyPinId(ids[target]))
+                    target++;
+            }
+        } else {
+            target = ids.indexOf(targetId);
+            if (after)
+                target++;
+        }
+        target = Math.max(0, Math.min(ids.length, target));
+        ids.splice(target, 0, sourceId);
+        if (ids.join("\u001f") === root.pinnedPreviewIds.join("\u001f"))
+            return false;
+        root.pinnedPreviewIds = ids;
+        root.bumpStructure();
+        return true;
+    }
+
+    function cancelPinnedPreview() {
+        if (root.pinnedPreviewCommitPending)
+            return;
+        if (!(root.pinnedPreviewIds || []).length)
+            return;
+        root.pinnedPreviewIds = [];
+        root.pinnedPreviewSourceId = "";
+        root.bumpStructure();
+    }
+
+    function finishPinnedPreviewCommit() {
+        root.pinnedPreviewCommitPending = false;
+        root.pinnedPreviewIds = [];
+        root.pinnedPreviewSourceId = "";
+        root.bumpStructure();
+    }
+
+    /** Persist the accepted preview order to Plasma favorites/local pins. */
+    function commitPinnedPreview(sourceId) {
+        sourceId = String(sourceId || "");
+        if (sourceId !== root.pinnedPreviewSourceId
+                || !(root.pinnedPreviewIds || []).length)
+            return false;
+        return root._persistPinnedOrder(root.pinnedPreviewIds.slice());
+    }
+
+    /**
+     * Commit a live Kickoff-style reorder: the view already moved its
+     * ListModel, so persist that id order without rebuilding the source
+     * until Plasma's favorites model catches up.
+     */
+    function commitPinnedOrder(ids) {
+        if (!ids || !ids.length)
+            return false;
+        var desired = [];
+        for (var i = 0; i < ids.length; ++i) {
+            var id = String(ids[i] || "");
+            if (id)
+                desired.push(id);
+        }
+        if (!desired.length)
+            return false;
+        var stored = root.storedPinnedIds();
+        if (desired.join("\u001f") === stored.join("\u001f"))
+            return true;
+        root.pinnedPreviewIds = desired;
+        root.pinnedPreviewSourceId = desired[0];
+        return root._persistPinnedOrder(desired);
+    }
+
+    function _persistPinnedOrder(desired) {
+        root.pinnedPreviewCommitPending = true;
+
+        var currentGlobals = root.storedPinnedIds().filter(function (id) {
+            return !root.isArcMenuOnlyPinId(id);
+        });
+        var desiredGlobals = desired.filter(function (id) {
+            return !root.isArcMenuOnlyPinId(id);
+        });
+        if (appsBackend && appsBackend.movePlasmaFavorite) {
+            for (var i = 0; i < desiredGlobals.length; ++i) {
+                var from = currentGlobals.indexOf(desiredGlobals[i]);
+                if (from < 0 || from === i)
+                    continue;
+                appsBackend.movePlasmaFavorite(from, i);
+                var moved = currentGlobals.splice(from, 1)[0];
+                currentGlobals.splice(i, 0, moved);
+            }
+        }
+
+        var desiredLocals = desired.filter(root.isArcMenuOnlyPinId);
+        var rawLocal = IdList.normalizeIdList(cfg("PinnedApps", []));
+        var localAt = 0;
+        for (var r = 0; r < rawLocal.length; ++r) {
+            if (root.isArcMenuOnlyPinId(rawLocal[r]) && localAt < desiredLocals.length)
+                rawLocal[r] = desiredLocals[localAt++];
+        }
+        while (localAt < desiredLocals.length)
+            rawLocal.push(desiredLocals[localAt++]);
+        if (plasmoidConfig) {
+            plasmoidConfig.PinnedApps = rawLocal;
+            try { plasmoidConfig.writeConfig(); } catch (e) {}
+        }
+
+        // Plasma's favorites model refresh is queued as well; keeping the
+        // preview for this event-loop turn avoids a one-frame snap backwards.
+        Qt.callLater(root.finishPinnedPreviewCommit);
+        return true;
     }
 
     /** Map sidebar shortcuts → pin ids (prefer real .desktop when known) */
@@ -1500,24 +1663,139 @@ QtObject {
             plasmoidConfig.PinnedApps = next;
     }
 
+    /** Index of an app id inside Plasma's global favorites list (-1 none). */
+    function favoriteIndexForAppId(appId) {
+        var favs = root.plasmaFavoriteIds || [];
+        var id = String(appId || "");
+        for (var i = 0; i < favs.length; ++i) {
+            var app = root.appForPlasmaFavoriteId(favs[i]);
+            if (app && String(app.id) === id)
+                return i;
+        }
+        return -1;
+    }
+
     function reorderPinned(from, to) {
-        if (!plasmoidConfig || from === to) {
+        var ids = root.effectivePinnedIds();
+        if (from < 0 || to < 0 || from >= ids.length || to >= ids.length)
             return;
+        root.movePinnedItem(ids[from], ids[to]);
+    }
+
+    /**
+     * Drag & drop entry point for pinned/favorite views. Reorders the
+     * dragged entry next to targetId, or pins a not-yet-pinned app at that
+     * position (Kickoff-style drop-to-pin). An empty targetId appends at
+     * the end of the pinned list. Global Plasma favorites keep their shared
+     * order through KAStatsFavoritesModel; ArcMenu-only pins stay in the
+     * local PinnedApps config.
+     */
+    function movePinnedItem(fromId, toId) {
+        if (!plasmoidConfig)
+            return false;
+        fromId = String(fromId || "");
+        toId = String(toId || "");
+        if (!fromId || fromId === toId)
+            return false;
+
+        var ids = root.effectivePinnedIds();
+        var from = ids.indexOf(fromId);
+        var to = toId ? ids.indexOf(toId) : ids.length; // "" → append
+        if (from >= 0 && from === to)
+            return false;
+
+        var local = IdList.normalizeIdList(cfg("PinnedApps", []));
+        var favCount = (root.plasmaFavoriteIds || []).length;
+
+        function writeLocal(list) {
+            plasmoidConfig.PinnedApps = list;
+            try { plasmoidConfig.writeConfig(); } catch (e) {}
+            try { root.bumpStructure(); } catch (e2) {}
         }
-        var globalCount = 0;
-        var global = IdList.normalizeIdList(root.plasmaFavoriteIds || []);
-        for (var i = 0; i < global.length; ++i) {
-            if (root.appForPlasmaFavoriteId(global[i]))
-                globalCount++;
+
+        if (from >= 0) {
+            var fromLocal = root.isArcMenuOnlyPinId(fromId);
+            var toLocal = to >= 0 && to < ids.length
+                && root.isArcMenuOnlyPinId(ids[to]);
+
+            if (!fromLocal) {
+                // Plasma global favorite
+                var fi = root.favoriteIndexForAppId(fromId);
+                if (fi < 0 || !appsBackend || !appsBackend.movePlasmaFavorite)
+                    return false;
+                if (toLocal || to >= ids.length) {
+                    // Dropped on a local pin / empty tail → end of favorites
+                    appsBackend.movePlasmaFavorite(fi, Math.max(0, favCount - 1));
+                } else {
+                    var ti = root.favoriteIndexForAppId(ids[to]);
+                    if (ti < 0)
+                        return false;
+                    appsBackend.movePlasmaFavorite(fi, ti);
+                }
+                return true;
+            }
+
+            // ArcMenu-only pin (shortcut / custom entry)
+            var lf = local.indexOf(fromId);
+            if (lf < 0)
+                return false;
+            local.splice(lf, 1);
+            if (toLocal) {
+                var lt = local.indexOf(ids[to]);
+                if (lt >= 0)
+                    local.splice(lt, 0, fromId);
+                else
+                    local.push(fromId);
+            } else if (to >= ids.length) {
+                local.push(fromId); // empty tail → end of the local section
+            } else {
+                // Dropped on a favorite → front of the local section
+                var firstLocal = -1;
+                for (var k = 0; k < local.length; ++k) {
+                    if (root.isArcMenuOnlyPinId(local[k])) {
+                        firstLocal = k;
+                        break;
+                    }
+                }
+                if (firstLocal >= 0)
+                    local.splice(firstLocal, 0, fromId);
+                else
+                    local.push(fromId);
+            }
+            writeLocal(local);
+            return true;
         }
-        if (from < globalCount && to < globalCount && appsBackend && appsBackend.movePlasmaFavorite) {
-            appsBackend.movePlasmaFavorite(from, to);
-            return;
+
+        // fromId is not pinned yet → pin it (drop-to-pin, Kickoff parity)
+        if (root.isArcMenuOnlyPinId(fromId))
+            return false;
+        var app = AppsModel.findAppById(allApps, fromId);
+        if (!app)
+            return false;
+        var toLocalPin = to >= 0 && to < ids.length
+            && root.isArcMenuOnlyPinId(ids[to]);
+        if (toLocalPin) {
+            var lt2 = local.indexOf(ids[to]);
+            if (lt2 >= 0) {
+                local.splice(lt2, 0, fromId);
+                writeLocal(local);
+                return true;
+            }
         }
-        if (from >= globalCount && to >= globalCount) {
-            var current = IdList.normalizeIdList(cfg("PinnedApps", [])).filter(root.isArcMenuOnlyPinId);
-            plasmoidConfig.PinnedApps = Favorites.moveItem(current, from - globalCount, to - globalCount);
+        var favId = root.plasmaFavoriteIdForApp(app);
+        if (!favId || !appsBackend)
+            return false;
+        if (!toLocalPin && to >= 0 && to < ids.length
+                && appsBackend.insertPlasmaFavorite) {
+            var ti2 = root.favoriteIndexForAppId(ids[to]);
+            if (ti2 >= 0)
+                return appsBackend.insertPlasmaFavorite(favId, ti2);
         }
+        if (appsBackend.setPlasmaFavorite) {
+            appsBackend.setPlasmaFavorite(favId, true);
+            return true;
+        }
+        return false;
     }
 
     function recordLaunch(app) {
