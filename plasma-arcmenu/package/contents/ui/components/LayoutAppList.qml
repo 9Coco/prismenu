@@ -23,7 +23,7 @@ VirtualizedAppList {
     Ui.ListModelBridge {
         id: internalReorderModel
         wrapApp: true
-        source: root.items
+        source: root.reorderEnabled ? root.items : []
     }
 
     Connections {
