@@ -422,7 +422,9 @@ def main() -> int:
         "LayoutSimple.qml", "LayoutUnity.qml", "LayoutUnityDash.qml",
         "LayoutWindows.qml",
     ]
-    check(all("reorderEnabled:" in layout_sources[name] for name in reorder_layouts),
+    check(all("reorderEnabled:" in
+              (PKG / "contents/ui/layouts" / name).read_text(encoding="utf-8")
+              for name in reorder_layouts),
           "standalone pinned projections opt into shared live reorder")
     extra_cfg = (PKG / "contents/ui/config/ConfigExtraCategories.qml").read_text(encoding="utf-8")
     check('icon.name: "settings-configure"' in extra_cfg, "menu group rows have column settings button")
