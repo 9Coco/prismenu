@@ -1,8 +1,7 @@
 import QtQuick
-import QtQuick.Controls as QQC2
-import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
+import ".." as Ui
 import "../../code/Locale.js" as Locale
 
 /**
@@ -22,6 +21,8 @@ Item {
     property bool showDescription: false
     property bool showGenericNames: false
     property bool multiLineLabels: false
+    /** Pinned views accept drop-to-reorder / drop-to-pin on the rows. */
+    property bool reorderEnabled: false
 
     signal appActivated(var app)
     signal appContextMenu(var app, real x, real y)
@@ -63,59 +64,43 @@ Item {
             ];
         }
         var out = [];
-        for (var i = 0; i < raw.length; ++i) {
+        for (var i = 0; i < raw.length; ++i)
             out.push(root.localizeApp(raw[i]));
-        }
         return out;
     }
 
-    Flickable {
-        id: flick
+    Ui.ListModelBridge {
+        id: pinBridge
+        wrapApp: true
+        source: root.items
+    }
+
+    VirtualizedAppList {
         anchors.fill: parent
-        contentWidth: width
-        contentHeight: column.height
-        clip: true
-        boundsBehavior: Flickable.StopAtBounds
-        QQC2.ScrollBar.vertical: MenuScrollBar { menuData: root.menuData }
-        QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
-        Accessible.name: Locale.tr("Pinned applications", root.uiLang)
+        visible: root.items.length > 0
+        items: root.items
+        menuData: root.menuData
+        reorderEnabled: root.reorderEnabled
+        reorderModel: root.reorderEnabled ? pinBridge : null
+        iconSize: root.iconSize
+        selectedBg: root.selectedBg
+        selectedFg: root.selectedFg
+        hoverBg: root.hoverBg
+        hoverFg: root.hoverFg
+        fg: root.fg
+        showDescription: root.showDescription
+        showGenericNames: root.showGenericNames
+        multiLineLabels: root.multiLineLabels
+        onAppActivated: (app) => root.appActivated(app)
+        onAppContextMenu: (app, x, y) => root.appContextMenu(app, x, y)
+    }
 
-        Column {
-            id: column
-            width: flick.width
-            spacing: Kirigami.Units.smallSpacing / 2
-
-            Repeater {
-                model: root.items
-                AppListItem {
-                    required property var modelData
-                    width: column.width
-                    app: modelData
-                    iconSize: root.iconSize
-                    selectedBg: root.selectedBg
-                    selectedFg: root.selectedFg
-                    hoverBg: root.hoverBg
-                    hoverFg: root.hoverFg
-                    fg: root.fg
-                    showDescription: root.showDescription
-                    showGenericNames: root.showGenericNames
-                    multiLineLabels: root.multiLineLabels
-                    onActivated: root.appActivated(modelData)
-                    onContextMenuRequested: (x, y) => {
-                        // Allow unpin / actions even for ArcMenu Settings (action: configure)
-                        if (modelData)
-                            root.appContextMenu(modelData, x, y);
-                    }
-                }
-            }
-
-            PlasmaComponents.Label {
-                visible: root.items.length === 0
-                width: column.width
-                horizontalAlignment: Text.AlignHCenter
-                opacity: 0.55
-                text: Locale.tr("Pin applications from the context menu", root.uiLang)
-            }
-        }
+    PlasmaComponents.Label {
+        visible: root.items.length === 0
+        anchors.centerIn: parent
+        width: parent.width
+        horizontalAlignment: Text.AlignHCenter
+        opacity: 0.55
+        text: Locale.tr("Pin applications from the context menu", root.uiLang)
     }
 }

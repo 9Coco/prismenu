@@ -501,6 +501,31 @@ def main() -> int:
     app_grid = (PKG / "contents/ui/components/AppGrid.qml").read_text(encoding="utf-8")
     check("currentIndex: -1" in app_grid and "minCellWidth:" in arc_layout,
           "ArcMenu pinned grid uses adaptive spacing without a stale first-item highlight")
+    pinned_drop = (PKG / "contents/ui/components/PinnedDropArea.qml").read_text(encoding="utf-8")
+    app_drag = (PKG / "contents/code/AppDrag.js").read_text(encoding="utf-8")
+    list_bridge = (PKG / "contents/ui/ListModelBridge.qml").read_text(encoding="utf-8")
+    virtualized = (PKG / "contents/ui/components/VirtualizedAppList.qml").read_text(encoding="utf-8")
+    pinned_grid = (PKG / "contents/ui/components/PinnedAppsGrid.qml").read_text(encoding="utf-8")
+    check("KickoffDropArea" in pinned_drop
+          and "movePinnedInView" in pinned_drop
+          and "indexAt" in pinned_drop,
+          "pinned views use a Kickoff-style view DropArea")
+    check("function movePinnedInView" in app_drag
+          and "viewIsAnimating" in app_drag
+          and "model.move(from, to, 1)" in app_drag,
+          "live reorder hops with ListModel.move while animations run")
+    check("property bool freezeSource: false" in list_bridge
+          and "function freeze()" in list_bridge
+          and "function unfreeze()" in list_bridge,
+          "ListModelBridge freezes its source during a live Kickoff reorder")
+    check("moveDisplaced:" in app_grid
+          and "moveDisplaced:" in virtualized
+          and "moveDisplaced:" in pinned_grid
+          and "Easing.OutCubic" in app_grid
+          and "Easing.OutCubic" in virtualized,
+          "pinned list/grid views animate displaced items out of the way")
+    check("function commitPinnedOrder" in (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8"),
+          "accepted live order is persisted through commitPinnedOrder")
     plasma_native = (PKG / "contents/ui/PlasmaNative.qml").read_text(encoding="utf-8")
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     config_menu = (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8")

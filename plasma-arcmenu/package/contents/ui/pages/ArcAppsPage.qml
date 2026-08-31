@@ -5,6 +5,7 @@ import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import org.kde.plasma.plasmoid
 import "../components" as Components
+import ".." as Ui
 import "../../code/AppsModel.js" as AppsModel
 import "../../code/Locale.js" as Locale
 import "../../code/CatalogBridge.js" as CatalogBridge
@@ -28,6 +29,17 @@ Item {
     property string drillCategoryId: ""
     /** favorites | frequent | empty — special lists outside normal categories */
     property string specialListId: ""
+    readonly property bool pinnedReorderView: root.specialListId === "pinned"
+        || root.specialListId === "favorites"
+
+    // The fixed-apps drill-down needs a real movable model. A numeric model
+    // can swap delegate contents, but it cannot emit rowsMoved, so GridView's
+    // moveDisplaced transition never runs.
+    Ui.ListModelBridge {
+        id: pinnedAppsBridge
+        wrapApp: true
+        source: root.pinnedReorderView ? root.drilledApps : []
+    }
 
     readonly property bool showingCategories: drillCategoryId.length === 0 && specialListId.length === 0
     readonly property bool canGoBackToCategories: drillCategoryId.length > 0 || specialListId.length > 0
@@ -685,6 +697,8 @@ Item {
 
                 items: displayRows
                 menuData: root.menuData || root.dataHost
+                reorderEnabled: root.pinnedReorderView
+                reorderModel: root.pinnedReorderView ? pinnedAppsBridge : null
                 iconSize: root.appIconSize
                 showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
                 showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
@@ -708,6 +722,8 @@ Item {
                 z: enabled ? 1 : 0
                 items: root.drilledApps
                 menuData: root.menuData || root.dataHost
+                reorderEnabled: root.pinnedReorderView
+                reorderModel: root.pinnedReorderView ? pinnedAppsBridge : null
                 minCellWidth: Math.max(Kirigami.Units.gridUnit * 4,
                     root.groupIconSize + Kirigami.Units.gridUnit * 2)
                 iconSize: root.groupIconSize

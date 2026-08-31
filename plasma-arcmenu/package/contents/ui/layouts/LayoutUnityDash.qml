@@ -33,6 +33,7 @@ LayoutBase {
             columns: menuData ? menuData.pinnedCols : 6
             iconSize: Math.max(36, root.appIconSize + 12)
             model: pinnedModel
+            menuData: root.menuData
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             hoverBg: root.hoverBg
