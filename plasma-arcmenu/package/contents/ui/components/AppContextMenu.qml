@@ -16,13 +16,11 @@ Item {
     visible: false
 
     property var app: null
-    property bool isFavorite: false
     property var menuData: null
     property var systemActions: []
     property Item boundsItem: null
 
     signal launchRequested(var app)
-    signal toggleFavoriteRequested(var app)
     signal detailsRequested(var app)
     signal systemActionRequested(var app, string actionId, var actionArgument)
     signal toggleCustomGroupRequested(var app, string groupId)
@@ -32,17 +30,17 @@ Item {
     readonly property string appId: app ? String(app.id || "") : ""
     readonly property bool isPlace: !!(app && app.place)
     readonly property bool isArcMenuSettings: appId === "arcmenu-settings"
-        || (app && app.action === "configure")
+        || !!(app && app.action === "configure")
     readonly property bool isExtraShortcut: {
         if (!app || isPlace || isArcMenuSettings)
             return false;
-        return appId.indexOf("shortcut-") === 0
-            || (app.action && app.action !== "configure");
+        if (appId.indexOf("shortcut-") === 0)
+            return true;
+        return !!(app.action && app.action !== "configure");
     }
     readonly property bool isDesktopApp: !!(app && !isPlace && !isArcMenuSettings
         && !isExtraShortcut && (app.exec || app.entryPath || app.kickerUrl)
         && appId.indexOf("shortcut-") !== 0)
-    readonly property bool canPinLocally: isExtraShortcut || isArcMenuSettings
     readonly property bool hasSystemActions: systemActions && systemActions.length > 0
     readonly property string contextGroupAppId: {
         if (!app)
@@ -80,21 +78,14 @@ Item {
         if (!root.app || root.isPlace)
             return out;
 
-        if (root.isArcMenuSettings) {
-            if (root.isFavorite)
-                out.push({ type: "local-favorite", text: root.t("Unpin from ArcMenu"), icon: "unpin" });
+        if (root.isArcMenuSettings)
             return out;
-        }
 
+        out.push({ type: "launch", text: root.t("Launch"), icon: "system-run" });
         if (root.hasSystemActions) {
+            out.push(root.separator());
             for (var i = 0; i < root.systemActions.length; ++i)
                 out.push(root.systemActions[i]);
-        } else if (root.canPinLocally) {
-            out.push({
-                type: "local-favorite",
-                text: root.isFavorite ? root.t("Unpin from ArcMenu") : root.t("Pin to ArcMenu"),
-                icon: root.isFavorite ? "unpin" : "bookmark-new"
-            });
         }
 
         if (root.customGroups.length && (root.isDesktopApp || root.hasSystemActions)) {
@@ -118,19 +109,27 @@ Item {
     }
 
     function isNativeEntry(entry) {
-        return !!(entry && entry.actionId !== undefined && !entry.type);
+        if (!entry || entry.type)
+            return false;
+        return entry.actionId !== undefined && entry.actionId !== null
+            && String(entry.actionId) !== "";
     }
 
     function activateEntry(entry) {
         if (!entry || entry.separator || entry.type === "title")
             return;
+        if (String(entry.type || "") === "kickoff-favorite"
+                || String(entry.actionId || "").indexOf("_kicker_favorite_") === 0) {
+            root.systemActionRequested(root.app, String(entry.actionId || ""),
+                entry.actionArgument);
+            return;
+        }
         if (root.isNativeEntry(entry)) {
             root.systemActionRequested(root.app, String(entry.actionId || ""), entry.actionArgument);
             return;
         }
         switch (String(entry.type || "")) {
         case "launch": root.launchRequested(root.app); break;
-        case "local-favorite": root.toggleFavoriteRequested(root.app); break;
         case "details": root.detailsRequested(root.app); break;
         case "custom-group":
             root.toggleCustomGroupRequested(root.app, String(entry.groupId || ""));
@@ -141,7 +140,6 @@ Item {
     function clearSelection() {
         root.app = null;
         root.systemActions = [];
-        root.isFavorite = false;
     }
 
     function dismissAndClear() {

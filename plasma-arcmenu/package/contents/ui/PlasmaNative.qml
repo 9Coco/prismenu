@@ -27,7 +27,10 @@ Item {
     property bool systemPlaceMetadataReady: false
     property bool systemPlaceMetadataPending: false
     property var plasmaFavoriteIds: []
+    property var favoritesModelOverride: null
     readonly property var favoritesSourceModel: {
+        if (root.favoritesModelOverride)
+            return root.favoritesModelOverride;
         try { return root.rootModel ? root.rootModel.favoritesModel : null; }
         catch (e) { return null; }
     }
@@ -409,38 +412,27 @@ Item {
     }
 
     function refreshPlasmaFavorites() {
-        var fm = favoritesModel();
         var ids = [];
-        if (!fm) {
-            root.plasmaFavoriteIds = ids;
-            plasmaFavoritesUpdated(ids);
-            return;
+        var j;
+        for (j = 0; j < favInst.count; ++j) {
+            var o = favInst.objectAt(j);
+            if (o && o.favoriteId)
+                ids.push(String(o.favoriteId));
         }
-        try {
-            var n = fm.count;
-            for (var i = 0; i < n; ++i) {
-                var fid = "";
-                try {
-                    // role favoriteId / Url commonly available
-                    var idx = fm.index(i, 0);
-                    fid = String(fm.data(idx, fm.favoriteIdRole !== undefined ? fm.favoriteIdRole : Qt.UserRole + 3) || "");
-                } catch (e1) {}
-                if (!fid) {
-                    try { fid = String(fm.favoriteIdAt ? fm.favoriteIdAt(i) : ""); } catch (e2) {}
+        if (!ids.length) {
+            var fm = favoritesModel();
+            try {
+                var n = fm ? fm.count : 0;
+                for (var i = 0; i < n; ++i) {
+                    var fid = "";
+                    try {
+                        var idx = fm.index(i, 0);
+                        fid = String(fm.data(idx, fm.favoriteIdRole !== undefined ? fm.favoriteIdRole : Qt.UserRole + 3) || "");
+                    } catch (e1) {}
+                    if (fid)
+                        ids.push(fid);
                 }
-                if (fid)
-                    ids.push(fid);
-            }
-        } catch (e) {
-            // Instantiator fallback below may still work
-        }
-        // Prefer Instantiator materialization when roles are awkward
-        if (!ids.length && favInst.count > 0) {
-            for (var j = 0; j < favInst.count; ++j) {
-                var o = favInst.objectAt(j);
-                if (o && o.favoriteId)
-                    ids.push(o.favoriteId);
-            }
+            } catch (e) {}
         }
         root.plasmaFavoriteIds = ids;
         plasmaFavoritesUpdated(ids);
@@ -455,7 +447,12 @@ Item {
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property int row: index
-            readonly property string favoriteId: String(model.favoriteId !== undefined ? model.favoriteId : (model.url || ""))
+            readonly property string favoriteId: {
+                var fid = model.favoriteId;
+                if (fid)
+                    return String(fid);
+                return String(model.url || "");
+            }
             readonly property string display: String(model.display !== undefined ? model.display : "")
             readonly property var url: model.url
             function systemActions() {
@@ -479,42 +476,90 @@ Item {
         function onRowsMoved() { root.refreshPlasmaFavorites(); }
     }
 
+    function _favoriteIdVariants(value) {
+        var out = [];
+        function push(v) {
+            v = String(v || "").trim();
+            if (!v || out.indexOf(v) >= 0)
+                return;
+            out.push(v);
+        }
+        push(value);
+        var s = String(value || "").trim();
+        if (!s)
+            return out;
+        if (s.indexOf("applications:") === 0)
+            push(s.substring("applications:".length));
+        else if (s.indexOf(":") < 0)
+            push("applications:" + s);
+        var base = s.indexOf("applications:") === 0 ? s.substring("applications:".length) : s;
+        if (base.indexOf(".desktop") < 0 && base.indexOf("/") < 0 && base.indexOf(":") < 0)
+            push(base + ".desktop");
+        if (base.slice(-8) === ".desktop")
+            push(base.substring(0, base.length - 8));
+        if (out.indexOf("applications:" + base) < 0 && base.indexOf(":") < 0)
+            push("applications:" + base);
+        if (base.slice(-8) !== ".desktop" && base.indexOf(":") < 0) {
+            push("applications:" + base + ".desktop");
+            push(base + ".desktop");
+        }
+        return out;
+    }
+
     function isPlasmaFavorite(favoriteId) {
         var fm = favoritesModel();
         if (!fm || !favoriteId)
             return false;
-        try { return !!fm.isFavorite(String(favoriteId)); } catch (e) { return false; }
+        var ids = root._favoriteIdVariants(favoriteId);
+        for (var i = 0; i < ids.length; ++i) {
+            try {
+                if (fm.isFavorite(ids[i]))
+                    return true;
+            } catch (e) {}
+        }
+        return !!root.favoriteSourceForId(favoriteId);
     }
 
     function togglePlasmaFavorite(favoriteId) {
-        var fm = favoritesModel();
-        if (!fm || !favoriteId)
-            return false;
-        try {
-            var id = String(favoriteId);
-            if (fm.isFavorite(id))
-                fm.removeFavorite(id);
-            else
-                fm.addFavorite(id);
-            Qt.callLater(root.refreshPlasmaFavorites);
-            return true;
-        } catch (e) {
-            console.warn("ArcMenu favorites toggle failed", e);
-            return false;
-        }
+        return root.setPlasmaFavorite(favoriteId, !root.isPlasmaFavorite(favoriteId));
     }
 
     function setPlasmaFavorite(favoriteId, favorite) {
         var fm = favoritesModel();
-        if (!fm || !favoriteId)
+        if (!fm)
             return false;
+        var ids = root._favoriteIdVariants(favoriteId);
+        var matched = "";
+        var i;
+        for (i = 0; i < ids.length; ++i) {
+            try {
+                if (fm.isFavorite(ids[i])) {
+                    matched = ids[i];
+                    break;
+                }
+            } catch (e1) {}
+        }
+        if (!matched) {
+            var src = root.favoriteSourceForId(favoriteId);
+            if (src && src.favoriteId)
+                matched = String(src.favoriteId);
+        }
         try {
-            var id = String(favoriteId);
-            var current = !!fm.isFavorite(id);
-            if (favorite && !current)
-                fm.addFavorite(id);
-            else if (!favorite && current)
-                fm.removeFavorite(id);
+            if (favorite) {
+                if (matched)
+                    return true;
+                var addId = ids.length ? ids[0] : String(favoriteId || "");
+                if (!addId)
+                    return false;
+                fm.addFavorite(addId);
+            } else {
+                if (!matched)
+                    return false;
+                fm.removeFavorite(matched);
+            }
+            if (menuData && menuData.dropPinnedPreviewForce)
+                menuData.dropPinnedPreviewForce();
+            root.refreshPlasmaFavorites();
             Qt.callLater(root.refreshPlasmaFavorites);
             return true;
         } catch (e) {
@@ -563,19 +608,101 @@ Item {
 
     /** Live KAStats favorites row Kickoff would right-click. */
     function favoriteSourceForId(favoriteId) {
-        var want = root._favoriteIdNorm(favoriteId);
-        if (!want)
+        var variants = root._favoriteIdVariants(favoriteId);
+        if (!variants.length)
             return null;
         var n = favInst.count;
         for (var i = 0; i < n; ++i) {
             var obj = favInst.objectAt(i);
             if (!obj)
                 continue;
-            var have = root._favoriteIdNorm(obj.favoriteId);
-            if (have === want || have === want + ".desktop" || have + ".desktop" === want)
+            var haveVars = root._favoriteIdVariants(obj.favoriteId);
+            for (var a = 0; a < variants.length; ++a) {
+                for (var b = 0; b < haveVars.length; ++b) {
+                    if (variants[a] === haveVars[b])
+                        return obj;
+                }
+            }
+        }
+        return null;
+    }
+
+    function favoriteSourceForApp(app) {
+        if (!app)
+            return null;
+        var keys = [app.favoriteId, app.id, app.kickerUrl, app.entryPath];
+        var i;
+        for (i = 0; i < keys.length; ++i) {
+            var src = root.favoriteSourceForId(keys[i]);
+            if (src)
+                return src;
+        }
+        var name = String(app.name || "").toLowerCase();
+        if (!name)
+            return null;
+        var n = favInst.count;
+        for (i = 0; i < n; ++i) {
+            var obj = favInst.objectAt(i);
+            if (obj && String(obj.display || "").toLowerCase() === name)
                 return obj;
         }
         return null;
+    }
+
+    function removeFavoriteForApp(app, actionArgument) {
+        var fm = favoritesModel();
+        if (!fm)
+            return false;
+        var keys = [];
+        function push(v) {
+            if (v && typeof v === "object" && v.favoriteId)
+                v = v.favoriteId;
+            v = String(v || "");
+            if (v && v !== "[object Object]" && keys.indexOf(v) < 0)
+                keys.push(v);
+        }
+        push(actionArgument);
+        var src = root.favoriteSourceForApp(app);
+        if (src)
+            push(src.favoriteId);
+        if (app) {
+            push(app.favoriteId);
+            push(app.id);
+            push(app.kickerUrl);
+            push(app.entryPath);
+            if (menuData && menuData.plasmaFavoriteIdForApp)
+                push(menuData.plasmaFavoriteIdForApp(app));
+        }
+        var i;
+        for (i = 0; i < keys.length; ++i) {
+            var id = keys[i];
+            var variants = root._favoriteIdVariants(id);
+            var v;
+            for (v = 0; v < variants.length; ++v) {
+                try { fm.removeFavorite(variants[v]); } catch (e0) {}
+            }
+            try {
+                if (fm.linkedActivitiesFor && fm.removeFavoriteFrom) {
+                    var linked = fm.linkedActivitiesFor(id) || [];
+                    for (var a = 0; a < linked.length; ++a)
+                        fm.removeFavoriteFrom(id, linked[a]);
+                }
+            } catch (e1) {}
+        }
+        if (src && fm.trigger) {
+            try {
+                fm.trigger(src.row, "_kicker_favorite_remove",
+                    { favoriteId: String(src.favoriteId) });
+            } catch (e2) {}
+        }
+        console.log("ArcMenu removeFavoriteForApp app=", app ? app.id : "",
+            "rowId=", src ? src.favoriteId : "", "tried=", keys.join(","),
+            "countNow=", fm.count);
+        if (menuData && menuData.dropPinnedPreviewForce)
+            menuData.dropPinnedPreviewForce();
+        root.refreshPlasmaFavorites();
+        Qt.callLater(root.refreshPlasmaFavorites);
+        return true;
     }
 
     function triggerFavoriteAt(index, actionId, actionArgument) {
