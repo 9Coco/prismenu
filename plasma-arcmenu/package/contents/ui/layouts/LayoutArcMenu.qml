@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
 import "../components" as Components
+import ".." as Ui
 import "../../code/CatalogBridge.js" as CatalogBridge
 
 /**
@@ -39,6 +40,14 @@ LayoutBase {
             return ["logout", "lock", "restart", "shutdown"];
         }
         return opts;
+    }
+
+    // Reorderable pinned home grid needs a ListModel so GridView can animate
+    // row moves (ListModel.move → rowsMoved → move transitions).
+    Ui.ListModelBridge {
+        id: homePinBridge
+        wrapApp: true
+        source: root.homeItems
     }
 
     function resetForOpen() {
@@ -301,6 +310,7 @@ LayoutBase {
                     Components.PinnedAppsList {
                         visible: !root.usesGridView(root.homeGroupId)
                         menuData: root.menuData
+                        reorderEnabled: root.homeGroupId === "pinned"
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         apps: root.homeItems
@@ -320,6 +330,8 @@ LayoutBase {
                     Components.LayoutAppGrid {
                         visible: root.usesGridView(root.homeGroupId)
                         layoutRoot: root
+                        reorderEnabled: root.homeGroupId === "pinned"
+                        reorderModel: root.homeGroupId === "pinned" ? homePinBridge : null
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         items: root.homeItems

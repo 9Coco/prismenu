@@ -750,6 +750,10 @@ Item {
         return plasmaNative.setPlasmaFavorite(favoriteId, favorite);
     }
 
+    function insertPlasmaFavorite(favoriteId, index) {
+        return plasmaNative.insertPlasmaFavorite(favoriteId, index);
+    }
+
     function movePlasmaFavorite(from, to) {
         return plasmaNative.movePlasmaFavorite(from, to);
     }
