@@ -1,4 +1,5 @@
 import QtQuick
+import ".." as Ui
 
 /** AppGrid pre-wired to the shared LayoutBase theme and event contract. */
 AppGrid {
@@ -16,6 +17,15 @@ AppGrid {
     hoverBg: layoutRoot ? layoutRoot.hoverBg : selectedBg
     hoverFg: layoutRoot ? layoutRoot.hoverFg : selectedFg
     fg: layoutRoot ? layoutRoot.fg : "white"
+    // Callers only need to identify a pinned projection. Keep the animated
+    // ListModel plumbing here so every layout gets the same live displacement.
+    reorderModel: root.reorderEnabled ? internalReorderModel : null
+
+    Ui.ListModelBridge {
+        id: internalReorderModel
+        wrapApp: true
+        source: root.reorderEnabled ? root.items : []
+    }
 
     Connections {
         target: root
