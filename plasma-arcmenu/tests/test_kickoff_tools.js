@@ -17,15 +17,11 @@ function assert(cond, msg) {
         throw new Error(msg);
 }
 
-const arg = { favoriteId: "applications:org.kde.kate.desktop" };
-assert(tools.favoriteIdFromArgument(arg) === "applications:org.kde.kate.desktop",
-    "Kickoff actionArgument.favoriteId");
-assert(tools.favoriteIdFromArgument("applications:foo.desktop") === "applications:foo.desktop",
-    "bare string argument still unwraps");
-
 const removed = [];
 const model = {
     enabled: true,
+    count: 1,
+    maxFavorites: -1,
     isFavorite: function (id) { return id.indexOf("kate") >= 0; },
     removeFavorite: function (id) { removed.push(id); },
     addFavorite: function () {}
@@ -36,12 +32,25 @@ const actions = tools.createFavoriteActions(function (s) { return s; }, model,
 assert(actions && actions[0].actionId === "_kicker_favorite_remove",
     "createFavoriteActions uses Kickoff remove id");
 assert(actions[0].actionArgument.favoriteId === "applications:org.kde.kate.desktop",
-    "createFavoriteActions argument is { favoriteId }");
+    "createFavoriteActions preserves the exact favoriteId");
+assert(actions[0].actionArgument.favoriteModel === model,
+    "createFavoriteActions carries the live favoriteModel like Kickoff");
 
-assert(tools.handleFavoriteAction("_kicker_favorite_remove", actions[0].actionArgument, model),
-    "handleFavoriteAction removes");
+tools.triggerAction(null, -1, "_kicker_favorite_remove", actions[0].actionArgument);
 assert(removed[0] === "applications:org.kde.kate.desktop",
-    "removeFavorite got Kickoff's exact id");
+    "triggerAction removes through actionArgument.favoriteModel");
+
+let triggered = null;
+const appModel = {
+    trigger: function (index, actionId, argument) {
+        triggered = { index, actionId, argument };
+        return true;
+    }
+};
+assert(tools.triggerAction(appModel, 3, "new-window", { x: 1 }) === true,
+    "normal model action returns Kickoff's close request");
+assert(triggered.index === 3 && triggered.actionId === "new-window",
+    "normal model action uses the originating row");
 
 const native = [
     { text: "New Window", actionId: "new-window" },

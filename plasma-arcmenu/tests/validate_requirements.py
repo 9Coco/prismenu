@@ -365,7 +365,7 @@ def main() -> int:
     apps_page = (PKG / "contents/ui/pages/ArcAppsPage.qml").read_text(encoding="utf-8")
     apps_backend = (PKG / "contents/ui/AppsBackend.qml").read_text(encoding="utf-8")
     check("function systemActions" in apps_backend
-          and "sourceModel.trigger(" in apps_backend
+          and "KickoffTools.triggerAction(" in apps_backend
           and "path[path.length - 1]" in apps_backend,
           "taskbar pin uses Kicker native action")
     check("evaluateScript" not in apps_backend and "writeConfig('launchers'" not in apps_backend,
@@ -373,8 +373,19 @@ def main() -> int:
     check("appletInterface: root.appletInterface" in apps_backend
           and "appletInterface: root" in (PKG / "contents/ui/main.qml").read_text(encoding="utf-8"),
           "Kicker receives the ArcMenu PlasmoidItem like Kickoff")
-    check("favoritesModel.initForClient" in apps_backend,
-          "Kicker global favorites model is initialized")
+    check("rootModel.favoritesModel.initForClient(root.favoritesClientId)" in apps_backend
+          and "Kicker.KAStatsFavoritesModel" not in apps_backend
+          and "favoritesModelOverride" not in apps_backend,
+          "favorites use RootModel's official Kickoff model")
+    check('"org.kde.plasma.arcmenu.favorites.instance-" + Plasmoid.id' in
+          (PKG / "contents/ui/main.qml").read_text(encoding="utf-8"),
+          "favorite ordering keeps the official per-applet client format")
+    kickoff_tools = (PKG / "contents/code/KickoffTools.js").read_text(encoding="utf-8")
+    check("favoriteModel: favoriteModel" in kickoff_tools
+          and "favoriteId: favoriteId" in kickoff_tools
+          and "favoriteModel.removeFavorite(favoriteId)" in kickoff_tools
+          and "favoriteModel.addFavorite(favoriteId)" in kickoff_tools,
+          "favorite actions preserve Kickoff's live model argument")
     check("model.actionList" in apps_backend and "triggerSystemAction" in apps_backend,
           "context menu uses Kicker native action list")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
@@ -636,10 +647,11 @@ def main() -> int:
           and "root.dataHost.customGroupAppIds(id)" in arc_apps_page,
           "custom group category clicks resolve explicit member ids")
     check("function dismissAndClear" in ctx
-          and "status === PlasmaExtras.Menu.Closed" in ctx
+          and "status === PlasmaExtras.Menu.Closed" not in ctx
+          and "Qt.callLater(root.clearSelection)" in ctx
           and "root.clearSelection()" in ctx
           and "contextMenu.dismissAndClear()" in main_qml,
-          "context menu closes and clears selection with the launcher")
+          "context menu clears selection only after native action dispatch")
     layout_host = (PKG / "contents/ui/LayoutHost.qml").read_text(encoding="utf-8")
     check("menuData.resetView();" in main_qml.split("onExpandedChanged", 1)[1]
           and "host.resetForOpen();" in main_qml,

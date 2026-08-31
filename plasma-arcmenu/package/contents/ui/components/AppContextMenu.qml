@@ -118,12 +118,6 @@ Item {
     function activateEntry(entry) {
         if (!entry || entry.separator || entry.type === "title")
             return;
-        if (String(entry.type || "") === "kickoff-favorite"
-                || String(entry.actionId || "").indexOf("_kicker_favorite_") === 0) {
-            root.systemActionRequested(root.app, String(entry.actionId || ""),
-                entry.actionArgument);
-            return;
-        }
         if (root.isNativeEntry(entry)) {
             root.systemActionRequested(root.app, String(entry.actionId || ""), entry.actionArgument);
             return;
@@ -143,10 +137,12 @@ Item {
     }
 
     function dismissAndClear() {
-        if (root.opened)
+        if (root.opened) {
             nativeMenu.close();
-        else
+            Qt.callLater(root.clearSelection);
+        } else {
             root.clearSelection();
+        }
     }
 
     function popup(x, y, anchor) {
@@ -191,17 +187,18 @@ Item {
                 onObjectRemoved: (index, object) => item.subMenu.removeMenuItem(object)
             }
 
-            onClicked: root.activateEntry(modelData)
+            onClicked: {
+                // Menu closes as part of the native click. Keep modelData and
+                // actionArgument alive until the synchronous action finishes.
+                root.activateEntry(modelData);
+                Qt.callLater(root.clearSelection);
+            }
         }
     }
 
     PlasmaExtras.Menu {
         id: nativeMenu
         placement: PlasmaExtras.Menu.BottomPosedLeftAlignedPopup
-        onStatusChanged: {
-            if (status === PlasmaExtras.Menu.Closed)
-                root.clearSelection();
-        }
     }
 
     Instantiator {
