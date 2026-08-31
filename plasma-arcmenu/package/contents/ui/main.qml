@@ -218,6 +218,7 @@ PlasmoidItem {
         id: backend
         menuData: menuData
         appletInterface: root
+        favoritesClientId: "org.kde.plasma.arcmenu.favorites.instance-" + Plasmoid.id
         onAppsUpdated: (apps) => {
             menuData.allApps = apps;
             menuData.catalogEpoch += 1;
