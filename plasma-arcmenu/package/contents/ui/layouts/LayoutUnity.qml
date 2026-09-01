@@ -192,7 +192,8 @@ LayoutBase {
                             / Math.max(1, columns)) * root.gridCellHeight
                         layoutRoot: root
                         items: root.pinnedItems
-                        reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                        reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                        reorderGroupId: root.homeGroupId
                         columns: Math.max(1, Math.floor(width / root.gridCellWidth))
                         cellWidth: root.gridCellWidth
                         cellHeight: root.gridCellHeight

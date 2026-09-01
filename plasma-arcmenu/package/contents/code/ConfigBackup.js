@@ -15,6 +15,7 @@ var CONFIG_KEYS = [
     "ActiveFg",
     "AllAppsButtonAction",
     "AppIconSize",
+    "AppListOrder",
     "ApplicationShortcuts",
     "AvatarShape",
     "BgColor",
@@ -270,6 +271,7 @@ var CONFIG_DEFAULTS = {
     customQuickLinks: [],
     customTypeGroups: [],
     customGroupApps: "{}",
+    appListOrder: "{}",
     groupViewOptions: "{}",
     // Search
     providers: ["applications", "places", "files"],

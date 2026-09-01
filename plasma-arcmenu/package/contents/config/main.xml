@@ -120,6 +120,10 @@
         <entry name="CustomGroupApps" type="String">
             <default>{}</default>
         </entry>
+        <!-- JSON map: { "<group-id>": ["app.desktop", ...] } user drag-order -->
+        <entry name="AppListOrder" type="String">
+            <default>{}</default>
+        </entry>
         <!-- JSON map: { "<group-id>": { "view": "grid"|"list" } } -->
         <entry name="GroupViewOptions" type="String">
             <default>{}</default>

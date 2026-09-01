@@ -8,7 +8,7 @@
  * applications: URL, which the desktop containment can turn into a link.
  *
  * application/x-arcmenu-reorder — internal marker carrying the app id so
- * pinned views can reorder entries (or pin a new entry) on drop.
+ * app lists can reorder entries (or pin a new entry on a pinned view).
  */
 var LAUNCHER_MIME = "text/uri-list";
 var REORDER_MIME = "application/x-arcmenu-reorder";
@@ -218,6 +218,11 @@ function indexOfId(model, appId) {
     return -1;
 }
 
+function isSectionId(id) {
+    id = String(id || "");
+    return id.indexOf("__az_section_") === 0 || id.indexOf("__section_") === 0;
+}
+
 function modelIds(model) {
     var out = [];
     if (!model)
@@ -225,10 +230,38 @@ function modelIds(model) {
     var n = model.count || 0;
     for (var i = 0; i < n; ++i) {
         var id = idAtModel(model, i);
-        if (id)
+        if (id && !isSectionId(id))
             out.push(id);
     }
     return out;
+}
+
+function viewGroupId(view) {
+    try {
+        if (view && view.reorderGroupId !== undefined)
+            return String(view.reorderGroupId || "");
+    } catch (e) {
+        // Views without the property are treated as legacy pinned grids.
+    }
+    return "";
+}
+
+/** Empty group id keeps Kickoff drop-to-pin on older pinned-only views. */
+function isPinnedGroupId(groupId) {
+    groupId = String(groupId || "");
+    return !groupId || groupId === "pinned" || groupId === "favorites";
+}
+
+/** True when this drag should hop rows inside `view` while the pointer moves. */
+function isLiveReorderSource(view, menuData, srcId) {
+    srcId = String(srcId || "");
+    if (!srcId)
+        return false;
+    if (isPinnedGroupId(viewGroupId(view)))
+        return isPinnedSource(menuData, srcId);
+    if (!view || !view.model)
+        return false;
+    return indexOfId(view.model, srcId) >= 0;
 }
 
 /**
@@ -236,7 +269,7 @@ function modelIds(model) {
  * source and that cell are displaced by ListView/GridView's move
  * transitions. Returns the clamped destination, or -1 if nothing to do.
  */
-function clampMoveIndex(model, menuData, srcId, from, to) {
+function clampMoveIndex(model, menuData, srcId, from, to, groupId) {
     if (!model || from < 0 || to < 0 || from === to)
         return -1;
     var n = model.count || 0;
@@ -244,6 +277,18 @@ function clampMoveIndex(model, menuData, srcId, from, to) {
         to = n - 1;
     if (to < 0 || from >= n)
         return -1;
+    if (!isPinnedGroupId(groupId)) {
+        var hopped = to;
+        if (isSectionId(idAtModel(model, hopped))) {
+            var step = from < hopped ? -1 : 1;
+            while (hopped >= 0 && hopped < n && isSectionId(idAtModel(model, hopped)))
+                hopped += step;
+            if (hopped < 0 || hopped >= n || hopped === from)
+                return -1;
+            to = hopped;
+        }
+        return to;
+    }
     if (!menuData || !menuData.isArcMenuOnlyPinId)
         return to;
     // Plasma favorites and ArcMenu-only shortcuts live in different
@@ -343,12 +388,13 @@ function movePinnedInView(view, menuData, event, targetIndex) {
     if (viewIsAnimating(view))
         return false;
     var srcId = dropSourceId(event);
-    if (!srcId || !isPinnedSource(menuData, srcId))
+    if (!srcId || !isLiveReorderSource(view, menuData, srcId))
         return false;
     var model = view.model;
     freezeModel(model);
     var from = sourceIndex(view, event, srcId);
-    var to = clampMoveIndex(model, menuData, srcId, from, targetIndex);
+    var to = clampMoveIndex(model, menuData, srcId, from, targetIndex,
+        viewGroupId(view));
     if (to < 0 || to === from)
         return false;
     var key = srcId + ":" + to;
@@ -370,7 +416,9 @@ function dropPinnedInView(view, menuData, event, targetIndex) {
     var srcId = dropSourceId(event);
     if (!srcId)
         return false;
-    if (isPinnedSource(menuData, srcId) && view && view.model && view.model.move) {
+    var groupId = viewGroupId(view);
+    if (isPinnedGroupId(groupId) && isPinnedSource(menuData, srcId)
+            && view && view.model && view.model.move) {
         var ids = modelIds(view.model);
         if (menuData.commitPinnedOrder)
             _dropCommitted = !!menuData.commitPinnedOrder(ids);
@@ -380,9 +428,18 @@ function dropPinnedInView(view, menuData, event, targetIndex) {
             _dropCommitted = false;
         return _dropCommitted;
     }
-    var targetId = "";
-    if (view && view.model && targetIndex >= 0)
-        targetId = idAtModel(view.model, targetIndex);
-    _dropCommitted = !!menuData.movePinnedItem(srcId, targetId);
-    return _dropCommitted;
+    if (isPinnedGroupId(groupId)) {
+        var targetId = "";
+        if (view && view.model && targetIndex >= 0)
+            targetId = idAtModel(view.model, targetIndex);
+        _dropCommitted = !!menuData.movePinnedItem(srcId, targetId);
+        return _dropCommitted;
+    }
+    if (isLiveReorderSource(view, menuData, srcId)
+            && view && view.model && view.model.move
+            && menuData.commitGroupOrder) {
+        _dropCommitted = !!menuData.commitGroupOrder(groupId, modelIds(view.model));
+        return _dropCommitted;
+    }
+    return false;
 }

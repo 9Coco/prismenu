@@ -301,7 +301,9 @@ LayoutBase {
                     Components.PinnedAppsList {
                         visible: !root.usesGridView(root.homeGroupId)
                         menuData: root.menuData
-                        reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                        reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                            && !root.usesGridView(root.homeGroupId)
+                        reorderGroupId: root.homeGroupId
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         apps: root.homeItems
@@ -321,7 +323,9 @@ LayoutBase {
                     Components.LayoutAppGrid {
                         visible: root.usesGridView(root.homeGroupId)
                         layoutRoot: root
-                        reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                        reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                            && root.usesGridView(root.homeGroupId)
+                        reorderGroupId: root.homeGroupId
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         items: root.homeItems

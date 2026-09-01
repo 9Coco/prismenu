@@ -55,7 +55,8 @@ LayoutBase {
                 layoutRoot: root
                 items: root.programItems
                 reorderEnabled: !root.searching && !root.showAllPrograms
-                    && root.isPinnedGroup(root.homeGroupId)
+                    && root.canReorderGroup(root.homeGroupId)
+                reorderGroupId: root.homeGroupId
                 showDescription: root.searching
                 iconSize: Math.max(28, root.appIconSize)
             }
