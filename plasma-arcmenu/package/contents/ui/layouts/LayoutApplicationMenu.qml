@@ -213,7 +213,8 @@ LayoutBase {
                 Layout.fillHeight: true
                 layoutRoot: root
                 items: root.favoriteItems
-                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                reorderGroupId: root.homeGroupId
                 columns: Math.max(1, Math.floor(Math.max(1, width) / root.favCell))
                 cellHeight: root.favIcon + Kirigami.Units.gridUnit * 2.1
                 iconSize: root.favIcon

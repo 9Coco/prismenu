@@ -319,3 +319,86 @@ var DEFAULT_CATEGORIES = [
 function defaultCategories() {
     return DEFAULT_CATEGORIES.slice();
 }
+
+/** Normalize extra-category / drill-down ids onto one storage key. */
+function canonicalGroupId(groupId) {
+    var id = String(groupId || "");
+    if (id === "all")
+        return "all-apps";
+    if (id === "favorites")
+        return "pinned";
+    return id;
+}
+
+function isSectionId(id) {
+    id = String(id || "");
+    return id.indexOf("__az_section_") === 0 || id.indexOf("__section_") === 0;
+}
+
+function itemsHaveSections(items) {
+    var list = items || [];
+    for (var i = 0; i < list.length; ++i) {
+        if (list[i] && (list[i].isSection || isSectionId(list[i].id)))
+            return true;
+    }
+    return false;
+}
+
+/**
+ * Groups whose rows have a user-mutable order: pinned, all-apps, system
+ * categories, and custom groups. Recency / places lists stay read-only.
+ */
+function canReorderGroup(groupId) {
+    var id = canonicalGroupId(groupId);
+    if (!id)
+        return false;
+    if (id === "frequent" || id === "recent-files" || id === "bookmarks"
+            || id === "devices" || id === "search" || id === "computer"
+            || id === "leave" || id === "history")
+        return false;
+    if (id.indexOf("__") === 0)
+        return false;
+    return true;
+}
+
+/**
+ * Re-apply a stored id order onto a live app array. Unknown / uninstalled
+ * ids are dropped; apps missing from the stored list keep their incoming
+ * relative order and are appended (so newly installed apps still appear).
+ */
+function applyAppListOrder(apps, storedIds) {
+    var list = apps || [];
+    var order = storedIds || [];
+    if (!order.length)
+        return list;
+    var byId = {};
+    var i;
+    for (i = 0; i < list.length; ++i) {
+        if (!list[i])
+            continue;
+        var key = String(list[i].id || "");
+        if (key && !byId[key])
+            byId[key] = list[i];
+    }
+    var out = [];
+    var seen = {};
+    for (i = 0; i < order.length; ++i) {
+        var id = String(order[i] || "");
+        if (!id || seen[id] || !byId[id])
+            continue;
+        seen[id] = true;
+        out.push(byId[id]);
+    }
+    for (i = 0; i < list.length; ++i) {
+        var app = list[i];
+        if (!app)
+            continue;
+        var appId = String(app.id || "");
+        if (appId && seen[appId])
+            continue;
+        if (appId)
+            seen[appId] = true;
+        out.push(app);
+    }
+    return out;
+}

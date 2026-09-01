@@ -274,6 +274,7 @@ LayoutBase {
                     Layout.fillHeight: true
                     items: root.favoriteItems
                     reorderEnabled: true
+                    reorderGroupId: "pinned"
                     columns: 3
                     minCellWidth: root.favMinCell
                     iconSize: root.dashIcon

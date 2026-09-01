@@ -111,6 +111,7 @@ Item {
     property var cfg_CustomQuickLinks: []
     property var cfg_CustomTypeGroups: []
     property string cfg_CustomGroupApps: "{}"
+    property string cfg_AppListOrder: "{}"
     property string cfg_GroupViewOptions: "{}"
     property string cfg_HomeGroupId: "pinned"
     property string cfg_LayoutSizes: "{}"
@@ -229,6 +230,7 @@ Item {
     property alias cfg_customQuickLinks: root.cfg_CustomQuickLinks
     property alias cfg_customTypeGroups: root.cfg_CustomTypeGroups
     property alias cfg_customGroupApps: root.cfg_CustomGroupApps
+    property alias cfg_appListOrder: root.cfg_AppListOrder
     property alias cfg_groupViewOptions: root.cfg_GroupViewOptions
     property alias cfg_homeGroupId: root.cfg_HomeGroupId
     property alias cfg_providers: root.cfg_Providers
@@ -277,7 +279,7 @@ Item {
         "HiddenSystemPlaces", "DolphinPlaceOrder", "HiddenDolphinPlaces", "HiddenCustomPlaces", "ApplicationShortcuts",
         "ExtraCategoriesOrder", "ExtraCategoriesEnabled", "ExtraCategoriesUserSet",
         "SidebarOrder", "SidebarHidden", "ContextMenuItems",
-        "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "GroupViewOptions", "HomeGroupId",
+        "CustomQuickLinks", "CustomTypeGroups", "CustomGroupApps", "AppListOrder", "GroupViewOptions", "HomeGroupId",
         "Providers", "Placeholder", "ShowDescription", "MaxResults", "HideSearchBar",
         "HighlightSearchTerms", "SearchBoxRadiusEnabled", "SearchBoxRadius",
         "SearchWindows", "SearchRecentFiles",

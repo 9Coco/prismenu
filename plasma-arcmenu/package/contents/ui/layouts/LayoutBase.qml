@@ -112,6 +112,19 @@ Item {
         return groupId === "pinned" || groupId === "favorites";
     }
 
+    /** App lists that keep a user-defined order (pinned, all-apps, categories, custom groups). */
+    function canReorderGroup(groupId) {
+        if (menuData && menuData.canReorderGroup)
+            return menuData.canReorderGroup(groupId);
+        return AppsModel.canReorderGroup(groupId);
+    }
+
+    function orderedGroupApps(groupId, apps) {
+        if (menuData && menuData.orderedAppsForGroup)
+            return menuData.orderedAppsForGroup(groupId, apps);
+        return apps || [];
+    }
+
     /** Shared column widths. During a split-handle drag these use an in-memory
      * preview so pointer motion never performs synchronous KConfig writes. */
     property int liveSidebarW: -1
@@ -245,7 +258,7 @@ Item {
         }
         if (navId === "all" || navId === "all-apps") {
             var allApps = (menuData && menuData.sortedVisibleApps) ? menuData.sortedVisibleApps : [];
-            return root.mergeExtraApps("all-apps", allApps);
+            return root.orderedGroupApps("all-apps", root.mergeExtraApps("all-apps", allApps));
         }
         if (navId === "frequent") {
             var recents = (menuData && menuData.recentApps) ? menuData.recentApps : [];
@@ -261,7 +274,8 @@ Item {
                 ? menuData.customGroupApps(navId) : [];
         }
         if (menuData && menuData.allApps)
-            return root.mergeExtraApps(navId, AppsModel.appsInCategory(menuData.allApps, navId));
+            return root.orderedGroupApps(navId,
+                root.mergeExtraApps(navId, AppsModel.appsInCategory(menuData.allApps, navId)));
         return [];
     }
 

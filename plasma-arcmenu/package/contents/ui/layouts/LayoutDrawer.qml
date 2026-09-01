@@ -66,7 +66,8 @@ LayoutBase {
             Layout.fillHeight: true
             layoutRoot: root
             items: root.allItems
-            reorderEnabled: !root.searching && root.isPinnedGroup(root.homeGroupId)
+            reorderEnabled: !root.searching && root.canReorderGroup(root.homeGroupId)
+            reorderGroupId: root.homeGroupId
             columns: root.columns
             iconSize: Math.max(44, root.gridIconSize)
         }

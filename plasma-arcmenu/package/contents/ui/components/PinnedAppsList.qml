@@ -23,6 +23,8 @@ Item {
     property bool multiLineLabels: false
     /** Pinned views accept drop-to-reorder / drop-to-pin on the rows. */
     property bool reorderEnabled: false
+    /** Group whose order this view persists. Empty keeps legacy pin-only drop. */
+    property string reorderGroupId: ""
 
     signal appActivated(var app)
     signal appContextMenu(var app, real x, real y, var anchor)
@@ -81,6 +83,7 @@ Item {
         items: root.items
         menuData: root.menuData
         reorderEnabled: root.reorderEnabled
+        reorderGroupId: root.reorderGroupId
         reorderModel: root.reorderEnabled ? pinBridge : null
         iconSize: root.iconSize
         selectedBg: root.selectedBg

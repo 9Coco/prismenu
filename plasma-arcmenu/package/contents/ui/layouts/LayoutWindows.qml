@@ -136,7 +136,8 @@ LayoutBase {
                 anchors.fill: parent
                 layoutRoot: root
                 items: root.pinnedItems
-                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                reorderGroupId: root.homeGroupId
                 columns: Math.max(1, Math.floor(width / root.pinCellWidth))
                 cellWidth: root.pinCellWidth
                 cellHeight: root.pinCellHeight

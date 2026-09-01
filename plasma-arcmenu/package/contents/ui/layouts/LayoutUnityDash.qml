@@ -34,7 +34,8 @@ LayoutBase {
             iconSize: Math.max(36, root.appIconSize + 12)
             model: pinnedModel
             menuData: root.menuData
-            reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+            reorderEnabled: root.canReorderGroup(root.homeGroupId)
+            reorderGroupId: root.homeGroupId
             selectedBg: root.selectedBg
             selectedFg: root.selectedFg
             hoverBg: root.hoverBg

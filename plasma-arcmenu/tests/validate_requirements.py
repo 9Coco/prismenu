@@ -399,13 +399,17 @@ def main() -> int:
     check("function usesGridView" in layout_base, "per-group grid vs list display")
     check("function isPinnedGroup" in layout_base,
           "layouts share the persistent pinned-group predicate")
+    check("function canReorderGroup" in layout_base
+          and "function orderedGroupApps" in layout_base,
+          "layouts share the per-group reorder predicate")
     layout_group_pane = (PKG / "contents/ui/components/LayoutGroupPane.qml").read_text(encoding="utf-8")
     layout_app_grid = (PKG / "contents/ui/components/LayoutAppGrid.qml").read_text(encoding="utf-8")
     layout_app_list = (PKG / "contents/ui/components/LayoutAppList.qml").read_text(encoding="utf-8")
     pinned_apps_grid = (PKG / "contents/ui/components/PinnedAppsGrid.qml").read_text(encoding="utf-8")
     check("!root.layoutRoot.searching" in layout_group_pane
-          and "root.layoutRoot.isPinnedGroup(root.navId)" in layout_group_pane,
-          "search results never inherit pinned drop/reorder behavior")
+          and "root.layoutRoot.canReorderGroup(root.navId)" in layout_group_pane
+          and "itemsHaveSections" in layout_group_pane,
+          "search results and A-Z section lists never inherit live reorder")
     check("internalReorderModel" in layout_app_grid
           and "internalReorderModel" in layout_app_list
           and "wrapApp: true" in layout_app_grid
@@ -541,6 +545,12 @@ def main() -> int:
           and "host.groupViewMode(root.activeGroupId)" in arc_apps_page
           and "Components.AppGrid {" in arc_apps_page,
           "ArcMenu home and category pages honor per-group grid mode")
+    check("groupReorderable" in arc_apps_page
+          and "reorderGroupId: root.activeGroupId" in arc_apps_page
+          and "reorderEnabled: root.groupReorderable && !root.usesGridView" in arc_apps_page
+          and "reorderEnabled: root.groupReorderable && root.usesGridView" in arc_apps_page
+          and "id: reorderBridge" in arc_apps_page,
+          "ArcMenu category pages live-reorder in both grid and list")
     check("customById[eid]" in arc_apps_page
           and "Never expose an internal qgrp-* id" in arc_apps_page,
           "custom preference groups resolve their configured name and icon")
@@ -551,6 +561,10 @@ def main() -> int:
     menu_data = (PKG / "contents/ui/MenuData.qml").read_text(encoding="utf-8")
     config_menu = (PKG / "contents/ui/config/ConfigMenu.qml").read_text(encoding="utf-8")
     backup_js = (PKG / "contents/code/ConfigBackup.js").read_text(encoding="utf-8")
+    check("function commitGroupOrder" in menu_data
+          and "AppListOrder" in (PKG / "contents/config/main.xml").read_text(encoding="utf-8")
+          and '"AppListOrder"' in backup_js,
+          "non-pinned drag order persists through AppListOrder")
     check('property string cfg_HomeGroupId: "pinned"' in extra_cfg
           and 'writeLive("HomeGroupId"' in extra_cfg
           and '"HomeGroupId"' in config_menu

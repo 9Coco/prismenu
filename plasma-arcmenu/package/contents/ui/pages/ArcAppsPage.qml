@@ -29,16 +29,36 @@ Item {
     property string drillCategoryId: ""
     /** favorites | frequent | empty — special lists outside normal categories */
     property string specialListId: ""
-    readonly property bool pinnedReorderView: root.specialListId === "pinned"
-        || root.specialListId === "favorites"
+    readonly property bool listUsesAz: {
+        var host = root.dataHost;
+        return !!(host && host.groupAppsAlphabeticallyList
+            && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
+    }
+    readonly property bool groupReorderable: {
+        if (root.showingCategories)
+            return false;
+        var gid = root.activeGroupId;
+        if (!gid)
+            return false;
+        var host = root.dataHost;
+        if (host && host.canReorderGroup) {
+            if (!host.canReorderGroup(gid))
+                return false;
+        } else if (!AppsModel.canReorderGroup(gid)) {
+            return false;
+        }
+        if (!root.usesGridView && root.listUsesAz)
+            return false;
+        return true;
+    }
 
-    // The fixed-apps drill-down needs a real movable model. A numeric model
-    // can swap delegate contents, but it cannot emit rowsMoved, so GridView's
-    // moveDisplaced transition never runs.
+    // Reorderable drill-downs need a real movable model. A numeric model
+    // can swap delegate contents, but it cannot emit rowsMoved, so the
+    // view's moveDisplaced transition never runs.
     Ui.ListModelBridge {
-        id: pinnedAppsBridge
+        id: reorderBridge
         wrapApp: true
-        source: root.pinnedReorderView ? root.drilledApps : []
+        source: root.groupReorderable ? root.drilledApps : []
     }
 
     readonly property bool showingCategories: drillCategoryId.length === 0 && specialListId.length === 0
@@ -116,6 +136,7 @@ Item {
         var liveEnabled = plasmoid.configuration.ExtraCategoriesEnabled;
         var liveOrder = plasmoid.configuration.ExtraCategoriesOrder;
         var liveCustomGroups = plasmoid.configuration.CustomQuickLinks;
+        var liveAppListOrder = plasmoid.configuration.AppListOrder;
         var liveUserSet = plasmoid.configuration.ExtraCategoriesUserSet;
         var tick = root.refreshTick;
         var _ = root.uiLang;
@@ -231,7 +252,8 @@ Item {
                 id: def.id,
                 name: def.name,
                 icon: def.icon,
-                apps: list,
+                apps: (host && host.orderedAppsForGroup)
+                    ? host.orderedAppsForGroup(def.id, list) : list,
                 appCount: list.length
             });
         }
@@ -246,6 +268,7 @@ Item {
         // Direct dependency covers live writes from the context menu even if
         // a layout is holding the same qgrp-* page open.
         var liveCustomGroupApps = plasmoid.configuration.CustomGroupApps;
+        var liveAppListOrder = plasmoid.configuration.AppListOrder;
         var tick = root.refreshTick;
         if (root.specialListId === "favorites" || root.specialListId === "pinned") {
             // Same pin list for now (Plasma favorites sync); labels differ by specialListId
@@ -289,11 +312,15 @@ Item {
             }
         }
         if (root.drillCategoryId === "all") {
-            if (host && host.sortedVisibleApps)
-                return host.sortedVisibleApps;
-            return AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps));
+            var all = (host && host.sortedVisibleApps)
+                ? host.sortedVisibleApps
+                : AppsModel.sortAppsByName(AppsModel.filterVisibleApps(_apps));
+            return (host && host.orderedAppsForGroup)
+                ? host.orderedAppsForGroup("all-apps", all) : all;
         }
-        return AppsModel.appsInCategory(_apps, root.drillCategoryId);
+        var inCat = AppsModel.appsInCategory(_apps, root.drillCategoryId);
+        return (host && host.orderedAppsForGroup)
+            ? host.orderedAppsForGroup(root.drillCategoryId, inCat) : inCat;
     }
 
     property int refreshTick: 0
@@ -667,11 +694,7 @@ Item {
                 z: enabled ? 1 : 0
                 Accessible.name: root.categoryTitle()
 
-                readonly property bool useAz: {
-                    var host = root.dataHost;
-                    return !!(host && host.groupAppsAlphabeticallyList
-                        && (root.drillCategoryId === "all" || root.specialListId === "frequent"));
-                }
+                readonly property bool useAz: root.listUsesAz
                 readonly property var displayRows: {
                     var host = root.dataHost;
 
@@ -697,8 +720,9 @@ Item {
 
                 items: displayRows
                 menuData: root.menuData || root.dataHost
-                reorderEnabled: root.pinnedReorderView
-                reorderModel: root.pinnedReorderView ? pinnedAppsBridge : null
+                reorderEnabled: root.groupReorderable && !root.usesGridView
+                reorderGroupId: root.activeGroupId
+                reorderModel: root.groupReorderable && !root.usesGridView ? reorderBridge : null
                 iconSize: root.appIconSize
                 showDescription: !!(root.dataHost && root.dataHost.showAppDescriptions)
                 showGenericNames: !!(root.dataHost && root.dataHost.showGenericNames)
@@ -722,8 +746,9 @@ Item {
                 z: enabled ? 1 : 0
                 items: root.drilledApps
                 menuData: root.menuData || root.dataHost
-                reorderEnabled: root.pinnedReorderView
-                reorderModel: root.pinnedReorderView ? pinnedAppsBridge : null
+                reorderEnabled: root.groupReorderable && root.usesGridView
+                reorderGroupId: root.activeGroupId
+                reorderModel: root.groupReorderable && root.usesGridView ? reorderBridge : null
                 minCellWidth: Math.max(Kirigami.Units.gridUnit * 4,
                     root.groupIconSize + Kirigami.Units.gridUnit * 2)
                 iconSize: root.groupIconSize

@@ -1,7 +1,7 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
-import ".." as Ui
+import "../../code/AppsModel.js" as AppsModel
 
 /** Content pane that honors a group's grid vs list display setting. */
 Item {
@@ -14,12 +14,13 @@ Item {
     property bool inlineDescription: false
     property string emptyText: ""
     property string navId: (layoutRoot && layoutRoot.activeNavId) ? layoutRoot.activeNavId : ""
-    /** Search can replace a selected pinned group's items without changing
-     * its navigation id. Never let that turn search results into a reorder
-     * target; only the visible Plasma favorites projection is mutable. */
-    readonly property bool pinnedView: !!root.layoutRoot
+    /** Search can replace a selected group's items without changing its
+     * navigation id. Never let that turn search results or A-Z section
+     * headers into a reorder target. */
+    readonly property bool reorderable: !!root.layoutRoot
         && !root.layoutRoot.searching
-        && root.layoutRoot.isPinnedGroup(root.navId)
+        && root.layoutRoot.canReorderGroup(root.navId)
+        && !AppsModel.itemsHaveSections(root.items)
 
     readonly property int paneIconSize: {
         var custom = 0;
@@ -31,21 +32,13 @@ Item {
                         Kirigami.Units.iconSizes.large);
     }
 
-    // Reorderable favorite views need a ListModel so GridView/ListView can
-    // animate row moves (ListModel.move → rowsMoved → move transitions).
-    Ui.ListModelBridge {
-        id: pinnedBridge
-        wrapApp: true
-        source: root.items
-    }
-
     LayoutAppGrid {
         anchors.fill: parent
         visible: root.useGrid
         layoutRoot: root.layoutRoot
         items: root.items
-        reorderEnabled: root.pinnedView
-        reorderModel: root.pinnedView ? pinnedBridge : null
+        reorderEnabled: root.reorderable && root.useGrid
+        reorderGroupId: root.navId
         iconSize: root.paneIconSize
         columns: {
             var cell = Math.max(root.paneIconSize + Kirigami.Units.gridUnit * 1.8,
@@ -59,8 +52,8 @@ Item {
         visible: !root.useGrid
         layoutRoot: root.layoutRoot
         items: root.items
-        reorderEnabled: root.pinnedView
-        reorderModel: root.pinnedView ? pinnedBridge : null
+        reorderEnabled: root.reorderable && !root.useGrid
+        reorderGroupId: root.navId
         showDescription: root.showDescription
         inlineDescription: root.inlineDescription
         iconSize: Math.max(root.layoutRoot ? root.layoutRoot.appIconSize : 24,
