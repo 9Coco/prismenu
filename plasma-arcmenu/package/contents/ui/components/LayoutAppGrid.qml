@@ -17,8 +17,8 @@ AppGrid {
     hoverBg: layoutRoot ? layoutRoot.hoverBg : selectedBg
     hoverFg: layoutRoot ? layoutRoot.hoverFg : selectedFg
     fg: layoutRoot ? layoutRoot.fg : "white"
-    // Callers only need to identify a pinned projection. Keep the animated
-    // ListModel plumbing here so every layout gets the same live displacement.
+    // Callers only need to opt into reorder. Keep the animated ListModel
+    // plumbing here so every layout gets the same live displacement.
     reorderModel: root.reorderEnabled ? internalReorderModel : null
 
     Ui.ListModelBridge {

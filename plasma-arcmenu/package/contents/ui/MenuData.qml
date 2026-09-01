@@ -39,6 +39,7 @@ QtObject {
     property var customTypeGroupsRaw
     property var customGroupAppsRaw
     property var groupViewOptionsRaw
+    property var appListOrderRaw
     property var homeGroupIdRaw
     property var sidebarOrderRaw
     property var sidebarHiddenRaw
@@ -733,7 +734,7 @@ QtObject {
             // with a real bundled SVG should be replaced by our icon pack.
             if (!CategoryIcons.isBundled(c.icon) && CategoryIcons.hasCategory(c.id))
                 c.icon = CategoryIcons.defaultIcon(c.id);
-            c.apps = AppsModel.sortAppsByName(buckets[c.id]);
+            c.apps = root.orderedAppsForGroup(c.id, AppsModel.sortAppsByName(buckets[c.id]));
             c.appCount = c.apps.length;
             withCounts.push(c);
         }
@@ -910,6 +911,76 @@ QtObject {
                 || !(root.pinnedPreviewIds || []).length)
             return false;
         return root._persistPinnedOrder(root.pinnedPreviewIds.slice());
+    }
+
+    readonly property var appListOrderMap: {
+        var _ = root.structureEpoch;
+        var raw = (appListOrderRaw !== undefined && appListOrderRaw !== null)
+            ? appListOrderRaw : cfg("AppListOrder", "{}");
+        try {
+            var obj = JSON.parse(String(raw || "{}"));
+            return (obj && typeof obj === "object" && !Array.isArray(obj)) ? obj : {};
+        } catch (e) {
+            return {};
+        }
+    }
+
+    function canReorderGroup(groupId) {
+        return AppsModel.canReorderGroup(groupId);
+    }
+
+    function appListOrderIds(groupId) {
+        var list = root.appListOrderMap[AppsModel.canonicalGroupId(groupId)];
+        return Array.isArray(list) ? list : [];
+    }
+
+    function orderedAppsForGroup(groupId, apps) {
+        var id = AppsModel.canonicalGroupId(groupId);
+        if (!id || !AppsModel.canReorderGroup(id) || id === "pinned")
+            return apps || [];
+        if (id.indexOf("qgrp-") === 0 || id.indexOf("tgrp-") === 0)
+            return apps || [];
+        return AppsModel.applyAppListOrder(apps || [], root.appListOrderIds(id));
+    }
+
+    function _persistAppListOrder(groupId, ids) {
+        groupId = AppsModel.canonicalGroupId(groupId);
+        if (!groupId || !plasmoidConfig)
+            return false;
+        var map = JSON.parse(JSON.stringify(root.appListOrderMap));
+        map[groupId] = ids || [];
+        plasmoidConfig.AppListOrder = JSON.stringify(map);
+        root.bumpStructure();
+        return true;
+    }
+
+    /**
+     * Persist a Kickoff-style live reorder for any reorderable group.
+     * Pinned rows go through Plasma favorites; custom groups rewrite
+     * CustomGroupApps; other lists store AppListOrder.
+     */
+    function commitGroupOrder(groupId, ids) {
+        groupId = AppsModel.canonicalGroupId(groupId);
+        if (!groupId || !AppsModel.canReorderGroup(groupId))
+            return false;
+        var clean = [];
+        var seen = {};
+        for (var i = 0; i < (ids || []).length; ++i) {
+            var id = String(ids[i] || "");
+            if (!id || seen[id] || AppsModel.isSectionId(id))
+                continue;
+            seen[id] = true;
+            clean.push(id);
+        }
+        if (!clean.length)
+            return false;
+        if (groupId === "pinned")
+            return root.commitPinnedOrder(clean);
+        if (groupId.indexOf("qgrp-") === 0 || groupId.indexOf("tgrp-") === 0) {
+            root.setCustomGroupApps(groupId, clean);
+            return true;
+        }
+        return root._persistAppListOrder(groupId, clean);
     }
 
     /**
@@ -1143,7 +1214,7 @@ QtObject {
         if (id === "pinned")
             return root.pinnedApps;
         if (id === "all-apps")
-            return root.sortedVisibleApps;
+            return root.orderedAppsForGroup("all-apps", root.sortedVisibleApps);
         if (id === "frequent")
             return root.recentApps;
         if (id === "recent-files")
@@ -1151,7 +1222,8 @@ QtObject {
         if (id.indexOf("qgrp-") === 0 || id.indexOf("tgrp-") === 0)
             return root.customGroupApps(id);
         var def = root.homeGroupDefinition(id);
-        return def && def.apps ? def.apps : AppsModel.appsInCategory(root.allApps, id);
+        var apps = def && def.apps ? def.apps : AppsModel.appsInCategory(root.allApps, id);
+        return root.orderedAppsForGroup(id, apps);
     }
 
     readonly property bool isSearching: searchQuery.trim().length > 0
@@ -1417,10 +1489,13 @@ QtObject {
             ? String(groupViewOptionsRaw) : cfgStr("GroupViewOptions", "{}");
         var appsRaw = (customGroupAppsRaw !== undefined && customGroupAppsRaw !== null)
             ? String(customGroupAppsRaw) : cfgStr("CustomGroupApps", "{}");
+        var orderRaw = (appListOrderRaw !== undefined && appListOrderRaw !== null)
+            ? String(appListOrderRaw) : cfgStr("AppListOrder", "{}");
         var dirs = root.directoryShortcutIds || [];
         var apps = root.applicationShortcutIds || [];
         return String(structureEpoch) + "|e:" + e.join(",") + "|o:" + o.join(",")
             + "|g:" + gids.join(",") + "|v:" + viewRaw + "|a:" + appsRaw
+            + "|l:" + orderRaw
             + "|d:" + dirs.join(",") + "|s:" + apps.join(",");
     }
 

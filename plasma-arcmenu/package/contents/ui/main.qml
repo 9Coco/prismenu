@@ -121,6 +121,7 @@ PlasmoidItem {
         customTypeGroupsRaw: plasmoid.configuration.CustomTypeGroups
         customGroupAppsRaw: plasmoid.configuration.CustomGroupApps
         groupViewOptionsRaw: plasmoid.configuration.GroupViewOptions
+        appListOrderRaw: plasmoid.configuration.AppListOrder
         homeGroupIdRaw: plasmoid.configuration.HomeGroupId
         sidebarOrderRaw: plasmoid.configuration.SidebarOrder
         sidebarHiddenRaw: plasmoid.configuration.SidebarHidden
@@ -148,6 +149,7 @@ PlasmoidItem {
                 || key === "SidebarHidden" || key === "CustomQuickLinks"
                 || key === "CustomTypeGroups"
                 || key === "CustomGroupApps" || key === "GroupViewOptions"
+                || key === "AppListOrder"
                 || key === "DirectoryShortcuts" || key === "PlaceSectionOrder"
                 || key === "SystemPlaceOrder" || key === "HiddenSystemPlaces"
                 || key === "DolphinPlaceOrder" || key === "HiddenDolphinPlaces"
@@ -183,6 +185,7 @@ PlasmoidItem {
         function onShowEmptyChanged() { menuData.bumpStructure(); }
         function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
         function onGroupViewOptionsChanged() { menuData.bumpStructure(); }
+        function onAppListOrderChanged() { menuData.bumpStructure(); }
         function onHomeGroupIdChanged() { menuData.bumpStructure(); }
         function onEnabledChanged() { menuData.bumpStructure(); }
         function onMaxItemsChanged() { menuData.bumpStructure(); }

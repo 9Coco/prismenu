@@ -19,8 +19,10 @@ ListView {
     property bool inlineDescription: false
     property bool showGenericNames: false
     property bool multiLineLabels: false
-    /** Pinned/favorite views: rows accept drop-to-reorder / drop-to-pin. */
+    /** App lists: rows accept drop-to-reorder (and drop-to-pin on pinned groups). */
     property bool reorderEnabled: false
+    /** Group whose order this view persists (`pinned`, `all-apps`, category id, …). */
+    property string reorderGroupId: ""
     /** Optional ListModel (role `app`) backing reorderable pinned views.
      *  When set, row moves animate because the bridge emits rowsMoved. */
     property var reorderModel: null

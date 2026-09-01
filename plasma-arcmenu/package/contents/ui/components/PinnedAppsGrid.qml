@@ -14,6 +14,8 @@ GridView {
     property var menuData: null
     /** False when a layout reuses this chrome for a non-favorite home group. */
     property bool reorderEnabled: true
+    /** Group whose order this view persists. Empty keeps legacy pin-only drop. */
+    property string reorderGroupId: ""
     property color selectedBg: Kirigami.Theme.highlightColor
     property color selectedFg: Kirigami.Theme.highlightedTextColor
     property color hoverBg: selectedBg

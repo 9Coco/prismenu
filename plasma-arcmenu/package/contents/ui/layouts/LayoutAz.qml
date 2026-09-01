@@ -99,7 +99,8 @@ LayoutBase {
                 Layout.maximumHeight: root.pinnedCellHeight * 4
                 layoutRoot: root
                 items: root.pinnedItems
-                reorderEnabled: root.isPinnedGroup(root.homeGroupId)
+                reorderEnabled: root.canReorderGroup(root.homeGroupId)
+                reorderGroupId: root.homeGroupId
                 columns: Math.max(1, Math.floor(width / root.pinnedCellWidth))
                 cellWidth: root.pinnedCellWidth
                 cellHeight: root.pinnedCellHeight

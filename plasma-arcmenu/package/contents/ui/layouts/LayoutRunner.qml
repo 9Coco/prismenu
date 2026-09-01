@@ -52,7 +52,8 @@ LayoutBase {
             Layout.fillHeight: true
             layoutRoot: root
             items: root.resultItems
-            reorderEnabled: !root.searching && root.isPinnedGroup(root.homeGroupId)
+            reorderEnabled: !root.searching && root.canReorderGroup(root.homeGroupId)
+            reorderGroupId: root.homeGroupId
             showDescription: true
             inlineDescription: true
             iconSize: Math.max(28, root.appIconSize)

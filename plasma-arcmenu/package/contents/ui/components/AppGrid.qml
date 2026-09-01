@@ -18,8 +18,10 @@ GridView {
     property bool showDescription: false
     property bool multiLineLabels: true
     property bool showGenericNames: false
-    /** Pinned/favorite views: tiles accept drop-to-reorder / drop-to-pin. */
+    /** App lists: tiles accept drop-to-reorder (and drop-to-pin on pinned groups). */
     property bool reorderEnabled: false
+    /** Group whose order this view persists (`pinned`, `all-apps`, category id, …). */
+    property string reorderGroupId: ""
     /** Optional ListModel (role `app`) backing reorderable pinned views.
      *  When set, row moves animate because the bridge emits rowsMoved. */
     property var reorderModel: null
