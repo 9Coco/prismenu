@@ -221,6 +221,7 @@ PlasmoidItem {
         id: backend
         menuData: menuData
         appletInterface: root
+        providersLive: root.expanded
         favoritesClientId: "org.kde.plasma.arcmenu.favorites.instance-" + Plasmoid.id
         onAppsUpdated: (apps) => {
             menuData.allApps = apps;
