@@ -8,6 +8,19 @@ import org.kde.taskmanager as TaskManager
  *  - Open windows → TaskManager.TasksModel (all virtual desktops)
  *
  * No Python / wmctrl.
+ *
+ * Two properties of this implementation worth knowing:
+ *
+ * 1. Delegates are incubated asynchronously, so their model role bindings
+ *    are never evaluated inside the model's itemsInserted handler. A
+ *    synchronous evaluation there re-enters TasksModel::data() through the
+ *    grouping/concat proxy chain while the model is mid-update, which
+ *    segfaulted plasmashell when windows were created/destroyed rapidly.
+ *
+ * 2. All QML-side work is gated on liveUpdates. While the menu is closed the
+ *    Instantiators are inactive (window/title churn creates no delegates,
+ *    runs no rebuilds, emits no signals); the native C++ models keep
+ *    mirroring window state cheaply, so data is fresh on the next open.
  */
 Item {
     id: root
@@ -15,8 +28,16 @@ Item {
     property var recentFiles: []
     property var openWindows: []
 
+    /** Gate: bind to the menu's expanded state. Default true = always live. */
+    property bool liveUpdates: true
+
     signal recentFilesUpdated(var files)
     signal openWindowsUpdated(var windows)
+
+    onLiveUpdatesChanged: {
+        if (liveUpdates)
+            refresh();
+    }
 
     // ---- Recent documents (Kicker / KAStats) ----
     Kicker.RecentUsageModel {
@@ -30,17 +51,18 @@ Item {
             trySet("shownItems", 2);
             trySet("includeUsage", 2);
             trySet("include", 2);
-            Qt.callLater(root.rebuildRecentFiles);
+            root.requestRecentFiles();
         }
-        onCountChanged: root.rebuildRecentFiles()
-        onDataChanged: root.rebuildRecentFiles()
-        onModelReset: root.rebuildRecentFiles()
+        onCountChanged: root.requestRecentFiles()
+        onDataChanged: root.requestRecentFiles()
+        onModelReset: root.requestRecentFiles()
     }
 
     Instantiator {
         id: recentDocsInst
         model: recentDocsModel
-        asynchronous: false
+        active: root.liveUpdates
+        asynchronous: true
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property string display: String(model.display !== undefined ? model.display : "")
@@ -48,8 +70,16 @@ Item {
             readonly property var url: model.url
             readonly property var decoration: model.decoration
         }
-        onObjectAdded: root.rebuildRecentFiles()
-        onObjectRemoved: root.rebuildRecentFiles()
+        onObjectAdded: root.requestRecentFiles()
+        onObjectRemoved: root.requestRecentFiles()
+    }
+
+    /** Gated + coalesced rebuild request (see liveUpdates). */
+    function requestRecentFiles() {
+        if (!liveUpdates)
+            return;
+        // count/object/data signals arrive in bursts — dedupe via callLater
+        Qt.callLater(rebuildRecentFiles);
     }
 
     function rebuildRecentFiles() {
@@ -104,16 +134,17 @@ Item {
         filterByActivity: false
         filterByVirtualDesktop: false
         sortMode: TaskManager.TasksModel.SortAlpha
-        onCountChanged: root.rebuildOpenWindows()
-        onDataChanged: root.rebuildOpenWindows()
-        onModelReset: root.rebuildOpenWindows()
-        Component.onCompleted: Qt.callLater(root.rebuildOpenWindows)
+        onCountChanged: root.requestOpenWindows()
+        onDataChanged: root.requestOpenWindows()
+        onModelReset: root.requestOpenWindows()
+        Component.onCompleted: root.requestOpenWindows()
     }
 
     Instantiator {
         id: tasksInst
         model: tasksModel
-        asynchronous: false
+        active: root.liveUpdates
+        asynchronous: true
         delegate: Item {
             width: 0; height: 0; visible: false
             readonly property int row: index
@@ -124,8 +155,15 @@ Item {
             readonly property bool isStartup: !!(model.IsStartup)
             readonly property var decoration: model.decoration
         }
-        onObjectAdded: root.rebuildOpenWindows()
-        onObjectRemoved: root.rebuildOpenWindows()
+        onObjectAdded: root.requestOpenWindows()
+        onObjectRemoved: root.requestOpenWindows()
+    }
+
+    /** Gated + coalesced rebuild request (see liveUpdates). */
+    function requestOpenWindows() {
+        if (!liveUpdates)
+            return;
+        Qt.callLater(rebuildOpenWindows);
     }
 
     function rebuildOpenWindows() {
@@ -181,7 +219,7 @@ Item {
     }
 
     function refresh() {
-        rebuildRecentFiles();
-        rebuildOpenWindows();
+        requestRecentFiles();
+        requestOpenWindows();
     }
 }
