@@ -33,6 +33,12 @@ Item {
     property var recentFiles: []
     /** Open windows via TaskManager.TasksModel */
     property var openWindows: []
+    /**
+     * Whether the native search providers should stay live. Bind to the
+     * menu's expanded state: while closed they idle (no delegate churn,
+     * no rebuilds, no signals); they resync on the next open.
+     */
+    property bool providersLive: true
 
     signal appsUpdated(var apps)
     signal metaUpdated(string userName, string userIcon, string osId, string osPretty)
@@ -42,6 +48,7 @@ Item {
 
     SearchNativeProviders {
         id: nativeSearch
+        liveUpdates: root.providersLive
         onRecentFilesUpdated: (files) => {
             root.recentFiles = files;
             root.recentFilesUpdated(files);
@@ -977,14 +984,12 @@ Item {
 
     function refreshRecentFiles() {
         // Kicker RecentUsageModel — same stack as Kickoff “Recent Files”
-        nativeSearch.refresh();
-        nativeSearch.rebuildRecentFiles();
+        nativeSearch.requestRecentFiles();
     }
 
     function refreshOpenWindows() {
         // TaskManager.TasksModel — all virtual desktops
-        nativeSearch.refresh();
-        nativeSearch.rebuildOpenWindows();
+        nativeSearch.requestOpenWindows();
     }
 
 }
