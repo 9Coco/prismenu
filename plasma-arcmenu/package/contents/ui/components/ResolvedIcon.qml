@@ -1,5 +1,6 @@
 import QtQuick
 import org.kde.kirigami as Kirigami
+import org.kde.ksvg as KSvg
 import "../../code/CategoryIcons.js" as CategoryIcons
 import "../../code/PresetIcons.js" as PresetIcons
 
@@ -17,15 +18,29 @@ Kirigami.Icon {
 
     readonly property bool bundled: CategoryIcons.isBundled(iconName)
     readonly property bool preset: PresetIcons.isPreset(iconName)
-    
+    property int _svgRevision: 0
+
+    // Local SVGs are not theme icon names. Give Kirigami a rendered image so
+    // its Plasma theme adapter does not search every icon theme for their
+    // file basenames during the first popup polish. KSvg keeps native SVG
+    // caching; Kirigami still handles mask tinting and selection colors.
+    KSvg.Svg {
+        id: localSvg
+        imagePath: root.bundled
+            ? Qt.resolvedUrl("../../icons/categories/" + root.iconName + ".svg")
+            : (root.preset ? Qt.resolvedUrl("../../icons/menu-button/" + root.iconName + ".svg") : "")
+        onRepaintNeeded: root._svgRevision++
+    }
+
     source: {
         if (!iconName)
             return "application-x-executable";
-        if (bundled)
-            return Qt.resolvedUrl("../../icons/categories/" + iconName + ".svg");
-        // Bundled menu-button presets (distro logos, arcmenu icons)
-        if (preset)
-            return Qt.resolvedUrl("../../icons/menu-button/" + iconName + ".svg");
+        if (bundled || preset) {
+            const revision = root._svgRevision;
+            return localSvg.image(Qt.size(
+                Math.max(1, Math.ceil(root.width * root.Screen.devicePixelRatio)),
+                Math.max(1, Math.ceil(root.height * root.Screen.devicePixelRatio))));
+        }
         // Face / custom paths (Kickoff-style user icons)
         if (iconName.indexOf("/") === 0)
             return "file://" + iconName;

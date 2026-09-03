@@ -86,6 +86,7 @@ GridView {
     QQC2.ScrollBar.horizontal: QQC2.ScrollBar { policy: QQC2.ScrollBar.AlwaysOff }
     reuseItems: true
     cacheBuffer: Math.max(height, cellHeight * 2)
+
     Accessible.name: i18n("Applications")
     Accessible.role: Accessible.List
 
