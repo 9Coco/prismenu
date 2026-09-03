@@ -71,6 +71,7 @@ Item {
         console.log("ArcMenu LayoutHost reload:", id, layoutUrl(),
                     "catalog=", CatalogBridge.appCount());
         root._loadedLayoutId = id;
+        root._resetForOpenPending = true;
         layoutLoader.setSource(layoutUrl(), {
             menuData: root.resolvedMenuData(),
             themeStyle: root.themeStyle
@@ -182,5 +183,7 @@ Item {
         }
     }
 
-    Component.onCompleted: Qt.callLater(root.reloadLayout)
+    // Complete the selected layout as part of Plasma's popup preload, rather
+    // than returning an empty popup and loading its content on the next turn.
+    Component.onCompleted: root.reloadLayout()
 }

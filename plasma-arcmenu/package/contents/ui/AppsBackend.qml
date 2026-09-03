@@ -36,7 +36,8 @@ Item {
     /**
      * Whether the native search providers should stay live. Bind to the
      * menu's expanded state: while closed they idle (no delegate churn,
-     * no rebuilds, no signals); they resync on the next open.
+     * no rebuilds, no signals). Search/navigation requests each provider
+     * separately, so opening Home does not rebuild unused search data.
      */
     property bool providersLive: true
 

@@ -36,7 +36,7 @@ Item {
         anchors.fill: parent
         visible: root.useGrid
         layoutRoot: root.layoutRoot
-        items: root.items
+        items: root.useGrid ? root.items : []
         reorderEnabled: root.reorderable && root.useGrid
         reorderGroupId: root.navId
         iconSize: root.paneIconSize
@@ -51,7 +51,7 @@ Item {
         anchors.fill: parent
         visible: !root.useGrid
         layoutRoot: root.layoutRoot
-        items: root.items
+        items: root.useGrid ? [] : root.items
         reorderEnabled: root.reorderable && !root.useGrid
         reorderGroupId: root.navId
         showDescription: root.showDescription

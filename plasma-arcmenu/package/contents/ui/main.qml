@@ -22,6 +22,8 @@ PlasmoidItem {
 
     Plasmoid.constraintHints: Plasmoid.CanFillArea
     preferredRepresentation: compactRepresentation
+    // Launcher metadata lets Plasma prepare the complete popup through its
+    // native preload path, as it does for Kickoff.
     toolTipMainText: i18n("Arc Menu")
     toolTipSubText: i18n("Application menu with switchable layouts")
     switchWidth: Kirigami.Units.gridUnit * 12
@@ -35,6 +37,8 @@ PlasmoidItem {
     // Plasma Kickoff uses the same API for avatar + display name
     KCoreAddons.KUser {
         id: kuser
+        onNameChanged: Qt.callLater(root.applyKUserMeta)
+        onFaceIconUrlChanged: Qt.callLater(root.applyKUserMeta)
     }
 
     function applyKUserMeta() {
@@ -53,18 +57,20 @@ PlasmoidItem {
     }
 
     onExpandedChanged: function (expanded) {
-        if (expanded) {
-            // Match Plasma Kickoff: every open starts from pinned/home,
-            // regardless of whether the popup was opened by click, shortcut,
-            // or after losing focus.
-            menuData.resetView();
-            root.applyKUserMeta();
-            // os-release already probed at startup; face/name from KUser above
-            if (plasmoid.configuration.SearchRecentFiles
-                || menuData.isExtraCategoryEnabled("recent-files"))
-                backend.refreshRecentFiles();
-            backend.refreshOpenWindows();
-        }
+        if (!expanded)
+            root.resetAfterClose();
+        else if (menuData.homeGroupId === "recent-files")
+            Qt.callLater(backend.refreshRecentFiles);
+    }
+
+    // Like Kickoff's Header/Footer/views, prepare the next opening when
+    // closing. Do not rebuild navigation or delegates in the opening frame.
+    function resetAfterClose() {
+        if (root.expanded)
+            return;
+        menuData.resetView();
+        if (root.fullRepresentationItem)
+            root.fullRepresentationItem.resetForNextOpen();
     }
 
     Connections {
@@ -72,9 +78,9 @@ PlasmoidItem {
         function onSearchQueryChanged() {
             if (!menuData.isSearching)
                 return;
-            if (plasmoid.configuration.SearchRecentFiles && (!menuData.recentFileResults || !menuData.recentFileResults.length))
+            if (plasmoid.configuration.SearchRecentFiles)
                 backend.refreshRecentFiles();
-            if (!menuData.openWindowResults || !menuData.openWindowResults.length)
+            if (plasmoid.configuration.SearchWindows)
                 backend.refreshOpenWindows();
         }
         function onRecentFilesRequestChanged() {
@@ -165,7 +171,7 @@ PlasmoidItem {
                 || key === "SearchBoxRadiusEnabled" || key === "SearchBoxRadius"
                 || key === "SearchWindows" || key === "SearchRecentFiles" || key === "MaxResults") {
                 menuData.bumpSearchConfig();
-                if (key === "SearchWindows" || key === "SearchRecentFiles") {
+                if (menuData.isSearching && (key === "SearchWindows" || key === "SearchRecentFiles")) {
                     if (plasmoid.configuration.SearchRecentFiles)
                         backend.refreshRecentFiles();
                     if (plasmoid.configuration.SearchWindows)
@@ -186,7 +192,10 @@ PlasmoidItem {
         function onCustomGroupAppsChanged() { menuData.bumpStructure(); }
         function onGroupViewOptionsChanged() { menuData.bumpStructure(); }
         function onAppListOrderChanged() { menuData.bumpStructure(); }
-        function onHomeGroupIdChanged() { menuData.bumpStructure(); }
+        function onHomeGroupIdChanged() {
+            menuData.bumpStructure();
+            Qt.callLater(root.resetAfterClose);
+        }
         function onEnabledChanged() { menuData.bumpStructure(); }
         function onMaxItemsChanged() { menuData.bumpStructure(); }
         function onRecentAppsChanged() { menuData.bumpStructure(); }
@@ -206,12 +215,12 @@ PlasmoidItem {
         function onSearchBoxRadiusChanged() { menuData.bumpSearchConfig(); }
         function onSearchWindowsChanged() {
             menuData.bumpSearchConfig();
-            if (plasmoid.configuration.SearchWindows)
+            if (menuData.isSearching && plasmoid.configuration.SearchWindows)
                 backend.refreshOpenWindows();
         }
         function onSearchRecentFilesChanged() {
             menuData.bumpSearchConfig();
-            if (plasmoid.configuration.SearchRecentFiles)
+            if (menuData.isSearching && plasmoid.configuration.SearchRecentFiles)
                 backend.refreshRecentFiles();
         }
         function onMaxResultsChanged() { menuData.bumpSearchConfig(); }
@@ -279,14 +288,6 @@ PlasmoidItem {
         highlight: Kirigami.Theme.highlightColor,
         highlightedText: Kirigami.Theme.highlightedTextColor
     })
-
-    function toggleMenu() {
-        if (root.expanded) {
-            root.expanded = false;
-        } else {
-            root.expanded = true;
-        }
-    }
 
     function closeMenu() {
         root.expanded = false;
@@ -417,7 +418,7 @@ PlasmoidItem {
             ? (plasmoid.configuration.ButtonLabelText || i18n("Arc Menu"))
             : i18n("Arc Menu")
         Accessible.role: Accessible.Button
-        Accessible.onPressAction: root.toggleMenu()
+        Accessible.onPressAction: Plasmoid.activated()
 
         function runClickAction(action, mouse) {
             if (action === "nothing")
@@ -435,7 +436,9 @@ PlasmoidItem {
                 return;
             }
             // default: arcmenu
-            root.toggleMenu();
+            // Kickoff uses the state captured on press: losing focus can
+            // close the popup before the click is delivered.
+            root.expanded = !compact.wasExpanded;
         }
 
         property bool wasExpanded: false
@@ -451,12 +454,6 @@ PlasmoidItem {
             if (mouse.button === Qt.LeftButton) {
                 compact.runClickAction(compact.leftAction, mouse);
             }
-        }
-
-        PlasmaCore.ToolTipArea {
-            anchors.fill: parent
-            mainText: i18n("Arc Menu")
-            subText: i18n("Click to open application menu")
         }
 
         Rectangle {
@@ -552,15 +549,14 @@ PlasmoidItem {
 
         focus: true
 
+        function resetForNextOpen() {
+            host.resetForOpen();
+        }
+
         Connections {
             target: root
             function onExpandedChanged() {
-                if (root.expanded) {
-                    menuData.resetView();
-                    if (menuData.homeGroupId === "recent-files")
-                        menuData.requestRecentFilesRefresh();
-                    host.resetForOpen();
-                } else {
+                if (!root.expanded) {
                     contextMenu.dismissAndClear();
                 }
             }
@@ -736,9 +732,6 @@ PlasmoidItem {
         }
     }
 
-    // Global Meta hotkey coordination via plasmoid global shortcut activation
-    Plasmoid.onActivated: root.toggleMenu()
-
     // Layout change: LayoutHost follows menuLayoutId; reopen if menu is open
     Connections {
         target: plasmoid.configuration
@@ -774,6 +767,9 @@ PlasmoidItem {
     ]
 
     Component.onCompleted: {
+        // Kickoff delegates keyboard activation/toggling to Plasma.
+        Plasmoid.activationTogglesExpanded = true;
+
         // GNOME used to duplicate Budgie. Keep existing installations valid
         // after removing it from the registry and package.
         if (plasmoid.configuration.MenuLayoutId === "gnome")

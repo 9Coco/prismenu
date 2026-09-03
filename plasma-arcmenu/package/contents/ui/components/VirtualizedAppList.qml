@@ -73,15 +73,6 @@ ListView {
     Accessible.role: Accessible.List
     Accessible.name: qsTr("Applications")
 
-    function warmViewport() {
-        if (count > 0)
-            forceLayout();
-    }
-
-    onCountChanged: {
-        if (count > 0)
-            Qt.callLater(root.warmViewport);
-    }
     onItemsChanged: {
         // Providers update asynchronously. Do not inherit contentY from the
         // previous category/result snapshot or its first groups disappear
@@ -96,11 +87,6 @@ ListView {
                 root.positionViewAtBeginning();
         });
     }
-    Component.onCompleted: {
-        if (count > 0)
-            Qt.callLater(root.warmViewport);
-    }
-
     PinnedDropArea {
         anchors.fill: parent
         targetView: root
