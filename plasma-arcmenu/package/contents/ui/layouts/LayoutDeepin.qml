@@ -16,7 +16,9 @@ LayoutBase {
     readonly property int categorySidebarWidth: Math.max(
         root.elasticColumnMin,
         Math.min(root.sidebarW, root.categorySidebarMax))
-    property string selectedId: "all"
+    // Start on the requested home instead of constructing all apps and
+    // replacing them with home items during the first open.
+    property string selectedId: root.homeGroupId
     function resetForOpen() { root.selectedId = root.homeGroupId; }
     readonly property var categories: root.typeCategories
     readonly property var extraCategories: root.preferenceGroups

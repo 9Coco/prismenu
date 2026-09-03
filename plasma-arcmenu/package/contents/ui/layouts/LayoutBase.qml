@@ -2,7 +2,6 @@ import QtQuick
 import QtQuick.Layouts
 import org.kde.kirigami as Kirigami
 import org.kde.plasma.components as PlasmaComponents
-import "../components" as Components
 import ".." as Ui
 import "../../code/Locale.js" as Locale
 import "../../code/AppsModel.js" as AppsModel
@@ -447,18 +446,5 @@ Item {
         acceptedButtons: Qt.RightButton
         onPressed: (mouse) => { mouse.accepted = true; }
         onClicked: (mouse) => { mouse.accepted = true; }
-    }
-
-    // Every layout inherits one off-screen virtualized viewport. It prepares
-    // the shared delegate type and first application icons while the desktop is
-    // idle, so layouts do not each maintain their own cold-start workaround.
-    Components.LayoutAppList {
-        id: sharedAppListPreloader
-        layoutRoot: root
-        anchors.fill: parent
-        z: -3
-        opacity: 0
-        enabled: false
-        items: root.allApplications
     }
 }

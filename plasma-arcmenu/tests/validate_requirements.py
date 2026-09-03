@@ -92,8 +92,8 @@ def main() -> int:
         check((PKG / "contents/ui/layouts" / fname).exists(), f"layout file: {fname}")
 
     # Shared layout architecture: every selectable layout inherits the same
-    # catalog projections and preloader instead of maintaining cold-start
-    # workarounds or full-catalog sorting locally.
+    # catalog projections without maintaining duplicate off-screen views or
+    # full-catalog sorting locally.
     layout_sources = {
         name: (PKG / "contents/ui/layouts" / name).read_text(encoding="utf-8")
         for name in layout_files.values()
@@ -392,7 +392,8 @@ def main() -> int:
           and "Qt.callLater(plasmaNative.refreshPlasmaFavorites)" in apps_backend,
           "favorite actions discard stale drag previews before refresh")
     layout_search = (PKG / "contents/ui/components/LayoutSearchField.qml").read_text(encoding="utf-8")
-    check("Components.LayoutAppList" in layout_base, "shared all-layout app preloader")
+    check("sharedAppListPreloader" not in layout_base,
+          "layouts do not instantiate a hidden all-applications preloader")
     check("function openArcMenuSettings" in layout_base, "shared ArcMenu Settings opener")
     check("sidebarShortcuts" in layout_base, "shared settings-driven sidebar shortcuts")
     check('indexOf("qgrp-")' in layout_base, "custom groups resolve in content pane")
@@ -629,8 +630,10 @@ def main() -> int:
           and 'MenuLayoutId = "budgie"' in main_qml,
           "legacy GNOME layout migrates to Budgie")
 
-    for needle in ["Keys.onPressed", "Plasmoid.onActivated", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
+    for needle in ["Keys.onPressed", "Plasmoid.activationTogglesExpanded = true", "contextualActions", "ConfirmDialog", "AppContextMenu"]:
         check(needle in main_qml, f"main.qml contains {needle}")
+    check("Plasmoid.onActivated:" not in main_qml,
+          "keyboard activation uses Plasma's native launcher toggle")
     menu_button_cfg = (PKG / "contents/ui/config/ConfigMenuButton.qml").read_text(encoding="utf-8")
     compact_source = main_qml.split("compactRepresentation:", 1)[1].split("fullRepresentation:", 1)[0]
     check("acceptedButtons: Qt.LeftButton | Qt.MiddleButton" in compact_source
@@ -702,9 +705,12 @@ def main() -> int:
           and "contextMenu.dismissAndClear()" in main_qml,
           "context menu clears selection only after native action dispatch")
     layout_host = (PKG / "contents/ui/LayoutHost.qml").read_text(encoding="utf-8")
-    check("menuData.resetView();" in main_qml.split("onExpandedChanged", 1)[1]
-          and "host.resetForOpen();" in main_qml,
-          "every popup-open path resets to the default page")
+    check("if (!expanded)" in main_qml
+          and "root.resetAfterClose();" in main_qml
+          and "root.fullRepresentationItem.resetForNextOpen();" in main_qml,
+          "launcher prepares home after closing rather than rebuilding on open")
+    check("root.expanded = !compact.wasExpanded;" in main_qml,
+          "panel click uses Kickoff's press-time expanded state")
     check("function resetForOpen" in layout_host
           and "_resetForOpenPending" in layout_host
           and "function resetForOpen" in arc_layout
