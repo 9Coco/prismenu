@@ -857,18 +857,6 @@ Item {
                             onToggled: root.setRowOn(row.index, checked)
                         }
                         QQC2.Button {
-                            icon.name: "go-up"
-                            flat: true
-                            enabled: row.index > 0
-                            onClicked: root.move(row.index, row.index - 1)
-                        }
-                        QQC2.Button {
-                            icon.name: "go-down"
-                            flat: true
-                            enabled: row.index < listModel.count - 1
-                            onClicked: root.move(row.index, row.index + 1)
-                        }
-                        QQC2.Button {
                             icon.name: "settings-configure"
                             flat: true
                             QQC2.ToolTip.visible: hovered
@@ -1000,18 +988,6 @@ Item {
                         QQC2.Switch {
                             checked: typeRow.catOn
                             onToggled: root.setTypeHidden(typeRow.catId, !checked)
-                        }
-                        QQC2.Button {
-                            icon.name: "go-up"
-                            flat: true
-                            enabled: typeRow.index > 0
-                            onClicked: root.moveTypeRow(typeRow.index, typeRow.index - 1)
-                        }
-                        QQC2.Button {
-                            icon.name: "go-down"
-                            flat: true
-                            enabled: typeRow.index < typeListModel.count - 1
-                            onClicked: root.moveTypeRow(typeRow.index, typeRow.index + 1)
                         }
                         QQC2.Button {
                             icon.name: "settings-configure"
