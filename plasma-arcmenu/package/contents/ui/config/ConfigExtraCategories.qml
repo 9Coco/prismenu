@@ -8,6 +8,7 @@ import "../../code/ShortcutsConfig.js" as SC
 import "../../code/SidebarModel.js" as SidebarModel
 import "../../code/CatalogBridge.js" as CatalogBridge
 import "../../code/AppsModel.js" as AppsModel
+import "../../code/GroupDrag.js" as GroupDrag
 import ".." as Ui
 import "../components" as Components
 
@@ -207,6 +208,63 @@ Item {
             return;
         listModel.move(from, to, 1);
         persistOrderFromModel();
+    }
+
+    // ---- Drag reorder for group rows (handle drag with sliding displacement) ----
+    property string dragListTag: ""
+    property int dragFromIndex: -1
+    property int dragTargetIndex: -1
+    property real dragUnitHeight: 0
+    property real dragListTop: 0
+    property real dragGrabOffsetY: 0
+    property real dragMouseY: 0
+
+    function groupDragCount(tag) {
+        return tag === "pref" ? listModel.count : typeListModel.count;
+    }
+
+    function beginGroupDrag(tag, index, containerMouseY, rowTopY, unitHeight, listTop) {
+        dragListTag = tag;
+        dragFromIndex = index;
+        dragTargetIndex = index;
+        dragUnitHeight = unitHeight;
+        dragListTop = listTop;
+        dragGrabOffsetY = containerMouseY - rowTopY;
+        dragMouseY = containerMouseY;
+    }
+
+    function updateGroupDrag(containerMouseY) {
+        if (dragListTag === "" || dragFromIndex < 0)
+            return;
+        dragMouseY = containerMouseY;
+        var count = groupDragCount(dragListTag);
+        if (count <= 1 || dragUnitHeight <= 0)
+            return;
+        dragTargetIndex = GroupDrag.slotForPosition(containerMouseY, dragGrabOffsetY,
+                                                    dragUnitHeight, dragListTop, count);
+    }
+
+    function finishGroupDrag(commit) {
+        var tag = dragListTag;
+        var from = dragFromIndex;
+        var to = commit ? dragTargetIndex : dragFromIndex;
+        cancelGroupDrag();
+        if (tag !== "" && from >= 0 && to >= 0 && to !== from) {
+            if (tag === "pref")
+                move(from, to);
+            else if (tag === "type")
+                moveTypeRow(from, to);
+        }
+    }
+
+    function cancelGroupDrag() {
+        dragListTag = "";
+        dragFromIndex = -1;
+        dragTargetIndex = -1;
+        dragUnitHeight = 0;
+        dragListTop = 0;
+        dragGrabOffsetY = 0;
+        dragMouseY = 0;
     }
 
     function resetDefaults() {
@@ -724,6 +782,7 @@ Item {
         ConfigGroup {
             title: root.tr("Preference Groups")
             Repeater {
+                id: prefRepeater
                 model: listModel
                 ColumnLayout {
                     id: row
@@ -734,15 +793,64 @@ Item {
                     required property bool catOn
                     Layout.fillWidth: true
                     spacing: 0
+                    readonly property bool dragHeld: root.dragListTag === "pref"
+                        && root.dragFromIndex === row.index
+                    readonly property real dragLiftY: row.dragHeld
+                        ? GroupDrag.liftForRow(root.dragMouseY, root.dragGrabOffsetY, row.y) : 0
+                    readonly property real dragShiftY: root.dragListTag === "pref"
+                        ? GroupDrag.shiftForRow(row.index, root.dragFromIndex,
+                                                root.dragTargetIndex, root.dragUnitHeight) : 0
+                    z: row.dragHeld ? 2 : 0
+                    opacity: row.dragHeld ? 0.92 : 1
+                    transform: [
+                        Translate { y: row.dragLiftY },
+                        Translate {
+                            y: row.dragShiftY
+                            Behavior on y {
+                                NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                            }
+                        }
+                    ]
                     ConfigSettingRow {
                         title: row.catName
                         iconName: row.catIcon
                         accent: index % 2 === 0 ? "blue" : "indigo"
-                        Kirigami.Icon {
-                            source: "transform-move"
-                            Layout.preferredWidth: Kirigami.Units.iconSizes.small
-                            Layout.preferredHeight: Kirigami.Units.iconSizes.small
-                            opacity: 0.4
+                        Item {
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                            Layout.alignment: Qt.AlignVCenter
+                            Kirigami.Icon {
+                                anchors.centerIn: parent
+                                source: "transform-move"
+                                width: Kirigami.Units.iconSizes.small
+                                height: width
+                                opacity: prefDragArea.containsMouse || row.dragHeld ? 0.85 : 0.4
+                            }
+                            QQC2.ToolTip.visible: prefDragArea.containsMouse
+                            QQC2.ToolTip.delay: 400
+                            QQC2.ToolTip.text: root.tr("Drag to reorder")
+                            MouseArea {
+                                id: prefDragArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                preventStealing: true
+                                cursorShape: row.dragHeld ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+                                onPressed: (mouse) => {
+                                    var p = prefDragArea.mapToItem(row.parent, mouse.x, mouse.y);
+                                    var first = prefRepeater.itemAt(0);
+                                    var top = first ? first.y : row.y;
+                                    var unit = (first && first.height > 0) ? first.height : row.height;
+                                    root.beginGroupDrag("pref", row.index, p.y, row.y, unit, top);
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (!prefDragArea.pressed)
+                                        return;
+                                    var p = prefDragArea.mapToItem(row.parent, mouse.x, mouse.y);
+                                    root.updateGroupDrag(p.y);
+                                }
+                                onReleased: root.finishGroupDrag(true)
+                                onCanceled: root.finishGroupDrag(false)
+                            }
                         }
                         QQC2.Switch {
                             checked: row.catOn
@@ -818,6 +926,7 @@ Item {
             }
             ConfigSep {}
             Repeater {
+                id: typeRepeater
                 model: typeListModel
                 ColumnLayout {
                     id: typeRow
@@ -829,10 +938,65 @@ Item {
                     required property bool catOn
                     Layout.fillWidth: true
                     spacing: 0
+                    readonly property bool dragHeld: root.dragListTag === "type"
+                        && root.dragFromIndex === typeRow.index
+                    readonly property real dragLiftY: typeRow.dragHeld
+                        ? GroupDrag.liftForRow(root.dragMouseY, root.dragGrabOffsetY, typeRow.y) : 0
+                    readonly property real dragShiftY: root.dragListTag === "type"
+                        ? GroupDrag.shiftForRow(typeRow.index, root.dragFromIndex,
+                                                root.dragTargetIndex, root.dragUnitHeight) : 0
+                    z: typeRow.dragHeld ? 2 : 0
+                    opacity: typeRow.dragHeld ? 0.92 : 1
+                    transform: [
+                        Translate { y: typeRow.dragLiftY },
+                        Translate {
+                            y: typeRow.dragShiftY
+                            Behavior on y {
+                                NumberAnimation { duration: 150; easing.type: Easing.OutCubic }
+                            }
+                        }
+                    ]
                     ConfigSettingRow {
                         title: typeRow.catName
                         iconName: typeRow.catIcon
                         accent: index % 2 === 0 ? "teal" : "purple"
+                        Item {
+                            Layout.preferredWidth: Kirigami.Units.iconSizes.medium
+                            Layout.preferredHeight: Kirigami.Units.iconSizes.medium
+                            Layout.alignment: Qt.AlignVCenter
+                            Kirigami.Icon {
+                                anchors.centerIn: parent
+                                source: "transform-move"
+                                width: Kirigami.Units.iconSizes.small
+                                height: width
+                                opacity: typeDragArea.containsMouse || typeRow.dragHeld ? 0.85 : 0.4
+                            }
+                            QQC2.ToolTip.visible: typeDragArea.containsMouse
+                            QQC2.ToolTip.delay: 400
+                            QQC2.ToolTip.text: root.tr("Drag to reorder")
+                            MouseArea {
+                                id: typeDragArea
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                preventStealing: true
+                                cursorShape: typeRow.dragHeld ? Qt.ClosedHandCursor : Qt.OpenHandCursor
+                                onPressed: (mouse) => {
+                                    var p = typeDragArea.mapToItem(typeRow.parent, mouse.x, mouse.y);
+                                    var first = typeRepeater.itemAt(0);
+                                    var top = first ? first.y : typeRow.y;
+                                    var unit = (first && first.height > 0) ? first.height : typeRow.height;
+                                    root.beginGroupDrag("type", typeRow.index, p.y, typeRow.y, unit, top);
+                                }
+                                onPositionChanged: (mouse) => {
+                                    if (!typeDragArea.pressed)
+                                        return;
+                                    var p = typeDragArea.mapToItem(typeRow.parent, mouse.x, mouse.y);
+                                    root.updateGroupDrag(p.y);
+                                }
+                                onReleased: root.finishGroupDrag(true)
+                                onCanceled: root.finishGroupDrag(false)
+                            }
+                        }
                         QQC2.Switch {
                             checked: typeRow.catOn
                             onToggled: root.setTypeHidden(typeRow.catId, !checked)
