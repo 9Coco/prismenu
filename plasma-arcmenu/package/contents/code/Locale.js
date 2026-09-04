@@ -239,6 +239,7 @@ var ZH_CN = {
     "Search results": "搜索结果",
     "Search…": "搜索…",
     "Menu Groups": "菜单分组",
+    "Drag to reorder": "拖拽排序",
     "Preference Groups": "偏好分组",
     "Type Groups": "类型分组",
     "Preference groups appear above the split; type groups appear below it.": "偏好分组显示在分割线上方，类型分组显示在分割线下方。",
