@@ -1,12 +1,12 @@
 # Prismenu for KDE Plasma
 
-A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **25 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
+A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **49 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
 
 The project is intended to be a dependable replacement for Plasma's default application launchers, not only a collection of visual layout recreations. It uses Plasma's native application stack and keeps layouts, shared behavior, and configuration separated so the menu can continue to evolve with Plasma 6.
 
 ## Features
 
-- **25 layouts** with source-oriented display names, including Solus Brisk, Linux Mint, Xfce Whisker, KDE Plasma, Ubuntu Unity, Budgie, ChromeOS, Windows 7/10/11 variants, and ArcMenu-original layouts
+- **49 layouts** with source-oriented display names, including Solus Brisk, Linux Mint, Xfce Whisker, KDE Plasma, Ubuntu Unity, Budgie, ChromeOS, Windows 7/10/11 variants, and ArcMenu-original layouts
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications via **Plasma Kicker** (`org.kde.plasma.private.kicker` → `RootModel` / KService) — same stack as Kickoff
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
