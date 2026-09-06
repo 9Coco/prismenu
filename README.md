@@ -1,6 +1,6 @@
 # Prismenu
 
-**Prismenu for KDE Plasma** 是一个可定制的 **KDE Plasma 6** 应用程序启动器。它通过 26 种可切换的布局、原生 Plasma 应用数据以及完整的图形化配置界面，为 Plasma 带来了 ArcMenu 风格的灵活性。
+**Prismenu for KDE Plasma** 是一个可定制的 **KDE Plasma 6** 应用程序启动器。它通过 49 种可切换的布局、原生 Plasma 应用数据以及完整的图形化配置界面，为 Plasma 带来了 ArcMenu 风格的灵活性。
 
 这是一个长期日常使用的项目，而非一次性的视觉原型。项目优先考虑可靠的应用程序启动、原生 Plasma 集成、升级兼容性，以及能够随 Plasma 演进而持续维护的代码库。Kubuntu 是主要目标环境，同时也尽实际可能支持其他 Plasma 6 发行版。
 
