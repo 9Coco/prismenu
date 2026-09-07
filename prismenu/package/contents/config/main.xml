@@ -1,0 +1,446 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+                          http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+    <kcfgfile name=""/>
+
+    <group name="General">
+        <entry name="ButtonIcon" type="String">
+            <default>auto-distro</default>
+        </entry>
+        <entry name="CustomButtonIcon" type="String">
+            <default></default>
+        </entry>
+        <entry name="ButtonLabelVisible" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ButtonLabelText" type="String">
+            <default>Applications</default>
+        </entry>
+        <!-- icon | text | icon-text | text-icon | hidden -->
+        <entry name="MenuButtonAppearance" type="String">
+            <default>icon</default>
+        </entry>
+        <entry name="MenuHotkey" type="String">
+            <default>Meta</default>
+        </entry>
+        <entry name="PopupAnimation" type="String">
+            <default>expand</default>
+        </entry>
+        <entry name="ShareConfigAcrossInstances" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="FilterByActivity" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="UiLanguage" type="String">
+            <default>zh_CN</default>
+        </entry>
+        <!-- Menu button (panel) -->
+        <entry name="PanelButtonIconSize" type="Int">
+            <default>20</default>
+        </entry>
+        <!-- menu | overview | configure | show-desktop | nothing -->
+        <entry name="LeftClickAction" type="String">
+            <default>menu</default>
+        </entry>
+        <entry name="RightClickAction" type="String">
+            <default>context</default>
+        </entry>
+        <entry name="MiddleClickAction" type="String">
+            <default>menu</default>
+        </entry>
+        <entry name="ButtonStyleFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleHoverBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleHoverBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleHoverFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleHoverFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleActiveBgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleActiveBg" type="String"><default></default></entry>
+        <entry name="ButtonStyleActiveFgEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleActiveFg" type="String"><default></default></entry>
+        <entry name="ButtonStyleRadiusEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleRadius" type="Int"><default>20</default></entry>
+        <entry name="ButtonStyleBorderWidthEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBorderWidth" type="Int"><default>3</default></entry>
+        <entry name="ButtonStyleBorderColorEnabled" type="Bool"><default>false</default></entry>
+        <entry name="ButtonStyleBorderColor" type="String"><default></default></entry>
+    </group>
+
+    <group name="Layout">
+        <entry name="MenuLayoutId" type="String">
+            <default>menu</default>
+        </entry>
+        <entry name="FlipHorizontal" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="SearchbarLocation" type="String">
+            <default>bottom</default>
+        </entry>
+        <!-- false until the user changes SearchbarLocation; lets layouts fall
+             back to their own default (upstream: brisk/budgie/… search on top) -->
+        <entry name="SearchbarLocationUserSet" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- ArcMenu layout adjustment -->
+        <entry name="AllAppsButtonAction" type="String">
+            <default>category-list</default>
+        </entry>
+        <entry name="ShowUserAvatar" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="AvatarShape" type="String">
+            <default>circle</default>
+        </entry>
+        <entry name="ShowVerticalSeparator" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="QuickLinksOrder" type="StringList">
+            <default>frequent,pinned,recent-files</default>
+        </entry>
+        <entry name="QuickLinksEnabled" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="QuickLinkPosition" type="String">
+            <default>bottom</default>
+        </entry>
+        <!-- Preference custom groups (id|name|icon), shown above the category split -->
+        <entry name="CustomQuickLinks" type="StringList">
+            <default></default>
+        </entry>
+        <!-- Type custom groups (id|name|icon), shown with system categories -->
+        <entry name="CustomTypeGroups" type="StringList">
+            <default></default>
+        </entry>
+        <!-- JSON map: { "qgrp-xxx": ["app.desktop", ...] } -->
+        <entry name="CustomGroupApps" type="String">
+            <default>{}</default>
+        </entry>
+        <!-- JSON map: { "<group-id>": ["app.desktop", ...] } user drag-order -->
+        <entry name="AppListOrder" type="String">
+            <default>{}</default>
+        </entry>
+        <!-- JSON map: { "<group-id>": { "view": "grid"|"list" } } -->
+        <entry name="GroupViewOptions" type="String">
+            <default>{}</default>
+        </entry>
+        <!-- Group whose contents are shown in each layout's home application area -->
+        <entry name="HomeGroupId" type="String">
+            <default>pinned</default>
+        </entry>
+        <entry name="MenuWidth" type="Int">
+            <default>620</default>
+        </entry>
+        <entry name="MenuHeight" type="Int">
+            <default>540</default>
+        </entry>
+        <!-- JSON map: { "<layout-id>": { "w", "h", "sidebar", "category", "left", "right", "offset" } } -->
+        <entry name="LayoutSizes" type="String">
+            <default>{}</default>
+        </entry>
+        <!-- Side / places / categories column width (px) for multi-column layouts -->
+        <entry name="SidebarWidth" type="Int">
+            <default>220</default>
+        </entry>
+        <!-- Zest (and similar) middle categories column -->
+        <entry name="CategoryColumnWidth" type="Int">
+            <default>220</default>
+        </entry>
+        <!-- Visual appearance: traditional left/right panels + non-traditional offset -->
+        <entry name="LeftPanelWidth" type="Int">
+            <default>380</default>
+        </entry>
+        <entry name="RightPanelWidth" type="Int">
+            <default>220</default>
+        </entry>
+        <entry name="WidthOffset" type="Int">
+            <default>0</default>
+        </entry>
+        <!-- off | top-centered | bottom-centered | center -->
+        <entry name="OverrideMenuPosition" type="String">
+            <default>off</default>
+        </entry>
+        <entry name="OverrideMenuRise" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MenuRiseDistance" type="Int">
+            <default>6</default>
+        </entry>
+        <!-- Icon override levels: -1 Off, 0 XS … 4 XL -->
+        <entry name="IconSizeGrid" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeApps" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeShortcuts" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeCategories" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeButtons" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="IconSizeOther" type="Int">
+            <default>-1</default>
+        </entry>
+    </group>
+
+    <group name="Theme">
+        <!-- system | custom — kept in sync with OverrideMenuTheme -->
+        <entry name="ThemeMode" type="String">
+            <default>system</default>
+        </entry>
+        <entry name="OverrideMenuTheme" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MenuThemeName" type="String">
+            <default>ArcMenu Style</default>
+        </entry>
+        <!-- JSON array of custom presets (ArcMenu menu-themes compatible) -->
+        <entry name="CustomThemes" type="String">
+            <default>[]</default>
+        </entry>
+        <entry name="BgColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="FgColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="BorderColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="BorderWidth" type="Int">
+            <default>1</default>
+        </entry>
+        <entry name="CornerRadius" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="Font" type="String">
+            <default></default>
+        </entry>
+        <entry name="FontSize" type="Int">
+            <default>-1</default>
+        </entry>
+        <entry name="SeparatorColor" type="String">
+            <default></default>
+        </entry>
+        <entry name="HoverBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="HoverFg" type="String">
+            <default></default>
+        </entry>
+        <entry name="ActiveBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="ActiveFg" type="String">
+            <default></default>
+        </entry>
+        <!-- Legacy aliases; mirrored from Active* when saving -->
+        <entry name="SelectedBg" type="String">
+            <default></default>
+        </entry>
+        <entry name="SelectedFg" type="String">
+            <default></default>
+        </entry>
+        <entry name="CategoryIconSize" type="Int">
+            <default>24</default>
+        </entry>
+        <entry name="AppIconSize" type="Int">
+            <default>24</default>
+        </entry>
+        <entry name="FollowColorScheme" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Favorites">
+        <entry name="PinnedApps" type="StringList">
+            <default>org.kde.dolphin.desktop</default>
+        </entry>
+        <entry name="PinnedCols" type="Int">
+            <default>6</default>
+        </entry>
+        <entry name="SyncWithPlasma" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Recent">
+        <entry name="Enabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="MaxItems" type="Int">
+            <default>5</default>
+        </entry>
+        <entry name="RecentApps" type="StringList">
+            <default></default>
+        </entry>
+    </group>
+
+    <group name="Categories">
+        <entry name="Order" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="Hidden" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="CustomNames" type="String">
+            <default>{}</default>
+        </entry>
+        <entry name="CustomIcons" type="String">
+            <default>{}</default>
+        </entry>
+        <entry name="ShowEmpty" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <group name="Shortcuts">
+        <!-- Builtin place keys (HOME/…) or custom:Name|icon|/path (folder or file) -->
+        <entry name="DirectoryShortcuts" type="StringList">
+            <default>HOME,DOCUMENTS,DOWNLOAD,MUSIC,PICTURES,VIDEOS</default>
+        </entry>
+        <entry name="PlaceSectionOrder" type="StringList">
+            <default>system,dolphin,custom</default>
+        </entry>
+        <entry name="SystemPlaceOrder" type="StringList"><default></default></entry>
+        <entry name="HiddenSystemPlaces" type="StringList"><default></default></entry>
+        <entry name="DolphinPlaceOrder" type="StringList"><default></default></entry>
+        <entry name="HiddenDolphinPlaces" type="StringList"><default></default></entry>
+        <entry name="HiddenCustomPlaces" type="StringList"><default></default></entry>
+        <!-- Builtin: discover|settings|tweaks|overview — or desktop id — or custom:Name|icon|exec -->
+        <entry name="ApplicationShortcuts" type="StringList">
+            <default>discover,settings,tweaks</default>
+        </entry>
+        <entry name="ExtraCategoriesOrder" type="StringList">
+            <default>pinned,all-apps,frequent,recent-files</default>
+        </entry>
+        <entry name="ExtraCategoriesEnabled" type="StringList">
+            <default>pinned,all-apps</default>
+        </entry>
+        <!-- false until the user changes Extra Categories; avoids empty cfg wiping defaults -->
+        <entry name="ExtraCategoriesUserSet" type="Bool">
+            <default>false</default>
+        </entry>
+        <!-- Shared application-sidebar item ids: special:*, category:*, group:* -->
+        <entry name="SidebarOrder" type="StringList">
+            <default></default>
+        </entry>
+        <entry name="SidebarHidden" type="StringList">
+            <default></default>
+        </entry>
+        <!-- Button context menu items: configure|panel-settings|separator|power|overview|show-desktop|desktop:…|custom:… -->
+        <entry name="ContextMenuItems" type="StringList">
+            <default>configure,separator,power,overview,show-desktop</default>
+        </entry>
+    </group>
+
+    <group name="Search">
+        <entry name="Providers" type="StringList">
+            <default>applications,places,files</default>
+        </entry>
+        <entry name="Placeholder" type="String">
+            <default>Search…</default>
+        </entry>
+        <entry name="ShowDescription" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="MaxResults" type="Int">
+            <default>20</default>
+        </entry>
+        <entry name="HideSearchBar" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="HighlightSearchTerms" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SearchBoxRadiusEnabled" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SearchBoxRadius" type="Int">
+            <default>25</default>
+        </entry>
+        <entry name="SearchWindows" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SearchRecentFiles" type="Bool">
+            <default>true</default>
+        </entry>
+    </group>
+
+    <!-- Prismenu Fine-tuning / 微调 -->
+    <group name="FineTune">
+        <entry name="ShowCategorySubmenus" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowAppDescriptions" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowGenericNames" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ShowHiddenRecentFiles" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="MultiLineLabels" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ShowTooltips" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="GroupAppsAlphabeticallyList" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="GroupAppsAlphabeticallyGrid" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="ActivateExistingWindow" type="Bool">
+            <default>false</default>
+        </entry>
+        <entry name="KeepOpenOnCtrlClick" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ScrollviewFadeEffects" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="ShowScrollbars" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="OverlayScrollbars" type="Bool">
+            <default>true</default>
+        </entry>
+        <!-- fullcolor | symbolic -->
+        <entry name="CategoryIconType" type="String">
+            <default>symbolic</default>
+        </entry>
+        <entry name="ShortcutIconType" type="String">
+            <default>symbolic</default>
+        </entry>
+    </group>
+
+    <group name="Power">
+        <entry name="Options" type="StringList">
+            <default>logout,lock,restart,shutdown</default>
+        </entry>
+        <entry name="PowerOptionsOrder" type="StringList">
+            <default>logout,lock,restart,shutdown,suspend,hybridsleep,hibernate,switchuser</default>
+        </entry>
+        <entry name="Confirm" type="Bool">
+            <default>true</default>
+        </entry>
+        <entry name="SoftwareCenterCmd" type="String">
+            <default>auto-detect</default>
+        </entry>
+        <!-- off | buttons | list -->
+        <entry name="PowerDisplayStyle" type="String">
+            <default>off</default>
+        </entry>
+    </group>
+</kcfg>

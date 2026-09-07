@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Prismenu">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3daee9"/>
+      <stop offset="100%" stop-color="#1d99f3"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#g)"/>
+  <!-- prism -->
+  <path d="M64 26 98 90H30Z" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/>
+  <!-- incoming beam -->
+  <path d="M8 56H48" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+  <!-- spectrum -->
+  <path d="M86 66 122 44" fill="none" stroke="#da4453" stroke-width="6" stroke-linecap="round"/>
+  <path d="M86 66 122 58" fill="none" stroke="#fdbc4b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M86 66 122 72" fill="none" stroke="#27ae60" stroke-width="6" stroke-linecap="round"/>
+  <path d="M86 66 122 86" fill="none" stroke="#8e44ad" stroke-width="6" stroke-linecap="round"/>
+</svg>
