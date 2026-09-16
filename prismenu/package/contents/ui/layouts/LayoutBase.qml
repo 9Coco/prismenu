@@ -385,6 +385,8 @@ Item {
                 id: it.id,
                 name: it.name || "",
                 icon: it.icon || "folder",
+                decoration: it.decoration,
+                iconHolder: it.iconHolder,
                 tip: it.name || it.tip || "",
                 place: it.place || "",
                 exec: it.exec || "",

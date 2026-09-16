@@ -3,21 +3,25 @@ import org.kde.kirigami as Kirigami
 import org.kde.ksvg as KSvg
 import "../../code/CategoryIcons.js" as CategoryIcons
 import "../../code/PresetIcons.js" as PresetIcons
+import "../../code/SearchExtras.js" as SearchExtras
 
 /**
- * Kirigami.Icon that resolves bundled prismenu-cat-* SVGs from contents/icons/categories/.
+ * Kirigami.Icon that preserves native decorations and resolves bundled SVGs.
  */
 Kirigami.Icon {
     id: root
 
     property string iconName: ""
+    property var iconItem: null
     /** When set, used for bundled (mask) icons so they follow list selection/hover. */
     property color tintColor: Kirigami.Theme.textColor
     /** Prefer symbolic / mask rendering (Fine-tuning → Icon style) */
     property bool preferSymbolic: true
 
-    readonly property bool bundled: CategoryIcons.isBundled(iconName)
-    readonly property bool preset: PresetIcons.isPreset(iconName)
+    readonly property var itemSource: iconItem ? SearchExtras.resultIconSource(iconItem) : iconName
+    readonly property string sourceName: typeof itemSource === "string" ? itemSource : ""
+    readonly property bool bundled: CategoryIcons.isBundled(sourceName)
+    readonly property bool preset: PresetIcons.isPreset(sourceName)
     property int _svgRevision: 0
 
     // Local SVGs are not theme icon names. Give Kirigami a rendered image so
@@ -27,14 +31,18 @@ Kirigami.Icon {
     KSvg.Svg {
         id: localSvg
         imagePath: root.bundled
-            ? Qt.resolvedUrl("../../icons/categories/" + root.iconName + ".svg")
-            : (root.preset ? Qt.resolvedUrl("../../icons/menu-button/" + root.iconName + ".svg") : "")
+            ? Qt.resolvedUrl("../../icons/categories/" + root.sourceName + ".svg")
+            : (root.preset ? Qt.resolvedUrl("../../icons/menu-button/" + root.sourceName + ".svg") : "")
         onRepaintNeeded: root._svgRevision++
     }
 
+    fallback: iconName || "application-x-executable"
     source: {
-        if (!iconName)
-            return "application-x-executable";
+        // QIcon decorations have no QML-accessible name; keep the native value.
+        if (root.itemSource && typeof root.itemSource !== "string")
+            return root.itemSource;
+        if (!sourceName)
+            return fallback;
         if (bundled || preset) {
             const revision = root._svgRevision;
             return localSvg.image(Qt.size(
@@ -42,16 +50,16 @@ Kirigami.Icon {
                 Math.max(1, Math.ceil(root.height * root.Screen.devicePixelRatio))));
         }
         // Face / custom paths (Kickoff-style user icons)
-        if (iconName.indexOf("/") === 0)
-            return "file://" + iconName;
+        if (sourceName.indexOf("/") === 0)
+            return "file://" + sourceName;
         if (root.preferSymbolic) {
-            var n = String(iconName);
+            var n = sourceName;
             if (n.indexOf("-symbolic") < 0 && n.indexOf("/") < 0 && n.indexOf(".") < 0)
                 return n + "-symbolic";
         }
-        return iconName;
+        return sourceName;
     }
 
-    isMask: bundled || (preset && PresetIcons.isSymbolic(iconName)) || root.preferSymbolic
+    isMask: bundled || (preset && PresetIcons.isSymbolic(sourceName)) || root.preferSymbolic
     color: tintColor
 }

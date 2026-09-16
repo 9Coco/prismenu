@@ -66,8 +66,8 @@ function highlightMarkup(text, query) {
 }
 
 /**
- * Icon for a search/app row. Prefer the live KRunner QIcon (`decoration`) so
- * favicons, MIME icons, and window pixmaps survive; fall back to a theme name.
+ * Icon for a search/app/Places row. Prefer the live native `decoration` so
+ * place icons, favicons, MIME icons, and window pixmaps survive; fall back to a theme name.
  */
 function resultIconSource(app) {
     if (!app)

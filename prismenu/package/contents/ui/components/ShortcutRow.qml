@@ -10,6 +10,7 @@ Item {
     id: root
 
     property string iconName: "application-x-executable"
+    property var iconItem: null
     property string label: ""
     property int iconSize: 22
     property bool selected: false
@@ -54,6 +55,7 @@ Item {
         ResolvedIcon {
             visible: root.iconSize > 0
             iconName: root.iconName
+            iconItem: root.iconItem
             tintColor: root.chipFg
             preferSymbolic: root.preferSymbolic
             Layout.preferredWidth: root.iconSize

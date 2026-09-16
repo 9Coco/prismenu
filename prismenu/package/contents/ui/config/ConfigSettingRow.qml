@@ -13,6 +13,7 @@ Item {
     property string title: ""
     property string subtitle: ""
     property string iconName: ""
+    property var iconItem: null
     property string accent: "blue"
     default property alias trailing: trail.data
 
@@ -43,7 +44,7 @@ Item {
         spacing: Kirigami.Units.largeSpacing
 
         Rectangle {
-            visible: root.iconName.length > 0
+            visible: root.iconName.length > 0 || root.iconItem !== null
             Layout.preferredWidth: Kirigami.Units.gridUnit * 2.0
             Layout.preferredHeight: Kirigami.Units.gridUnit * 2.0
             Layout.alignment: Qt.AlignVCenter
@@ -55,6 +56,7 @@ Item {
                 width: Kirigami.Units.iconSizes.smallMedium
                 height: width
                 iconName: root.iconName
+                iconItem: root.iconItem
                 tintColor: root.badgeColor
                 preferSymbolic: false
             }

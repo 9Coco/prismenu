@@ -104,6 +104,7 @@ LayoutBase {
                     Repeater {
                         model: root.placeActions.length
                         PlasmaComponents.ToolButton {
+                            id: placeButton
                             required property int index
                             readonly property var def: root.placeActions[index]
                             anchors.horizontalCenter: parent.horizontalCenter
@@ -113,6 +114,16 @@ LayoutBase {
                             icon.name: def.icon
                             icon.width: Kirigami.Units.iconSizes.smallMedium
                             icon.height: Kirigami.Units.iconSizes.smallMedium
+                            contentItem: Item {
+                                Components.ResolvedIcon {
+                                    anchors.centerIn: parent
+                                    width: placeButton.icon.width
+                                    height: placeButton.icon.height
+                                    iconName: placeButton.icon.name
+                                    iconItem: placeButton.def
+                                    preferSymbolic: false
+                                }
+                            }
                             Accessible.name: def.tip
                             onClicked: root.activateItem(def)
                             PlasmaComponents.ToolTip.text: def.tip

@@ -211,6 +211,7 @@ LayoutBase {
                             required property int index
                             width: sideCol.width
                             iconName: root.sideItems[index].icon
+                            iconItem: root.sideItems[index]
                             label: root.sideItems[index].name
                             iconSize: root.categoryIconSize
                             selectedBg: root.selectedBg
