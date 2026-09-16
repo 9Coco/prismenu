@@ -176,6 +176,7 @@ ColumnLayout {
                             required property var modelData
                             width: listCol.width
                             iconName: modelData.icon
+                            iconItem: modelData
                             label: modelData.name
                             iconSize: root.iconSize
                             selectedBg: root.selectedBg

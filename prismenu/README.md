@@ -10,6 +10,7 @@ The project is intended to be a dependable replacement for Plasma's default appl
 - **Panel button** with distro auto-detect (Kubuntu-friendly), custom icons, optional label, Meta hotkey, popup animations
 - **Browse / search / launch** applications via **Plasma Kicker** (`org.kde.plasma.private.kicker` → `RootModel` / KService) — same stack as Kickoff
 - **Favorites & recent apps** with optional Plasma global favorites sync flag
+- **KDE Places** retain their native icons (Music, Pictures, Videos, Trash, network locations, and bookmarks) in sidebars, icon rails, and settings, including live icon updates; custom shortcut icons remain supported
 - **System actions**: shut down, restart, log out, lock, suspend, hibernate, System Settings, Discover, switch user (with confirmations)
 - **Theme engine**: follow Plasma theme or fully custom colors/fonts/radii/icon sizes
 - **Category management**: hide, rename, reorder, custom icons
@@ -135,7 +136,17 @@ To add a normal layout, create `ui/layouts/LayoutName.qml` inheriting `LayoutBas
 
 ```bash
 python3 tests/validate_requirements.py
+node tests/test_search_extras.js
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/qml/tst_place_icons.qml
+QT_QPA_PLATFORM=offscreen /usr/lib/qt6/bin/qmltestrunner -input tests/qml/tst_bundled_icon.qml
 ```
+
+Adjust the Qt tool path for your distribution. The Places regression uses the
+installed KDE Places model and checks native icon identity/rendering, live
+updates, theme-name fallbacks, and custom icons without modifying bookmarks.
+Bundled icon tint checks require an RHI renderer and are skipped on the Qt
+software renderer. Add `QT_QUICK_BACKEND=rhi QSG_RHI_BACKEND=opengl` to the
+QML test commands to exercise tinting where offscreen OpenGL is available.
 
 ## License
 

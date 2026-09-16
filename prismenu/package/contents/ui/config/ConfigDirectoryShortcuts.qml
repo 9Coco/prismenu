@@ -294,6 +294,7 @@ Item {
                             subtitle: sectionGroup.sectionId === "system" ? root.tr("Provided by KDE Places")
                                 : (sectionGroup.sectionId === "dolphin" ? root.tr("Managed in Dolphin Places") : root.tr("Managed by Prismenu"))
                             iconName: modelData.icon || "folder"
+                            iconItem: modelData
                             accent: sectionGroup.sectionId === "system" ? "blue"
                                 : (sectionGroup.sectionId === "dolphin" ? "purple" : "green")
                             QQC2.Button {

@@ -361,6 +361,7 @@ LayoutBase {
                 Repeater {
                     model: root.footPlaces.length
                     PlasmaComponents.ToolButton {
+                        id: placeButton
                         required property int index
                         readonly property var def: root.footPlaces[index]
                         flat: true
@@ -369,6 +370,16 @@ LayoutBase {
                         icon.name: def.icon
                         icon.width: root.footIcon
                         icon.height: root.footIcon
+                        contentItem: Item {
+                            Components.ResolvedIcon {
+                                anchors.centerIn: parent
+                                width: placeButton.icon.width
+                                height: placeButton.icon.height
+                                iconName: placeButton.icon.name
+                                iconItem: placeButton.def
+                                preferSymbolic: false
+                            }
+                        }
                         Accessible.name: def.tip
                         onClicked: root.activateItem(def)
                         PlasmaComponents.ToolTip.text: def.tip

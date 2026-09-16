@@ -88,4 +88,29 @@ if (search.resultIconSource({ icon: "bookmarks" }) !== "bookmarks")
 if (search.resultIconSource({ decoration: "folder-remote", icon: "x" }) !== "folder-remote")
     throw new Error("resultIconSource should prefer decoration");
 
+const nativeIcon = { kind: "native-icon" };
+const changedIcon = { kind: "changed-native-icon" };
+const holder = { decoration: nativeIcon };
+const nativePlace = { icon: "folder", decoration: "folder-music", iconHolder: holder };
+if (search.resultIconSource(nativePlace) !== nativeIcon)
+    throw new Error("resultIconSource must preserve live native icons without string conversion");
+holder.decoration = changedIcon;
+if (search.resultIconSource(nativePlace) !== changedIcon)
+    throw new Error("resultIconSource did not follow a changed native decoration");
+for (const empty of [null, undefined, ""]) {
+    holder.decoration = empty;
+    if (search.resultIconSource(nativePlace) !== "folder-music")
+        throw new Error("Missing live decoration should fall back to the snapshot");
+    if (search.resultIconSource({ decoration: empty, icon: "folder" }) !== "folder")
+        throw new Error("Missing native decoration should fall back to the theme name");
+}
+if (search.resultIconSource({ decoration: nativeIcon, icon: "folder" }) !== nativeIcon)
+    throw new Error("resultIconSource must preserve native snapshot icons");
+if (search.resultIconSource({ decoration: { isNull: true }, icon: "folder" }) !== "folder")
+    throw new Error("A null decoration should fall back to the theme name");
+if (search.resultIconSource({ icon: "/tmp/custom-place.svg" }) !== "/tmp/custom-place.svg")
+    throw new Error("Custom icon paths should be preserved");
+if (search.resultIconSource(null) !== "application-x-executable")
+    throw new Error("Missing entries should retain the generic fallback");
+
 console.log("SearchExtras provider tests passed.");
