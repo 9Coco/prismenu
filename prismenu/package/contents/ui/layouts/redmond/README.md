@@ -11,4 +11,3 @@ Windows 7-inspired two-column structure, adapted with a pinned application grid.
 ```
 
 Entry: `../LayoutRedmond.qml`
-Reference: `docs/reference-screenshots/redmond/01-target.png`

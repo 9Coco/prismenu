@@ -1,6 +1,6 @@
 # Prismenu for KDE Plasma
 
-A customizable, daily-use application menu plasmoid for **KDE Plasma 6**, maintained for long-term use on **Kubuntu** and other Plasma desktops. It provides **49 switchable layouts**, deep appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and a complete graphical settings interface.
+A customizable application menu plasmoid for **KDE Plasma 6**, with **49 switchable layouts**, appearance customization, favorites and recent apps, Plasma Search–style app matching, system actions, and graphical settings. Kubuntu with Plasma 6 is the primary target; long-term daily use is a project goal.
 
 The project is intended to be a dependable replacement for Plasma's default application launchers, not only a collection of visual layout recreations. It uses Plasma's native application stack and keeps layouts, shared behavior, and configuration separated so the menu can continue to evolve with Plasma 6.
 
@@ -15,13 +15,17 @@ The project is intended to be a dependable replacement for Plasma's default appl
 - **Theme engine**: follow Plasma theme or fully custom colors/fonts/radii/icon sizes
 - **Category management**: hide, rename, reorder, custom icons
 - **Keyboard navigation** and application context menus
-- **i18n**: English template + Simplified Chinese and stubs for 20+ locales
+- **UI languages**: built-in English and Simplified Chinese; gettext templates and stubs for 20+ locales are also included for translation work
 
 ## Requirements
 
-- KDE Plasma 6 (`plasma-workspace` provides Kicker — no GMenu / Python scan)
-- Qt 6 / KF6 (for CMake install)
-- Kubuntu 24.04+ / openSUSE KDE / Fedora KDE / Arch / Manjaro KDE (or any Plasma 6 system)
+- Linux running **KDE Plasma 6**. The package declares Plasma 6.0 as its minimum API version; this is not a claim that every Plasma 6 release or distribution has been tested.
+- Runtime QML modules: Plasma Kicker and session management, `org.kde.plasma.plasma5support`, Kirigami, `org.kde.kirigamiaddons.components` (including `Avatar`), KCMUtils, KSvg, KDE Task Manager, and Qt Quick Controls/Dialogs. Install their Plasma 6 / Qt 6 packages using your distribution's package manager; package names vary.
+- For CMake installation: CMake 3.16+, ECM 6.0+, Qt 6.6+ development packages (`Core`, `Qml`, `Quick`), KF6 6.0+ development packages (`I18n`, `Package`, `Config`), Plasma 6 development files, gettext tools, and a working build toolchain.
+
+**Kubuntu 24.04 is not a default compatible environment:** its official release ships [Plasma 5.27](https://kubuntu.org/news/kubuntu-24-04-lts-noble-numbat-released/). Use an installation that actually provides Plasma 6 and the runtime modules above. Other Plasma 6 distributions are intended targets, not a verified compatibility matrix.
+
+The repository's Python/JavaScript checks validate source structure and helper behavior. They do not establish native QML loading, successful CMake installation, or behavior on a particular Plasma desktop. Validate those on the target system before relying on a release for daily use.
 
 ## Quick install (per-user)
 
@@ -35,7 +39,9 @@ Then:
 1. Right-click the panel → **Add Widgets** → **Prismenu**, or
 2. Right-click Kickoff → **Show Alternatives** → **Prismenu**
 
-No Plasma restart required.
+For a new installation, add the widget through Plasma's widget picker. An already-running instance can retain loaded QML after an update; reopen or reload it when needed.
+
+The installed package includes `COPYING`, `LICENSES/`, and `THIRD_PARTY_NOTICES.md`; see [License and third-party assets](#license-and-third-party-assets).
 
 ## CMake install (system-wide)
 
@@ -50,17 +56,15 @@ sudo cmake --install build
 
 Right-click the Prismenu button → **Configure Prismenu…**
 
-Settings categories:
+The settings dialog has three project-defined categories, in this order:
 
-1. **General** – button icon/label, hotkey, animation, multi-instance sharing
-2. **Menu Layout** – layout picker, flip, search bar position, width/height
-3. **Theme & Appearance** – system/custom theme, colors, fonts, icon sizes
-4. **Menu Content** – categories, favorites, recent apps
-5. **Search** – providers, placeholder, max results, descriptions
-6. **System Actions** – visible power/session actions, confirmations, software center command
-7. **About**
+1. **Menu** — opens the menu settings hub described below.
+2. **General** — language, hotkey, popup animation, shared configuration, activity filtering, backup/import, and reset.
+3. **Menu Button** — panel icon and label, icon size, display style, left/middle click actions, and button appearance.
 
-A KCM stub is also installed under Workspace behavior for discovery in System Settings.
+Within **Menu**, the content section links to **Menu Layout**, **Frequent Locations**, **Application Shortcuts**, **Search Options**, **Menu Groups**, **ArcMenu layout adjustment**, and **Power Options**. The appearance section links to **Menu Theme**, **Menu Visual Appearance**, and **Fine-tuning**. Plasma also supplies an **About** page from `metadata.json`.
+
+Configure the installed widget through its context menu. This project does not install a standalone System Settings KCM.
 
 ## Layout notes
 
@@ -111,6 +115,9 @@ Unsupported options for a layout are disabled in settings with an explanatory no
 prismenu/
 ├── package/                 # Plasmoid package
 │   ├── metadata.json
+│   ├── COPYING              # Full GPL v2 text
+│   ├── LICENSES/            # Separate graphics license texts
+│   ├── THIRD_PARTY_NOTICES.md
 │   └── contents/
 │       ├── config/          # KConfig schema + ConfigModel
 │       ├── code/            # JS helpers (layouts, pages, favorites, theme, distro)
@@ -119,13 +126,12 @@ prismenu/
 │           ├── pages/       # Page display modules (home / apps / search / …)
 │           ├── components/  # Shared widgets + functional chrome modules
 │           └── config/      # Settings pages
-├── kcm/                     # System Settings registration stub
 ├── po/                      # Translations
 ├── icons/                   # SVG assets
 ├── tests/                   # Requirement structure checks
 ├── CMakeLists.txt
 ├── install.sh
-└── COPYING                  # GPL-2.0-or-later
+└── COPYING                  # Full GPL v2 text
 ```
 
 **Architecture note:** `code/LayoutRegistry.js` is the single source of layout metadata, including the QML source, preview kind, capabilities, defaults, and sizing policy. All selectable layouts inherit `ui/layouts/LayoutBase.qml`, which owns shared catalog projections, activation behavior, standard categories, and idle-time preloading. Layouts use `LayoutSearchField`, `LayoutAppList`, and `LayoutAppGrid` to inherit data/theme/event wiring while remaining responsible for navigation state, chrome, sizing, and visual composition. Full-catalog sorting and A–Z grouping are computed once in `MenuData.qml`.
@@ -148,6 +154,10 @@ Bundled icon tint checks require an RHI renderer and are skipped on the Qt
 software renderer. Add `QT_QUICK_BACKEND=rhi QSG_RHI_BACKEND=opengl` to the
 QML test commands to exercise tinting where offscreen OpenGL is available.
 
-## License
+## License and third-party assets
 
-GPL-2.0-or-later — see `COPYING`.
+Project code is licensed under **GPL-2.0-or-later**. The repository's [root `LICENSE`](../LICENSE), [`COPYING`](COPYING), and [`package/COPYING`](package/COPYING) contain the full GNU GPL version 2 text; the project's licensing declaration permits version 2 or any later version. Preserve upstream copyright and license notices when redistributing modified code.
+
+Bundled graphics have separate license terms. The canonical inventory, source links, attribution, modifications, and exceptions are in [`package/THIRD_PARTY_NOTICES.md`](package/THIRD_PARTY_NOTICES.md). It identifies Material Symbols graphics under Apache-2.0, ArcMenu icons under CC-BY-SA-4.0, and NixOS logos under CC-BY-4.0; the corresponding full texts are in [`package/LICENSES/`](package/LICENSES/). Other distribution logos retain their upstream copyright and trademark notices as recorded in the inventory. Asset license and trademark terms still apply when distributing the GPL-licensed application; a project-wide GPL statement does not replace them.
+
+Both `install.sh` and the CMake `plasma_install_package` route install the `package/` contents, including its `COPYING`, `LICENSES/`, and `THIRD_PARTY_NOTICES.md`. Keep these files in any downloadable plasmoid package or repackaged distribution.

@@ -13,4 +13,3 @@ Windows 11 Start style (ArcMenu Eleven reference).
 ```
 
 Entry: `../LayoutEleven.qml`
-Reference: `docs/reference-screenshots/eleven/01-target.png`

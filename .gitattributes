@@ -1,2 +1,13 @@
 # Shell scripts must use LF line endings to run on Linux
 *.sh text eol=lf
+
+# Keep the complete upstream license texts byte-stable across platforms.
+# Their original formatting includes trailing spaces and a final blank line.
+LICENSE text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+prismenu/COPYING text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+prismenu/package/COPYING text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+prismenu/package/LICENSES/*.txt text eol=lf whitespace=-blank-at-eol,-blank-at-eof
+
+# SVGs with local attribution comments use consistent LF line endings.
+prismenu/package/contents/icons/categories/*.svg text eol=lf
+prismenu/package/contents/icons/prismenu-settings.svg text eol=lf

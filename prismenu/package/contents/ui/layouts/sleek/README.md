@@ -15,4 +15,3 @@ ArcMenu Sleek style.
 - Right: large circular avatar, places + software/settings, single power button
 
 Entry: `../LayoutSleek.qml`  
-Reference: `docs/reference-screenshots/sleek/01-target.png`

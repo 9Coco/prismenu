@@ -1,6 +1,57 @@
-_ref_arcmenu/
-upstream-arcmenu/
+# Local reference checkouts, scratch work, and the retired package tree
+/_ref_arcmenu/
+/upstream-arcmenu/
+/_dsh_tmp/
+/plasma-arcmenu/
+/work/
+/tmp/
+/artifacts/
+/outputs/
 
-# Logs
+# Local development notes and one-off diagnostics (keep local copies)
+/开发文档/
+/prismenu/docs/思考-应用目录与空菜单排查.md
+/prismenu/probe-env.sh
+/docs/reference-screenshots/
+
+# CMake build trees and generated distribution packages
+/build/
+/cmake-build-*/
+/dist/
+/prismenu/build/
+/prismenu/cmake-build-*/
+/prismenu/dist/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+
+# QML caches and compiled translations; retain QML/JS and PO/POT sources
+*.qmlc
+*.jsc
+*.mo
+
+# Python caches and local environments, including the documentation generator
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Diagnostic output
 *.log
 logs/
+
+# Local editor and operating-system files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+*~
+*.swp
+*.swo
+*.bak
+*.orig
+*.rej

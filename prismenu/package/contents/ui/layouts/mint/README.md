@@ -16,4 +16,3 @@ Linux Mint Menu style (ArcMenu Mint reference).
 Distinctive: far-left vertical icon rail (settings / software / files / logout / lock / power).
 
 Entry: `../LayoutMint.qml`
-Reference: `docs/reference-screenshots/mint/01-target.png`

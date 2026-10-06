@@ -14,4 +14,3 @@ Compact Windows 11 style without the frequent/recommended section.
 "All Applications" → alphabetical list with letter headers (A, B, C…).
 
 Entry: `../LayoutAz.qml`
-Reference: `docs/reference-screenshots/az/01-target.png`

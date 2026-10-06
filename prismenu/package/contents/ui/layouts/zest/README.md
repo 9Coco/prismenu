@@ -17,4 +17,3 @@ ArcMenu Zest — **three columns**.
 - Search spans middle + right only
 
 Entry: `../LayoutZest.qml`  
-Reference: `docs/reference-screenshots/zest/01-target.png`

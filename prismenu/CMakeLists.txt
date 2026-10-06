@@ -23,9 +23,4 @@ plasma_install_package(package com.github.9coco.prismenu)
 # Translations
 ki18n_install(po)
 
-# Optional standalone KCM registration stub (settings also available via plasmoid configure)
-install(FILES kcm/kcm_prismenu.json
-        DESTINATION ${KDE_INSTALL_KSERVICESDIR}
-        OPTIONAL)
-
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)

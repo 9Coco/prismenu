@@ -1,1 +1,11 @@
+<!--
+  SPDX-FileCopyrightText: Google LLC
+  SPDX-License-Identifier: Apache-2.0
+  Source artwork: Material Symbols Outlined, https://fonts.google.com/icons
+  Prismenu adaptations: local asset name and SVG wrapper/currentColor integration.
+  Original download revision was not recorded; source attribution is retained.
+  Attribution and complete license: package/THIRD_PARTY_NOTICES.md and
+  package/LICENSES/Apache-2.0.txt (relative to the source repository's prismenu/).
+  This notice was added by Prismenu Contributors on 2026-10-07.
+-->
 <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path fill="currentColor" d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></svg>

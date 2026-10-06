@@ -30,4 +30,3 @@ Entry: `../LayoutPlasmaDash.qml`
 ```
 
 Entry: `../LayoutPlasma.qml`
-Reference: `docs/reference-screenshots/plasma/01-target.png`

@@ -16,4 +16,3 @@ ArcMenu Chromebook / ChromeOS app drawer.
 - Portrait window (~420×620) — taller than wide
 
 Entry: `../LayoutChromebook.qml`  
-Reference: `docs/reference-screenshots/chromebook/01-target.png`

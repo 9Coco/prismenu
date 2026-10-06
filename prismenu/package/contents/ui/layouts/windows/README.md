@@ -18,5 +18,3 @@ Windows 10 Start style: application list, pinned tiles, and expandable side rail
 - Side menu: Back + shortcuts/places/devices | pinned
 
 Entry: `../LayoutWindows.qml`  
-Reference: `docs/reference-screenshots/windows/01-target.png`  
-Hamburger: `docs/reference-screenshots/windows/02-hamburger-menu.png`

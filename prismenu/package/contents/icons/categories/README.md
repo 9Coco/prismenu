@@ -2,6 +2,12 @@
 
 Unified **Material Symbols Outlined** icons from [Google Fonts Icons](https://fonts.google.com/icons), shipped as SVG under this folder.
 
+Google LLC's Material Symbols artwork is licensed under **Apache-2.0**.
+The 30 category SVG files retain that license; their local filenames and SVG
+wrappers are Prismenu adaptations. Each file carries a source and adaptation
+notice. See the [complete asset inventory and attribution](../../../THIRD_PARTY_NOTICES.md)
+and the [full Apache license](../../../LICENSES/Apache-2.0.txt).
+
 ## Naming
 
 `prismenu-cat-{group}-{variant}.svg`

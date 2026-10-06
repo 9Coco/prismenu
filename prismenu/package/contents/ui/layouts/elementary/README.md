@@ -15,4 +15,3 @@ ArcMenu Elementary / elementary OS Slingshot style.
 - 6-column scrollable icon grid of all applications (or search results)
 
 Entry: `../LayoutElementary.qml`  
-Reference: `docs/reference-screenshots/elementary/01-target.png`

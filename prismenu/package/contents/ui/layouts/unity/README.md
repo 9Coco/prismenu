@@ -17,4 +17,3 @@ ArcMenu Unity compact menu (not Unity Dash).
 - Bottom: darker full-width strip; places + session icons centered as one group
 
 Entry: `../LayoutUnity.qml`  
-Reference: `docs/reference-screenshots/unity/01-target.png`, `02-category-popup.png`

@@ -11,4 +11,3 @@ a version-specific Windows Enterprise Start menu.
 ```
 
 Entry: `../LayoutEnterprise.qml`
-Reference: `docs/reference-screenshots/enterprise/01-target.png`

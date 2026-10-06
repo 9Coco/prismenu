@@ -16,4 +16,3 @@ ArcMenu Tognee style.
 - Search at bottom of main column
 
 Entry: `../LayoutTognee.qml`  
-Reference: `docs/reference-screenshots/tognee/01-target.png`

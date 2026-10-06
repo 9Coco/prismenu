@@ -1,8 +1,21 @@
 .pragma library
 
 /*
- * Favorite action API copied from Plasma Kickoff's code/tools.js.
- * Keep the action ids, argument object and model calls identical to upstream.
+ * SPDX-FileCopyrightText: 2013 Aurélien Gâteau <agateau@kde.org>
+ * SPDX-FileCopyrightText: 2013-2015 Eike Hein <hein@kde.org>
+ * SPDX-FileCopyrightText: 2017 Ivan Cukic <ivan.cukic@kde.org>
+ * SPDX-FileCopyrightText: 2022 ivan tkachenko <me@ratijas.tk>
+ * SPDX-FileCopyrightText: 2026 Prismenu Contributors
+ *
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ *
+ * Derived from Plasma Kickoff's ui/code/tools.js:
+ * https://invent.kde.org/plasma/plasma-desktop/-/blob/Plasma/6.3/applets/kickoff/package/contents/ui/code/tools.js
+ *
+ * Prismenu adaptations: retain the favorite action API, use QML-compatible
+ * string helpers and the catalog's activity list, and insert favorite actions
+ * into the app context menu. Attribution restored on 2026-10-07.
+ * See the package's THIRD_PARTY_NOTICES.md and COPYING for licensing details.
  */
 
 function startsWith(value, prefix) {

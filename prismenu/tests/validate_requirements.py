@@ -730,7 +730,6 @@ def main() -> int:
     check((ROOT / "README.md").exists() or (ROOT.parent / "README.md").exists(), "README")
     check((ROOT / "CMakeLists.txt").exists(), "CMakeLists.txt")
     check((ROOT / "install.sh").exists(), "install.sh")
-    check((ROOT / "kcm/kcm_prismenu.json").exists(), "KCM registration json")
 
     # Layout capability flags
     check("supportsFlip" in registry, "flip capability")

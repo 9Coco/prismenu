@@ -19,4 +19,3 @@ ArcMenu Raven / Budgie Raven style — **full-height left icon rail**.
 - Shared Menu height in settings stays ≤800px; Raven tall size is runtime-only and does not affect other layouts
 
 Entry: `../LayoutRaven.qml`  
-Reference: `docs/reference-screenshots/raven/01-target.png`

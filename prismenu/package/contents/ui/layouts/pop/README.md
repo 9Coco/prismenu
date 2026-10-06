@@ -11,4 +11,3 @@ ArcMenu Pop / Pop!_OS launcher style.
 ```
 
 Entry: `../LayoutPop.qml`
-Reference: `docs/reference-screenshots/pop/01-target.png`
